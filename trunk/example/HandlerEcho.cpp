@@ -32,13 +32,14 @@ void HandlerEcho::Recv(std::shared_ptr<ClientSession> client, std::shared_ptr<Ga
 		Gamnet::Log::Write(GAMNET_ERR, e.what());
 	}
 	Gamnet::Router::Address addr;
+	addr.service_name = "HELLOWORLD";
 	addr.cast_type = ROUTER_CAST_MULTI;
 	Gamnet::Router::SendMsg(client, addr, ntf);
 	Gamnet::Network::SendMsg(client, ans);
 }
 
 static bool HandlerEcho_Recv_Result = Gamnet::Network::RegisterHandler<ClientSession>(
-	Msg_SC_Echo_Ans::MSG_ID,
+	Msg_CS_Echo_Req::MSG_ID,
 	&HandlerEcho::Recv,
 	std::shared_ptr<Gamnet::Network::HandlerStatic<HandlerEcho>>(new Gamnet::Network::HandlerStatic<HandlerEcho>())
 );
