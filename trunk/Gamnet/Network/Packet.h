@@ -104,7 +104,7 @@ public :
 		{
 			return false;
 		}
-		this->writeCursor_ += (total_length-3);
+		this->writeCursor_ += total_length;
 		return true;
 	}
 
