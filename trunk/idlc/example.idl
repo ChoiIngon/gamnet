@@ -1,0 +1,101 @@
+/**
+	multi line comment test
+*/
+//	one line comment test
+
+// python literal block
+.py %%
+#from other_idl import *
+%%
+
+// cpp literal block
+.cpp %%
+//#include "other_idl.h"
+%%
+
+enum EnumTest
+{
+	ENUM_TEST_1,
+	ENUM_TEST_2
+};
+
+// you can start the enum number from you want 
+enum EnumTest2
+{
+	ENUM_TEST2_1 = 100, 
+	ENUM_TEST2_2
+};
+
+/*************************************************************************
+ * "typedef" is..
+ *  - You may use "typedef" to simplify complex data type
+ *    or any purpose. 
+ *************************************************************************/
+// simple array typedef
+typedef array<int16> arr_i16_t; 
+
+// complex array typedef 
+typedef array<arr_i16_t> complex_arr_i16_t; // = array<array<int16>>
+
+// simple list typedef
+typedef list<string> lst_string_t; 
+
+// complex array typedef
+typedef list<lst_string_t> complex_lst_string_t;
+
+// simple map typedef
+typedef map<int32, string> map_i32_string_t;
+
+// complex map typedef
+typedef map<string, map_i32_string_t> complex_map_i32_string_t;
+
+/*************************************************************************
+ * "struct" is..
+ *  - defined by 'struct' keyword
+ *  - can have every primitive data type and other structured data type
+ *  - can inherit from other struct
+ *  - can't declare member function
+ *************************************************************************/
+struct DefaultData
+{
+    	byte byte_; // signed 1 byte 
+	ubyte ubyte_; // unsigned 1 byte 
+    	boolean boolean_; // signed 1 byte 
+    	int16 i16_; // signed 2byte 
+    	int32 i32_; // signed 4byte 
+    	int64 i64_; // signed 8byte 
+	uint16 ui16_;	// unsigned 2byte
+	uint32 ui32_;	// unsigned 4byte
+	uint64 ui64_;	// unsigned 8byte
+	double double_; // 8byte point number
+	float float_; // 4byte point number
+	string string_; 
+};
+
+struct ContainerData 
+{
+	map<int32, string> map_;
+	map_i32_string_t map_i32_string_;
+	array<string> array_;
+	array<string, 256> static_array_; // it would never be serialized lengh bytes. 
+					  // the size is fixed in the generated header file
+					  // in c++ array<string, 256> -> std::string static_array_[256];
+	list<int32> list_; 
+};
+
+struct DerivedData(DefaultData) { // you can derive every data information from other 'struct' or 'message'
+	ContainerData containerData_; // you may composit some 'struct' or 'message' 
+};
+
+/*************************************************************************
+ * "message" is..
+ *  - same as "struct"
+ *  - but it has "id"(to be used as messag tag id)
+ *************************************************************************/
+message MsgCliSvr_Category_MessageName_Req : 501 { /* <- this is id */
+};
+
+message MsgSvrCli_Category_MessageName_Ans : 502 {
+	int32 nErrorCode;	
+	DerivedData derivedData;
+};
