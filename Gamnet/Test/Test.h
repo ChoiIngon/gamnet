@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef TEST_H_
-#define TEST_H_
+#ifndef GAMNET_TEST_TEST_H_
+#define GAMNET_TEST_TEST_H_
 
 #include "Tester.h"
 #include "Session.h"

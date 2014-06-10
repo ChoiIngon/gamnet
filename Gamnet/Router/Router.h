@@ -8,10 +8,13 @@
 #ifndef ROUTER_H_
 #define ROUTER_H_
 
-#include "RouterListener.h"
 #include "../Network/Network.h"
+#include "RouterListener.h"
 #include "RouterCaster.h"
+
 namespace Gamnet { namespace Router {
+
+typedef Address Address;
 
 void Listen(const char* service_name, int port=20001, int max_session = 4096);
 void Connect(const char* host, int port=20001, int timeout=5);

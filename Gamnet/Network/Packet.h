@@ -104,7 +104,7 @@ public :
 		{
 			return false;
 		}
-		this->writeCursor_ += total_length;
+		this->writeCursor_ += (total_length-3);
 		return true;
 	}
 
@@ -118,9 +118,9 @@ public :
 		return GetTotalLength() - Header::PACKET_HEADER_SIZE;
 	}
 
-	unsigned int GetID() const
+	short GetID() const
 	{
-		return  *((unsigned int*)(buf_ + Header::PACKET_ID_PTR));
+		return  *((short*)(buf_ + Header::PACKET_ID_PTR));
 	}
 
 	/*
@@ -129,9 +129,10 @@ public :
 	template <class MSG>
 	bool Read(MSG& msg)
 	{
+		size_t bodyLength = GetBodyLength();
 		Remove(Header::PACKET_HEADER_SIZE);
 		const char* pBuf = ReadPtr();
-		size_t bodyLength = GetBodyLength();
+
 		if(false == msg.Load(&pBuf, bodyLength))
 		{
 			return false;

@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef TESTSESSION_H_
-#define TESTSESSION_H_
+#ifndef GAMNET_TEST_SESSION_H_
+#define GAMNET_TEST_SESSION_H_
 #include "../Network/Session.h"
 
 namespace Gamnet { namespace Test {
