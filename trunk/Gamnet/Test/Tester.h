@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef TESTER_H_
-#define TESTER_H_
+#ifndef GAMNET_TEST_TESTER_H_
+#define GAMNET_TEST_TESTER_H_
 
 #include <vector>
 #include <map>
@@ -85,7 +85,7 @@ public :
 		session->listener_->sessionManager_.AddSession(session->sessionKey_, session);
 		session->_read_start();
 		session->testSEQ_ = 0;
-		if(session->testSEQ_ <= vecSendHandler_.size())
+		if(session->testSEQ_ < vecSendHandler_.size())
 		{
 			vecSendHandler_[session->testSEQ_](session);
 		}

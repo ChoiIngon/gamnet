@@ -9,13 +9,13 @@
 #define GAMNET_GAMNET_H_
 
 #include "Library/Singleton.h"
-//#include "Log/Log.h"
+#include "Log/Log.h"
 #include "Network/Network.h"
-//#include "Router/Router.h"
+#include "Router/Router.h"
 #include "Test/Test.h"
 #include "Database/Database.h"
 
 namespace Gamnet {
-void Run(int thread_count);
+void Run(int thread_count = 0);
 }
 #endif /* GAMNET_H_ */

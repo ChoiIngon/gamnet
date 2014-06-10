@@ -60,10 +60,10 @@ void RouterHandler::Recv_SetAddress_Req(std::shared_ptr<Session> session, std::s
 	SendMsg(session, ans);
 }
 
-static bool retRecv_SendMsg_Ntf = Gamnet::Network::RegisterHandler<Session>(
+static bool retRecv_SendMsg_Ntf = Network::RegisterHandler<Session>(
 	MsgRouter_SetAddress_Req::MSG_ID,
 	&RouterHandler::Recv_SetAddress_Req,
-	std::shared_ptr<Gamnet::Network::HandlerStatic<RouterHandler>>(new Gamnet::Network::HandlerStatic<RouterHandler>())
+	std::shared_ptr<Network::HandlerStatic<RouterHandler>>(new Network::HandlerStatic<RouterHandler>())
 );
 
 void RouterHandler::Recv_SetAddress_Ans(std::shared_ptr<Session> session, std::shared_ptr<Network::Packet> packet)
@@ -92,10 +92,10 @@ void RouterHandler::Recv_SetAddress_Ans(std::shared_ptr<Session> session, std::s
 	SendMsg(session, ntf);
 }
 
-static bool retRecv_SetAddress_Ans = Gamnet::Network::RegisterHandler<Session>(
+static bool retRecv_SetAddress_Ans = Network::RegisterHandler<Session>(
 	MsgRouter_SetAddress_Ans::MSG_ID,
 	&RouterHandler::Recv_SetAddress_Ans,
-	std::shared_ptr<Gamnet::Network::HandlerStatic<RouterHandler>>(new Gamnet::Network::HandlerStatic<RouterHandler>())
+	std::shared_ptr<Network::HandlerStatic<RouterHandler>>(new Network::HandlerStatic<RouterHandler>())
 );
 
 void RouterHandler::Recv_SetAddress_Ntf(std::shared_ptr<Session> session, std::shared_ptr<Network::Packet> packet)
@@ -114,10 +114,10 @@ void RouterHandler::Recv_SetAddress_Ntf(std::shared_ptr<Session> session, std::s
 	}
 }
 
-static bool retRecv_SetAddress_Ntf = Gamnet::Network::RegisterHandler<Session>(
+static bool retRecv_SetAddress_Ntf = Network::RegisterHandler<Session>(
 	MsgRouter_SetAddress_Ntf::MSG_ID,
 	&RouterHandler::Recv_SetAddress_Ntf,
-	std::shared_ptr<Gamnet::Network::HandlerStatic<RouterHandler>>(new Gamnet::Network::HandlerStatic<RouterHandler>())
+	std::shared_ptr<Network::HandlerStatic<RouterHandler>>(new Network::HandlerStatic<RouterHandler>())
 );
 
 }};
