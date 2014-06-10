@@ -1,0 +1,19 @@
+message Msg_CS_Echo_Req : 0001
+{
+	string Message;
+};
+
+message Msg_SC_Echo_Ans : 0002
+{
+	string Message;
+};
+
+message Msg_SS_Echo_Ntf : 0003
+{
+	string Message;
+};
+
+message Msg_SC_Echo_Ntf : 0004
+{
+	string Message;
+};
