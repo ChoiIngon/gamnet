@@ -4,6 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+../Network/Handler.cpp \
 ../Network/HandlerContainer.cpp \
 ../Network/Listener.cpp \
 ../Network/Packet.cpp \
@@ -11,6 +12,7 @@ CPP_SRCS += \
 ../Network/SessionManager.cpp 
 
 OBJS += \
+./Network/Handler.o \
 ./Network/HandlerContainer.o \
 ./Network/Listener.o \
 ./Network/Packet.o \
@@ -18,6 +20,7 @@ OBJS += \
 ./Network/SessionManager.o 
 
 CPP_DEPS += \
+./Network/Handler.d \
 ./Network/HandlerContainer.d \
 ./Network/Listener.d \
 ./Network/Packet.d \

@@ -45,10 +45,10 @@ public :
 	void OnCreate();
 	virtual void OnError(int reason);
 
-	int	Send(std::shared_ptr<Packet> buffer);
-	int Send(const char* buf, int len);
-
 	void _read_start();
+	int	Send(std::shared_ptr<Packet> buffer);
+private :
+	int Send(const char* buf, int len);
 };
 }}
 #endif /* NETWORK_SESSION_H_ */

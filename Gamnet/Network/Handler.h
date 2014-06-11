@@ -14,18 +14,13 @@ namespace Gamnet { namespace Network {
 
 struct IHandler : public std::enable_shared_from_this<IHandler>
 {
-	IHandler() {}
-	virtual ~IHandler() {}
-
-	virtual bool Init() { return true; }
+	IHandler();
+	virtual ~IHandler();
+	struct NullType { enum {MSG_ID=0}; };
 
 	template <class MSG>
-	bool SendMsg(std::shared_ptr<Session> session, const MSG& msg, unsigned int expect_id = 0)
+	bool SendMsg(std::shared_ptr<Session> session, const MSG& msg)
 	{
-		if(0 != expect_id)
-		{
-			session->handlerContainer_.Register(expect_id, shared_from_this());
-		}
 		std::shared_ptr<Packet> packet = Packet::Create();
 		if(NULL == packet)
 		{
@@ -41,6 +36,13 @@ struct IHandler : public std::enable_shared_from_this<IHandler>
 		}
 		return true;
 	}
+
+	template <class MSG>
+	void SetExpectMsg(std::shared_ptr<Session> session)
+	{
+		session->handlerContainer_.Register(MSG::MSG_ID, shared_from_this());
+	}
+
 };
 
 }} /* namespace Gamnet */

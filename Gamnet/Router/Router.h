@@ -74,12 +74,6 @@ bool SendMsg(std::shared_ptr<Network::Session> session, const Address& addr, con
 	return true;
 }
 
-template <class REQ, class ANS>
-bool SendMsg(std::shared_ptr<Network::Session>, const Address& addr, const REQ& msg, int ans=ANS::MSG_ID)
-{
-	return true;
-}
-
 }}
 
 
