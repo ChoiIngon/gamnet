@@ -115,6 +115,26 @@ static bool Recv_SS_Req_Result = Gamnet::Router::RegisterHandler(
 	std::shared_ptr<Gamnet::Network::HandlerStatic<HandlerEcho>>(new Gamnet::Network::HandlerStatic<HandlerEcho>())
 );
 
+void HandlerEcho::Recv_SS_Ans(const Gamnet::Router::Address& from, std::shared_ptr<Gamnet::Network::Packet> packet)
+{
+	Msg_SS_Echo_Ans ans;
+	try {
+		if(false == Gamnet::Network::Packet::Load(ans, packet))
+		{
+			throw Gamnet::Exception("packet load fail");
+		}
+	}
+	catch(const Gamnet::Exception& e)
+	{
+		Gamnet::Log::Write(GAMNET_ERR, e.what());
+	}
+}
+static bool Recv_SS_Ans_Result = Gamnet::Router::RegisterHandler(
+	Msg_SS_Echo_Ans::MSG_ID,
+	&HandlerEcho::Recv_SS_Ans,
+	std::shared_ptr<Gamnet::Network::HandlerStatic<HandlerEcho>>(new Gamnet::Network::HandlerStatic<HandlerEcho>())
+);
+
 void Test_Echo_Req(std::shared_ptr<TestSession> client)
 {
 	Msg_CS_Echo_Req req;
