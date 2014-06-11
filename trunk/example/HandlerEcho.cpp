@@ -7,6 +7,7 @@
 
 #include "HandlerEcho.h"
 #include "Message.h"
+#include <Router/Router.h>
 
 HandlerEcho::HandlerEcho() {
 }
@@ -14,7 +15,7 @@ HandlerEcho::HandlerEcho() {
 HandlerEcho::~HandlerEcho() {
 }
 
-void HandlerEcho::Recv(std::shared_ptr<ClientSession> client, std::shared_ptr<Gamnet::Network::Packet> packet)
+void HandlerEcho::Recv_Req(std::shared_ptr<ClientSession> client, std::shared_ptr<Gamnet::Network::Packet> packet)
 {
 	Msg_CS_Echo_Req req;
 	Msg_SC_Echo_Ans	ans;
@@ -37,10 +38,51 @@ void HandlerEcho::Recv(std::shared_ptr<ClientSession> client, std::shared_ptr<Ga
 	Gamnet::Router::SendMsg(client, addr, ntf);
 	Gamnet::Network::SendMsg(client, ans);
 }
-
 static bool HandlerEcho_Recv_Result = Gamnet::Network::RegisterHandler<ClientSession>(
 	Msg_CS_Echo_Req::MSG_ID,
-	&HandlerEcho::Recv,
+	&HandlerEcho::Recv_Req,
+	std::shared_ptr<Gamnet::Network::HandlerStatic<HandlerEcho>>(new Gamnet::Network::HandlerStatic<HandlerEcho>())
+);
+
+void HandlerEcho::Recv_Ans(std::shared_ptr<ClientSession> client, std::shared_ptr<Gamnet::Network::Packet> packet)
+{
+	Msg_SC_Echo_Ans ans;
+	try {
+		if(false == Gamnet::Network::Packet::Load(ans, packet))
+		{
+			throw Gamnet::Exception("packet load fail");
+		}
+	}
+	catch(const Gamnet::Exception& e)
+	{
+		Gamnet::Log::Write(GAMNET_ERR, e.what());
+	}
+	Gamnet::Log::Write(GAMNET_DEV, ans.Message);
+}
+static bool HandlerEcho_Recv_Ans_Result = Gamnet::Network::RegisterHandler<ClientSession>(
+	Msg_SC_Echo_Ans::MSG_ID,
+	&HandlerEcho::Recv_Ans,
+	std::shared_ptr<Gamnet::Network::HandlerStatic<HandlerEcho>>(new Gamnet::Network::HandlerStatic<HandlerEcho>())
+);
+
+void HandlerEcho::Recv_Ntf(const Gamnet::Router::Address& from, std::shared_ptr<Gamnet::Network::Packet> packet)
+{
+	Msg_SS_Echo_Ntf ntf;
+	try {
+		if(false == Gamnet::Network::Packet::Load(ntf, packet))
+		{
+			throw Gamnet::Exception("packet load fail");
+		}
+	}
+	catch(const Gamnet::Exception& e)
+	{
+		Gamnet::Log::Write(GAMNET_ERR, e.what());
+	}
+	Gamnet::Log::Write(GAMNET_DEV, ntf.Message);
+}
+static bool HandlerEcho_Recv_Ntf_Result = Gamnet::Router::RegisterHandler(
+	Msg_SS_Echo_Ntf::MSG_ID,
+	&HandlerEcho::Recv_Ntf,
 	std::shared_ptr<Gamnet::Network::HandlerStatic<HandlerEcho>>(new Gamnet::Network::HandlerStatic<HandlerEcho>())
 );
 
@@ -65,5 +107,5 @@ void Test_Echo_Ans(std::shared_ptr<TestSession> client, std::shared_ptr<Gamnet::
 		Gamnet::Log::Write(GAMNET_ERR, e.what());
 		return;
 	}
-	Gamnet::Log::Write(GAMNET_INF, ans.Message);
+	Gamnet::Log::Write(GAMNET_DEV, ans.Message);
 }
