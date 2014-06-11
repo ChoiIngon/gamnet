@@ -11,6 +11,8 @@
 #include "../Network/Network.h"
 #include "RouterListener.h"
 #include "RouterCaster.h"
+#include "MsgRouter.h"
+#include "Dispatcher.h"
 
 namespace Gamnet { namespace Router {
 
@@ -21,7 +23,7 @@ void Connect(const char* host, int port=20001, int timeout=5);
 template <class FUNC, class FACTORY>
 bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 {
-	return Singleton<Network::Dispatcher<Address>>().RegisterHandler(msg_id, func, factory);
+	return Singleton<Dispatcher>().RegisterHandler(msg_id, func, factory);
 }
 
 struct NullType { enum { MSG_ID = 0 }; };

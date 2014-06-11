@@ -13,7 +13,7 @@
 namespace Gamnet {
 namespace Router {
 
-class DispatcherImpl
+class Dispatcher
 {
 	typedef void(Network::IHandler::*function_type)(const Address&, std::shared_ptr<Network::Packet>);
 public :
@@ -26,8 +26,8 @@ public :
 	std::map<unsigned int, HandlerFunction> mapHandlerFunction_;
 
 public:
-	DispatcherImpl() {}
-	~DispatcherImpl() {}
+	Dispatcher() {}
+	~Dispatcher() {}
 
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
@@ -46,7 +46,7 @@ public:
 		auto itr = mapHandlerFunction_.find(msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
-			LOG(ERR, "can't find handler function(msg_id:", msg_id, ")");
+			Log::Write(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
 			return ;
 		}
 
@@ -58,7 +58,7 @@ public:
 			std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(dummyContainer, msg_id);
 			if(NULL == handler)
 			{
-				LOG(ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
+				Log::Write(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
 				return ;
 			}
 
@@ -69,13 +69,13 @@ public:
 			std::shared_ptr<Session> router_session = Singleton<RouterCaster>().FindSession(from);
 			if(NULL == router_session)
 			{
-				LOG(ERR, "can't find regisered address");
+				Log::Write(GAMNET_ERR, "can't find registered address");
 				return ;
 			}
 			std::shared_ptr<Network::Session> network_session = router_session->watingSessionManager_.FindSession(from.msg_seq);
 			if(NULL == network_session)
 			{
-				LOG(ERR, "can't find session(msg_seq:", from.msg_seq, ")");
+				Log::Write(GAMNET_ERR, "can't find session(msg_seq:", from.msg_seq, ")");
 				return;
 			}
 
@@ -83,7 +83,7 @@ public:
 				std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(network_session->handlerContainer_, msg_id);
 				if(NULL == handler)
 				{
-					LOG(ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
+					Log::Write(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
 					return ;
 				}
 				(handler.get()->*handler_function.function_)(from, packet);

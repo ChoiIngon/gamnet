@@ -6,6 +6,7 @@
  */
 
 #include "RouterListener.h"
+#include "RouterHandler.h"
 
 namespace Gamnet { namespace Router {
 
@@ -21,6 +22,29 @@ RouterListener::~RouterListener() {
 
 void RouterListener::Init(const char* service_name, int port)
 {
+	RegisterHandler(
+		MsgRouter_SetAddress_Req::MSG_ID,
+		&RouterHandler::Recv_SetAddress_Req,
+		std::shared_ptr<Network::HandlerStatic<RouterHandler>>(new Network::HandlerStatic<RouterHandler>())
+	);
+
+	RegisterHandler(
+		MsgRouter_SetAddress_Ans::MSG_ID,
+		&RouterHandler::Recv_SetAddress_Ans,
+		std::shared_ptr<Network::HandlerStatic<RouterHandler>>(new Network::HandlerStatic<RouterHandler>())
+	);
+
+	RegisterHandler(
+		MsgRouter_SetAddress_Ntf::MSG_ID,
+		&RouterHandler::Recv_SetAddress_Ntf,
+		std::shared_ptr<Network::HandlerStatic<RouterHandler>>(new Network::HandlerStatic<RouterHandler>())
+	);
+
+	RegisterHandler(
+		MsgRouter_SendMsg_Ntf::MSG_ID,
+		&RouterHandler::Recv_SendMsg_Ntf,
+		std::shared_ptr<Network::HandlerStatic<RouterHandler>>(new Network::HandlerStatic<RouterHandler>())
+	);
 	localAddr_.service_name = service_name;
 	localAddr_.cast_type = ROUTER_CAST_UNI;
 	boost::asio::ip::tcp::resolver resolver(io_service_);
@@ -41,6 +65,7 @@ void RouterListener::Init(const char* service_name, int port)
 		throw Exception("unique router id is not set");
 	}
 	Listener::Init(port, 4096, 0);
+	Connect("localhost", port, 0);
 }
 
 bool RouterListener::Connect(const char* host, int port, int timeout)
