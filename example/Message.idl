@@ -17,3 +17,13 @@ message Msg_SC_Echo_Ntf : 0004
 {
 	string Message;
 };
+
+message Msg_SS_Echo_Req : 0005
+{
+	string Message;
+};
+
+message Msg_SS_Echo_Ans : 0006
+{
+	string Message;
+};
