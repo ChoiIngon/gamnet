@@ -14,10 +14,10 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, std::shared_ptr<
 {
 	if(false == mapRouteTable.insert(std::make_pair(addr, session)).second)
 	{
-		Log::Write(GAMNET_ERR, "register same address(service_name:", addr.service_name.c_str(), ", cast_type:", addr.cast_type, ", id:", addr.id, ")");
+		Log::Write(GAMNET_ERR, "Router(ip:", session->socket_.remote_endpoint().address().to_string(), "):register same address(service_name:", addr.service_name.c_str(), ", cast_type:", addr.cast_type, ", id:", addr.id, ")");
 		return false;
 	}
-	Log::Write(GAMNET_INF, "register unicast address ok(service_name:", addr.service_name.c_str(), ", id:", addr.id, ")");
+	Log::Write(GAMNET_INF, "Router(ip:", session->socket_.remote_endpoint().address().to_string(), "):register unicast address ok(service_name:", addr.service_name.c_str(), ", id:", addr.id, ")");
 	return true;
 }
 
@@ -29,7 +29,6 @@ bool RouterCasterImpl_Uni::SendMsg(const Address& addr, const char* buf, int len
 		return false;
 	}
 	session->Send(buf, len);
-	Log::Write(GAMNET_DEV, "send uni_cast(dest_addr:{service_name:", addr.service_name.c_str(), ", id:", addr.id, "}, transferred_bytes:", len, ")");
 	return true;
 }
 
@@ -42,7 +41,7 @@ bool RouterCasterImpl_Uni::UnregisterAddress(const Address& addr)
 		return false;
 	}
 	mapRouteTable.erase(itr);
-	Log::Write(GAMNET_DEV, "Unregister Unicast Address(service_name:", addr.service_name, ", id:", addr.id, ")");;
+	Log::Write(GAMNET_INF, "Router:Unregister Unicast Address(service_name:", addr.service_name, ", id:", addr.id, ")");;
 	return true;
 }
 
@@ -64,12 +63,12 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, std::shared_pt
 	{
 		if(addr == s->addr)
 		{
-			Log::Write(GAMNET_ERR, "register same address(service_name:", addr.service_name.c_str(), ", cast_type:", addr.cast_type, ", id:", addr.id, ")");
+			Log::Write(GAMNET_ERR, "Router(ip:", session->socket_.remote_endpoint().address().to_string(), "):register same address(service_name:", addr.service_name.c_str(), ", cast_type:", addr.cast_type, ", id:", addr.id, ")");
 			return false;
 		}
 	}
 	lstSession.push_back(session);
-	Log::Write(GAMNET_INF, "register multicast address ok(service_name:", addr.service_name.c_str(), ", )");
+	Log::Write(GAMNET_INF, "Router(ip:", session->socket_.remote_endpoint().address().to_string(), "):register multicast address ok(service_name:", addr.service_name.c_str(), ")");
 	return true;
 }
 
@@ -86,7 +85,6 @@ bool RouterCasterImpl_Multi::SendMsg(const Address& addr, const char* buf, int l
 	{
 		s->Send(buf, len);
 	}
-	Log::Write(GAMNET_DEV, "send multi_cast(dest_addr:service_name:", addr.service_name.c_str(), ", transferred_bytes:", len, ")");
 	return true;
 }
 
@@ -103,7 +101,7 @@ bool RouterCasterImpl_Multi::UnregisterAddress(const Address& addr)
 	lstSession.erase(std::remove_if(lstSession.begin(), lstSession.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
 		if(session->addr.id == addr.id)
 		{
-			Log::Write(GAMNET_DEV, "Unregister Multicast Address(service_name:", addr.service_name, ", id:", addr.id, ")");;
+			Log::Write(GAMNET_INF, "Unregister Multicast Address(service_name:", addr.service_name, ", id:", addr.id, ")");;
 			return true;
 		}
 		return false;
@@ -119,14 +117,14 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, std::shared_ptr<
 	{
 		if(addr == s->addr)
 		{
-			Log::Write(GAMNET_ERR, "register same address(service_name:", addr.service_name.c_str(), ", cast_type:", addr.cast_type, ", id:", addr.id, ")");
+			Log::Write(GAMNET_ERR, "Router(ip:", session->socket_.remote_endpoint().address().to_string(), "):register same address(service_name:", addr.service_name.c_str(), ", cast_type:", addr.cast_type, ", id:", addr.id, ")");
 			return false;
 		}
 	}
 
 	arrSession.push_back(session);
 	pairSessionArray.first = arrSession.size()-1;
-	Log::Write(GAMNET_INF, "register anycast address ok(service_name:", addr.service_name.c_str(), ")");
+	Log::Write(GAMNET_INF, "Router(ip:", session->socket_.remote_endpoint().address().to_string(), "):register anycast address ok(service_name:", addr.service_name.c_str(), ")");
 	return true;
 }
 
@@ -147,7 +145,6 @@ bool RouterCasterImpl_Any::SendMsg(const Address& addr, const char* buf, int len
 		Log::Write(GAMNET_ERR, "Cant find Session");
 		return false;
 	}
-	Log::Write(GAMNET_DEV, "send multi_cast(dest_addr:service_name:", addr.service_name.c_str(), ", transferred_bytes:", len, ")");
 	return arrSession[pairSessionArray.first++ % arrSession.size()]->Send(buf, len);
 }
 
@@ -165,7 +162,7 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 	arrSession.erase(std::remove_if(arrSession.begin(), arrSession.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
 		if(session->addr.id == addr.id)
 		{
-			Log::Write(GAMNET_DEV, "Unregister Anycast Address(service_name:", addr.service_name, ", id:", addr.id, ")");;
+			Log::Write(GAMNET_INF, "Unregister Anycast Address(service_name:", addr.service_name, ", id:", addr.id, ")");;
 			return true;
 		}
 		return false;
