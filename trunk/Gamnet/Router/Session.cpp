@@ -52,10 +52,13 @@ void Session::Connect(const char* host, int port, int timeout)
 			})
 		);
 
-		timer_.SetTimer(timeout*1000, [this]() {
-			Log::Write(GAMNET_WRN, "connect timeout(session_key:", sessionKey_, ")");
-			OnError(ETIMEDOUT);
-		});
+		if(0 != timeout)
+		{
+			timer_.SetTimer(timeout*1000, [this]() {
+				Log::Write(GAMNET_WRN, "connect timeout(session_key:", sessionKey_, ")");
+				OnError(ETIMEDOUT);
+			});
+		}
 	}
 }
 
@@ -63,7 +66,7 @@ void Session::OnConnect()
 {
 	watingSessionManager_.Clear();
 
-	Log::Write(GAMNET_INF, "Router(id:", socket_.remote_endpoint().address().to_string(), "):connect success");
+	Log::Write(GAMNET_INF, "Router(ip:", socket_.remote_endpoint().address().to_string(), "):connect success");
 	MsgRouter_SetAddress_Req req;
 	req.tLocalAddr = Singleton<RouterListener>().localAddr_;
 	if(false == Network::SendMsg(shared_from_this(), req))
