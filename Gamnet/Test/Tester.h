@@ -30,9 +30,10 @@ private:
 
 	Pool<SESSION_T, std::mutex, Network::Session::Init> sessionPool_;
 	Timer timer_;
+	Timer printTimer_;
 	ThreadPool threadPool_;
-	unsigned int executeCount_;
-
+	uint64_t executeCount_;
+	Log::Logger log_;
 public :
 	unsigned int elapsedTime_;
 	unsigned int sessionCount_;
@@ -54,6 +55,13 @@ public :
 	{
 	}
 
+	void Init(unsigned int elapsed_time, unsigned int session_count, unsigned int loop_count)
+	{
+		elapsedTime_ = elapsed_time;
+		sessionCount_ = session_count;
+		loopCount_ = loop_count;
+		log_.Init("test", 5);
+	}
 	virtual void OnRecvMsg(std::shared_ptr<Network::Session> session, std::shared_ptr<Network::Packet> packet)
 	{
 		std::shared_ptr<SESSION_T> test_session = std::static_pointer_cast<SESSION_T>(session);
@@ -135,11 +143,7 @@ public :
 				executeCount_ += 1;
 			}
 
-			if(executeCount_ % 10000)
-			{
-				Log::Write(GAMNET_INF, "Test execute count(", executeCount_, ")");
-			}
-			if(executeCount_ < loopCount_)
+			if(this->executeCount_ < loopCount_)
 			{
 				this->timer_.Resume();
 			}
@@ -147,6 +151,11 @@ public :
 			{
 				Log::Write(GAMNET_INF, "test finished...");
 			}
+		});
+		printTimer_.SetTimer(3000, [this]() {
+			log_.Write(Log::Logger::LOG_LEVEL_INF, "[Test] execute count : ", this->executeCount_);
+			log_.Write(Log::Logger::LOG_LEVEL_INF, "[Test] running session count : ", this->sessionManager_.Size());
+			this->printTimer_.Resume();
 		});
 	}
 };

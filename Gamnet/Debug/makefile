@@ -12,6 +12,7 @@ RM := rm -rf
 -include Router/subdir.mk
 -include Network/subdir.mk
 -include Log/subdir.mk
+-include Library/subdir.mk
 -include Database/subdir.mk
 -include subdir.mk
 -include objects.mk

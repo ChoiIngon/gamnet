@@ -16,9 +16,7 @@ namespace Gamnet { namespace Test {
 	template <class SESSION_T>
 	void Init(unsigned int elapsed_time, unsigned int session_count, unsigned int loop_count)
 	{
-		Singleton<Tester<SESSION_T>>().elapsedTime_ = elapsed_time;
-		Singleton<Tester<SESSION_T>>().sessionCount_ = session_count;
-		Singleton<Tester<SESSION_T>>().loopCount_ = loop_count;
+		Singleton<Tester<SESSION_T>>().Init(elapsed_time, session_count, loop_count);
 	}
 
 	template<class SESSION_T, class NTF_T>
