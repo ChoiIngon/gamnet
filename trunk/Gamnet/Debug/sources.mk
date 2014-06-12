@@ -27,6 +27,7 @@ Test \
 Router \
 Network \
 Log \
+Library \
 . \
 Database \
 
