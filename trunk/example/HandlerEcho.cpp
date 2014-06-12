@@ -63,7 +63,6 @@ void HandlerEcho::Recv_SS_Ans(const Gamnet::Router::Address& from, std::shared_p
 	{
 		Gamnet::Log::Write(GAMNET_ERR, e.what());
 	}
-	Gamnet::Log::Write(GAMNET_DEV, ans.Message);
 }
 static bool HandlerEcho_Recv_SS_Ans_Ret = Gamnet::Router::RegisterHandler(
 	Msg_SS_Echo_Ans::MSG_ID,
@@ -86,7 +85,6 @@ void HandlerEcho::Recv_SS_Req(const Gamnet::Router::Address& from, std::shared_p
 	{
 		Gamnet::Log::Write(GAMNET_ERR, e.what());
 	}
-	Gamnet::Log::Write(GAMNET_DEV, req.Message);
 	Gamnet::Router::SendMsg(from, ans);
 }
 
