@@ -47,7 +47,6 @@ public :
 
 	void _read_start();
 	int	Send(std::shared_ptr<Packet> buffer);
-private :
 	int Send(const char* buf, int len);
 };
 }}

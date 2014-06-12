@@ -9,10 +9,9 @@
 #define DISPATCHER_H_
 
 #include "../Network/Network.h"
-#include "MsgRouter.h"
 namespace Gamnet {
 namespace Router {
-
+#include "MsgRouter.h"
 class Dispatcher
 {
 	typedef void(Network::IHandler::*function_type)(const Address&, std::shared_ptr<Network::Packet>);
@@ -52,19 +51,7 @@ public:
 
 		const HandlerFunction& handler_function = itr->second;
 
-		if(0 == from.msg_seq)
-		{
-			static Network::HandlerContainer dummyContainer;
-			std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(dummyContainer, msg_id);
-			if(NULL == handler)
-			{
-				Log::Write(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
-				return ;
-			}
-
-			(handler.get()->*handler_function.function_)(from, packet);
-		}
-		else if(ROUTER_CAST_UNI == from.cast_type)
+		if(ROUTER_CAST_UNI == from.cast_type && Network::IHandlerFactory::HANDLER_FACTORY_FIND == handler_function.factory_->GetFactoryType())
 		{
 			std::shared_ptr<Session> router_session = Singleton<RouterCaster>().FindSession(from);
 			if(NULL == router_session)
@@ -72,6 +59,7 @@ public:
 				Log::Write(GAMNET_ERR, "can't find registered address");
 				return ;
 			}
+
 			std::shared_ptr<Network::Session> network_session = router_session->watingSessionManager_.FindSession(from.msg_seq);
 			if(NULL == network_session)
 			{
@@ -79,8 +67,8 @@ public:
 				return;
 			}
 
-			network_session->strand_.wrap([network_session, handler_function, msg_id, from, packet](){
-				std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(network_session->handlerContainer_, msg_id);
+			auto thread_safe_function = network_session->strand_.wrap([network_session, handler_function, msg_id, from, packet](){
+				std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handlerContainer_, msg_id);
 				if(NULL == handler)
 				{
 					Log::Write(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
@@ -88,6 +76,18 @@ public:
 				}
 				(handler.get()->*handler_function.function_)(from, packet);
 			});
+			thread_safe_function();
+		}
+		else
+		{
+			std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(NULL, msg_id);
+			if(NULL == handler)
+			{
+				Log::Write(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
+				return ;
+			}
+
+			(handler.get()->*handler_function.function_)(from, packet);
 		}
 	}
 };

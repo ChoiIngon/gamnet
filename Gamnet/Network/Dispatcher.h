@@ -45,7 +45,7 @@ public:
 		return true;
 	}
 
-	virtual void OnRecvMsg(std::shared_ptr<SESSION_T> session, std::shared_ptr<Packet> packet)
+	void OnRecvMsg(std::shared_ptr<SESSION_T> session, std::shared_ptr<Packet> packet)
 	{
 		const unsigned int msg_id = packet->GetID();
 		auto itr = mapHandlerFunction_.find(msg_id);
@@ -55,14 +55,14 @@ public:
 			return ;
 		}
 
-		const HandlerFunction& func = itr->second;
-		std::shared_ptr<IHandler> handler = func.factory_->GetHandler(session->handlerContainer_, msg_id);
+		const HandlerFunction& handler_function = itr->second;
+		std::shared_ptr<IHandler> handler = handler_function.factory_->GetHandler(&session->handlerContainer_, msg_id);
 		if(NULL == handler)
 		{
 			Log::Write(GAMNET_ERR, "can't find handler object(msg_id:", msg_id, ")");
 			return;
 		}
-		(handler.get()->*func.function_)(session, packet);
+		(handler.get()->*handler_function.function_)(session, packet);
 	}
 };
 

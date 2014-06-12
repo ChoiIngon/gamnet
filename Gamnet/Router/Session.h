@@ -10,10 +10,10 @@
 
 #include "../Network/Network.h"
 #include "../Library/Timer.h"
-#include "MsgRouter.h"
+
 
 namespace Gamnet { namespace Router {
-
+#include "MsgRouter.h"
 class Session : public Network::Session {
 private :
 	struct AnswerWatingSessionManager
@@ -63,8 +63,6 @@ public:
 	void Init();
 	void Connect(const char* host, int port, int timeout = 5);
 	virtual void OnConnect();
-
-
 };
 
 }} /* namespace Gamnet */

@@ -10,15 +10,13 @@
 
 #include <list>
 #include <set>
-#include "MsgRouter.h"
+
 #include "Session.h"
 #include "../Network/Network.h"
-
 namespace Gamnet { namespace Router {
-
 struct RouterListener : Network::Listener<Router::Session> {
 public :
-	static std::atomic_ullong msgSeq_;
+
 	Address localAddr_;
 public :
 	RouterListener();
