@@ -73,7 +73,7 @@ public :
 		}
 		if(Property_[level]&LOG_FILE)
 		{
-			std::ofstream& ofstream_ = Singleton<File>().open(when);
+			std::ofstream& ofstream_ = file_.open(when);
 			ofstream_ << timebuf << " " << s.c_str() << std::endl;
 		}
 	}
@@ -81,7 +81,7 @@ public :
 	/// \brief Initialize function for Logger lib
 	/// \param logPath 로그 파일이 생성될 디렉토리(상대 경로 사용할 것을 권고)
 	/// \return  성공시 true 리턴, 실패 false. 세부 에러 내용은 errno 체크
-	void Init(const char* logPath = "log", int max_file_size = 0);
+	void Init(const char* logPath, int max_file_size);
 	/// \brief 로그 레벨 별 출력 여부와 out direction 설정 함수
 	/// \param level property 셋팅 할 로그 레벨
 	/// \param flag stdout, file, syslog 등 로그 출력 방향. 0일 경우 해당 레벨은 로깅하지 않음

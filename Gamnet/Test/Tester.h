@@ -37,7 +37,8 @@ public :
 	unsigned int elapsedTime_;
 	unsigned int sessionCount_;
 	unsigned int loopCount_;
-
+	boost::asio::ip::tcp::resolver resolver_;
+	boost::asio::ip::tcp::endpoint endpoint_;
 public :
 	Tester() :
 		sessionPool_(1024),
@@ -45,7 +46,8 @@ public :
 		executeCount_(0),
 		elapsedTime_(0),
 		sessionCount_(0),
-		loopCount_(0)
+		loopCount_(0),
+		resolver_(Singleton<boost::asio::io_service>())
 	{
 	}
 	virtual ~Tester()
@@ -80,10 +82,7 @@ public :
 	}
 	void OnConnect(std::shared_ptr<SESSION_T> session)
 	{
-		session->sessionKey_ = ++IListener::uniqueSessionKey_;
-		session->readBuffer_ = Network::Packet::Create();
-		session->listener_->sessionManager_.AddSession(session->sessionKey_, session);
-		session->_read_start();
+		sessionManager_.AddSession(session->sessionKey_, session);
 		session->testSEQ_ = 0;
 		if(session->testSEQ_ < vecSendHandler_.size())
 		{
@@ -105,6 +104,7 @@ public :
 
 	void Run(const char* host, int port)
 	{
+		endpoint_ = *resolver_.resolve({host, String(port).c_str()});
 		if(0 == elapsedTime_)
 		{
 			throw GAMNET_EXCEPTION("elapsedTime_ should be set", 0);
@@ -130,11 +130,15 @@ public :
 					}
 
 					session->listener_ = this;
-					session->Connect(host, port);
+					session->Connect(endpoint_);
 				});
 				executeCount_ += 1;
 			}
 
+			if(executeCount_ % 10000)
+			{
+				Log::Write(GAMNET_INF, "Test execute count(", executeCount_, ")");
+			}
 			if(executeCount_ < loopCount_)
 			{
 				this->timer_.Resume();
@@ -145,7 +149,6 @@ public :
 			}
 		});
 	}
-
 };
 
 }} /* namespace Gamnet */

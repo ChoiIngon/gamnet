@@ -21,44 +21,37 @@ Session::~Session() {}
 void Session::Connect(const char* host, int port, int timeout)
 {
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
-	boost::asio::ip::tcp::resolver::query query_(host, String(port).c_str());
-	boost::asio::ip::tcp::resolver::iterator itr = resolver_.resolve(query_);
-	boost::asio::ip::tcp::resolver::iterator end;
+	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, String(port).c_str()}));
 
-	if(end != itr)
+	auto self = std::static_pointer_cast<Session>(shared_from_this());
+	socket_.async_connect(endpoint_,
+		strand_.wrap([self](const boost::system::error_code& ec){
+			self->timer_.Cancel();
+			if(false == self->socket_.is_open())
+			{
+				return;
+			}
+			else if(ec)
+			{
+				self->OnError(ec.value());
+			}
+			else
+			{
+				self->sessionKey_ = ++Network::IListener::uniqueSessionKey_;
+				self->readBuffer_ = Network::Packet::Create();
+				self->listener_->sessionManager_.AddSession(self->sessionKey_, self);
+				self->_read_start();
+				self->OnConnect();
+			}
+		})
+	);
+
+	if(0 != timeout)
 	{
-		boost::asio::ip::tcp::endpoint endpoint_ = *itr;
-
-		auto self = std::static_pointer_cast<Session>(shared_from_this());
-		socket_.async_connect(endpoint_,
-			strand_.wrap([self](const boost::system::error_code& ec){
-				self->timer_.Cancel();
-				if(false == self->socket_.is_open())
-				{
-					return;
-				}
-				else if(ec)
-				{
-					self->OnError(ec.value());
-				}
-				else
-				{
-					self->sessionKey_ = ++Network::IListener::uniqueSessionKey_;
-					self->readBuffer_ = Network::Packet::Create();
-					self->listener_->sessionManager_.AddSession(self->sessionKey_, self);
-					self->_read_start();
-					self->OnConnect();
-				}
-			})
-		);
-
-		if(0 != timeout)
-		{
-			timer_.SetTimer(timeout*1000, [this]() {
-				Log::Write(GAMNET_WRN, "connect timeout(session_key:", sessionKey_, ")");
-				OnError(ETIMEDOUT);
-			});
-		}
+		timer_.SetTimer(timeout*1000, [this]() {
+			Log::Write(GAMNET_WRN, "connect timeout(session_key:", sessionKey_, ")");
+			OnError(ETIMEDOUT);
+		});
 	}
 }
 

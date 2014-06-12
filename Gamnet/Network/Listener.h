@@ -33,13 +33,13 @@ template <class SESSION_T>
 class Listener : public IListener
 {
 	bool bCanAccpet_;
-	std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
+	boost::asio::ip::tcp::acceptor acceptor_;
 protected :
 	std::mutex lock_;
 	Pool<SESSION_T, std::mutex, Session::Init> sessionPool_;
 
 public :
-	Listener() : bCanAccpet_(true), sessionPool_()
+	Listener() : bCanAccpet_(true), acceptor_(Singleton<boost::asio::io_service>()), sessionPool_()
 	{
 	}
 	virtual ~Listener()
@@ -53,14 +53,12 @@ public :
 			throw Exception("sessionManager_ init fail");
 		}
 		sessionPool_.Capacity(max_session);
-		acceptor_ =
-				std::shared_ptr<boost::asio::ip::tcp::acceptor>(
-					new boost::asio::ip::tcp::acceptor(
-						Singleton<boost::asio::io_service>(),
-						boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)
-					)
-				);
-
+		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>());
+		boost::asio::ip::tcp::endpoint endpoint_(boost::asio::ip::tcp::v4(), port);
+		acceptor_.open(endpoint_.protocol());
+		acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+		acceptor_.bind(endpoint_);
+		acceptor_.listen();
 		_accept_start();
 	}
 	virtual void OnRecvMsg(std::shared_ptr<Session> session, std::shared_ptr<Packet> packet)
@@ -113,7 +111,7 @@ private :
 			bCanAccpet_ = false;
 			return;
 		}
-		acceptor_->async_accept(session->socket_, session->strand_.wrap(boost::bind(
+		acceptor_.async_accept(session->socket_, session->strand_.wrap(boost::bind(
 				&Listener<SESSION_T>::_accept_handler,
 				this, session,
 				boost::asio::placeholders::error
