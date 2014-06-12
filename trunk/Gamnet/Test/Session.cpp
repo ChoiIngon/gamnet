@@ -17,19 +17,28 @@ Session::Session() : testSEQ_(0) {
 Session::~Session() {
 }
 
-void Session::Connect(const char* host, int port)
+void Session::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 {
-	boost::asio::ip::tcp::resolver resolver_(io_service_);
-	boost::asio::ip::tcp::resolver::query query_(host, String(port).c_str());
-	boost::asio::ip::tcp::resolver::iterator itr = resolver_.resolve(query_);
-	boost::asio::ip::tcp::resolver::iterator end;
-
-	if(end != itr)
-	{
-		boost::asio::ip::tcp::endpoint endpoint_ = *itr;
-
-		auto self = std::static_pointer_cast<Session>(shared_from_this());
-		socket_.async_connect(endpoint_,strand_.wrap(boost::bind(&Tester<Session>::OnConnect, static_cast<Tester<Session>*>(self->listener_), self)));
-	}
+	auto self = std::static_pointer_cast<Session>(shared_from_this());
+	socket_.async_connect(endpoint,
+		strand_.wrap([self](const boost::system::error_code& ec){
+			if(false == self->socket_.is_open())
+			{
+				return;
+			}
+			else if(ec)
+			{
+				self->OnError(ec.value());
+			}
+			else
+			{
+				self->sessionKey_ = ++Network::IListener::uniqueSessionKey_;
+				self->readBuffer_ = Network::Packet::Create();
+				self->listener_->sessionManager_.AddSession(self->sessionKey_, self);
+				self->_read_start();
+				std::bind(&Tester<Session>::OnConnect, static_cast<Tester<Session>*>(self->listener_), self)();
+			}
+		})
+	);
 }
-} }/* namespace Gamnet */
+}}/* namespace Gamnet */
