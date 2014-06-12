@@ -84,18 +84,8 @@ public :
 		}
 	}
 
-	template <class FUNC, class HANDLER>
-	bool RegisterHandler(unsigned int msg_id, FUNC func, std::shared_ptr<HandlerCreate<HANDLER>> factory)
-	{
-		return Singleton<Dispatcher<SESSION_T>>().RegisterHandler(msg_id, func, factory);
-	}
-	template <class FUNC, class HANDLER>
-	bool RegisterHandler(unsigned int msg_id, FUNC func, std::shared_ptr<HandlerStatic<HANDLER>> factory)
-	{
-		return Singleton<Dispatcher<SESSION_T>>().RegisterHandler(msg_id, func, factory);
-	}
-	template <class FUNC, class HANDLER>
-	bool RegisterHandler(unsigned int msg_id, FUNC func, std::shared_ptr<HandlerFind<HANDLER>> factory)
+	template <class FUNC, class FACTORY>
+	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{
 		return Singleton<Dispatcher<SESSION_T>>().RegisterHandler(msg_id, func, factory);
 	}

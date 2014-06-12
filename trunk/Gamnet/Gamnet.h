@@ -11,7 +11,7 @@
 #include "Library/Singleton.h"
 #include "Log/Log.h"
 #include "Network/Network.h"
-//#include "Router/Router.h"
+#include "Router/Router.h"
 #include "Test/Test.h"
 #include "Database/Database.h"
 

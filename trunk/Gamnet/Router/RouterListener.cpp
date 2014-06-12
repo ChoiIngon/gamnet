@@ -11,7 +11,6 @@
 namespace Gamnet { namespace Router {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>();
-std::atomic_ullong RouterListener::msgSeq_(0);
 
 RouterListener::RouterListener() : Network::Listener<Session>()
 {

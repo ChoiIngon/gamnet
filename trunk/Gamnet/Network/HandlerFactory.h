@@ -26,7 +26,7 @@ struct IHandlerFactory
 	IHandlerFactory() {}
 	virtual ~IHandlerFactory() {}
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() = 0;
-	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer&, uint32_t) = 0;
+	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer*, uint32_t) = 0;
 };
 
 template <class T>
@@ -38,7 +38,7 @@ struct HandlerCreate : public IHandlerFactory
 	}
 	virtual ~HandlerCreate() {}
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_CREATE; }
-	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer&, uint32_t)
+	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer*, uint32_t)
 	{
 		std::shared_ptr<T> handler = pool_.Create();
 		return handler;
@@ -54,7 +54,7 @@ struct HandlerStatic : public IHandlerFactory
 	}
 	virtual ~HandlerStatic() {}
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_STATIC; }
-	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer&, uint32_t)
+	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer*, uint32_t)
 	{
 		if(NULL == _handler)
 		{
@@ -71,9 +71,9 @@ struct HandlerFind : public IHandlerFactory
 	HandlerFind() {};
 	virtual ~HandlerFind(){};
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_FIND; }
-	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer& container, uint32_t msg_seq)
+	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer* container, uint32_t msg_seq)
 	{
-		return container.Find(msg_seq);
+		return container->Find(msg_seq);
 	}
 };
 
