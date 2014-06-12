@@ -8,7 +8,6 @@
 #ifndef HANDLERECHO_H_
 #define HANDLERECHO_H_
 #include <Gamnet.h>
-#include <Router/Router.h>
 #include "ClientSession.h"
 #include "TestSession.h"
 
@@ -18,8 +17,6 @@ public:
 	virtual ~HandlerEcho();
 
 	void Recv_CS_Req(std::shared_ptr<ClientSession> client, std::shared_ptr<Gamnet::Network::Packet> packet);
-	void Recv_SS_Ntf(const Gamnet::Router::Address& from, std::shared_ptr<Gamnet::Network::Packet> packet);
-	void Recv_SC_Ans(std::shared_ptr<ClientSession> client, std::shared_ptr<Gamnet::Network::Packet> packet);
 	void Recv_SS_Req(const Gamnet::Router::Address& from, std::shared_ptr<Gamnet::Network::Packet> packet);
 	void Recv_SS_Ans(const Gamnet::Router::Address& from, std::shared_ptr<Gamnet::Network::Packet> packet);
 };

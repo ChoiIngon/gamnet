@@ -16,10 +16,10 @@ int main()
 	Gamnet::Log::Init("log");
 	Gamnet::Network::Listen<ClientSession>(20000, 1024, 60);
 	Gamnet::Router::Listen("HELLOWORLD");
-	Gamnet::Test::Init<TestSession>(1000, 1, 1);
+	Gamnet::Test::Init<TestSession>(100, 100, 1000000);
 	Gamnet::Test::RegisterHandler<TestSession, Msg_CS_Echo_Req, Msg_SC_Echo_Ans>(Test_Echo_Req, Test_Echo_Ans);
 	Gamnet::Test::Run<TestSession>("localhost", 20000);
-	Gamnet::Run();
+	Gamnet::Run(20);
 	return 0;
 }
 
