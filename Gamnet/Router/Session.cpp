@@ -69,4 +69,10 @@ void Session::OnConnect()
 	Log::Write(GAMNET_INF, "Router(id:", socket_.remote_endpoint().address().to_string(), "):send SetAddress_Req(service_name:", req.tLocalAddr.service_name.c_str(), ", id:", req.tLocalAddr.id, ")");
 }
 
+void Session::OnClose()
+{
+	Log::Write(GAMNET_INF, "Router(id:", socket_.remote_endpoint().address().to_string(), "):server down(service_name:", addr.service_name, ", id:", addr.id, ")");
+	watingSessionManager_.Clear();
+}
+
 }} /* namespace Gamnet */
