@@ -26,6 +26,12 @@ public :
 		template <class T>
 		T* operator() (T* session)
 		{
+			session->socket_.close();
+			session->sessionKey_ = 0;
+			session->listener_ = NULL;
+			session->readBuffer_ = Packet::Create();
+			session->lastHeartBeatTime_ = ::time(NULL);
+			session->handlerContainer_.Init();
 			session->OnCreate();
 			return session;
 		}
@@ -42,7 +48,9 @@ public :
 	Session();
 	virtual ~Session();
 
-	void OnCreate();
+	virtual void OnCreate() {}
+	virtual void OnConnect() {}
+	virtual void OnClose(int reason) {}
 	virtual void OnError(int reason);
 
 	void _read_start();

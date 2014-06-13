@@ -63,6 +63,7 @@ public:
 	void Init();
 	void Connect(const char* host, int port, int timeout = 5);
 	virtual void OnConnect();
+	virtual void OnClose();
 };
 
 }} /* namespace Gamnet */

@@ -25,20 +25,11 @@ Session::~Session()
 {
 }
 
-void Session::OnCreate()
-{
-	socket_.close();
-	sessionKey_ = 0;
-	listener_ = NULL;
-	readBuffer_ = Packet::Create();
-	lastHeartBeatTime_ = ::time(NULL);
-	handlerContainer_.Init();
-}
-
 void Session::OnError(int reason)
 {
-	socket_.close();
+	OnClose(reason);
 	listener_->OnClose(shared_from_this());
+	socket_.close();
 }
 
 void Session::_read_start()
