@@ -13,35 +13,32 @@
 
 namespace Gamnet {
 
-class String
+template <class T>
+void Concat(std::stringstream& stream, const T& t)
 {
-private :
-	std::stringstream stream_;
-    template <class T>
-    void Concat(const T& t)
-    {
-        stream_ << t;
-    }
+	stream << t;
+}
 
-    template <class T, class... ARGS>
-    void Concat(const T& t, ARGS&&... args)
-    {
-        stream_ << t;
-        Concat(args...);
-    }
-public :
-    template <class... ARGS>
-	String(ARGS... args)
-	{
-		Concat(args...);
-	}
+template <class T, class... ARGS>
+void Concat(std::stringstream& stream, const T& t, ARGS&&... args)
+{
+	stream << t;
+	Concat(stream, args...);
+}
 
-    const char* c_str() const
-    {
-    	return stream_.str().c_str();
-    }
-};
+template <class... ARGS>
+std::string Concat(ARGS... args)
+{
+	std::stringstream stream;
+	Concat(stream, args...);
+	return stream.str();
+}
 
+template <class... ARGS>
+std::string Format(ARGS... args)
+{
+	return Concat(args...);
+}
 };
 
 

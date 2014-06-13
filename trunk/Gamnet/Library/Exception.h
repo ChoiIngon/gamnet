@@ -31,7 +31,7 @@ public :
 }
 
 #define GAMNET_EXCEPTION(detail, error_code) \
-	Gamnet::Exception(Gamnet::String("exception at ", __FILE__, ":", __func__, "@" , __LINE__, ", what:", detail).c_str(), error_code)
+	Gamnet::Exception(Gamnet::Format("exception at ", __FILE__, ":", __func__, "@" , __LINE__, ", what:", detail), error_code)
 
 
 #endif /* EXCEPTION_H_ */

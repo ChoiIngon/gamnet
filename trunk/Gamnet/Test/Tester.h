@@ -112,7 +112,7 @@ public :
 
 	void Run(const char* host, int port)
 	{
-		endpoint_ = *resolver_.resolve({host, String(port).c_str()});
+		endpoint_ = *resolver_.resolve({host, Format(port).c_str()});
 		if(0 == elapsedTime_)
 		{
 			throw GAMNET_EXCEPTION("elapsedTime_ should be set", 0);

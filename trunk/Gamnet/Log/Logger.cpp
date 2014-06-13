@@ -35,7 +35,7 @@ void Logger::Init(const char* logPath, int max_file_size)
 		boost::filesystem::path dir(file_.logPath_);
 		if(false == boost::filesystem::create_directory(dir))
 		{
-			throw Exception(String("can't create directory for logging at \"", file_.logPath_, "\"").c_str());
+			throw Exception(Format("can't create directory for logging at \"", file_.logPath_, "\""));
 		}
 	}
 

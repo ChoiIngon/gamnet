@@ -45,12 +45,13 @@ public :
 		{
 			return;
 		}
-		String s(args...);
+
 		if(false == IsInit_)
 		{
 			throw Exception("write log exception, log is not initialized yet");
 		}
 
+		std::string&& s = Format(args...);
 		time_t logtime_;
 		struct tm when;
 		time(&logtime_);
