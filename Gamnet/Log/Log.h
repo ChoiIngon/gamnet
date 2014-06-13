@@ -27,9 +27,14 @@ namespace Gamnet { namespace Log {
 	}
 }}
 
+#define GAMNET_LOG Gamnet::Log::Write
 #define GAMNET_DEV Gamnet::Log::Logger::LOG_LEVEL_DEV, "DEV [", __FILE__, ":", __func__, "@" , __LINE__, "] "
 #define GAMNET_INF Gamnet::Log::Logger::LOG_LEVEL_INF, "INF "
 #define GAMNET_WRN Gamnet::Log::Logger::LOG_LEVEL_WRN, "WRN [", __FILE__, ":", __func__, "@" , __LINE__, "] "
 #define GAMNET_ERR Gamnet::Log::Logger::LOG_LEVEL_ERR, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] "
-
+#define LOG GAMNET_LOG
+#define DEV GAMNET_DEV
+#define INF GAMNET_INF
+#define WRN GAMNET_WRN
+#define ERR GAMNET_ERR
 #endif /* LOG_H_ */
