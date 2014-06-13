@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<server>
+	<log path="log" max_file_size="5">
+		<dev console="yes" file="yes" sys="no"/>
+		<inf console="yes" file="yes" sys="no"/>
+		<err console="yes" file="yes" sys="no"/>
+	</log>
+	
+	<database name="master" id="0" host="tserver2.weredsoft.com" port="3306" user="tk_db" db="three_kingdoms" passwd="w2fpem"/>
+</server>
