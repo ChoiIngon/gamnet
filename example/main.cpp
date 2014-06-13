@@ -13,10 +13,11 @@
 
 int main()
 {
-	Gamnet::Log::Init("log");
+	Gamnet::Log::ReadXml("config.xml");
+	Gamnet::Database::ReadXml("config.xml");
 	Gamnet::Network::Listen<ClientSession>(20000, 1024, 60);
 	Gamnet::Router::Listen("HELLOWORLD");
-	Gamnet::Test::Init<TestSession>(100, 50, 10000000);
+	Gamnet::Test::Init<TestSession>(100, 50, 100000);
 	Gamnet::Test::RegisterHandler<TestSession, Msg_CS_Echo_Req, Msg_SC_Echo_Ans>(Test_Echo_Req, Test_Echo_Ans);
 	Gamnet::Test::Run<TestSession>("localhost", 20000);
 	Gamnet::Run(20);

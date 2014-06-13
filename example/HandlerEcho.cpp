@@ -34,6 +34,18 @@ void HandlerEcho::Recv_CS_Req(std::shared_ptr<ClientSession> client, std::shared
 		addr.cast_type = Gamnet::Router::ROUTER_CAST_MULTI;
 		BindMessage<Msg_SS_Echo_Ans>(client);
 		Gamnet::Router::SendMsg(client, addr, ss_req);
+
+		Gamnet::Database::ResultSet ret = Gamnet::Database::Execute(0,
+			"select  USER_SEQ, USER_ID, unix_timestamp(now()) CUR_TIME, "
+					"MAX_CARD, MAX_DECK "
+			"from TK_DATA_USER "
+			"where DEVICE_ID = 'test_device_id_", rand() % 10000, "'"
+		);
+		if(1 != ret.GetRowCount())
+		{
+			throw GAMNET_EXCEPTION("query fail", 0);
+		}
+		Gamnet::Log::Write(GAMNET_DEV, ret[0]->getInt("USER_SEQ"));
 	}
 	catch(const Gamnet::Exception& e)
 	{
