@@ -47,7 +47,7 @@ void RouterListener::Init(const char* service_name, int port)
 	localAddr_.service_name = service_name;
 	localAddr_.cast_type = ROUTER_CAST_UNI;
 	boost::asio::ip::tcp::resolver resolver(io_service_);
-	boost::asio::ip::tcp::resolver::query query("localhost", String(port).c_str());
+	boost::asio::ip::tcp::resolver::query query("localhost", Format(port).c_str());
 	boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(query);
 	boost::asio::ip::tcp::resolver::iterator end;
 	while (it != end)

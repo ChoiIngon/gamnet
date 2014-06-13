@@ -21,7 +21,7 @@ Session::~Session() {}
 void Session::Connect(const char* host, int port, int timeout)
 {
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
-	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, String(port).c_str()}));
+	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
 
 	auto self = std::static_pointer_cast<Session>(shared_from_this());
 	socket_.async_connect(endpoint_,

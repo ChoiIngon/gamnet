@@ -34,7 +34,7 @@ public:
 		HandlerFunction handlerFunction = { factory, (function_type)func };
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)
 		{
-			throw Exception(String("duplicate handler(msg_id:", msg_id, ")").c_str());
+			throw Exception(Format("duplicate handler(msg_id:", msg_id, ")"));
 		}
 		return true;
 	}

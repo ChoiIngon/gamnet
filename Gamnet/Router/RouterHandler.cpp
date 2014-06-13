@@ -24,7 +24,7 @@ void RouterHandler::Recv_SendMsg_Ntf(std::shared_ptr<Session> session, std::shar
 
 		if(NULL == Singleton<RouterCaster>().FindSession(session->addr))
 		{
-			throw Gamnet::Exception(String("receive a message from unregistered address(ip:", session->socket_.remote_endpoint().address().to_string(), ", service_name:", session->addr.service_name, ", id:", session->addr.id, ")").c_str());
+			throw Gamnet::Exception(Gamnet::Format("receive a message from unregistered address(ip:", session->socket_.remote_endpoint().address().to_string(), ", service_name:", session->addr.service_name, ", id:", session->addr.id, ")"));
 		}
 	}
 	catch(const Gamnet::Exception& e) {
