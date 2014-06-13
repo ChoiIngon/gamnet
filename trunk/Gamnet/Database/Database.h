@@ -9,6 +9,7 @@
 #define GAMNET_DATABASE_DATABASE_H_
 
 #include "DatabaseImpl.h"
+#include "../Library/String.h"
 namespace Gamnet { namespace Database {
 
 bool 	  Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db);
@@ -18,7 +19,7 @@ void 	  AExecute(int db_type, const std::string& query, std::function<void(Resul
 template <class... ARGS>
 ResultSet Execute(int db_type, ARGS&&... args)
 {
-	const std::string query = String(args...);
+	const std::string query = String(args...).c_str();
 	return Execute(db_type, query);
 }
 }}
