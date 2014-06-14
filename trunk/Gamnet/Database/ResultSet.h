@@ -14,6 +14,7 @@
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
 #include <memory>
+#include <boost/lexical_cast.hpp>
 
 namespace Gamnet { namespace Database {
 struct ResultSet
@@ -22,50 +23,22 @@ struct ResultSet
 	{
 		bool hasNext_;
 		std::shared_ptr<sql::ResultSet> resultSet_;
-		iterator() : hasNext_(false)
-		{
-		}
-		iterator(const iterator& itr)
-		{
-			*this = itr;
-		}
-		iterator& operator = (const iterator& itr)
-		{
-			*this = itr;
-			return *this;
-		}
-		iterator& operator ++ (int)
-		{
-			if(NULL == resultSet_)
-			{
-				hasNext_ = false;
-			}
-			else
-			{
-				hasNext_ = resultSet_->next();
-			}
-			return *this;
-		}
-		std::shared_ptr<sql::ResultSet> operator -> ()
-		{
-			return resultSet_;
-		}
-		bool operator != (ResultSet::iterator itr)
-		{
-			if(this->hasNext_ != itr.hasNext_ || resultSet_ != itr.resultSet_)
-			{
-				return true;
-			}
-			return false;
-		}
+		iterator();
+		iterator(const iterator& itr);
+		iterator& operator = (const iterator& itr);
+		iterator& operator ++ (int);
+		std::shared_ptr<sql::ResultSet> operator -> ();
 
-		bool operator == (ResultSet::iterator itr)
+		bool operator != (ResultSet::iterator itr);
+		bool operator == (ResultSet::iterator itr);
+		const char* operator [] (const std::string& column_name)
 		{
-			if(this->hasNext_ == itr.hasNext_ && resultSet_ == itr.resultSet_)
-			{
-				return true;
-			}
-			return false;
+			return resultSet_->getString(column_name).c_str();
+		}
+		template <class T>
+		const T GetValue(const std::string& column_name)
+		{
+			return boost::lexical_cast<T>(resultSet_->getString(column_name));
 		}
 	};
 
