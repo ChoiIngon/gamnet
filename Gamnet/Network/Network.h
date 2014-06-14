@@ -45,6 +45,11 @@ namespace Gamnet { namespace Network {
 	}
 }}
 
-
+#define GAMNET_BIND_NETWORK_HANDLER(session_type, message_type, class_type, func, policy) \
+	static bool class_type_##func = Gamnet::Network::RegisterHandler<session_type>( \
+			message_type::MSG_ID, \
+			&class_type::func, \
+			std::shared_ptr<Gamnet::Network::policy<class_type>>(new Gamnet::Network::policy<class_type>()) \
+	)
 
 #endif /* NETWORK_H_ */

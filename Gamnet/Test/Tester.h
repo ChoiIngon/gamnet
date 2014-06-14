@@ -155,7 +155,10 @@ public :
 		printTimer_.SetTimer(3000, [this]() {
 			log_.Write(Log::Logger::LOG_LEVEL_INF, "[Test] execute count : ", this->executeCount_);
 			log_.Write(Log::Logger::LOG_LEVEL_INF, "[Test] running session count : ", this->sessionManager_.Size());
-			this->printTimer_.Resume();
+			if(this->executeCount_ < loopCount_)
+			{
+				this->printTimer_.Resume();
+			}
 		});
 	}
 };
