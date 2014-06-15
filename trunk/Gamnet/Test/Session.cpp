@@ -9,8 +9,6 @@
 #include "Tester.h"
 namespace Gamnet { namespace Test {
 
-static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>();
-
 Session::Session() : testSEQ_(0) {
 }
 
@@ -24,6 +22,7 @@ void Session::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 		strand_.wrap([self](const boost::system::error_code& ec){
 			if(false == self->socket_.is_open())
 			{
+				Log::Write(GAMNET_ERR, "[TEST] connect fail...");
 				return;
 			}
 			else if(ec)
