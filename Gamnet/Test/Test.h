@@ -8,6 +8,7 @@
 #ifndef GAMNET_TEST_TEST_H_
 #define GAMNET_TEST_TEST_H_
 
+#include <string>
 #include "Tester.h"
 #include "Session.h"
 #include "../Library/Singleton.h"

@@ -18,6 +18,7 @@ private :
 	int error_code_;
 public :
 	Exception(const std::string& s, int error_code = 0) : detail_(s), error_code_(error_code) {}
+	virtual ~Exception() throw() {}
 	virtual const char* what() const throw()
 	{
 		return detail_.c_str();
