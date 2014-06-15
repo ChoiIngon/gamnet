@@ -28,6 +28,7 @@ bool SessionManager::Init(int nKeepAliveSec)
 			}
 		}
 		this->timer_.Resume();
+		Log::Write(GAMNET_INF, "[NETWORK] running session count : ", this->mapSession_.size());
 	}))
 	{
 		Log::Write(GAMNET_ERR, "session time out timer init fail");

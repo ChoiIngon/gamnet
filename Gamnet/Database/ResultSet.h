@@ -31,9 +31,9 @@ struct ResultSet
 
 		bool operator != (ResultSet::iterator itr);
 		bool operator == (ResultSet::iterator itr);
-		const char* operator [] (const std::string& column_name)
+		const std::string operator [] (const std::string& column_name)
 		{
-			return resultSet_->getString(column_name).c_str();
+			return resultSet_->getString(column_name);
 		}
 		template <class T>
 		const T GetValue(const std::string& column_name)
