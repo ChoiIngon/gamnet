@@ -31,14 +31,17 @@ namespace Gamnet { namespace Network {
 		std::shared_ptr<Packet> packet = Packet::Create();
 		if(NULL == packet)
 		{
+			Log::Write(GAMNET_ERR, "fail to create packet instance(session_key:", session->sessionKey_, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
 		if(false == packet->Write(msg))
 		{
+			Log::Write(GAMNET_ERR, "fail to serialize message(session_key:", session->sessionKey_, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
 		if(0 > session->Send(packet))
 		{
+			Log::Write(GAMNET_ERR, "fail to send message(session_key:", session->sessionKey_, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
 		return true;
