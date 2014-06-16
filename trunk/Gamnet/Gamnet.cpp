@@ -10,8 +10,17 @@
 namespace Gamnet {
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>();
 
+void Initializer::Init()
+{
+	for(auto& itr : vecInitializer_)
+	{
+		itr();
+	}
+}
+
 void Run(int thread_count)
 {
+	Singleton<Initializer>().Init();
 	Log::Write(GAMNET_INF, "Gamnet server starts..");
 	ThreadPool threadPool(thread_count);
 	for(int i=0; i<thread_count; i++)
