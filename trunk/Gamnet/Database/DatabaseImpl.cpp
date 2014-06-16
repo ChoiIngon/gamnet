@@ -15,7 +15,6 @@ namespace Gamnet { namespace Database {
 
 DatabaseImpl::DatabaseImpl(): driver_(NULL)
 {
-	Log::Init();
 	driver_ = sql::mysql::get_mysql_driver_instance();
 }
 
