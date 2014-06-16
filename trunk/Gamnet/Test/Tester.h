@@ -185,12 +185,12 @@ public :
 			}
 		});
 		printTimer_.SetTimer(3000, [this]() {
-			log_.Write(Log::Logger::LOG_LEVEL_INF, "[Test] execute count : ", this->executeCount_);
-			log_.Write(Log::Logger::LOG_LEVEL_INF, "[Test] running session count : ", this->sessionManager_.Size());
+			log_.Write(GAMNET_INF, "[Test] execute count : ", this->executeCount_);
+			log_.Write(GAMNET_INF, "[Test] running session count : ", this->sessionManager_.Size());
 			for(auto& itr : this->vecTestRunningState_)
 			{
 				unsigned long int count = itr.count_;
-				log_.Write(Log::Logger::LOG_LEVEL_INF, "[Test] running state(name : ", itr.name_, ", count : ", count, ")");
+				log_.Write(GAMNET_INF, "[Test] running state(name : ", itr.name_, ", count : ", count, ")");
 			}
 			if(this->executeCount_ < loopCount_)
 			{
@@ -198,7 +198,7 @@ public :
 			}
 			else
 			{
-				log_.Write(Log::Logger::LOG_LEVEL_INF, "[TEST] test finished...");
+				log_.Write(GAMNET_INF, "[Test] test finished..(", this->executeCount_, "/", this->loopCount_, ")");
 			}
 		});
 	}
