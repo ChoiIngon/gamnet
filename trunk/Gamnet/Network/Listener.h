@@ -32,7 +32,7 @@ public :
 template <class SESSION_T>
 class Listener : public IListener
 {
-	bool bCanAccpet_;
+	volatile bool bCanAccpet_;
 	boost::asio::ip::tcp::acceptor acceptor_;
 protected :
 	std::mutex lock_;
@@ -96,6 +96,7 @@ private :
 			session->sessionKey_ = ++IListener::uniqueSessionKey_;
 			session->listener_ = this;
 			sessionManager_.AddSession(session->sessionKey_, session);
+			session->OnConnect();
 			session->_read_start();
 		}
 

@@ -198,7 +198,7 @@ public :
 			}
 			else
 			{
-				Log::Write(GAMNET_INF, "test finished...");
+				log_.Write(Log::Logger::LOG_LEVEL_INF, "[TEST] test finished...");
 			}
 		});
 	}

@@ -25,8 +25,9 @@ void Session::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 				Log::Write(GAMNET_ERR, "[TEST] connect fail...");
 				return;
 			}
-			else if(ec)
+			if(ec)
 			{
+				LOG(GAMNET_ERR, "[TEST] ", ec.message());
 				self->OnError(ec.value());
 			}
 			else
