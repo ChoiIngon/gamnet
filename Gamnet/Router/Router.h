@@ -51,6 +51,11 @@ bool SendMsg(const Address& addr, const MSG& msg)
 
 }}
 
-
+#define GAMNET_BIND_ROUTER_HANDLER(message_type, class_type, func, policy) \
+	static bool Router_##class_type##_##func = Gamnet::Router::RegisterHandler( \
+		message_type::MSG_ID, \
+		&class_type::func, \
+		std::shared_ptr<Gamnet::Network::policy<class_type>>(new Gamnet::Network::policy<class_type>()) \
+	)
 
 #endif /* ROUTER_H_ */

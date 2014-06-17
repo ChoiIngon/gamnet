@@ -13,7 +13,7 @@ namespace Gamnet { namespace Test {
 
 class Session : public Network::Session {
 public:
-	unsigned int testSEQ_;
+	int testSEQ_;
 
 	Session();
 	virtual ~Session();

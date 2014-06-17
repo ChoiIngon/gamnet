@@ -9,7 +9,7 @@
 #include "Tester.h"
 namespace Gamnet { namespace Test {
 
-Session::Session() : testSEQ_(0) {
+Session::Session() : testSEQ_(-1) {
 }
 
 Session::~Session() {
@@ -41,4 +41,5 @@ void Session::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 		})
 	);
 }
+
 }}/* namespace Gamnet */
