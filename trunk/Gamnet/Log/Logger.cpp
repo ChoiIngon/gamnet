@@ -35,7 +35,7 @@ void Logger::Init(const char* logPath, int max_file_size)
 		boost::filesystem::path dir(file_.logPath_);
 		if(false == boost::filesystem::create_directory(dir))
 		{
-			throw Exception(Format("can't create directory for logging at \"", file_.logPath_, "\""));
+			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] can't create directory for logging at \"", file_.logPath_, "\"");
 		}
 	}
 
@@ -49,7 +49,7 @@ void Logger::SetLevelProperty(LOG_LEVEL_TYPE level, int flag)
 {
 	if(false == IsInit_)
 	{
-		throw Exception("set log level property exception, log is not initialized yet");
+		throw Exception(0, "set log level property exception, log is not initialized yet");
 	}
 	Property_[level] = flag;
 }

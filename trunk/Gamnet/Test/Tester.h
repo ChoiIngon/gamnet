@@ -90,12 +90,9 @@ public :
 
 		RECV_HANDLER_TYPE& handler = itr->second;
 		handler(test_session, packet);
-		{
-			std::lock_guard<std::mutex> lo(vecTestRunningState_[test_session->testSEQ_].lock_);
-			vecTestRunningState_[test_session->testSEQ_].count_--;
-		}
+
 		test_session->testSEQ_++;
-		if(test_session->testSEQ_ >= vecSendHandler_.size())
+		if(test_session->testSEQ_ >= (int)vecSendHandler_.size())
 		{
 			test_session->OnError(0);
 			return;
@@ -109,10 +106,8 @@ public :
 	virtual void OnClose(std::shared_ptr<Network::Session> session)
 	{
 		std::shared_ptr<SESSION_T> test_session = std::static_pointer_cast<SESSION_T>(session);
-		if(0 <= test_session->testSEQ_ && test_session->testSEQ_ < vecSendHandler_.size())
+		if(0 <= test_session->testSEQ_ && test_session->testSEQ_ < (int)vecSendHandler_.size())
 		{
-			std::lock_guard<std::mutex> lo(vecTestRunningState_[test_session->testSEQ_].lock_);
-			vecTestRunningState_[test_session->testSEQ_].count_--;
 			test_session->testSEQ_ = -1;
 		}
 		sessionManager_.DelSession(session->sessionKey_, session);
@@ -121,7 +116,7 @@ public :
 	{
 		sessionManager_.AddSession(session->sessionKey_, session);
 		session->testSEQ_ = -1;
-		if(session->testSEQ_ + 1 < vecSendHandler_.size())
+		if(session->testSEQ_ + 1 < (int)vecSendHandler_.size())
 		{
 			session->testSEQ_ = 0;
 			vecSendHandler_[session->testSEQ_](session);
@@ -146,7 +141,7 @@ public :
 		auto itr = mapSendHandler_.find(test_name);
 		if(mapSendHandler_.end() == itr)
 		{
-			throw Exception(Format("can't find registered test case(test_name:", test_name, ")"));
+			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] can't find registered test case(test_name:", test_name, ")");
 		}
 		TestRunningState state;
 		state.name_ = test_name;
@@ -159,11 +154,11 @@ public :
 	{
 		if(0 == interval_)
 		{
-			throw GAMNET_EXCEPTION("interval_ should be set", 0);
+			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] interval_ should be set");
 		}
 		if(0 == sessionCount_)
 		{
-			throw GAMNET_EXCEPTION("sessionCount_ should be set", 0);
+			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] sessionCount_ should be set");
 		}
 		Log::Write(GAMNET_INF, "test start...");
 		timer_.SetTimer(interval_, [this]() {
@@ -197,8 +192,7 @@ public :
 			log_.Write(GAMNET_INF, "[Test] running session count : ", this->sessionManager_.Size());
 			for(auto& itr : this->vecTestRunningState_)
 			{
-				unsigned long int count = itr.count_;
-				log_.Write(GAMNET_INF, "[Test] running state(name : ", itr.name_, ", count : ", count, ")");
+				log_.Write(GAMNET_INF, "[Test] running state(name : ", itr.name_, ", count : ", itr.count_, ")");
 			}
 			if(this->executeCount_ < loopCount_)
 			{
