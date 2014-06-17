@@ -51,7 +51,8 @@ public:
 		auto itr = mapHandlerFunction_.find(msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
-			Log::Write(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
+			Log::Write(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", ip:", session->socket_.remote_endpoint().address().to_string(), ")");
+			session->OnError(EINVAL);
 			return ;
 		}
 

@@ -108,14 +108,22 @@ public :
 	}
 	virtual void OnClose(std::shared_ptr<Network::Session> session)
 	{
+		std::shared_ptr<SESSION_T> test_session = std::static_pointer_cast<SESSION_T>(session);
+		if(0 <= test_session->testSEQ_ && test_session->testSEQ_ < vecSendHandler_.size())
+		{
+			std::lock_guard<std::mutex> lo(vecTestRunningState_[test_session->testSEQ_].lock_);
+			vecTestRunningState_[test_session->testSEQ_].count_--;
+			test_session->testSEQ_ = -1;
+		}
 		sessionManager_.DelSession(session->sessionKey_, session);
 	}
 	void OnConnect(std::shared_ptr<SESSION_T> session)
 	{
 		sessionManager_.AddSession(session->sessionKey_, session);
-		session->testSEQ_ = 0;
-		if(session->testSEQ_ < vecSendHandler_.size())
+		session->testSEQ_ = -1;
+		if(session->testSEQ_ + 1 < vecSendHandler_.size())
 		{
+			session->testSEQ_ = 0;
 			vecSendHandler_[session->testSEQ_](session);
 			std::lock_guard<std::mutex> lo(vecTestRunningState_[session->testSEQ_].lock_);
 			vecTestRunningState_[session->testSEQ_].count_++;
