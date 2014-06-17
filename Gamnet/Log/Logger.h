@@ -48,7 +48,7 @@ public :
 
 		if(false == IsInit_)
 		{
-			throw Exception("write log exception, log is not initialized yet");
+			throw Exception(GAMNET_ERRNO(0), "write log exception, log is not initialized yet");
 		}
 
 		std::string&& s = Format(args...);

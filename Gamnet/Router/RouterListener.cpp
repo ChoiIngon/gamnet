@@ -61,7 +61,7 @@ void RouterListener::Init(const char* service_name, int port)
 	}
 	if(0 == localAddr_.id)
 	{
-		throw Exception("unique router id is not set");
+		throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] unique router id is not set");
 	}
 	Listener::Init(port, 4096, 0);
 	Connect("localhost", port, 0);

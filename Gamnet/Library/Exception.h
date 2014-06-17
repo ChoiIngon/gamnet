@@ -13,11 +13,13 @@ namespace Gamnet {
 
 class Exception : public std::exception
 {
-private :
-	const std::string detail_;
 	int error_code_;
+	const std::string detail_;
 public :
-	Exception(const std::string& s, int error_code = 0) : detail_(s), error_code_(error_code) {}
+	template <class... ARGS>
+	Exception(int error_code, ARGS... args) : error_code_(error_code), detail_(Format(args...))
+	{
+	}
 	virtual ~Exception() throw() {}
 	virtual const char* what() const throw()
 	{
@@ -31,8 +33,5 @@ public :
 
 }
 
-#define GAMNET_EXCEPTION(detail, error_code) \
-	Gamnet::Exception(Gamnet::Format("exception at ", __FILE__, ":", __func__, "@" , __LINE__, ", what:", detail), error_code)
-
-
+#define GAMNET_ERRNO(errno) errno, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] ", #errno
 #endif /* EXCEPTION_H_ */
