@@ -34,6 +34,7 @@ class Listener : public IListener
 {
 	volatile bool bCanAccpet_;
 	boost::asio::ip::tcp::acceptor acceptor_;
+	Timer monitorTimer_;
 protected :
 	std::mutex lock_;
 	Pool<SESSION_T, std::mutex, Session::Init> sessionPool_;
@@ -41,9 +42,14 @@ protected :
 public :
 	Listener() : bCanAccpet_(true), acceptor_(Singleton<boost::asio::io_service>::GetInstance()), sessionPool_()
 	{
+		monitorTimer_.SetTimer(10000, [this](){
+			Log::Write(GAMNET_INF, "[NETWORK] running session : ", this->sessionManager_.Size(), ", idle session : ", this->sessionPool_.Available());
+			this->monitorTimer_.Resume();
+		});
 	}
 	virtual ~Listener()
 	{
+		monitorTimer_.Cancel();
 	}
 
 	void Init(int port, int max_session, int keepAliveTime)
