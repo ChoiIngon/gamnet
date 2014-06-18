@@ -8,6 +8,7 @@
 #ifndef GAMNET_GAMNET_H_
 #define GAMNET_GAMNET_H_
 
+#include "Library/HttpClient.h"
 #include "Library/Singleton.h"
 #include "Log/Log.h"
 #include "Network/Network.h"

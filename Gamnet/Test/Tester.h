@@ -189,7 +189,7 @@ public :
 		});
 		printTimer_.SetTimer(3000, [this]() {
 			log_.Write(GAMNET_INF, "[Test] execute count : ", this->executeCount_);
-			log_.Write(GAMNET_INF, "[Test] running session count : ", this->sessionManager_.Size());
+			log_.Write(GAMNET_INF, "[Test] running session : ", this->sessionManager_.Size(), ", idle session : ", this->sessionPool_.Available());
 			for(auto& itr : this->vecTestRunningState_)
 			{
 				log_.Write(GAMNET_INF, "[Test] running state(name : ", itr.name_, ", count : ", itr.count_, ")");
