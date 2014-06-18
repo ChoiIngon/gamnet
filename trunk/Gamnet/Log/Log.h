@@ -23,7 +23,7 @@ namespace Gamnet { namespace Log {
 	template <typename... Args>
 	void Write(Logger::LOG_LEVEL_TYPE level, const Args&... args)
 	{
-		Singleton<Logger>().Write(level, args...);
+		Singleton<Logger>::GetInstance().Write(level, args...);
 	}
 }}
 

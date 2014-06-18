@@ -20,7 +20,7 @@ void Connect(const char* host, int port=20001, int timeout=5);
 template <class FUNC, class FACTORY>
 bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 {
-	return Singleton<Dispatcher>().RegisterHandler(msg_id, func, factory);
+	return Singleton<Dispatcher>::GetInstance().RegisterHandler(msg_id, func, factory);
 }
 
 template <class REQ>
@@ -36,7 +36,7 @@ bool SendMsg(std::shared_ptr<Network::Session> session, const Address& addr, con
 		return false;
 	}
 
-	if(false == Singleton<RouterCaster>().SendMsg(session, addr, packet->ReadPtr(), packet->Size()))
+	if(false == Singleton<RouterCaster>::GetInstance().SendMsg(session, addr, packet->ReadPtr(), packet->Size()))
 	{
 		return false;
 	}

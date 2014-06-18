@@ -31,14 +31,14 @@ namespace Gamnet { namespace Test {
 	template<class SESSION_T, class REQ_T, class ANS_T>
 	bool RegisterHandler(const std::string& test_name, typename Tester<SESSION_T>::SEND_HANDER_TYPE send, typename Tester<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
-		Singleton<Tester<SESSION_T>>().RegisterHandler<REQ_T, ANS_T>(test_name, send, recv);
+		Singleton<Tester<SESSION_T>>::GetInstance().RegisterHandler<REQ_T, ANS_T>(test_name, send, recv);
 		return true;
 	}
 
 	template<class SESSION_T>
 	void Run()
 	{
-		Singleton<Tester<SESSION_T>>().Run();
+		Singleton<Tester<SESSION_T>>::GetInstance().Run();
 	}
 
 	template<class SESSION_T>
@@ -57,10 +57,10 @@ namespace Gamnet { namespace Test {
 		{
 			if("message" == elmt.first)
 			{
-				Singleton<Tester<SESSION_T>>().SetTestSequence(elmt.second.get<std::string>("<xmlattr>.name"));
+				Singleton<Tester<SESSION_T>>::GetInstance().SetTestSequence(elmt.second.get<std::string>("<xmlattr>.name"));
 			}
 		}
-		Singleton<Tester<SESSION_T>>().Init(host.c_str(), port, interval, session_count, loop_count);
+		Singleton<Tester<SESSION_T>>::GetInstance().Init(host.c_str(), port, interval, session_count, loop_count);
 	}
 }}
 

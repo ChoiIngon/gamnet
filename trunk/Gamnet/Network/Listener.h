@@ -39,7 +39,7 @@ protected :
 	Pool<SESSION_T, std::mutex, Session::Init> sessionPool_;
 
 public :
-	Listener() : bCanAccpet_(true), acceptor_(Singleton<boost::asio::io_service>()), sessionPool_()
+	Listener() : bCanAccpet_(true), acceptor_(Singleton<boost::asio::io_service>::GetInstance()), sessionPool_()
 	{
 	}
 	virtual ~Listener()
@@ -63,7 +63,7 @@ public :
 	}
 	virtual void OnRecvMsg(std::shared_ptr<Session> session, std::shared_ptr<Packet> packet)
 	{
-		Singleton<Dispatcher<SESSION_T>>().OnRecvMsg(std::static_pointer_cast<SESSION_T>(session), packet);
+		Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(std::static_pointer_cast<SESSION_T>(session), packet);
 	}
 	virtual void OnClose(std::shared_ptr<Session> session)
 	{
@@ -85,7 +85,7 @@ public :
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{
-		return Singleton<Dispatcher<SESSION_T>>().RegisterHandler(msg_id, func, factory);
+		return Singleton<Dispatcher<SESSION_T>>::GetInstance().RegisterHandler(msg_id, func, factory);
 	}
 
 private :

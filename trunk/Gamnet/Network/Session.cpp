@@ -9,7 +9,7 @@
 
 namespace Gamnet { namespace Network {
 
-static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>();
+static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
 Session::Session()
 	: socket_(io_service_),
