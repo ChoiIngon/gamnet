@@ -62,7 +62,7 @@ struct Timer
 	boost::asio::deadline_timer deadline_timer_;
 
 	Timer() :
-		entry_(NULL), interval_(0), deadline_timer_(Singleton<boost::asio::io_service>())
+		entry_(NULL), interval_(0), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
 	{
 	}
 

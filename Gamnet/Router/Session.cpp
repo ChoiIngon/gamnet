@@ -12,7 +12,7 @@
 
 namespace Gamnet { namespace Router {
 
-static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>();
+static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
 Session::Session() : Network::Session() {}
 
@@ -61,7 +61,7 @@ void Session::OnConnect()
 
 	Log::Write(GAMNET_INF, "Router(ip:", socket_.remote_endpoint().address().to_string(), "):connect success");
 	MsgRouter_SetAddress_Req req;
-	req.tLocalAddr = Singleton<RouterListener>().localAddr_;
+	req.tLocalAddr = Singleton<RouterListener>::GetInstance().localAddr_;
 	if(false == Network::SendMsg(shared_from_this(), req))
 	{
 		Log::Write(GAMNET_ERR, "Router(id:", socket_.remote_endpoint().address().to_string(), "):send SetAddress_Req(service_name:", req.tLocalAddr.service_name.c_str(), ", id:", req.tLocalAddr.id, ")");

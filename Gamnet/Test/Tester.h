@@ -74,7 +74,7 @@ public :
 		sessionCount_ = session_count;
 		loopCount_ = loop_count;
 		log_.Init("test", 5);
-		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>());
+		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
 		endpoint_ = *resolver_.resolve({host, Format(port).c_str()});
 	}
 	virtual void OnRecvMsg(std::shared_ptr<Network::Session> session, std::shared_ptr<Network::Packet> packet)

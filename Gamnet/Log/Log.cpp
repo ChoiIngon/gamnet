@@ -15,7 +15,7 @@ namespace Gamnet { namespace Log {
 
 void Init(const char* log_dir, int max_file_size)
 {
-	Singleton<Logger>().Init(log_dir, max_file_size);
+	Singleton<Logger>::GetInstance().Init(log_dir, max_file_size);
 }
 
 void ReadXml(const char* xml_path)
@@ -61,13 +61,13 @@ void ReadXml(const char* xml_path)
 			flag |= Logger::LOG_SYSLOG;
 		}
 
-		Singleton<Logger>().SetLevelProperty(level, flag);
+		Singleton<Logger>::GetInstance().SetLevelProperty(level, flag);
 	}
 }
 
 void SetLevelProperty(Logger::LOG_LEVEL_TYPE level, int flag)
 {
-	Singleton<Logger>().SetLevelProperty(level, flag);
+	Singleton<Logger>::GetInstance().SetLevelProperty(level, flag);
 }
 
 }}

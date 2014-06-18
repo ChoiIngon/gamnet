@@ -44,17 +44,17 @@ void ReadXml(const char* xml_path)
 
 bool Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db)
 {
-	return Singleton<DatabaseImpl>().Connect(db_type, host, port, id, passwd, db);
+	return Singleton<DatabaseImpl>::GetInstance().Connect(db_type, host, port, id, passwd, db);
 }
 
 ResultSet Execute(int db_type, const std::string& query)
 {
-	return Singleton<DatabaseImpl>().Execute(db_type, query);
+	return Singleton<DatabaseImpl>::GetInstance().Execute(db_type, query);
 }
 
 void AExecute(int db_type, const std::string& query, std::function<void(ResultSet)> callback)
 {
-	threadPool_.PostTask(std::bind(&DatabaseImpl::Execute, &Singleton<DatabaseImpl>(), db_type, query, callback));
+	threadPool_.PostTask(std::bind(&DatabaseImpl::Execute, &Singleton<DatabaseImpl>::GetInstance(), db_type, query, callback));
 }
 
 }}

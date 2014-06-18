@@ -10,7 +10,7 @@
 
 namespace Gamnet { namespace Router {
 
-static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>();
+static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
 RouterListener::RouterListener() : Network::Listener<Session>()
 {

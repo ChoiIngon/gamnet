@@ -53,7 +53,7 @@ public:
 
 		if(ROUTER_CAST_UNI == from.cast_type && Network::IHandlerFactory::HANDLER_FACTORY_FIND == handler_function.factory_->GetFactoryType())
 		{
-			std::shared_ptr<Session> router_session = Singleton<RouterCaster>().FindSession(from);
+			std::shared_ptr<Session> router_session = Singleton<RouterCaster>::GetInstance().FindSession(from);
 			if(NULL == router_session)
 			{
 				Log::Write(GAMNET_ERR, "can't find registered address");
