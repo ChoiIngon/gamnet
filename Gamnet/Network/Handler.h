@@ -22,8 +22,8 @@ struct IHandler : public std::enable_shared_from_this<IHandler>
 	{
 		session->handlerContainer_.Register(MSG::MSG_ID, shared_from_this());
 	}
-
 };
+
 
 }} /* namespace Gamnet */
 #endif /* HANDLER_H_ */

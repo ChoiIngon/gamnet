@@ -49,18 +49,13 @@ template <class T>
 struct HandlerStatic : public IHandlerFactory
 {
 	std::shared_ptr<T> _handler;
-	HandlerStatic() : _handler(NULL)
+	HandlerStatic() : _handler(std::shared_ptr<T>(new T()))
 	{
 	}
 	virtual ~HandlerStatic() {}
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_STATIC; }
 	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer*, uint32_t)
 	{
-		if(NULL == _handler)
-		{
-			_handler = std::shared_ptr<T>(new T());
-		}
-
 		return _handler;
 	}
 };
@@ -73,6 +68,10 @@ struct HandlerFind : public IHandlerFactory
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_FIND; }
 	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer* container, uint32_t msg_seq)
 	{
+		if(NULL == container)
+		{
+			return NULL;
+		}
 		return container->Find(msg_seq);
 	}
 };
