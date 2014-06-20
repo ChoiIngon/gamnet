@@ -19,13 +19,19 @@ bool SessionManager::Init(int nKeepAliveSec)
 	}
 	if (false == timer_.SetTimer(keepAliveSec_ * 1000, [this](){
 		std::lock_guard<std::recursive_mutex> lo(this->lock_);
-		for(auto itr : this->mapSession_)
-		{
-			if(itr.second->lastHeartBeatTime_ + keepAliveSec_ < time(NULL))
+		time_t now_ = time(NULL);
+		for(auto itr = this->mapSession_.begin(); itr != this->mapSession_.end();) {
+			if(itr->second->lastHeartBeatTime_ + keepAliveSec_ < now_)
 			{
-				Log::Write(GAMNET_ERR, "kick out session(session_key:", itr.second->sessionKey_, ")");
-				itr.second->OnError(ETIMEDOUT);
-			}
+				std::shared_ptr<Session> session = itr->second;
+				Log::Write(GAMNET_ERR, "idle session timeout(session_key:", session->sessionKey_,")");
+		        this->mapSession_.erase(itr++);
+		        session->sessionKey_ = 0;
+		        session->OnError(ETIMEDOUT);
+		    }
+		    else {
+		        ++itr;
+		    }
 		}
 		this->timer_.Resume();
 	}))
@@ -48,6 +54,10 @@ bool SessionManager::AddSession(uint64_t key, std::shared_ptr<Session> pSession)
 
 void SessionManager::DelSession(uint64_t key, std::shared_ptr<Session> session)
 {
+	if(0 == key)
+	{
+		return;
+	}
 	std::lock_guard<std::recursive_mutex> lo(lock_);
 	mapSession_.erase(key);
 	session->sessionKey_ = 0;

@@ -28,8 +28,8 @@ Session::~Session()
 void Session::OnError(int reason)
 {
 	OnClose(reason);
-	listener_->OnClose(shared_from_this());
 	socket_.close();
+	listener_->OnClose(shared_from_this());
 }
 
 void Session::_read_start()
@@ -111,6 +111,7 @@ int Session::Send(const char* buf, int len)
 	}
 	return totalSentBytes;
 }
+
 }}
 
 
