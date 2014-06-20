@@ -7,6 +7,7 @@ CPP_SRCS += \
 ../Network/Handler.cpp \
 ../Network/HandlerContainer.cpp \
 ../Network/Listener.cpp \
+../Network/Network.cpp \
 ../Network/Packet.cpp \
 ../Network/Session.cpp \
 ../Network/SessionManager.cpp 
@@ -15,6 +16,7 @@ OBJS += \
 ./Network/Handler.o \
 ./Network/HandlerContainer.o \
 ./Network/Listener.o \
+./Network/Network.o \
 ./Network/Packet.o \
 ./Network/Session.o \
 ./Network/SessionManager.o 
@@ -23,6 +25,7 @@ CPP_DEPS += \
 ./Network/Handler.d \
 ./Network/HandlerContainer.d \
 ./Network/Listener.d \
+./Network/Network.d \
 ./Network/Packet.d \
 ./Network/Session.d \
 ./Network/SessionManager.d 

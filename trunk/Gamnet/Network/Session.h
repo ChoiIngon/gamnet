@@ -32,13 +32,13 @@ public :
 			session->readBuffer_ = Packet::Create();
 			session->lastHeartBeatTime_ = ::time(NULL);
 			session->handlerContainer_.Init();
-			session->OnCreate();
 			return session;
 		}
 	};
 
 	boost::asio::ip::tcp::socket socket_;
 	boost::asio::strand strand_;
+	boost::asio::ip::address remote_address_;
 	uint64_t sessionKey_;
 	IListener* listener_;
 	std::shared_ptr<Packet> readBuffer_;
@@ -48,9 +48,8 @@ public :
 	Session();
 	virtual ~Session();
 
-	virtual void OnCreate() {}
-	virtual void OnConnect() {}
-	virtual void OnClose(int reason) {}
+	virtual void OnAccept() = 0;
+	virtual void OnClose(int reason) = 0;
 	virtual void OnError(int reason);
 
 	void _read_start();

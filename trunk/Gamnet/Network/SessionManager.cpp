@@ -24,10 +24,11 @@ bool SessionManager::Init(int nKeepAliveSec)
 			if(itr->second->lastHeartBeatTime_ + keepAliveSec_ < now_)
 			{
 				std::shared_ptr<Session> session = itr->second;
-				Log::Write(GAMNET_ERR, "idle session timeout(session_key:", session->sessionKey_,")");
+				Log::Write(GAMNET_ERR, "idle session timeout(ip:", session->remote_address_.to_string(), ", session_key:", session->sessionKey_,")");
+
 		        this->mapSession_.erase(itr++);
 		        session->sessionKey_ = 0;
-		        session->OnError(ETIMEDOUT);
+		        session->strand_.wrap(std::bind(&Session::OnError, session, ETIMEDOUT))();
 		    }
 		    else {
 		        ++itr;

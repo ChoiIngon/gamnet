@@ -19,6 +19,8 @@ public:
 	virtual ~Session();
 
 	void Connect(const boost::asio::ip::tcp::endpoint& endpoint);
+	void OnAccept() {}
+	void OnClose(int reason) {}
 };
 
 }} /* namespace Gamnet */
