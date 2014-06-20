@@ -34,6 +34,7 @@ class Listener : public IListener
 {
 	volatile bool bCanAccpet_;
 	boost::asio::ip::tcp::acceptor acceptor_;
+	boost::asio::ip::tcp::endpoint endpoint_;
 	Timer monitorTimer_;
 	int port_;
 protected :
@@ -61,8 +62,8 @@ public :
 			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] sessionManager_ init fail");
 		}
 		sessionPool_.Capacity(max_session);
-		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>());
-		boost::asio::ip::tcp::endpoint endpoint_(boost::asio::ip::tcp::v4(), port);
+		//boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>());
+		endpoint_ = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port);
 		acceptor_.open(endpoint_.protocol());
 		acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 		acceptor_.bind(endpoint_);
@@ -104,7 +105,8 @@ private :
 			session->sessionKey_ = ++IListener::uniqueSessionKey_;
 			session->listener_ = this;
 			sessionManager_.AddSession(session->sessionKey_, session);
-			session->OnConnect();
+			session->remote_address_ = session->socket_.remote_endpoint().address();
+			session->OnAccept();
 			session->_read_start();
 		}
 

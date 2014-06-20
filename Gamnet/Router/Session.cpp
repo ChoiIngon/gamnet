@@ -9,6 +9,7 @@
 #include "../Network/Network.h"
 #include "../Log/Log.h"
 #include "RouterListener.h"
+#include "RouterCaster.h"
 
 namespace Gamnet { namespace Router {
 
@@ -23,6 +24,8 @@ void Session::Connect(const char* host, int port, int timeout)
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
 	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
 
+	Log::Write(GAMNET_INF, "[Router] connect.....(host:", host, ", port:", port, ")");
+	remote_address_ = endpoint_.address();
 	auto self = std::static_pointer_cast<Session>(shared_from_this());
 	socket_.async_connect(endpoint_,
 		strand_.wrap([self](const boost::system::error_code& ec){
@@ -39,6 +42,7 @@ void Session::Connect(const char* host, int port, int timeout)
 			{
 				self->sessionKey_ = ++Network::IListener::uniqueSessionKey_;
 				self->readBuffer_ = Network::Packet::Create();
+				self->remote_address_ = self->socket_.remote_endpoint().address();
 				self->listener_->sessionManager_.AddSession(self->sessionKey_, self);
 				self->_read_start();
 				self->OnConnect();
@@ -48,9 +52,9 @@ void Session::Connect(const char* host, int port, int timeout)
 
 	if(0 != timeout)
 	{
-		timer_.SetTimer(timeout*1000, [this]() {
-			Log::Write(GAMNET_WRN, "connect timeout(session_key:", sessionKey_, ")");
-			OnError(ETIMEDOUT);
+		timer_.SetTimer(timeout*1000, [self]() {
+			Log::Write(GAMNET_WRN, "connect timeout(ip:", self->remote_address_.to_string(), ")");
+			self->OnError(ETIMEDOUT);
 		});
 	}
 }
@@ -59,20 +63,21 @@ void Session::OnConnect()
 {
 	watingSessionManager_.Clear();
 
-	Log::Write(GAMNET_INF, "Router(ip:", socket_.remote_endpoint().address().to_string(), "):connect success");
+	Log::Write(GAMNET_INF, "[Router] connect success..(remote ip:", remote_address_.to_string(), ")");
 	MsgRouter_SetAddress_Req req;
 	req.tLocalAddr = Singleton<RouterListener>::GetInstance().localAddr_;
 	if(false == Network::SendMsg(shared_from_this(), req))
 	{
-		Log::Write(GAMNET_ERR, "Router(id:", socket_.remote_endpoint().address().to_string(), "):send SetAddress_Req(service_name:", req.tLocalAddr.service_name.c_str(), ", id:", req.tLocalAddr.id, ")");
-	};
-	Log::Write(GAMNET_INF, "Router(id:", socket_.remote_endpoint().address().to_string(), "):send SetAddress_Req(service_name:", req.tLocalAddr.service_name.c_str(), ", id:", req.tLocalAddr.id, ")");
+		return;
+	}
+	Log::Write(GAMNET_INF, "[Router] send SetAddress_Req (localhost->", remote_address_.to_string(), ", service_name:", req.tLocalAddr.service_name.c_str(), ")");
 }
 
-void Session::OnClose()
+void Session::OnClose(int reason)
 {
-	Log::Write(GAMNET_INF, "Router(id:", socket_.remote_endpoint().address().to_string(), "):server down(service_name:", addr.service_name, ", id:", addr.id, ")");
+	Log::Write(GAMNET_INF, "[Router] remote server closed(ip:", remote_address_.to_string(), ", service_name:", addr.service_name, ")");
 	watingSessionManager_.Clear();
+	Singleton<RouterCaster>::GetInstance().UnregisterAddress(addr);
 }
 
 }} /* namespace Gamnet */

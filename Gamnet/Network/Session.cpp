@@ -28,7 +28,10 @@ Session::~Session()
 void Session::OnError(int reason)
 {
 	OnClose(reason);
-	socket_.close();
+	if(true == socket_.is_open())
+	{
+		socket_.close();
+	}
 	listener_->OnClose(shared_from_this());
 }
 

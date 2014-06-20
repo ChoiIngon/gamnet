@@ -46,6 +46,7 @@ namespace Gamnet { namespace Network {
 		}
 		return true;
 	}
+	boost::asio::ip::address GetLocalAddress();
 }}
 
 #define GAMNET_BIND_NETWORK_HANDLER(session_type, message_type, class_type, func, policy) \

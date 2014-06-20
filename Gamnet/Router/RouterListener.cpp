@@ -46,30 +46,18 @@ void RouterListener::Init(const char* service_name, int port)
 	);
 	localAddr_.service_name = service_name;
 	localAddr_.cast_type = ROUTER_CAST_UNI;
-	boost::asio::ip::tcp::resolver resolver(io_service_);
-	boost::asio::ip::tcp::resolver::query query("localhost", Format(port).c_str());
-	boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(query);
-	boost::asio::ip::tcp::resolver::iterator end;
-	while (it != end)
-	{
-		boost::asio::ip::tcp::endpoint ep = *it++;
-		if(true == ep.address().is_loopback())
-		{
-			localAddr_.id = ep.address().to_v4().to_ulong();
-			break;
-		}
-	}
+	boost::asio::ip::tcp::resolver resolver_(io_service_);
+	boost::asio::ip::tcp::endpoint ep_ = *resolver_.resolve({boost::asio::ip::host_name(), ""});
+	localAddr_.id = ep_.address().to_v4().to_ulong();
 	if(0 == localAddr_.id)
 	{
 		throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] unique router id is not set");
 	}
 	Listener::Init(port, 4096, 0);
-	Connect("localhost", port, 0);
 }
 
 bool RouterListener::Connect(const char* host, int port, int timeout)
 {
-	Log::Write(GAMNET_INF, "connect.....(host:", host, ", port:", port, ")");
 	std::shared_ptr<Session> session = sessionPool_.Create();
 	if(NULL == session)
 	{
