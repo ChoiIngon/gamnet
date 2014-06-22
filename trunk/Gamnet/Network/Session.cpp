@@ -39,29 +39,29 @@ void Session::_read_start()
 {
 	auto self(shared_from_this());
 	socket_.async_read_some(boost::asio::buffer(readBuffer_->WritePtr(), readBuffer_->Available()),
-		strand_.wrap([this, self](boost::system::error_code ec, std::size_t readbytes) {
+		strand_.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
-				this->OnError(errno); // no error, just closed socket
+				self->OnError(errno); // no error, just closed socket
 				return;
 			}
-			lastHeartBeatTime_ = ::time(NULL);
+			self->lastHeartBeatTime_ = ::time(NULL);
 
-			this->readBuffer_->writeCursor_ += readbytes;
+			self->readBuffer_->writeCursor_ += readbytes;
 
-			while(Packet::Header::PACKET_HEADER_SIZE <= (int)this->readBuffer_->Size())
+			while(Packet::Header::PACKET_HEADER_SIZE <= (int)self->readBuffer_->Size())
 			{
-				const unsigned short bodyLength = this->readBuffer_->GetBodyLength();
-				const unsigned short totalLength = this->readBuffer_->GetTotalLength();
+				const unsigned short bodyLength = self->readBuffer_->GetBodyLength();
+				const unsigned short totalLength = self->readBuffer_->GetTotalLength();
 				if(0 > bodyLength || totalLength >= Packet::Header::PACKET_MAX_LENGTH)
 				{
 					Log::Write(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
-					OnError(EOVERFLOW);
+					self->OnError(EOVERFLOW);
 					return;
 				}
 
 				// 데이터가 부족한 경우
-				if(totalLength > (unsigned short)this->readBuffer_->Size())
+				if(totalLength > (unsigned short)self->readBuffer_->Size())
 				{
 					break;
 				}
@@ -69,21 +69,21 @@ void Session::_read_start()
 				std::shared_ptr<Packet> pBuffer = Packet::Create();
 				if(NULL == pBuffer)
 				{
-					Log::Write(GAMNET_ERR, "Can't create more buffer(session_key:", this->sessionKey_, ")");
-					OnError(EBUSY);
+					Log::Write(GAMNET_ERR, "Can't create more buffer(session_key:", self->sessionKey_, ")");
+					self->OnError(EBUSY);
 					return;
 				}
 
-				if(totalLength < (unsigned short)this->readBuffer_->Size())
+				if(totalLength < (unsigned short)self->readBuffer_->Size())
 				{
-					pBuffer->Append(this->readBuffer_->ReadPtr() + totalLength, this->readBuffer_->Size() - totalLength);
+					pBuffer->Append(self->readBuffer_->ReadPtr() + totalLength, self->readBuffer_->Size() - totalLength);
 				}
 
-				listener_->OnRecvMsg(shared_from_this(), readBuffer_);
-				readBuffer_ = pBuffer;
+				self->listener_->OnRecvMsg(self, self->readBuffer_);
+				self->readBuffer_ = pBuffer;
 			}
 
-			this->_read_start();
+			self->_read_start();
 		})
 	);
 }
