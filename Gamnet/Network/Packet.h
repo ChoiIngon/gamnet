@@ -14,6 +14,82 @@
 
 namespace Gamnet { namespace Network {
 
+class Protocol
+{
+	std::shared_ptr<Buffer> buffer_;
+	enum
+	{
+		LENGTH_PTR = 0,
+		LENGTH_SIZE = sizeof(uint16_t),
+		MSGID_PTR = LENGTH_PTR + LENGTH_SIZE,
+		MSGID_SIZE = sizeof(uint32_t),
+		HEADER_SIZE = MSGID_PTR + MSGID_SIZE
+	};
+public :
+	static uint16_t HeaderSize()
+	{
+		return HEADER_SIZE;
+	}
+	Protocol(std::shared_ptr<Buffer> buffer) : buffer_(buffer) {}
+	uint32_t MsgID() const
+	{
+		return  *((uint32_t*)(buffer_->buf_ + MSGID_PTR));
+	}
+	void MsgID(uint32_t msg_id)
+	{
+		(*(uint32_t*)(buffer_->buf_ + MSGID_PTR)) = msg_id;
+	}
+	uint16_t Length() const
+	{
+		return *((uint16_t*)(buffer_->buf_ + LENGTH_PTR));
+	}
+	void Length(uint16_t length)
+	{
+		(*(uint16_t*)(buffer_->buf_ + LENGTH_PTR)) = length + HEADER_SIZE;
+	}
+};
+
+class Protocol_V2
+{
+	std::shared_ptr<Buffer> buffer_;
+	enum
+	{
+		CHECKSUM_PTR = 0,
+		CHECKSUM_SIZE = 1,
+		LENGTH_PTR = CHECKSUM_PTR + CHECKSUM_SIZE,
+		LENGTH_SIZE = sizeof(uint16_t),
+		OPTION_PTR = LENGTH_PTR + LENGTH_SIZE,
+		OPTION_SIZE = 1,
+		MSGID_PTR = OPTION_PTR + OPTION_SIZE,
+		MSGID_SIZE = sizeof(uint16_t),
+		HEADER_SIZE = MSGID_PTR + MSGID_SIZE
+	};
+public :
+	static uint16_t HeaderSize()
+	{
+		return HEADER_SIZE;
+	}
+	Protocol_V2(std::shared_ptr<Buffer> buffer) : buffer_(buffer) {}
+	uint32_t MsgID() const
+	{
+		return  *((short*)(buffer_->buf_ + MSGID_PTR));
+	}
+	void MsgID(uint32_t msg_id)
+	{
+		(*(short*)(buffer_->buf_ + MSGID_PTR)) = msg_id;
+	}
+	uint16_t Length() const
+	{
+		return *((uint16_t*)(buffer_->buf_ + LENGTH_PTR)) + CHECKSUM_SIZE + LENGTH_SIZE;
+	}
+	void Length(uint16_t length)
+	{
+		(*(char*)(buffer_->buf_ + CHECKSUM_PTR)) = 0xff;
+		(*(short*)(buffer_->buf_ + LENGTH_PTR)) = length - (CHECKSUM_SIZE + LENGTH_SIZE);
+		(*(char*)(buffer_->buf_ + OPTION_PTR)) = 0x00;
+	}
+};
+
 class Packet : public Buffer
 {
 public:
@@ -52,25 +128,9 @@ public :
 	{
 	}
 
-	bool Write(unsigned int msg_id, const char* buf, size_t len)
+	static uint32_t HeaderSize()
 	{
-		Clear();
-		unsigned short total_length = len + Header::PACKET_HEADER_SIZE;
-		if(Header::PACKET_MAX_LENGTH <= total_length)
-		{
-			Log::Write(GAMNET_WRN, "packet max capacity over(msg_id:", msg_id, ", size:", len, ")");
-			return false;
-		}
-
-		if((unsigned short)Available() < total_length)
-		{
-			Resize(total_length);
-		}
-
-		Append((const char*)&total_length, Header::PACKET_LENGTH_SIZE);
-		Append((const char*)&msg_id, Header::PACKET_ID_SIZE);
-		Append(buf, len);
-		return true;
+		return Header::PACKET_HEADER_SIZE;
 	}
 
 	template <class MSG>
