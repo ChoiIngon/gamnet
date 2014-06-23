@@ -103,14 +103,21 @@ int Session::Send(const char* buf, int len)
 	int totalSentBytes = 0;
 	while(len > totalSentBytes)
 	{
-		boost::system::error_code ec;
-		int sentBytes = boost::asio::write(socket_, boost::asio::buffer(buf+totalSentBytes, len-totalSentBytes), ec);
-		if(0 > sentBytes || 0 != ec)
+		try {
+			boost::system::error_code ec;
+			int sentBytes = boost::asio::write(socket_, boost::asio::buffer(buf+totalSentBytes, len-totalSentBytes), ec);
+			if(0 > sentBytes || 0 != ec)
+			{
+				Log::Write(GAMNET_ERR, "fail to send(session_key:", sessionKey_, ", errno:", errno, ", errstr:", strerror(errno), ")");
+				return -1;
+			}
+			totalSentBytes += sentBytes;
+		}
+		catch(const boost::system::system_error& e)
 		{
-			Log::Write(GAMNET_ERR, "fail to send(session_key:", sessionKey_, ", errno:", errno, ", errstr:", strerror(errno), ")");
+			Log::Write(GAMNET_ERR, "fail to send(session_key:", sessionKey_, ", errno:", errno, ", errstr:", e.what(), ")");
 			return -1;
 		}
-		totalSentBytes += sentBytes;
 	}
 	return totalSentBytes;
 }
