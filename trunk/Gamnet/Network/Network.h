@@ -47,6 +47,11 @@ namespace Gamnet { namespace Network {
 		return true;
 	}
 	boost::asio::ip::address GetLocalAddress();
+	template <class SESSION_T>
+	std::shared_ptr<SESSION_T> FindSession(uint64_t session_key)
+	{
+		return std::static_pointer_cast<SESSION_T>(Singleton<Listener<SESSION_T>>::GetInstance().sessionManager_.FindSession(session_key));
+	}
 }}
 
 #define GAMNET_BIND_NETWORK_HANDLER(session_type, message_type, class_type, func, policy) \

@@ -108,7 +108,7 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 		return res;
 	}
 
-	sql::Statement* stmt = connection->createStatement();
+	std::shared_ptr<sql::Statement> stmt = std::shared_ptr<sql::Statement>(connection->createStatement());
 	if(NULL == stmt)
 	{
 		Log::Write(GAMNET_ERR, "create Statement object error(db_type:", db_type, ")");
@@ -119,7 +119,7 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 		bool isSelectQuery = stmt->execute(query);
 		if(true == isSelectQuery)
 		{
-			res.resultSet_.reset(stmt->getResultSet());
+			res.resultSet_ = std::shared_ptr<sql::ResultSet>(stmt->getResultSet());
 		}
 		else
 		{
@@ -138,7 +138,6 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 		}
 	}
 	stmt->getMoreResults();
-	delete stmt;
 	callback(res);
 	return res;
 }
