@@ -93,21 +93,14 @@ public :
 class Packet : public Buffer
 {
 public:
-	struct Header
+	enum
 	{
-		enum
-		{
-			PACKET_INDENTIFYER_PTR = 0,
-			PACKET_INDENTIFYER_SIZE = 1,
-			PACKET_LENGTH_PTR = PACKET_INDENTIFYER_PTR + PACKET_INDENTIFYER_SIZE,
-			PACKET_LENGTH_SIZE = sizeof(unsigned short),
-			PACKET_OPTION_PTR = PACKET_LENGTH_PTR + PACKET_LENGTH_SIZE,
-			PACKET_OPTION_SIZE = 1,
-			PACKET_ID_PTR = PACKET_OPTION_PTR + PACKET_OPTION_SIZE,
-			PACKET_ID_SIZE = sizeof(unsigned short),
-			PACKET_HEADER_SIZE = PACKET_ID_PTR + PACKET_ID_SIZE,
-			PACKET_MAX_LENGTH = 8192
-		};
+		LENGTH_PTR = 0,
+		LENGTH_SIZE = sizeof(uint16_t),
+		MSGID_PTR = LENGTH_PTR + LENGTH_SIZE,
+		MSGID_SIZE = sizeof(uint32_t),
+		HEADER_SIZE = MSGID_PTR + MSGID_SIZE,
+		MAX_LENGTH = 8192
 	};
 
 	struct Init
@@ -120,68 +113,12 @@ public:
 	};
 
 public :
-	Packet() : Buffer(Header::PACKET_MAX_LENGTH)
-	{
-	}
+	Packet();
+	virtual ~Packet();
 
-	virtual ~Packet()
-	{
-	}
-
-	static uint32_t HeaderSize()
-	{
-		return Header::PACKET_HEADER_SIZE;
-	}
-
-	template <class MSG>
-	bool Write(const MSG& msg)
-	{
-		Clear();
-		unsigned int msg_id = MSG::MSG_ID;
-		unsigned short msg_size = msg.Size();
-		unsigned short total_length = msg_size + Header::PACKET_HEADER_SIZE;
-		if(Header::PACKET_MAX_LENGTH <= total_length)
-		{
-			Log::Write(GAMNET_WRN, "packet max capacity over(msg_id:", msg_id, ", size:", total_length, ")");
-			return false;
-		}
-
-		if((unsigned short)Available() < total_length)
-		{
-			Resize(total_length);
-		}
-
-		/*
-		memcpy(buf_ + Header::PACKET_LENGTH_PTR, (const char*)&total_length, Header::PACKET_LENGTH_SIZE);
-		memcpy(buf_ + Header::PACKET_ID_PTR, (const char*)&msg_id, Header::PACKET_ID_SIZE);
-		*/
-		(*(char*)(buf_ + Header::PACKET_INDENTIFYER_PTR)) = 0xff;
-		(*(short*)(buf_ + Header::PACKET_LENGTH_PTR)) = msg_size + 3;
-		(*(char*)(buf_ + Header::PACKET_OPTION_PTR)) = 0x00;
-		(*(short*)(buf_ + Header::PACKET_ID_PTR)) = msg_id;
-		char* pBuf = buf_ + Header::PACKET_HEADER_SIZE;
-		if(false == msg.Store(&pBuf))
-		{
-			return false;
-		}
-		this->writeCursor_ += total_length;
-		return true;
-	}
-
-	unsigned short GetTotalLength() const
-	{
-		return *((unsigned short*)(buf_ + Header::PACKET_LENGTH_PTR)) + Header::PACKET_INDENTIFYER_SIZE + Header::PACKET_LENGTH_SIZE;
-	}
-
-	unsigned short GetBodyLength() const
-	{
-		return GetTotalLength() - Header::PACKET_HEADER_SIZE;
-	}
-
-	short GetID() const
-	{
-		return  *((short*)(buf_ + Header::PACKET_ID_PTR));
-	}
+	uint32_t HeaderSize();
+	uint16_t GetTotalLength() const;
+	uint32_t GetID() const;
 
 	/*
 	 * byte stream -> Msg
@@ -189,8 +126,8 @@ public :
 	template <class MSG>
 	bool Read(MSG& msg)
 	{
-		size_t bodyLength = GetBodyLength();
-		Remove(Header::PACKET_HEADER_SIZE);
+		size_t bodyLength = GetTotalLength() - HEADER_SIZE;
+		Remove(HEADER_SIZE);
 		const char* pBuf = ReadPtr();
 
 		if(false == msg.Load(&pBuf, bodyLength))
@@ -201,6 +138,40 @@ public :
 		return true;
 	}
 
+	template <class MSG>
+	bool Write(const MSG& msg)
+	{
+		Clear();
+		uint32_t msg_id = MSG::MSG_ID;
+		uint16_t msg_size = (uint16_t)msg.Size();
+		uint16_t total_length = msg_size + HEADER_SIZE;
+		if(Capacity() <= total_length)
+		{
+			Log::Write(GAMNET_WRN, "packet max capacity over(msg_id:", msg_id, ", size:", total_length, ")");
+			return false;
+		}
+
+		if((uint16_t)Available() < total_length)
+		{
+			Resize(total_length);
+		}
+
+		/*
+		(*(char*)(buf_ + Header::PACKET_INDENTIFYER_PTR)) = 0xff;
+		(*(short*)(buf_ + Header::PACKET_LENGTH_PTR)) = msg_size + 3;
+		(*(char*)(buf_ + Header::PACKET_OPTION_PTR)) = 0x00;
+		(*(short*)(buf_ + Header::PACKET_ID_PTR)) = msg_id;
+		*/
+		(*(uint16_t*)(buf_ + LENGTH_PTR)) = total_length;
+		(*(uint32_t*)(buf_ + MSGID_PTR)) = msg_id;
+		char* pBuf = buf_ + HEADER_SIZE;
+		if(false == msg.Store(&pBuf))
+		{
+			return false;
+		}
+		this->writeCursor_ += total_length;
+		return true;
+	}
 	static std::shared_ptr<Packet> Create();
 	template <class MSG>
 	static bool Load(MSG& msg, std::shared_ptr<Packet> packet)
