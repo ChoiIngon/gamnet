@@ -14,10 +14,10 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, std::shared_ptr<
 {
 	if(false == mapRouteTable.insert(std::make_pair(addr, session)).second)
 	{
-		Log::Write(GAMNET_ERR, "[Router] register same uni-cast address(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->socket_.remote_endpoint().address().to_string(), ")");
+		Log::Write(GAMNET_ERR, "[Router] register same uni-cast address(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address_.to_string(), ")");
 		return false;
 	}
-	Log::Write(GAMNET_INF, "[Router] register uni-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->socket_.remote_endpoint().address().to_string(), ")");
+	Log::Write(GAMNET_INF, "[Router] register uni-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address_.to_string(), ")");
 	return true;
 }
 
@@ -67,12 +67,12 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, std::shared_pt
 	{
 		if(addr == s->addr)
 		{
-			Log::Write(GAMNET_ERR, "[Router] register same multi-cast address(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->socket_.remote_endpoint().address().to_string(), ")");
+			Log::Write(GAMNET_ERR, "[Router] register same multi-cast address(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address_.to_string(), ")");
 			return false;
 		}
 	}
 	lstSession.push_back(session);
-	Log::Write(GAMNET_INF, "[Router] register multi-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->socket_.remote_endpoint().address().to_string(), ")");
+	Log::Write(GAMNET_INF, "[Router] register multi-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address_.to_string(), ")");
 	return true;
 }
 
@@ -109,7 +109,7 @@ bool RouterCasterImpl_Multi::UnregisterAddress(const Address& addr)
 	lstSession.erase(std::remove_if(lstSession.begin(), lstSession.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
 		if(session->addr.id == addr.id)
 		{
-			Log::Write(GAMNET_INF, "[Router] unregister multi-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->socket_.remote_endpoint().address().to_string(), ")");
+			Log::Write(GAMNET_INF, "[Router] unregister multi-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address_.to_string(), ")");
 			return true;
 		}
 		return false;
@@ -125,14 +125,14 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, std::shared_ptr<
 	{
 		if(addr == s->addr)
 		{
-			Log::Write(GAMNET_ERR, "[Router] register same any-cast address(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->socket_.remote_endpoint().address().to_string(), ")");
+			Log::Write(GAMNET_ERR, "[Router] register same any-cast address(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address_.to_string(), ")");
 			return false;
 		}
 	}
 
 	arrSession.push_back(session);
 	pairSessionArray.first = arrSession.size()-1;
-	Log::Write(GAMNET_INF, "[Router] register any-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->socket_.remote_endpoint().address().to_string(), ")");
+	Log::Write(GAMNET_INF, "[Router] register any-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address_.to_string(), ")");
 	return true;
 }
 
@@ -176,7 +176,7 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 	arrSession.erase(std::remove_if(arrSession.begin(), arrSession.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
 		if(session->addr.id == addr.id)
 		{
-			Log::Write(GAMNET_INF, "[Router] unregister any-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->socket_.remote_endpoint().address().to_string(), ")");
+			Log::Write(GAMNET_INF, "[Router] unregister any-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address_.to_string(), ")");
 			return true;
 		}
 		return false;
