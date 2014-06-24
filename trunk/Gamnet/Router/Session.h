@@ -29,7 +29,7 @@ private :
 				std::lock_guard<std::mutex> lo(this->lock_);
 				time_t now_ = time(NULL);
 				for(auto itr = this->mapSession_.begin(); itr != this->mapSession_.end();) {
-					std::pair<uint64_t, std::shared_ptr<Network::Session>> pair_ = itr->second;
+					std::pair<time_t, std::shared_ptr<Network::Session>> pair_ = itr->second;
 					if(pair_.first + 5 < now_)
 					{
 						Log::Write(GAMNET_ERR, "[Router] idle session timeout");
