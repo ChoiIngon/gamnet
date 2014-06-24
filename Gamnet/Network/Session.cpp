@@ -49,11 +49,11 @@ void Session::_read_start()
 
 			self->readBuffer_->writeCursor_ += readbytes;
 
-			while(Packet::Header::PACKET_HEADER_SIZE <= (int)self->readBuffer_->Size())
+			while(Packet::HEADER_SIZE <= (int)self->readBuffer_->Size())
 			{
-				const unsigned short bodyLength = self->readBuffer_->GetBodyLength();
-				const unsigned short totalLength = self->readBuffer_->GetTotalLength();
-				if(0 > bodyLength || totalLength >= Packet::Header::PACKET_MAX_LENGTH)
+				uint16_t totalLength = self->readBuffer_->GetTotalLength();
+				uint16_t bodyLength = totalLength-Packet::HEADER_SIZE;
+				if(0 > bodyLength || totalLength >= self->readBuffer_->Capacity())
 				{
 					Log::Write(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
 					self->OnError(EOVERFLOW);
