@@ -6,20 +6,17 @@
  */
 #include <Gamnet.h>
 #include "ClientSession.h"
-#include "TestSession.h"
 #include "Message.h"
 #include "HandlerEcho.h"
 #include <Router/Router.h>
 
 int main()
 {
-	Gamnet::Log::ReadXml("config.xml");
-	Gamnet::Database::ReadXml("config.xml");
+	Gamnet::Log::ReadXml("server.xml");
 	Gamnet::Network::Listen<ClientSession>(20000, 1024, 60);
 	Gamnet::Router::Listen("HELLOWORLD");
-	Gamnet::Test::Init<TestSession>(100, 50, 100000);
-	Gamnet::Test::RegisterHandler<TestSession, Msg_CS_Echo_Req, Msg_SC_Echo_Ans>(Test_Echo_Req, Test_Echo_Ans);
-	Gamnet::Test::Run<TestSession>("localhost", 20000);
+	Gamnet::Test::Init<TestSession>(100, 50, 100, "localhost", 20000);
+	Gamnet::Test::Run<TestSession>();
 	Gamnet::Run(20);
 	return 0;
 }
