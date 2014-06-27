@@ -6,5 +6,7 @@
 		<err console="yes" file="yes" sys="no"/>
 	</log>
 	
-	<database name="master" id="0" host="tserver2.weredsoft.com" port="3306" user="tk_db" db="three_kingdoms" passwd="w2fpem"/>
+	<test host="localhost" port="20000" session_count="1" loop_count="1" interval="100">
+		<message name="Msg_CS_Echo_Req"/>
+	</test>
 </server>
