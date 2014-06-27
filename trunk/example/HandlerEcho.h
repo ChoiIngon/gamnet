@@ -7,10 +7,7 @@
 
 #ifndef HANDLERECHO_H_
 #define HANDLERECHO_H_
-#include <Gamnet.h>
 #include "ClientSession.h"
-#include "TestSession.h"
-
 class HandlerEcho : public Gamnet::Network::IHandler {
 public:
 	HandlerEcho();

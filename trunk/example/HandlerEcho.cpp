@@ -24,7 +24,7 @@ void HandlerEcho::Recv_CS_Req(std::shared_ptr<ClientSession> client, std::shared
 	try {
 		if(false == Gamnet::Network::Packet::Load(cs_req, packet))
 		{
-			throw Gamnet::Exception("packet load fail");
+			throw Gamnet::Exception(1, "packet load fail");
 		}
 		sc_ans.Message = cs_req.Message;
 		ss_req.Message = cs_req.Message;
@@ -43,7 +43,7 @@ void HandlerEcho::Recv_CS_Req(std::shared_ptr<ClientSession> client, std::shared
 		);
 		if(1 != ret.GetRowCount())
 		{
-			throw GAMNET_EXCEPTION("query fail", 0);
+			throw Exception(0, "query fail");
 		}
 		Gamnet::Log::Write(GAMNET_DEV, ret[0]->getInt("USER_SEQ"));
 	}
@@ -55,10 +55,9 @@ void HandlerEcho::Recv_CS_Req(std::shared_ptr<ClientSession> client, std::shared
 	Gamnet::Network::SendMsg(client, sc_ans);
 }
 
-static bool HandlerEcho_Recv_CS_Req_Ret = Gamnet::Network::RegisterHandler<ClientSession>(
-	Msg_CS_Echo_Req::MSG_ID,
-	&HandlerEcho::Recv_CS_Req,
-	std::shared_ptr<Gamnet::Network::HandlerCreate<HandlerEcho>>(new Gamnet::Network::HandlerCreate<HandlerEcho>())
+GAMNET_BIND_NETWORK_HANDLER(
+	ClientSession, Msg_CS_Echo_Req,
+	HandlerEcho, Recv_CS_Req, HandlerCreate
 );
 
 void HandlerEcho::Recv_SS_Ans(const Gamnet::Router::Address& from, std::shared_ptr<Gamnet::Network::Packet> packet)
@@ -67,7 +66,7 @@ void HandlerEcho::Recv_SS_Ans(const Gamnet::Router::Address& from, std::shared_p
 	try {
 		if(false == Gamnet::Network::Packet::Load(ans, packet))
 		{
-			throw Gamnet::Exception("packet load fail");
+			throw Gamnet::Exception(1, "packet load fail");
 		}
 
 	}
@@ -76,10 +75,10 @@ void HandlerEcho::Recv_SS_Ans(const Gamnet::Router::Address& from, std::shared_p
 		Gamnet::Log::Write(GAMNET_ERR, e.what());
 	}
 }
-static bool HandlerEcho_Recv_SS_Ans_Ret = Gamnet::Router::RegisterHandler(
-	Msg_SS_Echo_Ans::MSG_ID,
-	&HandlerEcho::Recv_SS_Ans,
-	std::shared_ptr<Gamnet::Network::HandlerFind<HandlerEcho>>(new Gamnet::Network::HandlerFind<HandlerEcho>())
+
+GAMNET_BIND_ROUTER_HANDLER(
+	Msg_SS_Echo_Ans,
+	HandlerEcho, Recv_SS_Ans, HandlerFind
 );
 
 void HandlerEcho::Recv_SS_Req(const Gamnet::Router::Address& from, std::shared_ptr<Gamnet::Network::Packet> packet)
@@ -89,7 +88,7 @@ void HandlerEcho::Recv_SS_Req(const Gamnet::Router::Address& from, std::shared_p
 	try {
 		if(false == Gamnet::Network::Packet::Load(req, packet))
 		{
-			throw Gamnet::Exception("packet load fail");
+			throw Gamnet::Exception(1, "packet load fail");
 		}
 		ans.Message = req.Message;
 	}
@@ -121,7 +120,7 @@ void Test_Echo_Ans(std::shared_ptr<TestSession> client, std::shared_ptr<Gamnet::
 	try {
 		if(false == Gamnet::Network::Packet::Load(ans, packet))
 		{
-			throw Gamnet::Exception("packet load fail");
+			throw Gamnet::Exception(1, "packet load fail");
 		}
 	}
 	catch(const Gamnet::Exception& e)
@@ -129,5 +128,10 @@ void Test_Echo_Ans(std::shared_ptr<TestSession> client, std::shared_ptr<Gamnet::
 		Gamnet::Log::Write(GAMNET_ERR, e.what());
 		return;
 	}
-	Gamnet::Log::Write(GAMNET_DEV, ans.Message);
+	//Gamnet::Log::Write(GAMNET_DEV, ans.Message);
 }
+
+GAMNET_BIND_TEST_HANDLER(TestSession,
+	Msg_CS_Echo_Req, Msg_SC_Echo_Ans,
+	Test_Echo_Req, Test_Echo_Ans
+);
