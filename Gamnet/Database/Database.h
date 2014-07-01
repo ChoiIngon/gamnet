@@ -20,7 +20,7 @@ void 	  AExecute(int db_type, const std::string& query, std::function<void(Resul
 template <class... ARGS>
 ResultSet Execute(int db_type, ARGS... args)
 {
-	const std::string&& query = Format(args...);
+	const std::string query = Format(args...);
 	return Execute(db_type, query);
 }
 }}

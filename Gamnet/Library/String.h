@@ -20,7 +20,7 @@ void Concat(std::stringstream& stream, const T& t)
 }
 
 template <class T, class... ARGS>
-void Concat(std::stringstream& stream, const T& t, ARGS&&... args)
+void Concat(std::stringstream& stream, const T& t, ARGS&... args)
 {
 	stream << t;
 	Concat(stream, args...);

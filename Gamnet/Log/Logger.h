@@ -51,7 +51,7 @@ public :
 			throw Exception(GAMNET_ERRNO(0), "write log exception, log is not initialized yet");
 		}
 
-		std::string&& s = Format(args...);
+		std::string s = Format(args...);
 		time_t logtime_;
 		struct tm when;
 		time(&logtime_);
