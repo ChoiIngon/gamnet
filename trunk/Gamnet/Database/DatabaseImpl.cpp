@@ -56,7 +56,7 @@ sql::Connection* DatabaseImpl::ConnectionFactory(const ConnectionInfo& connectio
 
 bool DatabaseImpl::Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db)
 {
-	std::string&& uri = Format("tcp://", host, ":", port);
+	std::string uri = Format("tcp://", host, ":", port);
 	const ConnectionInfo connectionInfo = {uri, id, passwd, db};
 	if(NULL == driver_)
 	{
