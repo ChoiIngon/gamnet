@@ -10,8 +10,6 @@
 
 namespace Gamnet { namespace Router {
 
-static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
-
 RouterListener::RouterListener() : Network::Listener<Session>()
 {
 }
@@ -46,9 +44,7 @@ void RouterListener::Init(const char* service_name, int port)
 	);
 	localAddr_.service_name = service_name;
 	localAddr_.cast_type = ROUTER_CAST_UNI;
-	boost::asio::ip::tcp::resolver resolver_(io_service_);
-	boost::asio::ip::tcp::endpoint ep_ = *resolver_.resolve({boost::asio::ip::host_name(), ""});
-	localAddr_.id = ep_.address().to_v4().to_ulong();
+	localAddr_.id = Network::GetLocalAddress().to_v4().to_ulong();
 	if(0 == localAddr_.id)
 	{
 		throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] unique router id is not set");
