@@ -85,6 +85,7 @@ public :
 		if(itr == mapRecvHandler_.end())
 		{
 			Log::Write(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
+			test_session->OnError(0);
 			return ;
 		}
 
@@ -118,10 +119,9 @@ public :
 	void OnConnect(std::shared_ptr<SESSION_T> session)
 	{
 		sessionManager_.AddSession(session->sessionKey_, session);
-		session->testSEQ_ = -1;
-		if(session->testSEQ_ + 1 < (int)vecSendHandler_.size())
+		session->testSEQ_ = 0;
+		if(session->testSEQ_ < (int)vecSendHandler_.size())
 		{
-			session->testSEQ_ = 0;
 			vecSendHandler_[session->testSEQ_](session);
 			std::lock_guard<std::mutex> lo(vecTestRunningState_[session->testSEQ_].lock_);
 			vecTestRunningState_[session->testSEQ_].count_++;
