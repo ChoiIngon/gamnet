@@ -51,7 +51,7 @@ public:
 		auto itr = mapHandlerFunction_.find(msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
-			Log::Write(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", ip:", session->remote_address_.to_string(), ")");
+			Log::Write(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->sessionKey_,")");
 			session->OnError(EINVAL);
 			return ;
 		}
@@ -60,7 +60,8 @@ public:
 		std::shared_ptr<IHandler> handler = handler_function.factory_->GetHandler(&session->handlerContainer_, msg_id);
 		if(NULL == handler)
 		{
-			Log::Write(GAMNET_ERR, "can't find handler object(msg_id:", msg_id, ")");
+			Log::Write(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->sessionKey_,")");
+			session->OnError(EINVAL);
 			return;
 		}
 		(handler.get()->*handler_function.function_)(session, packet);
