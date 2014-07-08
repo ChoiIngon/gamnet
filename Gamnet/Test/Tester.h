@@ -97,7 +97,15 @@ public :
 			test_session->OnError(0);
 			return;
 		}
-		vecSendHandler_[test_session->testSEQ_](test_session);
+		try
+		{
+			vecSendHandler_[test_session->testSEQ_](test_session);
+		}
+		catch(const Gamnet::Exception& e)
+		{
+			test_session->OnError(0);
+			return;
+		}
 		{
 			std::lock_guard<std::mutex> lo(vecTestRunningState_[test_session->testSEQ_].lock_);
 			vecTestRunningState_[test_session->testSEQ_].count_++;
@@ -105,11 +113,6 @@ public :
 	}
 	virtual void OnClose(std::shared_ptr<Network::Session> session)
 	{
-		std::shared_ptr<SESSION_T> test_session = std::static_pointer_cast<SESSION_T>(session);
-		if(0 <= test_session->testSEQ_ && test_session->testSEQ_ < (int)vecSendHandler_.size())
-		{
-			test_session->testSEQ_ = -1;
-		}
 		sessionManager_.DelSession(session->sessionKey_, session);
 	}
 	void OnConnect(std::shared_ptr<SESSION_T> session)
