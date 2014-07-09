@@ -18,6 +18,7 @@ Session::~Session() {
 void Session::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 {
 	auto self = std::static_pointer_cast<Session>(shared_from_this());
+
 	socket_.async_connect(endpoint,
 		strand_.wrap([self](const boost::system::error_code& ec){
 			if(false == self->socket_.is_open())
@@ -32,6 +33,7 @@ void Session::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 			}
 			else
 			{
+				self->socket_.set_option(boost::asio::socket_base::linger(true, 0));
 				self->sessionKey_ = ++Network::IListener::uniqueSessionKey_;
 				self->readBuffer_ = Network::Packet::Create();
 				self->listener_->sessionManager_.AddSession(self->sessionKey_, self);
