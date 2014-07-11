@@ -22,7 +22,7 @@ namespace Gamnet { namespace Network {
 	template <class SESSION_T, class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{
-		return Singleton<Listener<SESSION_T>>::GetInstance().RegisterHandler(msg_id, func, factory);
+		return Singleton<Dispatcher<SESSION_T>>::GetInstance().RegisterHandler(msg_id, func, factory);
 	}
 
 	template <class SESSION_T, class MSG>
@@ -58,7 +58,7 @@ namespace Gamnet { namespace Network {
 	static bool Network_##class_type##_##func = Gamnet::Network::RegisterHandler<session_type>( \
 			message_type::MSG_ID, \
 			&class_type::func, \
-			std::shared_ptr<Gamnet::Network::policy<class_type>>(new Gamnet::Network::policy<class_type>()) \
+			new Gamnet::Network::policy<class_type>() \
 	)
 
 #endif /* NETWORK_H_ */

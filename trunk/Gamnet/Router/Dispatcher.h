@@ -19,7 +19,7 @@ public :
 
 	struct HandlerFunction
 	{
-		std::shared_ptr<Network::IHandlerFactory> factory_;
+		Network::IHandlerFactory* factory_;
 		function_type function_;
 	};
 	std::map<unsigned int, HandlerFunction> mapHandlerFunction_;
