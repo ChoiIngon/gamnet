@@ -32,16 +32,19 @@ struct IHandlerFactory
 template <class T>
 struct HandlerCreate : public IHandlerFactory
 {
+#ifdef _DEBUG
+	Pool<T, std::mutex, typename T::DebugInfo> pool_;
+#else
 	Pool<T, std::mutex> pool_;
-	HandlerCreate() : pool_(4096)
+#endif
+	HandlerCreate() : pool_(65535)
 	{
 	}
 	virtual ~HandlerCreate() {}
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_CREATE; }
 	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer*, uint32_t)
 	{
-		std::shared_ptr<T> handler = pool_.Create();
-		return handler;
+		return pool_.Create();
 	}
 };
 

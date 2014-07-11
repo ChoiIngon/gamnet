@@ -55,7 +55,7 @@ bool SendMsg(const Address& addr, const MSG& msg)
 	static bool Router_##class_type##_##func = Gamnet::Router::RegisterHandler( \
 		message_type::MSG_ID, \
 		&class_type::func, \
-		std::shared_ptr<Gamnet::Network::policy<class_type>>(new Gamnet::Network::policy<class_type>()) \
+		new Gamnet::Network::policy<class_type>() \
 	)
 
 #endif /* ROUTER_H_ */

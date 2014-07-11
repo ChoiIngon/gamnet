@@ -26,7 +26,9 @@ class Dispatcher
 public :
 	struct HandlerFunction
 	{
-		std::shared_ptr<IHandlerFactory> factory_;
+		template<class FACTORY, class FUNCTION>
+		HandlerFunction(FACTORY* factory, FUNCTION function) : factory_(factory), function_(function) {}
+		IHandlerFactory* factory_;
 		function_type function_;
 	};
 	std::map<unsigned int, HandlerFunction> mapHandlerFunction_;
@@ -37,7 +39,7 @@ public:
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{
-		HandlerFunction handlerFunction = { factory, (function_type)func };
+		HandlerFunction handlerFunction(factory, (function_type)func);
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)
 		{
 			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ")");
@@ -48,6 +50,7 @@ public:
 	void OnRecvMsg(std::shared_ptr<SESSION_T> session, std::shared_ptr<Packet> packet)
 	{
 		const unsigned int msg_id = packet->GetID();
+		Log::Write(GAMNET_DEV, "call handler(session_key:", session->sessionKey_, ", msg_id:", msg_id, ")");
 		auto itr = mapHandlerFunction_.find(msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{

@@ -99,13 +99,15 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 	std::shared_ptr<sql::Connection> connection(itr->second->Create());
 	if(NULL == connection)
 	{
-		throw Exception(ERRNO_ALLOC_OBJECT_ERROR, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] create Connection object error(db_type:", db_type, ")");
+		LOG(GAMNET_ERR, "create Connection object error(db_type:", db_type, ")");
+		throw Exception(ERRNO_ALLOC_OBJECT_ERROR, "ERRNO_ALLOC_OBJECT_ERROR");
 	}
 	try {
 		std::shared_ptr<sql::Statement> stmt(connection->createStatement());
 		if(NULL == stmt)
 		{
-			throw Exception(ERRNO_ALLOC_OBJECT_ERROR, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] create Statement object error(db_type:", db_type, ")");
+			LOG(GAMNET_ERR, "create Statement object error(db_type:", db_type, ")");
+			throw Exception(ERRNO_ALLOC_OBJECT_ERROR, "ERRNO_ALLOC_OBJECT_ERROR");
 		}
 
 		bool isSelectQuery = stmt->execute(query);
@@ -122,14 +124,15 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 	}
 	catch (sql::SQLException& e)
 	{
+		LOG(ERR, "db execute error(query:", query, ", reason:", e.what(), ", error_code:", e.getErrorCode(), ", state:", e.getSQLState(), ")");
 		errno = ERRNO_EXECUTE_QUERY_ERROR;
 		res.errno_ = e.getErrorCode();
 		if(1046 == e.getErrorCode()) // No database selected
 		{
 			const ConnectionInfo& connectionInfo = mapConnectionInfo_[db_type];
 			connection->setSchema(connectionInfo.db_);
+			LOG(ERR, "no database selected, set new schema");
 		}
-		throw Exception(ERRNO_EXECUTE_QUERY_ERROR, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] db execute error(query:", query, ", reason:", e.what(), ", error_code:", e.getErrorCode(), ", state:", e.getSQLState(), ")");
 	}
 	return res;
 }
