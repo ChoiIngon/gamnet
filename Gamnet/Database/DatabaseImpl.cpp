@@ -97,12 +97,12 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 	}
 
 	std::shared_ptr<sql::Connection> connection(itr->second->Create());
-	if(NULL == connection)
-	{
-		LOG(GAMNET_ERR, "create Connection object error(db_type:", db_type, ")");
-		throw Exception(ERRNO_ALLOC_OBJECT_ERROR, "ERRNO_ALLOC_OBJECT_ERROR");
-	}
 	try {
+		if(NULL == connection)
+		{
+			LOG(GAMNET_ERR, "create Connection object error(db_type:", db_type, ")");
+			throw Exception(ERRNO_ALLOC_OBJECT_ERROR, "ERRNO_ALLOC_OBJECT_ERROR");
+		}
 		std::shared_ptr<sql::Statement> stmt(connection->createStatement());
 		if(NULL == stmt)
 		{
