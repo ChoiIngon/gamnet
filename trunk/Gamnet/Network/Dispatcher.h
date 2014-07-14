@@ -29,7 +29,8 @@ public :
 		template<class FACTORY, class FUNCTION>
 		HandlerFunction(FACTORY* factory, FUNCTION function) : factory_(factory), function_(function) {}
 		IHandlerFactory* factory_;
-		function_type function_;
+		//function_type function_;
+		std::function<void(const std::shared_ptr<IHandler>&, std::shared_ptr<SESSION_T>, std::shared_ptr<Packet>)> function_;
 	};
 	std::map<unsigned int, HandlerFunction> mapHandlerFunction_;
 public:
@@ -67,7 +68,8 @@ public:
 			session->OnError(EINVAL);
 			return;
 		}
-		(handler.get()->*handler_function.function_)(session, packet);
+		//(handler.get()->*handler_function.function_)(session, packet);
+		handler_function.function_(handler, session, packet);
 	}
 };
 

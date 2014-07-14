@@ -20,7 +20,7 @@ public :
 	struct HandlerFunction
 	{
 		Network::IHandlerFactory* factory_;
-		function_type function_;
+		std::function<void(const std::shared_ptr<Network::IHandler>&, const Address&, std::shared_ptr<Network::Packet>)> function_;
 	};
 	std::map<unsigned int, HandlerFunction> mapHandlerFunction_;
 
@@ -74,7 +74,8 @@ public:
 					Log::Write(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
 					return ;
 				}
-				(handler.get()->*handler_function.function_)(from, packet);
+				//(handler.get()->*handler_function.function_)(from, packet);
+				handler_function.function_(handler, from, packet);
 			});
 			thread_safe_function();
 		}
@@ -87,7 +88,8 @@ public:
 				return ;
 			}
 
-			(handler.get()->*handler_function.function_)(from, packet);
+			//(handler.get()->*handler_function.function_)(from, packet);
+			handler_function.function_(handler, from, packet);
 		}
 	}
 };
