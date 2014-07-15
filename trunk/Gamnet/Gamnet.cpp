@@ -14,10 +14,10 @@ void Run(int thread_count)
 {
 	SingletonInitHelper::GetInstance().Init();
 	Log::Write(GAMNET_INF, "Gamnet server starts..");
-	ThreadPool threadPool(thread_count);
+	std::vector<std::thread > workers_;
 	for(int i=0; i<thread_count; i++)
 	{
-		threadPool.PostTask(boost::bind(&boost::asio::io_service::run, &io_service_));
+		workers_.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &io_service_)));
 	}
 
 	io_service_.run();
