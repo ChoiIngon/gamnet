@@ -90,7 +90,7 @@ void HandlerEcho::Recv_SS_Req(const Gamnet::Router::Address& from, std::shared_p
 static bool Recv_SS_Ntf_Result = Gamnet::Router::RegisterHandler(
 	Msg_SS_Echo_Req::MSG_ID,
 	&HandlerEcho::Recv_SS_Req,
-	std::shared_ptr<Gamnet::Network::HandlerCreate<HandlerEcho>>(new Gamnet::Network::HandlerCreate<HandlerEcho>())
+	new Gamnet::Network::HandlerCreate<HandlerEcho>()
 );
 
 
