@@ -70,7 +70,7 @@ bool DatabaseImpl::Connect(int db_type, const char* host, int port, const char* 
 		Log::Write(GAMNET_ERR, "duplicate connection info(db_type:", db_type, ", uri:", connectionInfo.uri_, ", id:", connectionInfo.id_, ", db:", connectionInfo.db_,")");
 		return false;
 	}
-	if(false == mapConnectionPool_.insert(std::make_pair(db_type, std::shared_ptr<ConnectionPool>(new ConnectionPool(64, std::bind(&DatabaseImpl::ConnectionFactory, this, connectionInfo))))).second)
+	if(false == mapConnectionPool_.insert(std::make_pair(db_type, std::shared_ptr<ConnectionPool>(new ConnectionPool(16, std::bind(&DatabaseImpl::ConnectionFactory, this, connectionInfo))))).second)
 	{
 		errno = ERRNO_DUPLICATE_CONNECIONINFO_ERROR;
 		Log::Write(GAMNET_ERR, "duplicate connection info(db_type:", db_type, ", uri:", connectionInfo.uri_, ", id:", connectionInfo.id_, ", db:", connectionInfo.db_,")");
