@@ -25,19 +25,22 @@ void Concat(std::stringstream& stream, const T& t, ARGS&... args)
 	stream << t;
 	Concat(stream, args...);
 }
-
+/*
 template <class... ARGS>
-std::string Concat(ARGS... args)
+std::string Concat(ARGS&&... args)
 {
 	std::stringstream stream;
 	Concat(stream, args...);
 	return stream.str();
 }
-
+*/
 template <class... ARGS>
-std::string Format(ARGS... args)
+std::string Format(ARGS&&... args)
 {
-	return Concat(args...);
+	std::stringstream stream;
+	Concat(stream, args...);
+	return stream.str();
+
 }
 };
 
