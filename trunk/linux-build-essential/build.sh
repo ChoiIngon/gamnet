@@ -53,7 +53,14 @@ if [ ! -f "$pkg_name/usr/local/include/json_spirit.h" ]; then
 	cp src/json_spirit_v4.06/json_spirit/*.a $pkg_name/usr/local/lib
 fi
 
+if [ ! -f "$pkg_name/usr/local/bin/idlc" ]; then
+    cd src/idlc/Debug
+    make clean; make
+    cp idlc ../../../$pkg_name/usr/local/bin
+    cd -
+fi
+
 dpkg -b $pkg_name
 
-cp ./$pkg_name.deb ../down
+#cp ./$pkg_name.deb ../down
 

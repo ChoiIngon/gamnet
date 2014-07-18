@@ -1,5 +1,5 @@
 Package: gamnet-linux-build-essential
-Version: 1.0.0
+Version: 1.0.1
 Section: devel
 Priority: optional
 Architecture: all
@@ -9,4 +9,5 @@ Recommends: libjson0-dbg, python-mysqldb
 Maintainer: Gamnet Server Developers <kukuta@gmail.com>
 Description: Gamnet Server Devlopment base library install package
  1.0.0 : init
+ 1.0.1 : add idlc
 Homepage: http://kukuta.tistory.com
