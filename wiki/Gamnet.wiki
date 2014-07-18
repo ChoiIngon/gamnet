@@ -4,6 +4,10 @@ Server framework for Game
 
 Add your content here.
 
+= Install build essential =
+ * linux(ubuntu) : 
+  $ sudo apt-get update
+  $ sudo apt-get install gdebi-core
 
 = Details =
 
