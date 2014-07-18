@@ -4,7 +4,6 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../Network/Handler.cpp \
 ../Network/HandlerContainer.cpp \
 ../Network/Listener.cpp \
 ../Network/Network.cpp \
@@ -13,7 +12,6 @@ CPP_SRCS += \
 ../Network/SessionManager.cpp 
 
 OBJS += \
-./Network/Handler.o \
 ./Network/HandlerContainer.o \
 ./Network/Listener.o \
 ./Network/Network.o \
@@ -22,7 +20,6 @@ OBJS += \
 ./Network/SessionManager.o 
 
 CPP_DEPS += \
-./Network/Handler.d \
 ./Network/HandlerContainer.d \
 ./Network/Listener.d \
 ./Network/Network.d \
@@ -35,7 +32,7 @@ CPP_DEPS += \
 Network/%.o: ../Network/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -D_DEBUG -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	g++ -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
