@@ -51,7 +51,6 @@ public:
 	void OnRecvMsg(std::shared_ptr<SESSION_T> session, std::shared_ptr<Packet> packet)
 	{
 		const unsigned int msg_id = packet->GetID();
-		Log::Write(GAMNET_DEV, "call handler(session_key:", session->sessionKey_, ", msg_id:", msg_id, ")");
 		auto itr = mapHandlerFunction_.find(msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{

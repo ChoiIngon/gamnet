@@ -14,8 +14,8 @@ namespace Gamnet { namespace Network {
 
 struct IHandler : public std::enable_shared_from_this<IHandler>
 {
-	IHandler();
-	virtual ~IHandler();
+	IHandler() {}
+	virtual ~IHandler() {}
 
 	template <class MSG>
 	void BindMessage(std::shared_ptr<Session> session)
