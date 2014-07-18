@@ -1,13 +1,12 @@
-Server framework for Game
-
 = Introduction =
-
-Add your content here.
+ * Gamnet is boost base network framework
 
 = Install build essential =
  * linux(ubuntu) : 
-  $ sudo apt-get update
-  $ sudo apt-get install gdebi-core
+  # $ sudo apt-get update
+  # $ sudo apt-get install gdebi-core
+
+= Create Project =
 
 = Details =
 
