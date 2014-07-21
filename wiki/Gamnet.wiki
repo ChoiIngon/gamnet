@@ -1,11 +1,24 @@
 = Introduction =
  * Gamnet is boost base network framework
 
-= Install build essential =
- * linux(ubuntu) : 
+= GETTING STARTED =
+== Getting '_'Gamnet'_ source code ==
+ * You can get the source code from svn see below page :
+  https://code.google.com/p/gamnet/source/checkout
+ * 'gamnet' directory includes all of the source codes of 'Gamnet' besides tools.
+== Install build essential ==
+=== in linux(ubuntu) ===
+ * Frist, You should install gdebi-core package to install custom build-essential,  'gamnet-linux-build-essential.deb' package includes every things needed for 'gamnet' framework.
+
   # $ sudo apt-get update
   # $ sudo apt-get install gdebi-core
-
+ * move to 'gamnet' directory and execute 'gdebi' to install build essential
+  {{{
+$ cd gamnet/linux-build-essential
+$ ls
+build.sh  control  gamnet-linux-build-essential.deb  postinst  src
+$ sudo gdebi gamnet-linux-build-essential.deb
+  }}}
 = Create Project =
 
 = Details =
