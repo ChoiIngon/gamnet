@@ -9,6 +9,9 @@
 
 #include <vector>
 #include <cstring>
+#ifdef _DEBUG
+#include <assert.h>
+#endif
 
 namespace Gamnet {
 
@@ -31,6 +34,10 @@ namespace Gamnet {
         {
             bufSize_ = size;
             buf_ = new char[bufSize_];
+#ifdef _DEBUG
+            assert(NULL != buf_);
+#endif
+            memset(buf_, 0, bufSize_);
         }
 
         virtual ~Buffer()
@@ -96,14 +103,28 @@ namespace Gamnet {
 
         void Resize(int size)
         {
+        	if(writeCursor_-readCursor_>size)
+			{
+        		errno = EOVERFLOW;
+				return;
+			}
         	char* oldBuf = buf_;
-			buf_ = new char[size];
-			std::memcpy(buf_, oldBuf+readCursor_, writeCursor_ - readCursor_);
-			bufSize_ = size;
+        	buf_ = new char[size];
+        	bufSize_ = size;
+#ifdef _DEBUG
+			assert(NULL != buf_);
+#endif
+			memset(buf_, 0, bufSize_);
+			if(0 < writeCursor_-readCursor_)
+			{
+				std::memcpy(buf_, oldBuf+readCursor_, writeCursor_ - readCursor_);
+			}
+
 			writeCursor_ -= readCursor_;
 			readCursor_ = 0;
 			delete [] oldBuf;
         }
+
     protected :
         void RemoveReadBuffer()
         {
