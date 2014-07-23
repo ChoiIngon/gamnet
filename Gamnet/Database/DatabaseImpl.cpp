@@ -36,7 +36,7 @@ sql::Connection* DatabaseImpl::ConnectionFactory(const ConnectionInfo& connectio
 		connection_properties["userName"] = connectionInfo.id_;
 	    connection_properties["password"] = connectionInfo.passwd_;
 		connection_properties["OPT_RECONNECT"] = true;
-		connection_properties["OPT_CONNECT_TIMEOUT"] = 3;
+		connection_properties["OPT_CONNECT_TIMEOUT"] = 5;
 		connection = driver_->connect(connection_properties);
 		connection->setSchema(connectionInfo.db_);
 		Log::Write(GAMNET_INF, "database connected(uri:", connectionInfo.uri_, ", id:", connectionInfo.id_, ", db:", connectionInfo.db_,")");
@@ -70,7 +70,7 @@ bool DatabaseImpl::Connect(int db_type, const char* host, int port, const char* 
 		Log::Write(GAMNET_ERR, "duplicate connection info(db_type:", db_type, ", uri:", connectionInfo.uri_, ", id:", connectionInfo.id_, ", db:", connectionInfo.db_,")");
 		return false;
 	}
-	if(false == mapConnectionPool_.insert(std::make_pair(db_type, std::shared_ptr<ConnectionPool>(new ConnectionPool(128, std::bind(&DatabaseImpl::ConnectionFactory, this, connectionInfo))))).second)
+	if(false == mapConnectionPool_.insert(std::make_pair(db_type, std::shared_ptr<ConnectionPool>(new ConnectionPool(64, std::bind(&DatabaseImpl::ConnectionFactory, this, connectionInfo))))).second)
 	{
 		errno = ERRNO_DUPLICATE_CONNECIONINFO_ERROR;
 		Log::Write(GAMNET_ERR, "duplicate connection info(db_type:", db_type, ", uri:", connectionInfo.uri_, ", id:", connectionInfo.id_, ", db:", connectionInfo.db_,")");
@@ -97,17 +97,17 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 	}
 
 	std::shared_ptr<sql::Connection> connection(itr->second->Create());
+	if(NULL == connection)
+	{
+		LOG(GAMNET_ERR, "create Connection object error(db_type:", db_type, ")");
+		throw Exception(ERRNO_ALLOC_OBJECT_ERROR, ERR, "create Connection object error(db_type:", db_type, ")");
+	}
 	try {
-		if(NULL == connection)
-		{
-			LOG(GAMNET_ERR, "create Connection object error(db_type:", db_type, ")");
-			throw Exception(ERRNO_ALLOC_OBJECT_ERROR, "ERRNO_ALLOC_OBJECT_ERROR");
-		}
 		std::shared_ptr<sql::Statement> stmt(connection->createStatement());
 		if(NULL == stmt)
 		{
 			LOG(GAMNET_ERR, "create Statement object error(db_type:", db_type, ")");
-			throw Exception(ERRNO_ALLOC_OBJECT_ERROR, "ERRNO_ALLOC_OBJECT_ERROR");
+			throw Exception(ERRNO_ALLOC_OBJECT_ERROR, ERR, "create Statement object error(db_type:", db_type, ")");
 		}
 
 		bool isSelectQuery = stmt->execute(query);
