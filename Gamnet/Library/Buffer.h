@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <cstring>
+#include "Exception.h"
 #ifdef _DEBUG
 #include <assert.h>
 #endif
@@ -25,14 +26,13 @@ namespace Gamnet {
 				return buffer;
 			}
 		};
-        int writeCursor_;
-        int readCursor_;
-        int bufSize_;
+        uint16_t writeCursor_;
+        uint16_t readCursor_;
+        uint16_t bufSize_;
         char* buf_;
 
-        Buffer(int size = 1024) : writeCursor_(0), readCursor_(0), buf_(NULL)
+        Buffer(uint16_t size = 1024) : writeCursor_(0), readCursor_(0), bufSize_(size), buf_(NULL)
         {
-            bufSize_ = size;
             buf_ = new char[bufSize_];
 #ifdef _DEBUG
             assert(NULL != buf_);
@@ -45,12 +45,18 @@ namespace Gamnet {
             delete [] buf_;
         }
 
-        void Append(const char* buf, int size)
+        void Append(const char* buf, uint16_t size)
         {
+        	/*
             if(bufSize_ < size + writeCursor_ - readCursor_)
             {
                 Resize(size + writeCursor_ - readCursor_);
             }
+            */
+        	if(Available() < size)
+        	{
+        		throw Exception(ENOMEM, "not enough space(need:", size," bytes, left:", Available(), " bytes)");
+        	}
 
             if(size > bufSize_ - writeCursor_)
             {
@@ -61,7 +67,7 @@ namespace Gamnet {
             writeCursor_ += size;
         }
 
-        void Remove(int size)
+        void Remove(uint16_t size)
         {
             (readCursor_ += size) > writeCursor_ ? readCursor_ = writeCursor_ : readCursor_;
         }
@@ -101,19 +107,14 @@ namespace Gamnet {
             readCursor_ = 0;
         }
 
-        void Resize(int size)
+        void Resize(uint16_t size)
         {
-        	if(writeCursor_-readCursor_>size)
-			{
-        		errno = EOVERFLOW;
-				return;
-			}
         	char* oldBuf = buf_;
         	buf_ = new char[size];
-        	bufSize_ = size;
 #ifdef _DEBUG
 			assert(NULL != buf_);
 #endif
+        	bufSize_ = size;
 			memset(buf_, 0, bufSize_);
 			if(0 < writeCursor_-readCursor_)
 			{
@@ -132,7 +133,10 @@ namespace Gamnet {
         	{
         		return;
         	}
-			std::memcpy(buf_, buf_+readCursor_, writeCursor_ - readCursor_);
+        	if(0 < writeCursor_-readCursor_)
+        	{
+        		std::memcpy(buf_, buf_+readCursor_, writeCursor_ - readCursor_);
+        	}
 			writeCursor_ -= readCursor_;
             readCursor_ = 0;
         }
