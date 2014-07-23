@@ -15,7 +15,7 @@
 
 namespace Gamnet { namespace Database {
 
-static ThreadPool	  threadPool_(16);
+//static ThreadPool	  threadPool_(16);
 
 void ReadXml(const char* xml_path)
 {
@@ -51,12 +51,12 @@ ResultSet Execute(int db_type, const std::string& query)
 {
 	return Singleton<DatabaseImpl>::GetInstance().Execute(db_type, query);
 }
-
+/*
 void AExecute(int db_type, const std::string& query, std::function<void(ResultSet)> callback)
 {
 	threadPool_.PostTask(std::bind(&DatabaseImpl::Execute, &Singleton<DatabaseImpl>::GetInstance(), db_type, query, callback));
 }
-
+*/
 }}
 
 
