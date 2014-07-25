@@ -22,7 +22,7 @@ public:
   void Recv_Req(std::shared_ptr<ClientSession> client, std::shared_ptr<Network::Packet> packet)
   {
     Msg_CS_Echo_Req req;
-    Msg_SC_Echo_Ans	ans;
+    Msg_SC_Echo_Ans ans;
     try {
         if(false == Network::Packet::Load(cs_req, packet))
         {
@@ -37,6 +37,11 @@ public:
     Network::SendMsg(client, sc_ans);
   }
 };
+
+GAMNET_BIND_NETWORK_HANDLER(
+  ClientSession, Msg_CS_Echo_Req,
+  HandlerEcho, Recv_CS_Req, HandlerCreate
+);
 
 int main()
 {
