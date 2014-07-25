@@ -1,6 +1,51 @@
-= Introduction =
- * Gamnet is boost base network framework
+= What is Gamnet =
+ * _Gamnet_ 은 C++로 작성된 boost asio 기반 네트워크 프레임워크 입니다.
 
+= Code Example =
+{{{
+#include <Gamnet.h>
+using namespace Gamnet;
+
+class ClientSession : public Network::Session
+{
+public :
+	virtual void OnAccept() {}
+	virtual void OnClose(int reason) {}
+};
+
+class HandlerEcho : public Gamnet::Network::IHandler 
+{
+public:
+  HandlerEcho() {}
+  virtual ~HandlerEcho() {}
+
+  void Recv_Req(std::shared_ptr<ClientSession> client, std::shared_ptr<Network::Packet> packet)
+  {
+    Msg_CS_Echo_Req req;
+    Msg_SC_Echo_Ans	ans;
+    try {
+        if(false == Network::Packet::Load(cs_req, packet))
+        {
+            throw Exception(1, "packet load fail");
+        }
+        ans.Message = req.Message;
+    }
+    catch(const Gamnet::Exception& e)
+    {
+        Log::Write(GAMNET_ERR, e.what());
+    }
+    Network::SendMsg(client, sc_ans);
+  }
+};
+
+int main()
+{
+  Gamnet::Log::ReadXml("config.xml");
+  Gamnet::Network::Listen<ClientSession>(20000, 1024, 60);
+  Gamnet::Run(10);
+  return 0;
+}
+}}}
 = GETTING STARTED =
 == Getting '_'Gamnet'_ source code ==
  * You can get the source code from svn see below page :
