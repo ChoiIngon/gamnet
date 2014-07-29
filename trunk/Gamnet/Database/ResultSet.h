@@ -19,18 +19,23 @@
 namespace Gamnet { namespace Database {
 struct ResultSet
 {
+	int affectedRowCount_;
+	int errno_;
+	std::shared_ptr<sql::ResultSet> resultSet_;
+
 	struct iterator
 	{
 		bool hasNext_;
 		std::shared_ptr<sql::ResultSet> resultSet_;
+
 		iterator();
 		iterator(const iterator& itr);
 		iterator& operator = (const iterator& itr);
 		iterator& operator ++ (int);
 		std::shared_ptr<sql::ResultSet> operator -> ();
 
-		bool operator != (ResultSet::iterator itr);
-		bool operator == (ResultSet::iterator itr);
+		bool operator != (const ResultSet::iterator& itr);
+		bool operator == (const ResultSet::iterator& itr);
 		const std::string operator [] (const std::string& column_name)
 		{
 			return resultSet_->getString(column_name);
@@ -42,13 +47,8 @@ struct ResultSet
 		}
 	};
 
-	int affectedRowCount_;
-	int errno_;
-	std::shared_ptr<sql::ResultSet> resultSet_;
-
 	ResultSet() : affectedRowCount_(0), errno_(0) {}
 	virtual ~ResultSet() {}
-
 
 	int GetSQLError() { return errno_; };
 	int GetAffectedRow() { return affectedRowCount_; }

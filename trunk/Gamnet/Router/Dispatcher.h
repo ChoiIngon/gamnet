@@ -75,7 +75,13 @@ public:
 					return ;
 				}
 				//(handler.get()->*handler_function.function_)(from, packet);
-				handler_function.function_(handler, from, packet);
+				try {
+					handler_function.function_(handler, from, packet);
+				}
+				catch (const std::exception& e)
+				{
+					Log::Write(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
+				}
 			});
 			thread_safe_function();
 		}
@@ -89,7 +95,13 @@ public:
 			}
 
 			//(handler.get()->*handler_function.function_)(from, packet);
-			handler_function.function_(handler, from, packet);
+			try {
+				handler_function.function_(handler, from, packet);
+			}
+			catch (const std::exception& e)
+			{
+				Log::Write(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
+			}
 		}
 	}
 };
