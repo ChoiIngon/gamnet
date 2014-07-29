@@ -102,6 +102,7 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 		LOG(GAMNET_ERR, "create Connection object error(db_type:", db_type, ")");
 		throw Exception(ERRNO_ALLOC_OBJECT_ERROR, ERR, "create Connection object error(db_type:", db_type, ")");
 	}
+	driver_->threadInit();
 	try {
 		std::shared_ptr<sql::Statement> stmt(connection->createStatement());
 		if(NULL == stmt)
@@ -134,6 +135,7 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 			LOG(ERR, "no database selected, set new schema");
 		}
 	}
+	driver_->threadEnd();
 	return res;
 }
 

@@ -8,18 +8,20 @@
 
 namespace Gamnet { namespace Database {
 
-ResultSet::iterator::iterator() : hasNext_(false)
+ResultSet::iterator::iterator()
+	: hasNext_(false), resultSet_(NULL)
 {
 }
 
 ResultSet::iterator::iterator(const iterator& itr)
+	: hasNext_(itr.hasNext_), resultSet_(itr.resultSet_)
 {
-	*this = itr;
 }
 
 ResultSet::iterator& ResultSet::iterator::operator = (const iterator& itr)
 {
-	*this = itr;
+	hasNext_ = itr.hasNext_;
+	resultSet_ = itr.resultSet_;
 	return *this;
 }
 
@@ -41,7 +43,7 @@ std::shared_ptr<sql::ResultSet> ResultSet::iterator::operator -> ()
 	return resultSet_;
 }
 
-bool ResultSet::iterator::operator != (ResultSet::iterator itr)
+bool ResultSet::iterator::operator != (const ResultSet::iterator& itr)
 {
 	if(this->hasNext_ != itr.hasNext_ || resultSet_ != itr.resultSet_)
 	{
@@ -50,7 +52,7 @@ bool ResultSet::iterator::operator != (ResultSet::iterator itr)
 	return false;
 }
 
-bool ResultSet::iterator::operator == (ResultSet::iterator itr)
+bool ResultSet::iterator::operator == (const ResultSet::iterator& itr)
 {
 	if(this->hasNext_ == itr.hasNext_ && resultSet_ == itr.resultSet_)
 	{
