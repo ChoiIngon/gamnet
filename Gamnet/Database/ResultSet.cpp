@@ -14,8 +14,8 @@ ResultSet::iterator::iterator()
 }
 
 ResultSet::iterator::iterator(const iterator& itr)
-	: hasNext_(itr.hasNext_), resultSet_(itr.resultSet_)
 {
+	*this = itr;
 }
 
 ResultSet::iterator& ResultSet::iterator::operator = (const iterator& itr)
@@ -43,7 +43,7 @@ std::shared_ptr<sql::ResultSet> ResultSet::iterator::operator -> ()
 	return resultSet_;
 }
 
-bool ResultSet::iterator::operator != (const ResultSet::iterator& itr)
+bool ResultSet::iterator::operator != (const ResultSet::iterator& itr) const
 {
 	if(this->hasNext_ != itr.hasNext_ || resultSet_ != itr.resultSet_)
 	{
@@ -52,7 +52,7 @@ bool ResultSet::iterator::operator != (const ResultSet::iterator& itr)
 	return false;
 }
 
-bool ResultSet::iterator::operator == (const ResultSet::iterator& itr)
+bool ResultSet::iterator::operator == (const ResultSet::iterator& itr) const
 {
 	if(this->hasNext_ == itr.hasNext_ && resultSet_ == itr.resultSet_)
 	{
