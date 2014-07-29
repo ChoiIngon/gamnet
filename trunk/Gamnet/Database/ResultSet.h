@@ -34,8 +34,8 @@ struct ResultSet
 		iterator& operator ++ (int);
 		std::shared_ptr<sql::ResultSet> operator -> ();
 
-		bool operator != (const ResultSet::iterator& itr);
-		bool operator == (const ResultSet::iterator& itr);
+		bool operator != (const ResultSet::iterator& itr) const;
+		bool operator == (const ResultSet::iterator& itr) const;
 		const std::string operator [] (const std::string& column_name)
 		{
 			return resultSet_->getString(column_name);
