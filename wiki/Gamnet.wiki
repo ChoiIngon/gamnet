@@ -67,4 +67,4 @@ $ ls
 build.sh  control  gamnet-linux-build-essential.deb  postinst  src
 $ sudo gdebi gamnet-linux-build-essential.deb
   }}}
- * [UbuntuBuildEssentialPackageList gamnet-linux-build-essential]
+ * [LinuxBuildEssential gamnet-linux-build-essential]
