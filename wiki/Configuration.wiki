@@ -1,5 +1,3 @@
-# this page describes about writing xml configuration.
-
 = Quick Example =
 {{{
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -25,11 +23,11 @@
   * "console", "file", "sys" could have "yes"|"no" value.
   * If the value is "yes" write to it.
   * If "no", do nothing.
-== database ==
+== "database" ==
  * "name" - name for db connection pool. any name will be ok.
  * "id" - db connection pool identifier. You can access connection pool using this number.
  * "host", "port", "user", "db", "passwd"
-== test ==
+== "test" ==
  * "host", "port"
  * "session_count" - test session count for "1" loop
  * "loop_count" - how many time do you want to do test?
