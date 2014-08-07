@@ -68,3 +68,5 @@ build.sh  control  gamnet-linux-build-essential.deb  postinst  src
 $ sudo gdebi gamnet-linux-build-essential.deb
   }}}
  * [LinuxBuildEssential gamnet-linux-build-essential]
+== Writting Config ==
+ * [Configuration confix.xml]
