@@ -8,7 +8,7 @@
     <err console="yes" file="yes" sys="no"/>
   </log>
 	
-  <database name="master" id="0" host="some.host.com" port="3306" user="user_name" db="db_name" passwd="password_of_user"/>	
+  <database name="master" id="0" host="some.host.com" port="3306" user="user_name" db="db_name" passwd="password"/>	
 	
   <test host="localhost" port="20004" session_count="1" loop_count="1" interval="100">
     <message name="TEST_CASE_NAME"/>
