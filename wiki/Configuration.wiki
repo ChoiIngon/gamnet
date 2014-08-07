@@ -1,0 +1,36 @@
+# this page describes about writing xml configuration.
+
+= Quick Example =
+{{{
+<?xml version="1.0" encoding="UTF-8" ?>
+<server>
+  <log path="log" max_file_size="5">
+    <dev console="yes" file="yes" sys="no"/>
+    <inf console="yes" file="yes" sys="no"/>
+    <err console="yes" file="yes" sys="no"/>
+  </log>
+	
+  <database name="master" id="0" host="some.host.com" port="3306" user="user_name" db="db_name" passwd="password_of_user"/>	
+	
+  <test host="localhost" port="20004" session_count="1" loop_count="1" interval="100">
+    <message name="TEST_CASE_NAME"/>
+  </test>
+</server>
+}}}
+
+== "log" ==
+ * "path" - The name of directory where is log files will be written.
+ * "max_file_size" - Maximum log file size(mega byte). If the file over the size, log library creates other log file and write to it.
+ * "dev", "inf", "err" - log level
+  * "console", "file", "sys" could have "yes"|"no" value.
+  * If the value is "yes" write to it.
+  * If "no", do nothing.
+== database ==
+ * "name" - name for db connection pool. any name will be ok.
+ * "id" - db connection pool identifier. You can access connection pool using this number.
+ * "host", "port", "user", "db", "passwd"
+== test ==
+ * "host", "port"
+ * "session_count" - test session count for "1" loop
+ * "loop_count" - how many time do you want to do test?
+ * "interval" -  millisecond between each test loop
