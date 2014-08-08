@@ -52,7 +52,7 @@ public :
 	virtual void OnClose(int reason) = 0;
 	virtual void OnError(int reason);
 
-	void _read_start();
+	virtual void AsyncRead();
 	int	Send(std::shared_ptr<Packet> buffer);
 	int Send(const char* buf, int len);
 };

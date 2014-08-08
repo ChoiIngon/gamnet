@@ -77,6 +77,7 @@ public :
 		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
 		endpoint_ = *resolver_.resolve({host, Format(port).c_str()});
 	}
+	virtual void OnAccept(std::shared_ptr<Network::Session> session, const boost::system::error_code& error) {}
 	virtual void OnRecvMsg(std::shared_ptr<Network::Session> session, std::shared_ptr<Network::Packet> packet)
 	{
 		std::shared_ptr<SESSION_T> test_session = std::static_pointer_cast<SESSION_T>(session);
