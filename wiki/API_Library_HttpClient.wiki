@@ -1,0 +1,64 @@
+= HttpClient =
+ * 'http' protocol client library - using CURL(http://curl.haxx.se/libcurl/c/example.html)
+ * support sync call only
+ * support 'get' and 'post' both method
+ * ~~support 'JSON' format as parameters~~
+
+= Description =
+{{{
+class HttpClient
+{
+public :
+    HttpClient(const char* host);
+    virtual ~HttpClient();
+
+    void SetHeader(const char* name, const char* value);
+    bool Post(const char* path, const char* param, std::function<void(int stat, const char* data)> callback);
+    bool Get(const char* path, const char* param, std::function<void(int stat, const char* data)> callback);
+private :
+	// ...
+};
+}}}
+
+= Examples =
+{{{
+#include <Gamnet.h>
+using namespace Gamnet;
+int main() 
+{
+    HttpClient post_client("http://localhost");
+    post_client.SetHeader("Content-Type", "application/x-www-form-urlencoded");
+    post_client.Post("index.php",
+        "{ \
+            'accountType':'HOSTED_OR_GOOGLE',\
+            'Email':'xxxxx.push@gmail.com',\
+            'Passwd':'xxxxxx',\
+            'service':'ac2dm',\
+            'source':'xxxx-c2dm-1.0',\
+            'array_example':[\
+                'array_elmt_0',\
+                'array_elmt_1',\
+                'array_elmt_2',\
+                'array_elmt_3'\
+            ]\
+        }",
+        [](int stat, const char* data) {
+            std::cout << stat << std::endl;
+            std::cout << data << std::endl;
+        }
+    );
+
+    HttpClient get_client("http://comic.naver.com");
+    get_client.Get("webtoon/list.nhn",
+        "{ \
+            'titleId':574303,\
+            'weekday':'thu'\
+        }",
+        [](int stat, const char* data) {
+            std::cout << stat << std::endl;
+            std::cout << data << std::endl;
+        }
+    );
+    return 0;
+}
+}}}
