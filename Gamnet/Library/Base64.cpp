@@ -21,6 +21,10 @@ static inline bool is_base64(unsigned char c) {
 std::string Base64Encode(const char* bytes_to_encode, size_t len)
 {
 	std::string ret;
+	if(0 >= len)
+	{
+		return ret;
+	}
 
 	unsigned char char_array_3[3];
 	unsigned char char_array_4[4];
@@ -69,7 +73,13 @@ std::string Base64Encode(const char* bytes_to_encode, size_t len)
 	return ret;
 }
 
-std::string Base64Decode(std::string const& encoded_string) {
+std::string Base64Decode(std::string const& encoded_string)
+{
+	std::string ret;
+	if(0 >= encoded_string.size())
+	{
+		return ret;
+	}
 	int in_len = encoded_string.size();
 	int i = 0;
 	int j = 0;
@@ -77,8 +87,6 @@ std::string Base64Decode(std::string const& encoded_string) {
 
 	unsigned char char_array_3[3];
 	unsigned char char_array_4[4];
-
-	std::string ret;
 
 	while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
 	{

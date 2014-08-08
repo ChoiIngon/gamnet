@@ -44,7 +44,7 @@ void Session::Connect(const char* host, int port, int timeout)
 				self->readBuffer_ = Network::Packet::Create();
 				self->remote_address_ = self->socket_.remote_endpoint().address();
 				self->listener_->sessionManager_.AddSession(self->sessionKey_, self);
-				self->_read_start();
+				self->AsyncRead();
 				self->OnConnect();
 			}
 		})

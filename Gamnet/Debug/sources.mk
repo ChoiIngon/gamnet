@@ -28,6 +28,7 @@ Router \
 Network \
 Log \
 Library \
+Http \
 . \
 Database \
 

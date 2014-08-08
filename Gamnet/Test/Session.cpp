@@ -37,7 +37,7 @@ void Session::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 				self->sessionKey_ = ++Network::IListener::uniqueSessionKey_;
 				self->readBuffer_ = Network::Packet::Create();
 				self->listener_->sessionManager_.AddSession(self->sessionKey_, self);
-				self->_read_start();
+				self->AsyncRead();
 				std::bind(&Tester<Session>::OnConnect, static_cast<Tester<Session>*>(self->listener_), self)();
 			}
 		})

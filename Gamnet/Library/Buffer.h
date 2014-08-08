@@ -39,7 +39,6 @@ namespace Gamnet {
 #endif
             memset(buf_, 0, bufSize_);
         }
-
         virtual ~Buffer()
         {
             delete [] buf_;
@@ -125,7 +124,7 @@ namespace Gamnet {
 			readCursor_ = 0;
 			delete [] oldBuf;
         }
-
+        void Copy(const Buffer& buffer);
     protected :
         void RemoveReadBuffer()
         {

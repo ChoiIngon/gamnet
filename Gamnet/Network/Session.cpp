@@ -36,7 +36,7 @@ void Session::OnError(int reason)
 	listener_->OnClose(shared_from_this());
 }
 
-void Session::_read_start()
+void Session::AsyncRead()
 {
 	auto self(shared_from_this());
 	socket_.async_read_some(boost::asio::buffer(readBuffer_->WritePtr(), readBuffer_->Available()),
@@ -84,7 +84,7 @@ void Session::_read_start()
 				self->readBuffer_ = pBuffer;
 			}
 
-			self->_read_start();
+			self->AsyncRead();
 		})
 	);
 }
