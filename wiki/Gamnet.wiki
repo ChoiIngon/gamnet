@@ -70,3 +70,5 @@ $ sudo gdebi gamnet-linux-build-essential.deb
  * [LinuxBuildEssential gamnet-linux-build-essential]
 == Writting Config ==
  * [Configuration confix.xml]
+= API =
+ * [API_Library_HttpClient Library/HttpClient]
