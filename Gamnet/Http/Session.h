@@ -9,6 +9,7 @@
 #define SESSION_H_
 
 #include "../Network/Network.h"
+#include "Response.h"
 
 namespace Gamnet {
 namespace Http {
@@ -32,6 +33,8 @@ public:
 	Session();
 	virtual ~Session();
 
+	int Send(const Response& res);
+
 	virtual void OnAccept()
 	{
 	}
@@ -40,6 +43,7 @@ public:
 	}
 
 	virtual void AsyncRead();
+
 	boost::asio::streambuf buf_;
 };
 

@@ -13,7 +13,7 @@ Http/Listener.o Http/Listener.d: ../Http/Listener.cpp ../Http/Listener.h \
  ../Http/../Network/../Library/Timer.h \
  ../Http/../Network/../Library/Singleton.h \
  ../Http/../Network/Dispatcher.h ../Http/../Network/Handler.h \
- ../Http/../Network/HandlerFactory.h
+ ../Http/../Network/HandlerFactory.h ../Http/Response.h
 
 ../Http/Listener.h:
 
@@ -58,3 +58,5 @@ Http/Listener.o Http/Listener.d: ../Http/Listener.cpp ../Http/Listener.h \
 ../Http/../Network/Handler.h:
 
 ../Http/../Network/HandlerFactory.h:
+
+../Http/Response.h:
