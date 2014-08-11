@@ -7,18 +7,21 @@ CPP_SRCS += \
 ../Http/Dispatcher.cpp \
 ../Http/HttpServer.cpp \
 ../Http/Listener.cpp \
+../Http/Response.cpp \
 ../Http/Session.cpp 
 
 OBJS += \
 ./Http/Dispatcher.o \
 ./Http/HttpServer.o \
 ./Http/Listener.o \
+./Http/Response.o \
 ./Http/Session.o 
 
 CPP_DEPS += \
 ./Http/Dispatcher.d \
 ./Http/HttpServer.d \
 ./Http/Listener.d \
+./Http/Response.d \
 ./Http/Session.d 
 
 

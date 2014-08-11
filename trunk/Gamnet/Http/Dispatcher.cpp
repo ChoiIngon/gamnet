@@ -22,7 +22,9 @@ void Dispatcher::OnRecvMsg(std::shared_ptr<Session> session, const std::string& 
 	if(itr == mapHandlerFunction_.end())
 	{
 		Log::Write(GAMNET_ERR, "can't find handler function(uri:", uri, ", session_key:", session->sessionKey_,")");
-		session->Send("HTTP/1.0 404 Not Found\r\n", strlen("HTTP/1.0 404 Not Found\r\n"));
+		Response res;
+		res.nErrorCode = 404;
+		session->Send(res);
 		session->OnError(EINVAL);
 		return ;
 	}
@@ -32,7 +34,9 @@ void Dispatcher::OnRecvMsg(std::shared_ptr<Session> session, const std::string& 
 	if(NULL == handler)
 	{
 		Log::Write(GAMNET_ERR, "can't find handler function(uri:", uri, ", session_key:", session->sessionKey_,")");
-		session->Send("HTTP/1.0 404 Not Found\r\n", strlen("HTTP/1.0 404 Not Found\r\n"));
+		Response res;
+		res.nErrorCode = 404;
+		session->Send(res);
 		session->OnError(EINVAL);
 		return;
 	}

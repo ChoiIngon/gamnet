@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef DISPATCHER_H_
-#define DISPATCHER_H_
+#ifndef GAMNET_ROUTER_DISPATCHER_H_
+#define GAMNET_ROUTER_DISPATCHER_H_
 
 #include "../Network/Network.h"
 namespace Gamnet {

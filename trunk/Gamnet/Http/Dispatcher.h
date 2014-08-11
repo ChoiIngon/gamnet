@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef DISPATCHER_H_
-#define DISPATCHER_H_
+#ifndef GAMNET_HTTP_DISPATCHER_H_
+#define GAMNET_HTTP_DISPATCHER_H_
 
 #include "../Network/Network.h"
 #include "../Network/HandlerFactory.h"
@@ -30,10 +30,10 @@ public:
 	Dispatcher();
 	virtual ~Dispatcher();
 
-	template <class FUNC>
-	bool RegisterHandler(const char* uri, FUNC func)
+	template <class FUNC, class FACTORY>
+	bool RegisterHandler(const char* uri, FUNC func, FACTORY factory)
 	{
-		HandlerFunction handlerFunction(new Network::HandlerStatic<Session>(),static_cast<function_type>(func));
+		HandlerFunction handlerFunction(factory, static_cast<function_type>(func));
 		if(false == mapHandlerFunction_.insert(std::make_pair(uri, handlerFunction)).second)
 		{
 			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(uri:", uri, ")");

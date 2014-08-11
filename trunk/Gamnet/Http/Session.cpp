@@ -7,6 +7,7 @@
 
 #include "Session.h"
 #include "Dispatcher.h"
+#include "../Library/String.h"
 
 namespace Gamnet {
 namespace Http {
@@ -61,62 +62,38 @@ void Session::AsyncRead()
 						size_t delim_pos = param.find("&");
 						if(std::string::npos == delim_pos)
 						{
-							break;
+							delim_pos = param.length();
 						}
 
 						std::string name = param.substr(0, equal_pos);
 						std::string value = param.substr(equal_pos+1, delim_pos-(equal_pos+1));
-						param = param.substr(delim_pos+1);
 						mapParam.insert(std::make_pair(name, value));
+						if(delim_pos >= param.length())
+						{
+							break;
+						}
+						param = param.substr(delim_pos+1);
 					}
 
 					Singleton<Dispatcher>::GetInstance().OnRecvMsg(self, uri, mapParam);
-					self->Send("HTTP/1.0 200 OK\r\n", strlen("HTTP/1.0 200 OK\r\n"));
 					self->OnError(errno); // no error, just closed socket
 					return;
 				}
 			}
 			self->readBuffer_->writeCursor_ += readbytes;
-
-
-			/*
-			while(Packet::HEADER_SIZE <= (int)self->readBuffer_->Size())
-			{
-				uint16_t totalLength = self->readBuffer_->GetTotalLength();
-				uint16_t bodyLength = totalLength-Packet::HEADER_SIZE;
-				if(0 > bodyLength || totalLength >= self->readBuffer_->Capacity())
-				{
-					Log::Write(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
-					self->OnError(EOVERFLOW);
-					return;
-				}
-
-				// 데이터가 부족한 경우
-				if(totalLength > (unsigned short)self->readBuffer_->Size())
-				{
-					break;
-				}
-
-				std::shared_ptr<Packet> pBuffer = Packet::Create();
-				if(NULL == pBuffer)
-				{
-					Log::Write(GAMNET_ERR, "Can't create more buffer(session_key:", self->sessionKey_, ")");
-					self->OnError(EBUSY);
-					return;
-				}
-
-				if(totalLength < (unsigned short)self->readBuffer_->Size())
-				{
-					pBuffer->Append(self->readBuffer_->ReadPtr() + totalLength, self->readBuffer_->Size() - totalLength);
-				}
-
-				self->listener_->OnRecvMsg(self, self->readBuffer_);
-
-			}
-			*/
 			self->AsyncRead();
 		})
 	);
+}
+
+int Session::Send(const Response& res)
+{
+	std::string response;
+	response += Format("HTTP/1.1 ", res.nErrorCode, " ", GetErrorStr(res.nErrorCode), "\r\n");
+	response += Format("\r\n");
+	response += res.sBodyContext;
+	response += Format("\r\n\r\n");
+	return Network::Session::Send(response.c_str(), response.length());
 }
 } /* namespace Http */
 } /* namespace Gamnet */

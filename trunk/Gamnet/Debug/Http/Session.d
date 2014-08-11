@@ -12,8 +12,9 @@ Http/Session.o Http/Session.d: ../Http/Session.cpp ../Http/Session.h \
  ../Http/../Network/../Library/Timer.h \
  ../Http/../Network/../Library/Singleton.h \
  ../Http/../Network/Dispatcher.h ../Http/../Network/Handler.h \
- ../Http/../Network/HandlerFactory.h ../Http/Dispatcher.h \
- ../Http/../Network/HandlerFactory.h
+ ../Http/../Network/HandlerFactory.h ../Http/Response.h \
+ ../Http/Dispatcher.h ../Http/../Network/HandlerFactory.h \
+ ../Http/../Library/String.h
 
 ../Http/Session.h:
 
@@ -57,6 +58,10 @@ Http/Session.o Http/Session.d: ../Http/Session.cpp ../Http/Session.h \
 
 ../Http/../Network/HandlerFactory.h:
 
+../Http/Response.h:
+
 ../Http/Dispatcher.h:
 
 ../Http/../Network/HandlerFactory.h:
+
+../Http/../Library/String.h:
