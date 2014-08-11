@@ -6,7 +6,7 @@
 		<err console="yes" file="yes" sys="no"/>
 	</log>
 	
-	<test host="localhost" port="20000" session_count="1" loop_count="1" interval="100">
+	<test host="localhost" port="20000" session_count="1" loop_count="1" interval="98">
 		<message name="Msg_CS_Echo_Req"/>
 	</test>
 </server>
