@@ -123,3 +123,17 @@ GAMNET_BIND_TEST_HANDLER(TestSession,
 	Msg_CS_Echo_Req, Msg_SC_Echo_Ans,
 	Test_Echo_Req, Test_Echo_Ans
 );
+
+void HandlerEcho::Recv_Http_Req(std::shared_ptr<Http::Session> client, const std::map<std::string, std::string>& param)
+{
+	Http::Response res;
+	res.sBodyContext += Network::ServerState<ClientSession>("echo server");
+	for(auto itr : param)
+	{
+		LOG(DEV, "name:", itr.first, ", value:", itr.second, ")");
+	}
+	res.nErrorCode = 200;
+	Http::SendMsg(client, res);
+}
+
+GAMNET_BIND_HTTP_HANDLER("server_monitor", HandlerEcho, Recv_Http_Req);
