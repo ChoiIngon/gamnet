@@ -52,6 +52,28 @@ namespace Gamnet { namespace Network {
 	{
 		return std::static_pointer_cast<SESSION_T>(Singleton<Listener<SESSION_T>>::GetInstance().sessionManager_.FindSession(session_key));
 	}
+
+	template <class SESSION_T>
+	std::string ServerState(const std::string& name)
+	{
+		uint32_t runningSessionCount = Singleton<Listener<SESSION_T>>::GetInstance().sessionManager_.Size();
+		uint32_t idleSessionCount = Singleton<Listener<SESSION_T>>::GetInstance().sessionPool_.Available();
+		time_t logtime_;
+		struct tm when;
+		time(&logtime_);
+		localtime_r( &logtime_, &when );
+
+		char timebuf[22] = {0};
+		snprintf (timebuf, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year+1900, when.tm_mon+1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+
+		std::string ret;
+		ret += "{";
+		ret += Format("\"date_time\":\"", timebuf,"\", ");
+		ret += Format("\"name\":\"", name, "\", ");
+		ret += Format("\"session\":{\"running_count\":", runningSessionCount, ", \"idle_count\":", idleSessionCount, "}");
+		ret += "}";
+		return ret;
+	}
 }}
 
 #define GAMNET_BIND_NETWORK_HANDLER(session_type, message_type, class_type, func, policy) \
