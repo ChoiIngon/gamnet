@@ -10,6 +10,7 @@
 
 #include "Listener.h"
 #include "Dispatcher.h"
+#include "HttpClient.h"
 
 namespace Gamnet { namespace Http {
 	void Listen(int port, int max_session, int keep_alive);

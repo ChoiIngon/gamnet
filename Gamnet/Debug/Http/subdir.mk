@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../Http/Dispatcher.cpp \
+../Http/HttpClient.cpp \
 ../Http/HttpServer.cpp \
 ../Http/Listener.cpp \
 ../Http/Response.cpp \
@@ -12,6 +13,7 @@ CPP_SRCS += \
 
 OBJS += \
 ./Http/Dispatcher.o \
+./Http/HttpClient.o \
 ./Http/HttpServer.o \
 ./Http/Listener.o \
 ./Http/Response.o \
@@ -19,6 +21,7 @@ OBJS += \
 
 CPP_DEPS += \
 ./Http/Dispatcher.d \
+./Http/HttpClient.d \
 ./Http/HttpServer.d \
 ./Http/Listener.d \
 ./Http/Response.d \
