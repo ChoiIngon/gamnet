@@ -10,8 +10,7 @@ struct curl_slist;
 #include "HttpClient.h"
 #include <unistd.h>
 
-namespace Gamnet
-{
+namespace Gamnet { namespace Http {
 static CURLcode globalCURL = curl_global_init(CURL_GLOBAL_ALL);
 
 HttpClient::HttpClient(const char* host) 
@@ -244,6 +243,4 @@ size_t HttpClient::Callback(void *ptr, size_t size, size_t nmemb, void *arg)
 	return byte_size_of_ptr;
 }
 
-};
-
-
+}};

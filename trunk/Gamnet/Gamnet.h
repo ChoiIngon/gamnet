@@ -9,7 +9,6 @@
 #define GAMNET_GAMNET_H_
 
 #include "Library/Base64.h"
-#include "Library/HttpClient.h"
 #include "Library/Singleton.h"
 #include "Log/Log.h"
 #include "Network/Network.h"

@@ -8,6 +8,7 @@
 #include "HttpServer.h"
 
 namespace Gamnet { namespace Http {
+
 	void Listen(int port, int max_session, int keep_alive)
 	{
 		Singleton<Listener>::GetInstance().Init(port, max_session, keep_alive);

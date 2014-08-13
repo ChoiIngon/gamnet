@@ -1,5 +1,5 @@
-#ifndef __HTTP_CLIENT_H__
-#define __HTTP_CLIENT_H__
+#ifndef __GAMNET_HTTP_HTTP_CLIENT_H__
+#define __GAMNET_HTTP_HTTP_CLIENT_H__
 
 /*!
  * \brief HttpClient
@@ -60,8 +60,9 @@
 #include <error.h>
 #include <algorithm>
 
-namespace Gamnet
-{
+namespace Gamnet {
+namespace Http {
+
 class HttpClient
 {
 public :
@@ -85,5 +86,5 @@ private :
 	CURL* curl_;
 };
 
-}; // end of Toolkit
+}};
 #endif // __HTTP_H__
