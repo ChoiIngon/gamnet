@@ -60,6 +60,73 @@ bool ResultSet::iterator::operator == (const ResultSet::iterator& itr) const
 	}
 	return false;
 }
+
+ResultSet::ResultSet() : affectedRowCount_(0), errno_(0)
+{
+}
+
+ResultSet::~ResultSet()
+{
+}
+
+int ResultSet::GetSQLError() const
+{
+	return errno_;
+};
+
+int ResultSet::GetAffectedRow() const
+{
+	return affectedRowCount_;
+}
+
+int ResultSet::GetRowCount()
+{
+	int rowCount = 0;
+	try
+	{
+		resultSet_->last();
+		rowCount = resultSet_->getRow();
+		resultSet_->beforeFirst();
+	}
+	catch(const sql::SQLException& e)
+	{
+		return 0;
+	}
+	return rowCount;
+}
+
+ResultSet::iterator ResultSet::begin()
+{
+	iterator itr;
+	if(NULL != resultSet_)
+	{
+		itr.resultSet_ = resultSet_;
+		itr.hasNext_ = resultSet_->first();
+	}
+	return itr;
+}
+
+ResultSet::iterator ResultSet::end() const
+{
+	iterator itr;
+	if(NULL != resultSet_)
+	{
+		itr.resultSet_ = resultSet_;
+		itr.hasNext_ = false;
+	}
+	return itr;
+}
+
+ResultSet::iterator ResultSet::operator [] (int index)
+{
+	iterator itr;
+	if(NULL != resultSet_ && resultSet_->absolute(index+1))
+	{
+		itr.resultSet_ = resultSet_;
+		itr.hasNext_ = false;
+	}
+	return itr;
+}
 }}
 
 

@@ -36,10 +36,6 @@ struct ResultSet
 
 		bool operator != (const ResultSet::iterator& itr) const;
 		bool operator == (const ResultSet::iterator& itr) const;
-		const std::string operator [] (const std::string& column_name)
-		{
-			return resultSet_->getString(column_name);
-		}
 		template <class T>
 		const T GetValue(const std::string& column_name)
 		{
@@ -47,56 +43,16 @@ struct ResultSet
 		}
 	};
 
-	ResultSet() : affectedRowCount_(0), errno_(0) {}
-	virtual ~ResultSet() {}
+	ResultSet();
+	virtual ~ResultSet();
 
-	int GetSQLError() { return errno_; };
-	int GetAffectedRow() { return affectedRowCount_; }
-	int GetRowCount()
-	{
-		int rowCount = 0;
-		try
-		{
-			resultSet_->last();
-			rowCount = resultSet_->getRow();
-			resultSet_->beforeFirst();
-		}
-		catch(const sql::SQLException& e)
-		{
-			return 0;
-		}
-		return rowCount;
-	}
-	iterator begin()
-	{
-		iterator itr;
-		if(NULL != resultSet_)
-		{
-			itr.resultSet_ = resultSet_;
-			itr.hasNext_ = resultSet_->first();
-		}
-		return itr;
-	}
-	iterator end() const
-	{
-		iterator itr;
-		if(NULL != resultSet_)
-		{
-			itr.resultSet_ = resultSet_;
-			itr.hasNext_ = false;
-		}
-		return itr;
-	}
-	iterator operator [] (int index)
-	{
-		iterator itr;
-		if(NULL != resultSet_ && resultSet_->absolute(index+1))
-		{
-			itr.resultSet_ = resultSet_;
-			itr.hasNext_ = false;
-		}
-		return itr;
-	}
+	int GetSQLError() const;
+	int GetAffectedRow() const;
+	int GetRowCount();
+
+	iterator begin();
+	iterator end() const;
+	iterator operator [] (int index);
 };
 
 }}
