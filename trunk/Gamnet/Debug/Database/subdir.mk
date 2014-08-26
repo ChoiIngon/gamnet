@@ -4,16 +4,19 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+../Database/Connection.cpp \
 ../Database/Database.cpp \
 ../Database/DatabaseImpl.cpp \
 ../Database/ResultSet.cpp 
 
 OBJS += \
+./Database/Connection.o \
 ./Database/Database.o \
 ./Database/DatabaseImpl.o \
 ./Database/ResultSet.o 
 
 CPP_DEPS += \
+./Database/Connection.d \
 ./Database/Database.d \
 ./Database/DatabaseImpl.d \
 ./Database/ResultSet.d 

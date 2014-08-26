@@ -10,6 +10,8 @@
 
 #include "ResultSet.h"
 #include "../Library/Pool.h"
+#include "Connection.h"
+
 namespace Gamnet { namespace Database {
 
 enum ERRNO
@@ -23,20 +25,11 @@ enum ERRNO
 
 class DatabaseImpl
 {
-	typedef Pool<sql::Connection, std::mutex> ConnectionPool;
-	struct ConnectionInfo
-	{
-		const std::string uri_;
-		const std::string id_;
-		const std::string passwd_;
-		const std::string db_;
-	};
-
-	sql::mysql::MySQL_Driver* driver_;
+	typedef Pool<Connection, std::mutex> ConnectionPool;
 	std::map<int, std::shared_ptr<ConnectionPool>> mapConnectionPool_;
-	std::map<int, ConnectionInfo> mapConnectionInfo_;
+	std::map<int, Connection::ConnectionInfo> mapConnectionInfo_;
 
-	sql::Connection* ConnectionFactory(const ConnectionInfo& connectionInfo);
+	Connection* ConnectionFactory(const Connection::ConnectionInfo& connInfo);
 public :
 	DatabaseImpl();
 	~DatabaseImpl();

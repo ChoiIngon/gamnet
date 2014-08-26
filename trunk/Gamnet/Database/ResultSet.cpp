@@ -5,63 +5,103 @@
  *      Author: kukuta
  */
 #include "ResultSet.h"
-
+#include "Connection.h"
+#include "../Library/Exception.h"
 namespace Gamnet { namespace Database {
 
-ResultSet::iterator::iterator()
-	: hasNext_(false), resultSet_(NULL)
+ResultSetImpl::ResultSetImpl() : res_(NULL), affectedRowCount_(0), conn_(NULL)
 {
 }
 
-ResultSet::iterator::iterator(const iterator& itr)
+ResultSetImpl::~ResultSetImpl()
 {
-	*this = itr;
+	if(NULL != res_)
+	{
+		mysql_free_result(res_) ;
+		res_ = NULL;
+
+		// trash remain result
+		if (mysql_more_results(&(conn_->conn_)))
+		{
+			while (0 == mysql_next_result(&conn_->conn_))
+			{
+				MYSQL_RES* res = mysql_store_result(&conn_->conn_);
+				if(NULL != res)
+				{
+					mysql_free_result(res);
+				}
+			}
+		}
+	}
 }
 
-ResultSet::iterator& ResultSet::iterator::operator = (const iterator& itr)
+ResultSet::iterator::iterator() : impl_(NULL), row_(NULL)
 {
-	hasNext_ = itr.hasNext_;
-	resultSet_ = itr.resultSet_;
-	return *this;
+}
+
+ResultSet::iterator::iterator(const std::shared_ptr<ResultSetImpl>& impl) : impl_(impl)
+{
+	if(NULL != impl_)
+	{
+		mysql_data_seek(impl_->res_, 0);
+		row_ = mysql_fetch_row(impl_->res_);
+	}
 }
 
 ResultSet::iterator& ResultSet::iterator::operator ++ (int)
 {
-	if(NULL == resultSet_)
+	if(NULL == impl_)
 	{
-		hasNext_ = false;
+		row_ = NULL;
 	}
 	else
 	{
-		hasNext_ = resultSet_->next();
+		row_ = mysql_fetch_row(impl_->res_);
 	}
 	return *this;
 }
 
-std::shared_ptr<sql::ResultSet> ResultSet::iterator::operator -> ()
+const std::string ResultSet::iterator::getString(const std::string& column_name)
 {
-	return resultSet_;
+	auto itr = impl_->mapColumnName_.find(column_name);
+	if(impl_->mapColumnName_.end() == itr)
+	{
+		throw Exception(0, "can't find column(name:", column_name, ")");
+	}
+	if(NULL == row_)
+	{
+		throw Exception(0, "invalid data");
+	}
+
+	return row_[itr->second];
+}
+
+ResultSet::iterator* ResultSet::iterator::operator -> ()
+{
+	return this;
 }
 
 bool ResultSet::iterator::operator != (const ResultSet::iterator& itr) const
 {
-	if(this->hasNext_ != itr.hasNext_ || resultSet_ != itr.resultSet_)
+	if(row_ != itr.row_)
 	{
 		return true;
 	}
+
 	return false;
 }
 
 bool ResultSet::iterator::operator == (const ResultSet::iterator& itr) const
 {
-	if(this->hasNext_ == itr.hasNext_ && resultSet_ == itr.resultSet_)
+	if(row_ != itr.row_)
 	{
-		return true;
+		return false;
 	}
-	return false;
+
+	return true;
 }
 
-ResultSet::ResultSet() : affectedRowCount_(0), errno_(0)
+ResultSet::ResultSet() : impl_(NULL)
 {
 }
 
@@ -69,64 +109,53 @@ ResultSet::~ResultSet()
 {
 }
 
-int ResultSet::GetSQLError() const
+unsigned int ResultSet::GetAffectedRow() const
 {
-	return errno_;
-};
-
-int ResultSet::GetAffectedRow() const
-{
-	return affectedRowCount_;
+	return impl_->affectedRowCount_;
 }
 
-int ResultSet::GetRowCount()
+unsigned int ResultSet::GetRowCount()
 {
-	int rowCount = 0;
-	try
-	{
-		resultSet_->last();
-		rowCount = resultSet_->getRow();
-		resultSet_->beforeFirst();
-	}
-	catch(const sql::SQLException& e)
+	if(NULL == impl_)
 	{
 		return 0;
 	}
-	return rowCount;
+	if(NULL == impl_->res_)
+	{
+		return 0;
+	}
+	return mysql_num_rows(impl_->res_);
 }
 
 ResultSet::iterator ResultSet::begin()
 {
-	iterator itr;
-	if(NULL != resultSet_)
-	{
-		itr.resultSet_ = resultSet_;
-		itr.hasNext_ = resultSet_->first();
-	}
-	return itr;
+	return iterator(impl_);
 }
 
 ResultSet::iterator ResultSet::end() const
 {
+	return iterator();
+}
+
+ResultSet::iterator ResultSet::operator [] (unsigned int index)
+{
 	iterator itr;
-	if(NULL != resultSet_)
+	if(NULL == impl_ || NULL == impl_->res_)
 	{
-		itr.resultSet_ = resultSet_;
-		itr.hasNext_ = false;
+		throw Exception(0, "invalid result set");
 	}
+
+	if(0 > index || index >= mysql_num_rows(impl_->res_))
+	{
+		throw Exception(0, "out range row index(index:", index, ")");
+	}
+	mysql_data_seek(impl_->res_, index);
+	itr.impl_ = impl_;
+	itr.row_ = mysql_fetch_row(impl_->res_);
+
 	return itr;
 }
 
-ResultSet::iterator ResultSet::operator [] (int index)
-{
-	iterator itr;
-	if(NULL != resultSet_ && resultSet_->absolute(index+1))
-	{
-		itr.resultSet_ = resultSet_;
-		itr.hasNext_ = false;
-	}
-	return itr;
-}
 }}
 
 
