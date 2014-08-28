@@ -7,14 +7,17 @@
 #include "ResultSet.h"
 #include "Connection.h"
 #include "../Library/Exception.h"
+#include "../Log/Log.h"
 namespace Gamnet { namespace Database {
 
 ResultSetImpl::ResultSetImpl() : res_(NULL), affectedRowCount_(0), conn_(NULL)
 {
+	LOG(DEV, "address:", this);
 }
 
 ResultSetImpl::~ResultSetImpl()
 {
+	LOG(DEV, "address:", this);
 	if(NULL != res_)
 	{
 		mysql_free_result(res_) ;
@@ -45,6 +48,10 @@ ResultSet::iterator::iterator(const std::shared_ptr<ResultSetImpl>& impl) : impl
 	{
 		mysql_data_seek(impl_->res_, 0);
 		row_ = mysql_fetch_row(impl_->res_);
+		if(NULL != row_ && NULL == *row_)
+		{
+			row_ = NULL;
+		}
 	}
 }
 
