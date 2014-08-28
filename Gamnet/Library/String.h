@@ -35,7 +35,7 @@ std::string Concat(ARGS&&... args)
 }
 */
 template <class... ARGS>
-std::string Format(ARGS... args)
+std::string Format(ARGS&&... args)
 {
 	std::stringstream stream;
 	Concat(stream, args...);

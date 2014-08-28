@@ -7,17 +7,15 @@
 #include "ResultSet.h"
 #include "Connection.h"
 #include "../Library/Exception.h"
-#include "../Log/Log.h"
+
 namespace Gamnet { namespace Database {
 
 ResultSetImpl::ResultSetImpl() : res_(NULL), affectedRowCount_(0), conn_(NULL)
 {
-	LOG(DEV, "address:", this);
 }
 
 ResultSetImpl::~ResultSetImpl()
 {
-	LOG(DEV, "address:", this);
 	if(NULL != res_)
 	{
 		mysql_free_result(res_) ;
