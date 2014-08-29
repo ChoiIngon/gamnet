@@ -8,7 +8,7 @@
 #include "Session.h"
 #include "Dispatcher.h"
 #include "../Library/String.h"
-
+#include <curl/curl.h>
 namespace Gamnet {
 namespace Http {
 
@@ -46,12 +46,24 @@ void Session::AsyncRead()
 					std::string param;
 					if(std::string::npos != param_start)
 					{
-						param = uri.substr(param_start+1, param_end-(param_start+1));
+						CURL* curl_ = curl_easy_init();
+						if(NULL == curl_)
+						{
+							throw Exception(ERR, "curl lib isn't inited");
+						}
+						char* plain_text = curl_easy_unescape(curl_, uri.substr(param_start+1, param_end-(param_start+1)).c_str(), 0, NULL);
+						param = plain_text;
+						curl_free(plain_text);
+						curl_easy_cleanup(curl_);
 					}
 					uri = uri.substr(0, uri_end);
 
 					std::map<std::string, std::string> mapParam;
-
+					CURL* curl_ = curl_easy_init();
+					if(NULL == curl_)
+					{
+						throw Exception(ERR, "curl lib isn't inited");
+					}
 					while(0 < param.length())
 					{
 						size_t equal_pos = param.find("=");
