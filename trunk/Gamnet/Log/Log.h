@@ -14,7 +14,7 @@
 namespace Gamnet { namespace Log {
 	/// \brief Initialize function for Logger lib
 	/// \param logPath 로그 파일이 생성될 디렉토리(상대 경로 사용할 것을 권고)
-	void Init(const char* log_dir = "log", int max_file_size = 5);
+	void Init(const char* log_dir = "log", const char* prefix = "log", int max_file_size = 5);
 	void ReadXml(const char* xml_path);
 	/// \brief 로그 레벨 별 출력 여부와 out direction 설정 함수
 	/// \param level property 셋팅 할 로그 레벨
