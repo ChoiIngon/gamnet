@@ -66,14 +66,14 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 	auto itr = mapConnectionPool_.find(db_type);
 	if(mapConnectionPool_.end() == itr)
 	{
-		throw Exception(ERRNO_NO_CONNECTIONINFO_ERROR, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] can't find database connection(db_type:", db_type, ")");
+		throw Exception(GAMNET_ERROR_DB_INVALID_CONNECTION_POOL_TYPE, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] can't find database connection(db_type:", db_type, ")");
 	}
 
 	std::shared_ptr<Connection> connection(itr->second->Create());
 	if(NULL == connection)
 	{
 		LOG(GAMNET_ERR, "create Connection object error(db_type:", db_type, ")");
-		throw Exception(ERRNO_ALLOC_OBJECT_ERROR, ERR, "create Connection object error(db_type:", db_type, ")");
+		throw Exception(GAMNET_ERROR_DB_CONNECT_FAIL, ERR, "create Connection object error(db_type:", db_type, ")");
 	}
 	ResultSet res;
 	res.impl_ = connection->Execute(query);

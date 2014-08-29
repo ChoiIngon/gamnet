@@ -9,6 +9,7 @@
 #define __GAMNET_LIB_EXCEPTION_H_
 
 #include "String.h"
+#include "ErrorCode.h"
 namespace Gamnet {
 
 class Exception : public std::exception
@@ -20,15 +21,9 @@ public :
 	Exception(int error_code, ARGS... args) : error_code_(error_code), detail_(Format(args...))
 	{
 	}
-	virtual ~Exception() throw() {}
-	virtual const char* what() const throw()
-	{
-		return detail_.c_str();
-	}
-	int error_code() const throw()
-	{
-		return error_code_;
-	}
+	virtual ~Exception() throw();
+	virtual const char* what() const throw();
+	int error_code() const throw();
 };
 
 }

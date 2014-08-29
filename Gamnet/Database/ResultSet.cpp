@@ -7,6 +7,7 @@
 #include "ResultSet.h"
 #include "Connection.h"
 #include "../Library/Exception.h"
+#include "../Library/ErrorCode.h"
 
 namespace Gamnet { namespace Database {
 
@@ -71,11 +72,11 @@ const std::string ResultSet::iterator::getString(const std::string& column_name)
 	auto itr = impl_->mapColumnName_.find(column_name);
 	if(impl_->mapColumnName_.end() == itr)
 	{
-		throw Exception(0, "can't find column(name:", column_name, ")");
+		throw Exception(GAMNET_ERROR_DB_MYSQL_XXX + 1054, "Unknown column '", column_name, "' in 'field list'");
 	}
 	if(NULL == row_)
 	{
-		throw Exception(0, "invalid data");
+		throw Exception(GAMNET_ERROR_DB_INVALID_ROW, "invalid data");
 	}
 
 	return row_[itr->second];
@@ -147,12 +148,12 @@ ResultSet::iterator ResultSet::operator [] (unsigned int index)
 	iterator itr;
 	if(NULL == impl_ || NULL == impl_->res_)
 	{
-		throw Exception(0, "invalid result set");
+		throw Exception(GAMNET_ERROR_DB_INVALID_RESULTSET, "invalid result set");
 	}
 
 	if(0 > index || index >= mysql_num_rows(impl_->res_))
 	{
-		throw Exception(0, "out range row index(index:", index, ")");
+		throw Exception(GAMNET_ERROR_DB_INVALID_NUM_ROWS, "out range row index(index:", index, ")");
 	}
 	mysql_data_seek(impl_->res_, index);
 	itr.impl_ = impl_;
