@@ -73,7 +73,7 @@ public :
 		interval_ = interval;
 		sessionCount_ = session_count;
 		loopCount_ = loop_count;
-		log_.Init("test", 5);
+		log_.Init("test", "test", 5);
 		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
 		endpoint_ = *resolver_.resolve({host, Format(port).c_str()});
 	}

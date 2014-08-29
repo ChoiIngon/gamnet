@@ -13,9 +13,9 @@
 
 namespace Gamnet { namespace Log {
 
-void Init(const char* log_dir, int max_file_size)
+void Init(const char* log_dir, const char* prefix, int max_file_size)
 {
-	Singleton<Logger>::GetInstance().Init(log_dir, max_file_size);
+	Singleton<Logger>::GetInstance().Init(log_dir, prefix, max_file_size);
 }
 
 void ReadXml(const char* xml_path)
@@ -24,8 +24,9 @@ void ReadXml(const char* xml_path)
 	boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
 
 	std::string path = ptree_.get<std::string>("server.log.<xmlattr>.path");
+	std::string prefix = ptree_.get<std::string>("server.log.<xmlattr>.prefix");
 	int max_size = ptree_.get<int>("server.log.<xmlattr>.max_file_size");
-	Init(path.c_str(), max_size);
+	Init(path.c_str(), prefix.c_str(), max_size);
 	auto log = ptree_.get_child("server.log");
 	for(auto elmt : log)
 	{

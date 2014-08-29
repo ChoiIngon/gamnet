@@ -11,7 +11,7 @@
 #include "../Library/Exception.h"
 namespace Gamnet { namespace Log {
 
-void Logger::Init(const char* logPath, int max_file_size)
+void Logger::Init(const char* logPath, const char* prefix, int max_file_size)
 {
 	Property_[LOG_LEVEL_DEV] = LOG_STDERR | LOG_FILE;
 	Property_[LOG_LEVEL_INF] = LOG_STDERR | LOG_FILE;
@@ -19,7 +19,7 @@ void Logger::Init(const char* logPath, int max_file_size)
 	Property_[LOG_LEVEL_ERR] = LOG_STDERR | LOG_FILE | LOG_SYSLOG;
 
 	file_.logPath_ = logPath;
-	file_.prefix_ = "NONAME";
+	file_.prefix_ = prefix;
 	file_.filesize_ = 1024 * 1204 * 10;
 	if(0 != max_file_size)
 	{
@@ -35,12 +35,9 @@ void Logger::Init(const char* logPath, int max_file_size)
 		boost::filesystem::path dir(file_.logPath_);
 		if(false == boost::filesystem::create_directory(dir))
 		{
-			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] can't create directory for logging at \"", file_.logPath_, "\"");
+			throw Exception(GAMNET_ERROR_LOG_CANT_CREATE_DIRECTORY, "can't create directory for logging at \"", file_.logPath_, "\"");
 		}
 	}
-
-	std::ifstream f("/proc/self/comm");
-	getline(f, file_.prefix_);
 
 	IsInit_ = true;
 }
@@ -49,7 +46,7 @@ void Logger::SetLevelProperty(LOG_LEVEL_TYPE level, int flag)
 {
 	if(false == IsInit_)
 	{
-		throw Exception(0, "set log level property exception, log is not initialized yet");
+		throw Exception(GAMNET_ERROR_LOG_NOT_INITIALIZED, "set log level property exception, log is not initialized yet");
 	}
 	Property_[level] = flag;
 }
