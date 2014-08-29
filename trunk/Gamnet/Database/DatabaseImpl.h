@@ -10,18 +10,10 @@
 
 #include "ResultSet.h"
 #include "../Library/Pool.h"
+#include "../Library/ErrorCode.h"
 #include "Connection.h"
 
 namespace Gamnet { namespace Database {
-
-enum ERRNO
-{
-	ERRNO_SUCCESS = 0,
-	ERRNO_NO_CONNECTIONINFO_ERROR,
-	ERRNO_DUPLICATE_CONNECIONINFO_ERROR,
-	ERRNO_ALLOC_OBJECT_ERROR,
-	ERRNO_EXECUTE_QUERY_ERROR,
-};
 
 class DatabaseImpl
 {

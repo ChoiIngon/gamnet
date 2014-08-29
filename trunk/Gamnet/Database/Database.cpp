@@ -37,7 +37,7 @@ void ReadXml(const char* xml_path)
 		const std::string db = elmt.second.get<std::string>("<xmlattr>.db");
 		if(false == Connect(id, host.c_str(), port, user.c_str(), passwd.c_str(), db.c_str()))
 		{
-			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] database connect fail");
+			throw Exception(GAMNET_ERROR_DB_CONNECT_FAIL, "[", __FILE__, ":", __func__, "@" , __LINE__, "] database connect fail");
 		}
 	}
 }

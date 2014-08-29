@@ -5,15 +5,18 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../Library/Base64.cpp \
-../Library/Buffer.cpp 
+../Library/Buffer.cpp \
+../Library/Exception.cpp 
 
 OBJS += \
 ./Library/Base64.o \
-./Library/Buffer.o 
+./Library/Buffer.o \
+./Library/Exception.o 
 
 CPP_DEPS += \
 ./Library/Base64.d \
-./Library/Buffer.d 
+./Library/Buffer.d \
+./Library/Exception.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
