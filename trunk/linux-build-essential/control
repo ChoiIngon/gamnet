@@ -1,5 +1,5 @@
 Package: gamnet-linux-build-essential
-Version: 1.0.1
+Version: 1.0.2
 Section: devel
 Priority: optional
 Architecture: all
@@ -10,4 +10,5 @@ Maintainer: Gamnet Server Developers <kukuta@gmail.com>
 Description: Gamnet Server Devlopment base library install package
  1.0.0 : init
  1.0.1 : add idlc
+ 1.0.2 : idl c# object array initailze bug fix
 Homepage: http://kukuta.tistory.com
