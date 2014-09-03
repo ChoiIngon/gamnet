@@ -77,7 +77,6 @@ const std::string GenerateRuleCSharp::GenerateVariableInit(const Token::Base* ty
 	case Token::TYPE_STATIC_ARRAY :
 	{	
 		const Token::StaticArrayType* pArrType = static_cast<const Token::StaticArrayType*>(typeInfo);
-
 		return "new " + TranslateVariableType(pArrType->m_pElmtType) + "[" + pArrType->m_sElmtCount + "]";
 	}
 	default :
@@ -338,10 +337,28 @@ bool GenerateRuleCSharp::CompileMessage(const Token::Message* pToken)
 		}
 		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
 		std::cout << "\t" << "public " << TranslateVariableType(pVarDecl->m_pVarType) <<
-			     "\t" << pVarDecl->m_pVarName->GetName() <<
-			     " = " << GenerateVariableInit(pVarDecl->m_pVarType);
+			     "\t" << pVarDecl->m_pVarName->GetName() << " = " << GenerateVariableInit(pVarDecl->m_pVarType);
 		std::cout << ";" << std::endl;
 	}
+
+	// constructor
+	std::cout << "\t" << "public " << pToken->GetName() << "() {" << std::endl;
+	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	{
+		if(Token::TYPE_NULL == (*itr)->Type())
+		{
+			continue;
+		}
+		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
+		if(Token::TYPE_STATIC_ARRAY == pVarDecl->m_pVarType->Type())
+		{
+			const Token::StaticArrayType* pArrType = static_cast<const Token::StaticArrayType*>(pVarDecl->m_pVarType);
+			std::cout << "\t\t" << "for(int i=0;i<" << pArrType->m_sElmtCount << "; i++) { ";
+			std::cout << pVarDecl->m_pVarName->GetName() << "[i] = new " << TranslateVariableType(pArrType->m_pElmtType) << "();";
+			std::cout << " }" << std::endl;
+		}
+	}
+	std::cout << "\t}" << std::endl;
 
 	std::cout << "\t" << "public int Size() {" << std::endl;
 	std::cout << "\t\t" << "int nSize = 0;" << std::endl;
