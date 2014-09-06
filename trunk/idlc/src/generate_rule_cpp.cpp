@@ -336,17 +336,16 @@ bool GenerateRuleCpp::CompileMessage(const Token::Message* pToken)
 
 	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
 	{
-		if(Token::TYPE_NULL == (*itr)->Type())
+		if(Token::TYPE_VARDECL == (*itr)->Type())
 		{
-			continue;
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
+			std::cout << "\t" << TranslateVariableType(pVarDecl->m_pVarType) << "\t" << pVarDecl->m_pVarName->GetName();
+			if(Token::TYPE_STATIC_ARRAY == pVarDecl->m_pVarType->Type())
+			{
+				std::cout << "[" << static_cast<const Token::StaticArrayType*>(pVarDecl->m_pVarType)->m_sElmtCount << "]";
+			}
+			std::cout << ";" << std::endl;
 		}
-		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
-		std::cout << "\t" << TranslateVariableType(pVarDecl->m_pVarType) << "\t" << pVarDecl->m_pVarName->GetName();
-		if(Token::TYPE_STATIC_ARRAY == pVarDecl->m_pVarType->Type())
-		{
-			std::cout << "[" << static_cast<const Token::StaticArrayType*>(pVarDecl->m_pVarType)->m_sElmtCount << "]";
-		}
-		std::cout << ";" << std::endl;
 	}
 
 	// Constructor
@@ -507,7 +506,7 @@ bool GenerateRuleCpp::CompileStmtList(const Token::StmtList* pToken)
 	return true;
 }
 
-bool GenerateRuleCpp::ComplieLiteralBlock(const Token::LiteralBlock* pToken)
+bool GenerateRuleCpp::CompileLiteralBlock(const Token::LiteralBlock* pToken)
 {
 	if(".cpp" == pToken->m_sLanguage)
 	{

@@ -26,7 +26,7 @@ class GenerateRulePython : public Token::Parser
 	std::map<std::string, Token::Base*> m_mapTypedef;
 public :
 	GenerateRulePython(const std::string& sFileName);
-	virtual bool ComplieLiteralBlock(const Token::LiteralBlock* pToken);
+	virtual bool CompileLiteralBlock(const Token::LiteralBlock* pToken);
 	virtual bool CompileTypedef(const Token::Typedef* pToken);
 	virtual bool CompileMessage(const Token::Message* pToken);
 	virtual bool CompileEnum(const Token::Enum* pToken);

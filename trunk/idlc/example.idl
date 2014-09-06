@@ -22,8 +22,8 @@ enum EnumTest
 // you can start the enum number from you want 
 enum EnumTest2
 {
-	ENUM_TEST2_1 = 100, 
-	ENUM_TEST2_2
+	ENUM_TEST2_1 = 100, //comment
+	ENUM_TEST2_2 = 0x0fffffff
 };
 
 /*************************************************************************

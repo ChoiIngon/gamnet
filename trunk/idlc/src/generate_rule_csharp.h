@@ -21,7 +21,7 @@ class GenerateRuleCSharp : public Token::Parser
 public :
 	GenerateRuleCSharp(const std::string& sFileName);
 
-	virtual bool ComplieLiteralBlock(const Token::LiteralBlock* pToken);
+	virtual bool CompileLiteralBlock(const Token::LiteralBlock* pToken);
 	virtual bool CompileTypedef(const Token::Typedef* pToken);
 	virtual bool CompileMessage(const Token::Message* pToken);
 	virtual bool CompileEnum(const Token::Enum* pToken);
@@ -43,7 +43,7 @@ public :
 			{
 			case Token::TYPE_LITERALBLOCK :
 				{
-					ComplieLiteralBlock(static_cast<const Token::LiteralBlock*>(pStmt));
+					CompileLiteralBlock(static_cast<const Token::LiteralBlock*>(pStmt));
 				}
 				break;
 			case Token::TYPE_MESSAGE :

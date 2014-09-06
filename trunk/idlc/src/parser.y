@@ -21,7 +21,7 @@ Token::StmtList* MakeParseTree(const std::string& sFileName);
 
 %type <tok> stmt stmt_list
 %type <tok> typedef message enum literal struct
-%type <tok> var_name var_type var_decl var_decl_list enum_decl enum_decl_list
+%type <tok> var_name user_define var_type var_decl var_decl_list enum_decl enum_decl_list
 %token <str> VARNAME INTEGER LITERAL LANGUAGE
 %token MESSAGE STRUCT TYPEDEF ENUM COMMENT 
 %token OPEN_BRACE CLOSE_BRACE OPEN_BRACKET CLOSE_BRACKET LESS MORE EQUAL COLON SEMI_COLON COMMA OPEN_PARENTHESIS CLOSE_PARENTHESIS
@@ -45,8 +45,6 @@ stmt 		: message { $$ = $1; }
 			| COMMENT { $$ = new Token::Base("comment"); }			 
 			;
 
-literal		: LANGUAGE LITERAL { $$ = new Token::LiteralBlock("literal", $1, $2);}
-			;
 typedef		: TYPEDEF var_decl {
 				Token::Typedef* pTypedef = new Token::Typedef("typedef", (Token::VarDecl*)$2);
 				$$ = pTypedef;
@@ -107,43 +105,52 @@ enum 	: ENUM var_name OPEN_BRACE CLOSE_BRACE SEMI_COLON {
 				}
 				;
 
-enum_decl_list	: enum_decl {
-			Token::List* pList = new Token::List("enum_decl_list");
-			pList->list_.push_back((Token::EnumElmt*)$1);
-			$$ = pList;
-		}
-		| enum_decl_list COMMA enum_decl {
-			Token::List* pList = (Token::List*)$1;
-			pList->list_.push_back((Token::EnumElmt*)$3);
-			$$ = pList;
-		}
-		;
+enum_decl_list	: enum_decl COMMA {
+					Token::List* pList = new Token::List("enum_decl_list");
+					pList->list_.push_back((Token::EnumElmt*)$1);
+					$$ = pList;
+				}
+				| enum_decl {
+					Token::List* pList = new Token::List("enum_decl_list");
+					pList->list_.push_back((Token::EnumElmt*)$1);
+					$$ = pList;
+				}
+				| enum_decl_list enum_decl {
+					Token::List* pList = (Token::List*)$1;
+					pList->list_.push_back((Token::EnumElmt*)$2);
+					$$ = pList;
+				}
+				;
 								
 enum_decl	: var_name EQUAL INTEGER {
-			$$ = new Token::EnumElmt("enum_decl", $1, $3);
-		  }
-		| var_name {
-			$$ = new Token::EnumElmt("enum_decl", $1, "");
-		}
-		| COMMENT { $$ = new Token::Base("comment"); }
-		;
+				$$ = new Token::EnumElmt("enum_decl", $1, $3); 
+			} 
+			| var_name {
+				$$ = new Token::EnumElmt("enum_decl", $1, ""); 
+			} 
+			| COMMENT { 
+				$$ = new Token::Base("comment"); 
+			};
 
 var_decl_list   : var_decl {
-			Token::List* pList = new Token::List("var_decl");
-			pList->list_.push_back((Token::VarDecl*)$1);
-			$$ = pList;
-		}
-		| var_decl_list var_decl {
-			Token::List* pList = (Token::List*)$1;
-			pList->list_.push_back((Token::VarDecl*)$2);
-			$$ = pList;
-		}
-		;
+					Token::List* pList = new Token::List("var_decl");
+					pList->list_.push_back((Token::VarDecl*)$1);
+					$$ = pList;
+				}
+				| var_decl_list var_decl {
+					Token::List* pList = (Token::List*)$1;
+					pList->list_.push_back((Token::VarDecl*)$2);
+					$$ = pList;
+				};
+
 
 var_decl	: var_type var_name SEMI_COLON  {
 				$$ = new Token::VarDecl("var_decl", $1, $2);
 			}
 			| COMMENT { $$ = new Token::Base("comment"); } 
+			;
+
+literal		: LANGUAGE LITERAL { $$ = new Token::LiteralBlock("literal", $1, $2);}
 			;
 
 var_type	: BOOLEAN { $$ = new Token::PrimitiveType("boolean"); }
@@ -168,11 +175,12 @@ var_type	: BOOLEAN { $$ = new Token::PrimitiveType("boolean"); }
 			}
 			| LIST LESS var_type MORE { $$ = new Token::ListType("list", $3); }
 			| MAP LESS var_type COMMA var_type MORE { $$ = new Token::MapType("map", $3, $5); }
-			| var_name { $$ = new Token::UserDefineType($1->GetName().c_str()); }
+			| user_define { $$ = new Token::UserDefineType($1->GetName().c_str()); }
 			; 
 
+user_define : VARNAME { $$ = new Token::VarName($1); }
 var_name	: VARNAME { $$ = new Token::VarName($1); }
-		;
+			;
 %% 
 
 static char sFilePath[255] = {0};
