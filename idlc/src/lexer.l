@@ -10,7 +10,7 @@ std::string g_sBuf;
 %x STATE_COMMENT STATE_LITERAL
 
 varname		[A-Za-z_][A-Za-z0-9_]*
-integer		[0-9]*
+integer		[0-9]*|"0x"[A-Fa-f0-9]*
 open_brace 	"\{"
 close_brace 	"\}"
 open_bracket 	"\["

@@ -291,7 +291,7 @@ bool GenerateRulePython::CompileStmtList(const Token::StmtList* pToken)
 	return true;
 }
 
-bool GenerateRulePython::ComplieLiteralBlock(const Token::LiteralBlock* pToken)
+bool GenerateRulePython::CompileLiteralBlock(const Token::LiteralBlock* pToken)
 {
 	if(".py" == pToken->m_sLanguage)
 	{

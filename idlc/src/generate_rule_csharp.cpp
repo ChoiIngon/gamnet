@@ -534,7 +534,7 @@ bool GenerateRuleCSharp::CompileStmtList(const Token::StmtList* pToken)
 	return true;
 }
 
-bool GenerateRuleCSharp::ComplieLiteralBlock(const Token::LiteralBlock* pToken)
+bool GenerateRuleCSharp::CompileLiteralBlock(const Token::LiteralBlock* pToken)
 {
 	if(".cs" == pToken->m_sLanguage)
 	{

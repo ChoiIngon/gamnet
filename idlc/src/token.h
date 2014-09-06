@@ -201,7 +201,7 @@ struct Parser
 	virtual ~Parser() {}
 	virtual bool CompileStmtList(const StmtList* pToken) = 0;
 protected :
-	virtual bool ComplieLiteralBlock(const LiteralBlock* pToken) = 0;
+	virtual bool CompileLiteralBlock(const LiteralBlock* pToken) = 0;
 	virtual bool CompileTypedef(const Typedef* pToken) = 0;
 	virtual bool CompileMessage(const Message* pToken) = 0;
 	virtual bool CompileEnum(const Enum* pToken) = 0;
@@ -214,7 +214,7 @@ protected :
 			{
 			case Token::TYPE_LITERALBLOCK :
 				{
-					ComplieLiteralBlock(static_cast<const LiteralBlock*>(pStmt));
+					CompileLiteralBlock(static_cast<const LiteralBlock*>(pStmt));
 				}
 				break;
 			case Token::TYPE_TYPEDEF:

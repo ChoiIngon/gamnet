@@ -26,7 +26,7 @@ struct EnumTest_Serializer {
 };
 enum EnumTest2 {
 		ENUM_TEST2_1 = 100,
-		ENUM_TEST2_2,
+		ENUM_TEST2_2 = 0x0fffffff,
 }; // EnumTest2
 struct EnumTest2_Serializer {
 	static bool Store(char** _buf_, const EnumTest2& obj) { 
