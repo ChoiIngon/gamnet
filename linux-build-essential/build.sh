@@ -3,7 +3,7 @@
 
 pkg_name=gamnet-linux-build-essential
 boost_dir=boost_1_55_0
-mysqlconnector_dir=mysql-connector-c++-1.1.3-linux-glibc2.3-x86-64bit
+#mysqlconnector_dir=mysql-connector-c++-1.1.3-linux-glibc2.3-x86-64bit
 idlc=idlc
 
 mkdir -p $pkg_name/usr/local/include
@@ -23,11 +23,11 @@ if [ ! -d "src/$boost_dir" ]; then
 	cd -
 fi
 
-if [ ! -d "src/$mysqlconnector_dir" ]; then
-	cd src
-	tar -xvf $mysqlconnector_dir.tar.gz
-	cd -
-fi
+#if [ ! -d "src/$mysqlconnector_dir" ]; then
+#	cd src
+#	tar -xvf $mysqlconnector_dir.tar.gz
+#	cd -
+#fi
 
 if [ ! -d "$pkg_name/usr/local/include/boost" ]; then
 	cd src/$boost_dir/
@@ -36,10 +36,10 @@ if [ ! -d "$pkg_name/usr/local/include/boost" ]; then
 	cd - 
 fi
 
-if [ ! -f "$pkg_name/usr/local/include/mysql_driver.h" ]; then
-	cp -r src/$mysqlconnector_dir/include $pkg_name/usr/local
-	cp -r src/$mysqlconnector_dir/lib $pkg_name/usr/local
-fi
+#if [ ! -f "$pkg_name/usr/local/include/mysql_driver.h" ]; then
+#	cp -r src/$mysqlconnector_dir/include $pkg_name/usr/local
+#	cp -r src/$mysqlconnector_dir/lib $pkg_name/usr/local
+#fi
 
 if [ ! -d "src/json_spirit_v4.06" ]; then
 	cd src;	unzip json_spirit_v4.06.zip
