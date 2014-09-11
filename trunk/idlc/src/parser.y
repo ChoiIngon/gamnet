@@ -94,43 +94,42 @@ struct	: STRUCT var_name OPEN_BRACE var_decl_list CLOSE_BRACE SEMI_COLON {
 				$$ = pMessage;
 			}
 		;
-enum 	: ENUM var_name OPEN_BRACE CLOSE_BRACE SEMI_COLON {
-		Token::Enum* pEnum = new Token::Enum($2->GetName().c_str());
-					$$ = pEnum;
-				}
-				| ENUM var_name OPEN_BRACE enum_decl_list CLOSE_BRACE SEMI_COLON {
-					Token::Enum* pEnum = new Token::Enum($2->GetName().c_str());
-					$$ = pEnum;
-					pEnum->list_ = ((Token::List*)$4)->list_;
-				}
-				;
+enum 	: 	ENUM var_name OPEN_BRACE CLOSE_BRACE SEMI_COLON {
+			Token::Enum* pEnum = new Token::Enum($2->GetName().c_str()); 
+			$$ = pEnum; 
+		}
+		| ENUM var_name OPEN_BRACE enum_decl_list CLOSE_BRACE SEMI_COLON { 
+			Token::Enum* pEnum = new Token::Enum($2->GetName().c_str()); 
+			$$ = pEnum; 
+			pEnum->list_ = ((Token::List*)$4)->list_; 
+		};
 
-enum_decl_list	: enum_decl COMMA {
-					Token::List* pList = new Token::List("enum_decl_list");
-					pList->list_.push_back((Token::EnumElmt*)$1);
-					$$ = pList;
-				}
-				| enum_decl {
-					Token::List* pList = new Token::List("enum_decl_list");
-					pList->list_.push_back((Token::EnumElmt*)$1);
-					$$ = pList;
-				}
-				| enum_decl_list enum_decl {
-					Token::List* pList = (Token::List*)$1;
-					pList->list_.push_back((Token::EnumElmt*)$2);
-					$$ = pList;
-				}
-				;
+enum_decl_list	: 	enum_decl {
+				Token::List* pList = new Token::List("enum_decl_list");
+				pList->list_.push_back((Token::EnumElmt*)$1);
+				$$ = pList;
+			}
+			| enum_decl_list enum_decl {
+				Token::List* pList = (Token::List*)$1;
+				pList->list_.push_back((Token::EnumElmt*)$2);
+				$$ = pList;
+			};
 								
 enum_decl	: var_name EQUAL INTEGER {
-				$$ = new Token::EnumElmt("enum_decl", $1, $3); 
-			} 
-			| var_name {
-				$$ = new Token::EnumElmt("enum_decl", $1, ""); 
-			} 
-			| COMMENT { 
-				$$ = new Token::Base("comment"); 
-			};
+			$$ = new Token::EnumElmt("enum_decl", $1, $3); 
+		} 
+		| var_name EQUAL INTEGER COMMA {
+			$$ = new Token::EnumElmt("enum_decl", $1, $3); 
+		} 
+		| var_name {
+			$$ = new Token::EnumElmt("enum_decl", $1, ""); 
+		} 
+		| var_name COMMA {
+			$$ = new Token::EnumElmt("enum_decl", $1, ""); 
+		} 
+		| COMMENT { 
+			$$ = new Token::Base("comment"); 
+		};
 
 var_decl_list   : var_decl {
 					Token::List* pList = new Token::List("var_decl");

@@ -29,7 +29,6 @@ enum TYPE {
 struct Base 
 {
 	Base(const char* sName) : m_sName(sName) {
-		//std::cerr << __FUNCTION__ << "(" << GetName() << ")" << std::endl;
 	}
 	virtual ~Base() {}
 	const std::string m_sName;
@@ -56,7 +55,6 @@ struct LiteralBlock : public Base {
 
 struct VarName : public Base {
 	VarName(const char* sName) : Base(sName) {
-		//std::cerr << __FUNCTION__ << "(" << GetName() << ")" << std::endl;
 	}
 	virtual TYPE Type() const 
 	{
@@ -145,13 +143,17 @@ struct List : public Base {
 };
 
 struct Enum : public Base {
-	Enum(const char* sName) : Base(sName) {}
+	Enum(const char* sName) : Base(sName) {
+		//std::cout << __FUNCTION__ << "(" << GetName() << ")" << std::endl;
+	}
 	virtual TYPE Type() const	{ return TYPE_ENUM;	}
 	std::list<Base*> list_;
 };
 
 struct EnumElmt : public Base {
-	EnumElmt(const char* sName, Base* pElmt, const char* sNumber) : Base(sName), m_pElmt(pElmt), m_sNumber(sNumber) {}
+	EnumElmt(const char* sName, Base* pElmt, const char* sNumber) : Base(sName), m_pElmt(pElmt), m_sNumber(sNumber) {
+		//std::cerr << __FUNCTION__ << "(" << m_pElmt->GetName() << ", " << m_sNumber << ")" << std::endl;
+	}
 
 	virtual TYPE Type() const {	return TYPE_ENUMELMT;	}
 	Base*		   m_pElmt;
