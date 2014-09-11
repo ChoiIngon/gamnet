@@ -10,6 +10,7 @@
 
 #include "Library/Base64.h"
 #include "Library/Singleton.h"
+#include "Library/MD5.h"
 #include "Log/Log.h"
 #include "Network/Network.h"
 #include "Http/HttpServer.h"
