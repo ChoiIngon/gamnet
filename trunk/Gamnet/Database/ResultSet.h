@@ -9,11 +9,6 @@
 #define GAMNET_DATABASE_RESULTSET_H_
 
 #include <mysql/mysql.h>
-#include <mysql_driver.h>
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
 #include <memory>
 #include <boost/lexical_cast.hpp>
 #include <string>
