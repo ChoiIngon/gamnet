@@ -30,11 +30,7 @@ void Session::Connect(const char* host, int port, int timeout)
 	socket_.async_connect(endpoint_,
 		strand_.wrap([self](const boost::system::error_code& ec){
 			self->timer_.Cancel();
-			if(false == self->socket_.is_open())
-			{
-				return;
-			}
-			else if(ec)
+			if(ec)
 			{
 				self->OnError(ec.value());
 			}
@@ -52,10 +48,10 @@ void Session::Connect(const char* host, int port, int timeout)
 
 	if(0 != timeout)
 	{
-		timer_.SetTimer(timeout*1000, [self]() {
+		timer_.SetTimer(timeout*1000, strand_.wrap([self]() {
 			Log::Write(GAMNET_WRN, "connect timeout(ip:", self->remote_address_.to_string(), ")");
 			self->OnError(ETIMEDOUT);
-		});
+		}));
 	}
 }
 
