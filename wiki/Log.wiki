@@ -1,13 +1,25 @@
 #summary One-sentence summary of this page.
 
-= Introduction =
+= Feature =
+ * stdout, stderr, 파일 로깅
+ * 일단위(daily) 파일 변경
+ * 지정된 사이즈 오버(over) 시 새로운 로그 파일 생성
+ * 로그 레벨에 따른 컨트롤
 
-Add your content here.
+= Code Example =
+ {{{
+#include <Gamnet.h>
+using namespace Gamnet;
 
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+int main()
+{
+  Gamnet::Log::Init("log", "log", 5);
+  Gamnet::Log::SetLevelProperty(Gamnet::Log::Logger::LOG_LEVEL_DEV, LOG_STDERR|LOG_FILE);
+  Gamnet::Log::SetLevelProperty(Gamnet::Log::Logger::LOG_LEVEL_WRN, LOG_FILE);
+  Gamnet::Log::SetLevelProperty(Gamnet::Log::Logger::LOG_LEVEL_ERR, LOG_STDERR|LOG_FILE);
+  GAMNET_LOG(GAMNET_DEV, "This is Dev Log");
+  GAMNET_LOG(GAMNET_DEV, "This is Dev Log");
+  GAMNET_LOG(GAMNET_DEV, "This is Dev Log");
+  return 0;
+}
+}}}
