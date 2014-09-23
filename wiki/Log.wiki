@@ -14,12 +14,12 @@ using namespace Gamnet;
 int main()
 {
   Gamnet::Log::Init("log", "log", 5);
-  Gamnet::Log::SetLevelProperty(Gamnet::Log::Logger::LOG_LEVEL_DEV, LOG_STDERR|LOG_FILE);
+  Gamnet::Log::SetLevelProperty(Gamnet::Log::Logger::LOG_LEVEL_DEV, LOG_STDERR);
   Gamnet::Log::SetLevelProperty(Gamnet::Log::Logger::LOG_LEVEL_WRN, LOG_FILE);
   Gamnet::Log::SetLevelProperty(Gamnet::Log::Logger::LOG_LEVEL_ERR, LOG_STDERR|LOG_FILE);
-  GAMNET_LOG(GAMNET_DEV, "This is Dev Log");
-  GAMNET_LOG(GAMNET_DEV, "This is Dev Log");
-  GAMNET_LOG(GAMNET_DEV, "This is Dev Log");
+  GAMNET_LOG(GAMNET_DEV, "This is Dev Log, this log will be written only screen");
+  GAMNET_LOG(GAMNET_WRN, "This is Dev Log, this log will be written only file");
+  GAMNET_LOG(GAMNET_ERR, "This is Dev Log, this log will be written both screen and file");
   return 0;
 }
 }}}
