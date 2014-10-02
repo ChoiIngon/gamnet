@@ -16,7 +16,7 @@ File::~File()
 
 std::ofstream& File::open(const tm& now)
 {
-	if(today_.tm_year <= now.tm_year && today_.tm_mon <= now.tm_mon && today_.tm_mday < now.tm_mday)
+	if(today_.tm_year != now.tm_year || today_.tm_yday != now.tm_yday)
 	{
 		ofstream_.close();
 		char datebuf[10] = {0};
