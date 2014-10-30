@@ -42,13 +42,14 @@ fi
 #fi
 
 if [ ! -d "src/json_spirit_v4.06" ]; then
-	cd src;	unzip json_spirit_v4.06.zip
+	cd src;	tar -xvf json_spirit_v4.06.tar.gz
 	cd -
 fi
 
-if [ ! -f "$pkg_name/usr/local/include/json_spirit.h" ]; then
-	cd src/json_spirit_v4.06; cmake CMakeLists.txt; make
-	cd -
+if [ ! -f "$pkg_name/usr/local/lib/libjson_spirit.a" ]; then
+	cd src/json_spirit_v4.06; cmake CMakeLists.txt
+	cd json_spirit; make
+	cd ../../../
 	cp src/json_spirit_v4.06/json_spirit/*.h $pkg_name/usr/local/include 
 	cp src/json_spirit_v4.06/json_spirit/*.a $pkg_name/usr/local/lib
 fi
