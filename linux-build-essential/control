@@ -1,5 +1,5 @@
 Package: gamnet-linux-build-essential
-Version: 1.1.1
+Version: 1.1.2
 Section: devel
 Priority: optional
 Architecture: all
@@ -13,4 +13,5 @@ Description: Gamnet Server Devlopment base library install package
  1.0.2 : [idlc] c# object array initailze bug fix
  1.1.0 : [idlc] available comment in enum, available hex integer
  1.1.1 : [idlc] enum bug fix
+ 1.1.2 : [json spirit] enable in multi thread
 Homepage: http://kukuta.tistory.com
