@@ -39,6 +39,7 @@ bool DatabaseImpl::Connect(int db_type, const char* host, int port, const char* 
 	connInfo.id_ = id;
 	connInfo.passwd_ = passwd;
 	connInfo.db_ = db;
+	connInfo.port_ = port;
 
 	if(false == mapConnectionInfo_.insert(std::make_pair(db_type, connInfo)).second)
 	{
