@@ -52,12 +52,10 @@
  *  </pre>
  */
 #include <curl/curl.h>
-#include <json/json.h>
 #include <map>
 #include <string>
 #include <iostream>
 #include <functional>
-#include <error.h>
 #include <algorithm>
 
 namespace Gamnet {

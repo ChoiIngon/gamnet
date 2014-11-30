@@ -7,7 +7,6 @@
 
 #include "DatabaseImpl.h"
 #include <boost/algorithm/string.hpp>
-#include <error.h>
 #include "../Log/Log.h"
 #include "../Library/String.h"
 

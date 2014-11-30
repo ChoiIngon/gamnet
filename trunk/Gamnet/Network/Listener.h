@@ -8,7 +8,6 @@
 #ifndef GAMNET_NETWORK_LISTENER_H_
 #define GAMNET_NETWORK_LISTENER_H_
 
-#include <error.h>
 #include <memory>
 #include <atomic>
 #include <boost/bind.hpp>
