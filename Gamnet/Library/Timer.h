@@ -73,7 +73,7 @@ struct Timer
 	*/
 	template <class FUNCTOR>
 	Timer(long interval, FUNCTOR functor) :
-		entry_(NULL), interval_(interval), deadline_timer_(Singleton<boost::asio::io_service>())
+		entry_(NULL), interval_(interval), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
 	{
 		SetTimer(interval, functor);
 	}
