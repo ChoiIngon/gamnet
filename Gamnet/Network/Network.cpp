@@ -34,7 +34,7 @@ boost::asio::ip::address GetLocalAddress()
 	{
 		freeifaddrs(ifAddrStruct);
 	}
-	return boost::asio::ip::address_v4(::ntohl(ip));
+	return boost::asio::ip::address_v4(ntohl(ip));
 }
 
 }}
