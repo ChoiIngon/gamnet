@@ -151,7 +151,7 @@ ResultSet::iterator ResultSet::operator [] (unsigned int index)
 		throw Exception(GAMNET_ERROR_DB_INVALID_RESULTSET, "invalid result set");
 	}
 
-	if(0 > index || index >= mysql_num_rows(impl_->res_))
+	if(index >= mysql_num_rows(impl_->res_))
 	{
 		throw Exception(GAMNET_ERROR_DB_INVALID_NUM_ROWS, "out range row index(index:", index, ")");
 	}
