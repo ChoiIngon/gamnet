@@ -48,10 +48,16 @@ public :
 		{
 			session->sessionKey_ = ++IListener::uniqueSessionKey_;
 			session->listener_ = this;
-			sessionManager_.AddSession(session->sessionKey_, session);
-			session->remote_address_ = session->socket_.remote_endpoint().address();
-			session->OnAccept();
-			session->AsyncRead();
+			try {
+				session->remote_address_ = session->socket_.remote_endpoint().address();
+				sessionManager_.AddSession(session->sessionKey_, session);
+				session->OnAccept();
+				session->AsyncRead();
+			}
+			catch(const boost::system::system_error& e)
+			{
+				Log::Write(GAMNET_ERR, "fail to accept(session_key:", session->sessionKey_, ", errno:", errno, ", errstr:", e.what(), ")");
+			}
 		}
 		_accept_start();
 	}

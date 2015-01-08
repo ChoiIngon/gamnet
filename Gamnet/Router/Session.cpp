@@ -38,10 +38,16 @@ void Session::Connect(const char* host, int port, int timeout)
 			{
 				self->sessionKey_ = ++Network::IListener::uniqueSessionKey_;
 				self->readBuffer_ = Network::Packet::Create();
-				self->remote_address_ = self->socket_.remote_endpoint().address();
-				self->listener_->sessionManager_.AddSession(self->sessionKey_, self);
-				self->AsyncRead();
-				self->OnConnect();
+				try {
+					self->remote_address_ = self->socket_.remote_endpoint().address();
+					self->listener_->sessionManager_.AddSession(self->sessionKey_, self);
+					self->AsyncRead();
+					self->OnConnect();
+				}
+				catch(const boost::system::system_error& e)
+				{
+					Log::Write(GAMNET_ERR, "fail to accept(session_key:", self->sessionKey_, ", errno:", errno, ", errstr:", e.what(), ")");
+				}
 			}
 		})
 	);
