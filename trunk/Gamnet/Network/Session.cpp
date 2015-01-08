@@ -43,7 +43,7 @@ void Session::AsyncRead()
 		strand_.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
-				self->OnError(errno); // no error, just closed socket
+				self->OnError(ec.value()); // no error, just closed socket
 				return;
 			}
 			self->lastHeartBeatTime_ = ::time(NULL);
