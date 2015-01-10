@@ -31,7 +31,14 @@ void Session::OnError(int reason)
 	{
 		return;
 	}
-	OnClose(reason);
+	try {
+		OnClose(reason);
+	}
+	catch(const Exception& e)
+	{
+		Log::Write(GAMNET_ERR, "exception at ", __FUNCTION__, "(what:", e.what(), ")");
+	}
+
 	socket_.close();
 	listener_->OnClose(shared_from_this());
 }
@@ -43,7 +50,7 @@ void Session::AsyncRead()
 		strand_.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
-				self->OnError(ec.value()); // no error, just closed socket
+				self->OnError(errno); // no error, just closed socket
 				return;
 			}
 			self->lastHeartBeatTime_ = ::time(NULL);
