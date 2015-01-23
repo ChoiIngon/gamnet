@@ -27,63 +27,6 @@ HttpClient::~HttpClient()
 	}
 }
 
-/*
-void HttpClient::ParseJSON(std::string& param, const char* key, json_object* jobj)
-{
-	if(NULL == jobj)
-	{
-		return ;
-	}
-	const json_type type = json_object_get_type(jobj);
-	if(type == json_type_object)
-	{
-		json_object_object_foreach(jobj, key, val)
-		{
-			ParseJSON(param, key, val);
-		}
-	}
-	else
-	{
-		switch(type) 
-		{
-			case json_type_boolean :
-			case json_type_double :
-			case json_type_int :
-			case json_type_string :
-				if(0 < param.length())
-				{
-					param += "&";
-				}
-				{
-					char* encodedKey = curl_easy_escape(curl_, key, 0);
-					char* encodedVal = curl_easy_escape(curl_, json_object_get_string(jobj), 0);
-					param += encodedKey + std::string("=") + encodedVal;
-					curl_free(encodedKey);
-					curl_free(encodedVal);
-				}			
-				break;
-			case json_type_object :
-				ParseJSON(param, key, jobj);
-				break;
-			case json_type_array :
-				{
-					json_object *jarray = jobj;
-					int arraylen = json_object_array_length(jarray);
-					for (int i=0; i< arraylen; i++)
-					{ 
-						json_object* jvalue = json_object_array_get_idx(jarray, i);
-						std::string array_key = key + std::string("[]");
-						ParseJSON(param, array_key.c_str(), jvalue);
-					}
-				}
-				break;
-			default :
-				break;
-		}
-	}
-}
-*/
-
 bool HttpClient::Get(const char* path, const char* param, std::function<void(int errcode, const char* data)> callback)
 {
 	try {
@@ -111,22 +54,10 @@ bool HttpClient::Get(const char* path, const char* param, std::function<void(int
 
 bool HttpClient::Post(const char* path, const char* param, std::function<void(int errcode, const char* data)> callback)
 {
-	curl_slist *header_list=NULL;
 	try {
 		if(NULL == curl_)
 		{
 			throw Exception(ERR, "curl lib isn't inited");
-		}
-
-		for(auto itr : mapHeader_)
-		{
-			std::string header = itr.first + ": " + itr.second;
-			header_list = curl_slist_append(header_list, header.c_str());
-		}
-
-		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, header_list))
-		{
-			throw Exception(ERR, "set header error");
 		}
 
 		int nPostFieldSize = 0;
@@ -146,12 +77,6 @@ bool HttpClient::Post(const char* path, const char* param, std::function<void(in
 
 		int httpCode = HttpRequest(path);
 		callback(httpCode, resData_.c_str());
-
-		if(NULL != header_list)
-		{
-			curl_slist_free_all(header_list);
-			header_list = NULL;
-		}
 	}
 	catch(const Exception& e)
 	{
@@ -159,63 +84,92 @@ bool HttpClient::Post(const char* path, const char* param, std::function<void(in
 		return false;
 	}
 
-
 	return true;
 }
 
 int HttpClient::HttpRequest(const char* path)
 {
-	if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_NOSIGNAL, 1))
-	{
-		throw Exception(ERR, "set no signal option error");
-	}
-	const std::string url = host_ + "/" + std::string(path);
-	if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_URL, url.c_str()))
-	{
-		throw Exception(ERR, "set url error");
-	}
+	curl_slist *header_list=NULL;
+	long _httpCode = 400;
 
-	std::string protocol = host_.substr(0, host_.find("://"));
-	std::transform(protocol.begin(), protocol.end(), protocol.begin(), ::toupper);
-	if("HTTPS" == protocol)
-	{
-		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, 1L))
+	try {
+		if(NULL == curl_)
 		{
-			throw Exception(ERR, "set ssl option error");
-		}
-	}
-
-	if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_WRITEDATA, (void *)this))
-	{
-		throw Exception(ERR, "set callback arg error");
-	}
-
-	if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, Callback))
-	{
-		throw Exception(ERR, "set callback function error");
-	}
-
-	long _httpCode = 0;
-	while(true)
-	{
-		if(CURLE_OK != curl_easy_perform(curl_))
-		{
-			throw Exception(ERR, "perform http request error");
+			throw Exception(ERR, "curl lib isn't inited");
 		}
 
-
-		if(CURLE_OK != curl_easy_getinfo(curl_, CURLINFO_HTTP_CODE, &_httpCode))
+		for(auto itr : mapHeader_)
 		{
-			throw Exception(ERR, "get return error code error");
+			std::string header = itr.first + ": " + itr.second;
+			header_list = curl_slist_append(header_list, header.c_str());
 		}
 
-		if(3 == _httpCode / 100)
+		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, header_list))
 		{
-			curl_easy_setopt(curl_, CURLOPT_FOLLOWLOCATION, 1L);
-			continue;
+			throw Exception(ERR, "set header error");
 		}
-		break;
+
+		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_NOSIGNAL, 1))
+		{
+			throw Exception(ERR, "set no signal option error");
+		}
+
+		const std::string url = host_ + "/" + std::string(path);
+		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_URL, url.c_str()))
+		{
+			throw Exception(ERR, "set url error");
+		}
+
+		std::string protocol = host_.substr(0, host_.find("://"));
+		std::transform(protocol.begin(), protocol.end(), protocol.begin(), ::toupper);
+		if("HTTPS" == protocol)
+		{
+			if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, 1L))
+			{
+				throw Exception(ERR, "set ssl option error");
+			}
+		}
+
+		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_WRITEDATA, (void *)this))
+		{
+			throw Exception(ERR, "set callback arg error");
+		}
+
+		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, Callback))
+		{
+			throw Exception(ERR, "set callback function error");
+		}
+
+		while(true)
+		{
+			if(CURLE_OK != curl_easy_perform(curl_))
+			{
+				throw Exception(ERR, "perform http request error");
+			}
+
+			if(CURLE_OK != curl_easy_getinfo(curl_, CURLINFO_HTTP_CODE, &_httpCode))
+			{
+				throw Exception(ERR, "get return error code error");
+			}
+
+			if(3 == _httpCode / 100)
+			{
+				curl_easy_setopt(curl_, CURLOPT_FOLLOWLOCATION, 1L);
+				continue;
+			}
+			break;
+		}
 	}
+	catch(const Exception& e)
+	{
+		Log::Write(GAMNET_ERR, e.what());
+	}
+	if(NULL != header_list)
+	{
+		curl_slist_free_all(header_list);
+		header_list = NULL;
+	}
+
 	return _httpCode;
 }
 

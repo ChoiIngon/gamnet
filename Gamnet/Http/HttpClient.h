@@ -76,7 +76,6 @@ public :
 	bool Get(const char* path, const char* param, std::function<void(int stat, const char* data)> callback);
 private :
 	int HttpRequest(const char* path);
-	//void ParseJSON(std::string& param, const char* key, json_object* jobj);
 	static size_t Callback(void *ptr, size_t size, size_t nmemb, void *arg);
 	const std::string host_;
 	std::map<std::string, std::string> mapHeader_;
