@@ -29,73 +29,74 @@ HttpClient::~HttpClient()
 
 bool HttpClient::Get(const char* path, const char* param, std::function<void(int errcode, const char* data)> callback)
 {
+	if(NULL == curl_)
+	{
+		return false; //Exception(500, "curl lib isn't inited");
+	}
+
+	std::string path_param = path;
+	if(NULL != param && 0 < strlen(param))
+	{
+		path_param +=  "?" + std::string(param);
+	}
+
+	int httpCode = 200;
 	try {
-		if(NULL == curl_)
-		{
-			throw Exception(ERR, "curl lib isn't inited");
-		}
-
-		std::string path_param = path;
-		if(NULL != param && 0 < strlen(param))
-		{
-			path_param +=  "?" + std::string(param);
-		}
-
-		int httpCode = HttpRequest(path_param.c_str());
-		callback(httpCode, resData_.c_str());
+		HttpRequest(path_param.c_str());
 	}
 	catch(const Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
+	callback(httpCode, resData_.c_str());
 	return true;
 }
 
 bool HttpClient::Post(const char* path, const char* param, std::function<void(int errcode, const char* data)> callback)
 {
-	try {
-		if(NULL == curl_)
-		{
-			throw Exception(ERR, "curl lib isn't inited");
-		}
+	if(NULL == curl_)
+	{
+		return false; //Exception(500, "curl lib isn't inited");
+	}
 
+	int httpCode = 200;
+	try {
 		int nPostFieldSize = 0;
 		if(NULL != param && 0 < strlen(param))
 		{
 			if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, param))
 			{
-				throw Exception(ERR, "set post field error");
+				throw Exception(500, "set post field error");
 			}
 			nPostFieldSize = strlen(param);
 		}
 
 		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_POSTFIELDSIZE, nPostFieldSize))
 		{
-			throw Exception(ERR, "set post field size error");
+			throw Exception(500, "set post field size error");
 		}
 
-		int httpCode = HttpRequest(path);
-		callback(httpCode, resData_.c_str());
+		httpCode = HttpRequest(path);
 	}
 	catch(const Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
-
+	callback(httpCode, resData_.c_str());
 	return true;
 }
 
 int HttpClient::HttpRequest(const char* path)
 {
 	curl_slist *header_list=NULL;
-	long _httpCode = 400;
+	long _httpCode = 200;
 
 	try {
 		if(NULL == curl_)
 		{
-			throw Exception(ERR, "curl lib isn't inited");
+			throw Exception(500, "curl lib isn't inited");
 		}
 
 		for(auto itr : mapHeader_)
@@ -106,18 +107,18 @@ int HttpClient::HttpRequest(const char* path)
 
 		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, header_list))
 		{
-			throw Exception(ERR, "set header error");
+			throw Exception(500, "set header error");
 		}
 
 		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_NOSIGNAL, 1))
 		{
-			throw Exception(ERR, "set no signal option error");
+			throw Exception(500, "set no signal option error");
 		}
 
 		const std::string url = host_ + "/" + std::string(path);
 		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_URL, url.c_str()))
 		{
-			throw Exception(ERR, "set url error");
+			throw Exception(500, "set url error");
 		}
 
 		std::string protocol = host_.substr(0, host_.find("://"));
@@ -126,30 +127,30 @@ int HttpClient::HttpRequest(const char* path)
 		{
 			if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, 1L))
 			{
-				throw Exception(ERR, "set ssl option error");
+				throw Exception(500, "set ssl option error");
 			}
 		}
 
 		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_WRITEDATA, (void *)this))
 		{
-			throw Exception(ERR, "set callback arg error");
+			throw Exception(500, "set callback arg error");
 		}
 
 		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, Callback))
 		{
-			throw Exception(ERR, "set callback function error");
+			throw Exception(500, "set callback function error");
 		}
 
 		while(true)
 		{
 			if(CURLE_OK != curl_easy_perform(curl_))
 			{
-				throw Exception(ERR, "perform http request error");
+				throw Exception(500, "perform http request error");
 			}
 
 			if(CURLE_OK != curl_easy_getinfo(curl_, CURLINFO_HTTP_CODE, &_httpCode))
 			{
-				throw Exception(ERR, "get return error code error");
+				throw Exception(500, "get return error code error");
 			}
 
 			if(3 == _httpCode / 100)
@@ -162,7 +163,8 @@ int HttpClient::HttpRequest(const char* path)
 	}
 	catch(const Exception& e)
 	{
-		Log::Write(GAMNET_ERR, e.what());
+		_httpCode = e.error_code();
+		Log::Write(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 	if(NULL != header_list)
 	{
