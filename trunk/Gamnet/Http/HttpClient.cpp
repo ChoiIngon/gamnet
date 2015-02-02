@@ -34,7 +34,12 @@ bool HttpClient::Get(const char* path, const char* param, std::function<void(int
 		return false; //Exception(500, "curl lib isn't inited");
 	}
 
-	std::string path_param = path;
+	std::string path_param = "";
+	if(NULL != path && 0 < strlen(path))
+	{
+		path_param = path;
+	}
+
 	if(NULL != param && 0 < strlen(param))
 	{
 		path_param +=  "?" + std::string(param);
@@ -42,7 +47,7 @@ bool HttpClient::Get(const char* path, const char* param, std::function<void(int
 
 	int httpCode = 200;
 	try {
-		HttpRequest(path_param.c_str());
+		httpCode = HttpRequest(path_param);
 	}
 	catch(const Exception& e)
 	{
@@ -77,7 +82,12 @@ bool HttpClient::Post(const char* path, const char* param, std::function<void(in
 			throw Exception(500, "set post field size error");
 		}
 
-		httpCode = HttpRequest(path);
+		std::string path_param = "";
+		if(NULL != path && 0 < strlen(path))
+		{
+			path_param = path;
+		}
+		httpCode = HttpRequest(path_param);
 	}
 	catch(const Exception& e)
 	{
@@ -88,7 +98,7 @@ bool HttpClient::Post(const char* path, const char* param, std::function<void(in
 	return true;
 }
 
-int HttpClient::HttpRequest(const char* path)
+int HttpClient::HttpRequest(const std::string& path)
 {
 	curl_slist *header_list=NULL;
 	long _httpCode = 200;
@@ -105,52 +115,65 @@ int HttpClient::HttpRequest(const char* path)
 			header_list = curl_slist_append(header_list, header.c_str());
 		}
 
-		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, header_list))
+		CURLcode error_code = CURLE_OK;
+		error_code = curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, header_list);
+		if(CURLE_OK != error_code)
 		{
-			throw Exception(500, "set header error");
+			throw Exception(error_code, "set header error(error_code:", error_code,")");
 		}
 
-		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_NOSIGNAL, 1))
+		error_code = curl_easy_setopt(curl_, CURLOPT_NOSIGNAL, 1);
+		if(CURLE_OK != error_code)
 		{
-			throw Exception(500, "set no signal option error");
+			throw Exception(500, "set no signal option error(error_code:", error_code,")");
 		}
 
-		const std::string url = host_ + "/" + std::string(path);
-		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_URL, url.c_str()))
+		std::string url = host_;
+		if("" != path)
 		{
-			throw Exception(500, "set url error");
+			url += "/" + path;
+		}
+		error_code = curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
+		if(CURLE_OK != error_code)
+		{
+			throw Exception(500, "set url error(error_code:", error_code, ")");
 		}
 
 		std::string protocol = host_.substr(0, host_.find("://"));
 		std::transform(protocol.begin(), protocol.end(), protocol.begin(), ::toupper);
 		if("HTTPS" == protocol)
 		{
-			if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, 1L))
+			error_code = curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, 1L);
+			if(CURLE_OK != error_code)
 			{
-				throw Exception(500, "set ssl option error");
+				throw Exception(500, "set ssl option error(error_code:", error_code, ")");
 			}
 		}
 
-		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_WRITEDATA, (void *)this))
+		error_code = curl_easy_setopt(curl_, CURLOPT_WRITEDATA, (void *)this);
+		if(CURLE_OK != error_code)
 		{
-			throw Exception(500, "set callback arg error");
+			throw Exception(500, "set callback arg error(error_code:", error_code, ")");
 		}
 
-		if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, Callback))
+		error_code = curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, Callback);
+		if(CURLE_OK != error_code)
 		{
-			throw Exception(500, "set callback function error");
+			throw Exception(500, "set callback function error(error_code:", error_code, ")");
 		}
 
 		while(true)
 		{
-			if(CURLE_OK != curl_easy_perform(curl_))
+			error_code = curl_easy_perform(curl_);
+			if(CURLE_OK != error_code)
 			{
-				throw Exception(500, "perform http request error");
+				throw Exception(500, "perform http request error(error_code:", error_code, ")");
 			}
 
-			if(CURLE_OK != curl_easy_getinfo(curl_, CURLINFO_HTTP_CODE, &_httpCode))
+			error_code = curl_easy_getinfo(curl_, CURLINFO_HTTP_CODE, &_httpCode);
+			if(CURLE_OK != error_code)
 			{
-				throw Exception(500, "get return error code error");
+				throw Exception(500, "get return error code error(error_code:", error_code, ")");
 			}
 
 			if(3 == _httpCode / 100)
