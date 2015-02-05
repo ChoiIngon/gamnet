@@ -1,4 +1,5 @@
 #include <curl/curl.h>
+#include <openssl/crypto.h>
 #include <algorithm>
 #include <map>
 #include <string>
@@ -10,7 +11,57 @@ struct curl_slist;
 #include <unistd.h>
 
 namespace Gamnet { namespace Http {
-static CURLcode globalCURL = curl_global_init(CURL_GLOBAL_ALL);
+
+/**
+ * code copied from : http://curl.haxx.se/libcurl/c/threaded-ssl.html
+ */
+static pthread_mutex_t* lockarray_;
+
+static void lock_callback(int mode, int type, const char *file, int line)
+{
+	(void)file;
+	(void)line;
+	if (mode & CRYPTO_LOCK) {
+		pthread_mutex_lock(&(lockarray_[type]));
+	}
+	else {
+		pthread_mutex_unlock(&(lockarray_[type]));
+	}
+}
+
+static unsigned long thread_id(void)
+{
+	unsigned long ret = (unsigned long)pthread_self();
+	return ret ;
+}
+
+static void init_locks(void)
+{
+	lockarray_ = (pthread_mutex_t *)OPENSSL_malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t));
+	for (int i=0; i<CRYPTO_num_locks(); i++) {
+		pthread_mutex_init(&(lockarray_[i]),NULL);
+	}
+	CRYPTO_set_id_callback((unsigned long (*)())thread_id);
+	CRYPTO_set_locking_callback(lock_callback);
+}
+
+static void kill_locks(void)
+{
+	CRYPTO_set_locking_callback(NULL);
+	for (int i=0; i<CRYPTO_num_locks(); i++) {
+		pthread_mutex_destroy(&(lockarray_[i]));
+	}
+	OPENSSL_free(lockarray_);
+}
+
+static CURLcode HttpClientInit()
+{
+	CURLcode globalCURL = curl_global_init(CURL_GLOBAL_ALL);
+	init_locks();
+	return globalCURL;
+}
+
+static CURLcode globalCURL = HttpClientInit();
 
 HttpClient::HttpClient(const char* host) 
 	: host_(host)
@@ -122,6 +173,11 @@ int HttpClient::HttpRequest(const std::string& path)
 			throw Exception(error_code, "set header error(error_code:", error_code,")");
 		}
 
+		error_code = curl_easy_setopt(curl_, CURLOPT_CONNECTTIMEOUT, 5);
+		if(CURLE_OK != error_code)
+		{
+			throw Exception(500, "set connect timeout option error(error_code:", error_code,")");
+		}
 		error_code = curl_easy_setopt(curl_, CURLOPT_NOSIGNAL, 1);
 		if(CURLE_OK != error_code)
 		{
