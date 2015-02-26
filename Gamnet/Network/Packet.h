@@ -100,7 +100,7 @@ public:
 		MSGID_PTR = LENGTH_PTR + LENGTH_SIZE,
 		MSGID_SIZE = sizeof(uint32_t),
 		HEADER_SIZE = MSGID_PTR + MSGID_SIZE,
-		MAX_LENGTH = 8192
+		MAX_LENGTH = 16384
 	};
 
 	struct Init

@@ -60,7 +60,7 @@ void Session::AsyncRead()
 			while(Packet::HEADER_SIZE <= (int)self->readBuffer_->Size())
 			{
 				uint16_t totalLength = self->readBuffer_->GetTotalLength();
-				uint16_t bodyLength = totalLength-Packet::HEADER_SIZE;
+				int32_t bodyLength = totalLength-Packet::HEADER_SIZE;
 				if(0 > bodyLength || totalLength >= self->readBuffer_->Capacity())
 				{
 					Log::Write(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
@@ -91,7 +91,10 @@ void Session::AsyncRead()
 				self->readBuffer_ = pBuffer;
 			}
 
-			self->AsyncRead();
+			if(true == self->socket_.is_open())
+			{
+				self->AsyncRead();
+			}
 		})
 	);
 }
