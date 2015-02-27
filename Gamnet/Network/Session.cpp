@@ -54,14 +54,23 @@ void Session::AsyncRead()
 				return;
 			}
 			self->lastHeartBeatTime_ = ::time(NULL);
-
 			self->readBuffer_->writeCursor_ += readbytes;
 
 			while(Packet::HEADER_SIZE <= (int)self->readBuffer_->Size())
 			{
+				if(0 == self->sessionKey_)
+				{
+					return;
+				}
 				uint16_t totalLength = self->readBuffer_->GetTotalLength();
-				int32_t bodyLength = totalLength-Packet::HEADER_SIZE;
-				if(0 > bodyLength || totalLength >= self->readBuffer_->Capacity())
+				if(Packet::HEADER_SIZE > totalLength )
+				{
+					Log::Write(GAMNET_ERR, "buffer underflow(read size:", totalLength, ")");
+					self->OnError(EOVERFLOW);
+					return;
+				}
+
+				if(totalLength >= self->readBuffer_->Capacity())
 				{
 					Log::Write(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
 					self->OnError(EOVERFLOW);
@@ -74,6 +83,9 @@ void Session::AsyncRead()
 					break;
 				}
 
+				self->listener_->OnRecvMsg(self, self->readBuffer_);
+				self->readBuffer_->Remove(totalLength);
+
 				std::shared_ptr<Packet> pBuffer = Packet::Create();
 				if(NULL == pBuffer)
 				{
@@ -82,19 +94,15 @@ void Session::AsyncRead()
 					return;
 				}
 
-				if(totalLength < (unsigned short)self->readBuffer_->Size())
+				if(0 < (unsigned short)self->readBuffer_->Size())
 				{
-					pBuffer->Append(self->readBuffer_->ReadPtr() + totalLength, self->readBuffer_->Size() - totalLength);
+					pBuffer->Append(self->readBuffer_->ReadPtr(), self->readBuffer_->Size());
 				}
 
-				self->listener_->OnRecvMsg(self, self->readBuffer_);
 				self->readBuffer_ = pBuffer;
 			}
 
-			if(true == self->socket_.is_open())
-			{
-				self->AsyncRead();
-			}
+			self->AsyncRead();
 		})
 	);
 }

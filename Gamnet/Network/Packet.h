@@ -127,14 +127,11 @@ public :
 	bool Read(MSG& msg)
 	{
 		size_t bodyLength = GetTotalLength() - HEADER_SIZE;
-		Remove(HEADER_SIZE);
-		const char* pBuf = ReadPtr();
-
+		const char* pBuf = ReadPtr() + HEADER_SIZE;
 		if(false == msg.Load(&pBuf, bodyLength))
 		{
 			return false;
 		}
-		Remove(bodyLength);
 		return true;
 	}
 

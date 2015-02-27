@@ -61,6 +61,7 @@ void SessionManager::DelSession(uint64_t key, std::shared_ptr<Session> session)
 	}
 	std::lock_guard<std::recursive_mutex> lo(lock_);
 	mapSession_.erase(key);
+	session->sessionKey_ = 0;
 }
 
 std::shared_ptr<Session> SessionManager::FindSession(uint64_t key)
