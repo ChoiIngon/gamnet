@@ -47,7 +47,7 @@ std::shared_ptr<ResultSetImpl> Connection::Execute(const std::string& query)
 {
 	if(0 != mysql_real_query(&conn_, query.c_str(), query.length()))
 	{
-		throw Exception(GAMNET_ERROR_DB_MYSQL_XXX + mysql_errno(&conn_), mysql_error(&conn_), "(query:", query, ")");
+		throw Exception(mysql_errno(&conn_), mysql_error(&conn_), "(query:", query, ")");
 	}
 	std::shared_ptr<ResultSetImpl> impl(new ResultSetImpl());
 	unsigned int num_fields = mysql_field_count(&conn_);
@@ -56,7 +56,7 @@ std::shared_ptr<ResultSetImpl> Connection::Execute(const std::string& query)
 		impl->res_ = mysql_store_result(&conn_) ;
 		if(NULL == impl->res_)
 		{
-			throw Exception(GAMNET_ERROR_DB_MYSQL_XXX + mysql_errno(&conn_), mysql_error(&conn_), "(query:", query, ")");
+			throw Exception(mysql_errno(&conn_), mysql_error(&conn_), "(query:", query, ")");
 		}
 
 		MYSQL_FIELD *field = NULL;
