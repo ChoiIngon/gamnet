@@ -14,4 +14,14 @@
 	unit test tool
 	
 # Quick Example	
-	
+/**
+    1. include 'Gamnet.h' and using namespace 
+    may make you a little bit comfortable for writing code
+*/
+#include <Gamnet.h>
+using namespace Gamnet;
+
+/**
+    2. Write Your Own Session class
+    It handles network event (OnAccept, OnClose, OnError, Send, Recv..) and 
+    store Data 	
