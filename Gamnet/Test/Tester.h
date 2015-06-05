@@ -86,7 +86,7 @@ public :
 		if(itr == mapRecvHandler_.end())
 		{
 			Log::Write(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
-			test_session->OnError(0);
+			// test_session->OnError(0);
 			return ;
 		}
 
