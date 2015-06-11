@@ -73,6 +73,18 @@ void Buffer::Append(const char* buf, uint16_t size)
 	writeCursor_ += size;
 }
 
+void Buffer::Copy(const Buffer& buffer)
+{
+	readCursor_ = 0;
+	writeCursor_ = 0;
+	if(Available() < buffer.Size())
+	{
+		Resize(buffer.Size());
+	}
+	std::memcpy(buf_, buffer.ReadPtr(), buffer.Size());
+	writeCursor_ += buffer.Size();
+}
+
 void Buffer::Remove(uint16_t size)
 {
 	readCursor_ += size;
@@ -118,9 +130,6 @@ void Buffer::Resize(uint16_t size)
 	delete [] oldBuf;
 }
 
-void Buffer::Copy(const Buffer& buffer)
-{
-}
 }
 
 
