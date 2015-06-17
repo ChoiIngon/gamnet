@@ -72,6 +72,7 @@ public :
 		mapHeader_[name] = value;
 	}
 
+	void UseSSLVerifier(bool use);
 	bool Post(const char* path, const char* param, std::function<void(int stat, const char* data)> callback);
 	bool Get(const char* path, const char* param, std::function<void(int stat, const char* data)> callback);
 private :

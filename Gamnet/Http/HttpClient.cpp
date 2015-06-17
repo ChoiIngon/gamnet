@@ -195,6 +195,7 @@ int HttpClient::HttpRequest(const std::string& path)
 			throw Exception(500, "set url error(error_code:", error_code, ")");
 		}
 
+		/*
 		std::string protocol = host_.substr(0, host_.find("://"));
 		std::transform(protocol.begin(), protocol.end(), protocol.begin(), ::toupper);
 		if("HTTPS" == protocol)
@@ -205,6 +206,7 @@ int HttpClient::HttpRequest(const std::string& path)
 				throw Exception(500, "set ssl option error(error_code:", error_code, ")");
 			}
 		}
+		*/
 
 		error_code = curl_easy_setopt(curl_, CURLOPT_WRITEDATA, (void *)this);
 		if(CURLE_OK != error_code)
@@ -260,6 +262,15 @@ size_t HttpClient::Callback(void *ptr, size_t size, size_t nmemb, void *arg)
 	HttpClient* self = (HttpClient*)arg;
 	self->resData_ += (const char*)ptr;
 	return byte_size_of_ptr;
+}
+
+void HttpClient::UseSSLVerifier(bool use)
+{
+	CURLcode error_code = curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, use);
+	if(CURLE_OK != error_code)
+	{
+		throw Exception(500, "set ssl option error(error_code:", error_code, ")");
+	}
 }
 
 }};
