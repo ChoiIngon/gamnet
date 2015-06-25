@@ -75,6 +75,7 @@ public :
 	void UseSSLVerifier(bool use);
 	bool Post(const char* path, const char* param, std::function<void(int stat, const char* data)> callback);
 	bool Get(const char* path, const char* param, std::function<void(int stat, const char* data)> callback);
+	bool Put(const char* path, const char* param, std::function<void(int stat, const char* data)> callback);
 private :
 	int HttpRequest(const std::string& path);
 	static size_t Callback(void *ptr, size_t size, size_t nmemb, void *arg);

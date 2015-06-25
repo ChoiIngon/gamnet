@@ -149,6 +149,40 @@ bool HttpClient::Post(const char* path, const char* param, std::function<void(in
 	return true;
 }
 
+bool HttpClient::Put(const char* path, const char* param, std::function<void(int stat, const char* data)> callback)
+{
+	if(NULL == curl_)
+	{
+		return false; //Exception(500, "curl lib isn't inited");
+	}
+
+	int httpCode = 200;
+	try {
+		if(NULL != param && 0 < strlen(param))
+		{
+			if(CURLE_OK != curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, param))
+			{
+				throw Exception(500, "set post field error");
+			}
+		}
+		curl_easy_setopt(curl_, CURLOPT_CUSTOMREQUEST, "PUT"); /* !!! */
+
+		std::string path_param = "";
+		if(NULL != path && 0 < strlen(path))
+		{
+			path_param = path;
+		}
+		httpCode = HttpRequest(path_param);
+	}
+	catch(const Exception& e)
+	{
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		return false;
+	}
+	callback(httpCode, resData_.c_str());
+	return true;
+}
+
 int HttpClient::HttpRequest(const std::string& path)
 {
 	curl_slist *header_list=NULL;
