@@ -27,11 +27,19 @@ namespace Gamnet { namespace Log {
 	}
 }}
 
+#ifdef _WIN32
+#define GAMNET_LOG Gamnet::Log::Write
+#define GAMNET_DEV Gamnet::Log::Logger::LOG_LEVEL_DEV, "DEV [", __FILE__, ":", __FUNCTION__, "@" , __LINE__, "] "
+#define GAMNET_INF Gamnet::Log::Logger::LOG_LEVEL_INF, "INF "
+#define GAMNET_WRN Gamnet::Log::Logger::LOG_LEVEL_WRN, "WRN [", __FILE__, ":", __FUNCTION__, "@" , __LINE__, "] "
+#define GAMNET_ERR Gamnet::Log::Logger::LOG_LEVEL_ERR, "ERR [", __FILE__, ":", __FUNCTION__, "@" , __LINE__, "] "
+#else
 #define GAMNET_LOG Gamnet::Log::Write
 #define GAMNET_DEV Gamnet::Log::Logger::LOG_LEVEL_DEV, "DEV [", __FILE__, ":", __func__, "@" , __LINE__, "] "
 #define GAMNET_INF Gamnet::Log::Logger::LOG_LEVEL_INF, "INF "
 #define GAMNET_WRN Gamnet::Log::Logger::LOG_LEVEL_WRN, "WRN [", __FILE__, ":", __func__, "@" , __LINE__, "] "
 #define GAMNET_ERR Gamnet::Log::Logger::LOG_LEVEL_ERR, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] "
+#endif
 #define LOG GAMNET_LOG
 #define DEV GAMNET_DEV
 #define INF GAMNET_INF

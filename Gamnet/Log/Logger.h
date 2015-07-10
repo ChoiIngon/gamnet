@@ -54,12 +54,16 @@ public :
 		std::string s = Format(args...);
 		time_t logtime_;
 		struct tm when;
+		char timebuf[22] = { 0 };
 		time(&logtime_);
+#ifdef _WIN32 // build Static multithreaded library "libcmt"
+		localtime_s(&when, &logtime_);
+		_snprintf(timebuf, 22, "[%04d-%02d-%02d %02d:%02d:%02d]", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+#else
 		localtime_r( &logtime_, &when );
-
-		char timebuf[22] = {0};
-		snprintf (timebuf, 22, "[%04d-%02d-%02d %02d:%02d:%02d]", when.tm_year+1900, when.tm_mon+1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
-
+		snprintf(timebuf, 22, "[%04d-%02d-%02d %02d:%02d:%02d]", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+#endif
+		
 		std::lock_guard<std::mutex> lo(mutex_);
 		if(Property_[level]&LOG_STDERR)
 		{

@@ -8,13 +8,40 @@
 struct curl_slist;
 
 #include "HttpClient.h"
-#include <unistd.h>
+//#include <unistd.h>
 
 namespace Gamnet { namespace Http {
 
 /**
  * code copied from : http://curl.haxx.se/libcurl/c/threaded-ssl.html
  */
+#ifdef _WIN32
+static std::vector<std::mutex> lockarray_(CRYPTO_num_locks());
+static void lock_callback(int mode, int type, const char *file, int line)
+{
+	(void)file;
+	(void)line;
+	if (mode & CRYPTO_LOCK) {
+		lockarray_[type].lock();
+	}
+	else {
+		lockarray_[type].unlock();
+	}
+}
+
+static unsigned long thread_id(void)
+{
+	unsigned long ret = (unsigned long)GetCurrentThreadId();
+	return ret ;
+}
+
+static void init_locks(void)
+{
+	//lockarray_.resize(CRYPTO_num_locks());
+	CRYPTO_set_id_callback((unsigned long (*)())thread_id);
+	CRYPTO_set_locking_callback(lock_callback);
+}
+#else
 static pthread_mutex_t* lockarray_;
 
 static void lock_callback(int mode, int type, const char *file, int line)
@@ -53,7 +80,7 @@ static void kill_locks(void)
 	}
 	OPENSSL_free(lockarray_);
 }
-
+#endif
 static CURLcode HttpClientInit()
 {
 	CURLcode globalCURL = curl_global_init(CURL_GLOBAL_ALL);

@@ -8,7 +8,11 @@
 #ifndef CONNECTION_H_
 #define CONNECTION_H_
 
+#ifdef _WIN32
+#include <mysql.h>
+#else
 #include <mysql/mysql.h>
+#endif
 #include <string>
 #include "ResultSet.h"
 

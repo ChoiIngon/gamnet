@@ -31,7 +31,11 @@ public :
 	{
 		if(false == sessionManager_.Init(keepAliveTime))
 		{
+#ifdef _WIN32
+			throw Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] sessionManager_ init fail");
+#else
 			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] sessionManager_ init fail");
+#endif
 		}
 		sessionPool_.Capacity(max_session);
 		//boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>());

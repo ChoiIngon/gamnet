@@ -47,7 +47,12 @@ void RouterListener::Init(const char* service_name, int port)
 	localAddr_.id = Network::GetLocalAddress().to_v4().to_ulong();
 	if(0 == localAddr_.id)
 	{
+#ifdef _WIN32
+		throw Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] unique router id is not set");
+#else
 		throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] unique router id is not set");
+#endif
+
 	}
 	Listener::Init(port, 4096, 0);
 }

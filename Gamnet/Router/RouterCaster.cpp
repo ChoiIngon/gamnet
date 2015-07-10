@@ -184,8 +184,9 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 	return true;
 }
 
-RouterCaster::RouterCaster() : msgseq_(1)
+RouterCaster::RouterCaster() 
 {
+	msgseq_ = 1;
 	arrCasterImpl_[ROUTER_CAST_UNI] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
 	arrCasterImpl_[ROUTER_CAST_MULTI] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
 	arrCasterImpl_[ROUTER_CAST_ANY] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Any());

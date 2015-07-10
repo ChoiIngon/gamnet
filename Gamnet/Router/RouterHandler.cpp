@@ -19,12 +19,20 @@ void RouterHandler::Recv_SendMsg_Ntf(std::shared_ptr<Session> session, std::shar
 	try {
 		if(false == Gamnet::Network::Packet::Load(ntf, packet))
 		{
+#ifdef _WIN32
+			throw Gamnet::Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] ROUTER_ERROR_MESSAGE_FORMAT_ERROR");
+#else
 			throw Gamnet::Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] ROUTER_ERROR_MESSAGE_FORMAT_ERROR");
+#endif
 		}
 
 		if(NULL == Singleton<RouterCaster>::GetInstance().FindSession(session->addr))
 		{
+#ifdef _WIN32
+			throw Gamnet::Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] receive a message from unregistered address(ip:", session->remote_address_.to_string(), ", service_name:", session->addr.service_name, ")");
+#else
 			throw Gamnet::Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] receive a message from unregistered address(ip:", session->remote_address_.to_string(), ", service_name:", session->addr.service_name, ")");
+#endif
 		}
 	}
 	catch(const Gamnet::Exception& e) {
@@ -48,7 +56,11 @@ void RouterHandler::Recv_SetAddress_Req(std::shared_ptr<Session> session, std::s
 	try {
 		if(false == Gamnet::Network::Packet::Load(req, packet))
 		{
+#ifdef _WIN32
+			throw Gamnet::Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] ROUTER_ERROR_MESSAGE_FORMAT_ERROR");
+#else
 			throw Gamnet::Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] ROUTER_ERROR_MESSAGE_FORMAT_ERROR");
+#endif
 		}
 		Log::Write(GAMNET_INF, "[Router] recv SetAddress_Req (", session->remote_address_.to_string(), "->localhost, service_name:", req.tLocalAddr.service_name.c_str(), ")");
 		session->addr = req.tLocalAddr;
@@ -68,12 +80,20 @@ void RouterHandler::Recv_SetAddress_Ans(std::shared_ptr<Session> session, std::s
 	try {
 		if(false == Gamnet::Network::Packet::Load(ans, packet))
 		{
+#ifdef _WIN32
+			throw Gamnet::Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] ROUTER_ERROR_MESSAGE_FORMAT_ERROR");
+#else
 			throw Gamnet::Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] ROUTER_ERROR_MESSAGE_FORMAT_ERROR");
+#endif
 		}
 
 		if(ROUTER_ERROR_SUCCESS != ans.nErrorCode)
 		{
+#ifdef _WIN32
+			throw Gamnet::Exception(ans.nErrorCode, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] Recv_SetAddress_Ans fail");
+#else
 			throw Gamnet::Exception(ans.nErrorCode, "[", __FILE__, ":", __func__, "@" , __LINE__, "] Recv_SetAddress_Ans fail");
+#endif
 		}
 
 		Log::Write(GAMNET_INF, "[Router] recv SetAddress_Ans(", session->remote_address_.to_string(), "->localhost, service_name:", ans.tRemoteAddr.service_name, ")");
@@ -96,7 +116,11 @@ void RouterHandler::Recv_SetAddress_Ntf(std::shared_ptr<Session> session, std::s
 	try {
 		if(false == Gamnet::Network::Packet::Load(ntf, packet))
 		{
+#ifdef _WIN32
+			throw Gamnet::Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] ROUTER_ERROR_MESSAGE_FORMAT_ERROR");
+#else
 			throw Gamnet::Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] ROUTER_ERROR_MESSAGE_FORMAT_ERROR");
+#endif
 		}
 		Log::Write(GAMNET_INF, "[Router] recv SetAddress_Ntf (", session->remote_address_.to_string(), "->localhost)");
 		Singleton<RouterCaster>::GetInstance().RegisterAddress(session->addr, session);

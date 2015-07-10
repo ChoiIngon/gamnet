@@ -20,7 +20,11 @@ std::ofstream& File::open(const tm& now)
 	{
 		ofstream_.close();
 		char datebuf[10] = {0};
+#ifdef _WIN32
+		_snprintf(datebuf, 10, "%04d%02d%02d", now.tm_year+1900, now.tm_mon+1, now.tm_mday);
+#else
 		snprintf(datebuf, 10, "%04d%02d%02d", now.tm_year+1900, now.tm_mon+1, now.tm_mday);
+#endif
 		today_ = now;
 		filename_ = logPath_ + "/" + prefix_ + "_" + std::string(datebuf) + ".txt";
 		ofstream_.open(filename_.c_str(), std::fstream::out | std::fstream::app);
@@ -39,7 +43,11 @@ std::ofstream& File::open(const tm& now)
 	{
 		ofstream_.close();
 		char datebuf[20] = {0};
+#ifdef _WIN32
+		_snprintf(datebuf, 20, "%04d%02d%02d_%02d%02d%02d", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
+#else
 		snprintf(datebuf, 20, "%04d%02d%02d_%02d%02d%02d", now.tm_year+1900, now.tm_mon+1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
+#endif
 		today_ = now;
 		filename_ = logPath_ + "/" + prefix_ + "_" + std::string(datebuf) + ".txt";
 		ofstream_.open(filename_.c_str(), std::fstream::out | std::fstream::app);

@@ -127,6 +127,7 @@ int Session::Send(const char* buf, int len)
 			int sentBytes = boost::asio::write(socket_, boost::asio::buffer(buf+totalSentBytes, len-totalSentBytes), ec);
 			if(0 > sentBytes || 0 != ec)
 			{
+
 				Log::Write(GAMNET_ERR, "fail to send(session_key:", sessionKey_, ", errno:", errno, ", errstr:", strerror(errno), ")");
 				return -1;
 			}

@@ -10,6 +10,9 @@
 #include <vector>
 #include <cstring>
 #include "Exception.h"
+#ifdef _WIN32
+#include <inttypes.h>
+#endif
 
 namespace Gamnet {
 

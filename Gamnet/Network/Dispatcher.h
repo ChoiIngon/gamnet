@@ -27,7 +27,11 @@ public :
 	struct HandlerFunction
 	{
 		template<class FACTORY, class FUNCTION>
+#ifdef _WIN32
+		HandlerFunction(FACTORY* factory, FUNCTION function) : factory_(factory), function_(std::mem_fn(function)) {}
+#else
 		HandlerFunction(FACTORY* factory, FUNCTION function) : factory_(factory), function_(function) {}
+#endif
 		IHandlerFactory* factory_;
 		//function_type function_;
 		std::function<void(const std::shared_ptr<IHandler>&, std::shared_ptr<SESSION_T>, std::shared_ptr<Packet>)> function_;
@@ -43,7 +47,11 @@ public:
 		HandlerFunction handlerFunction(factory, static_cast<function_type>(func));
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)
 		{
+#ifdef _WIN32
+			throw Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] duplicate handler(msg_id:", msg_id, ")");
+#else
 			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ")");
+#endif
 		}
 		return true;
 	}
