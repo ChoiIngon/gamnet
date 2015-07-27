@@ -26,7 +26,8 @@ public :
 	DatabaseImpl();
 	~DatabaseImpl();
 	bool Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db);
-	ResultSet Execute(int db_type, const std::string& query, std::function<void(ResultSet)> callback = [](ResultSet){});
+	std::shared_ptr<Connection> GetConnection(int db_type);
+	ResultSet Execute(int db_type, const std::string& query);
 };
 
 }}

@@ -61,7 +61,7 @@ bool DatabaseImpl::Connect(int db_type, const char* host, int port, const char* 
 	return true;
 }
 
-ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::function<void(ResultSet)> callback)
+std::shared_ptr<Connection> DatabaseImpl::GetConnection(int db_type)
 {
 	auto itr = mapConnectionPool_.find(db_type);
 	if(mapConnectionPool_.end() == itr)
@@ -79,6 +79,12 @@ ResultSet DatabaseImpl::Execute(int db_type, const std::string& query, std::func
 		LOG(GAMNET_ERR, "create Connection object error(db_type:", db_type, ")");
 		throw Exception(GAMNET_ERROR_DB_CONNECT_FAIL, ERR, "create Connection object error(db_type:", db_type, ")");
 	}
+	return connection;
+}
+
+ResultSet DatabaseImpl::Execute(int db_type, const std::string& query)
+{
+	std::shared_ptr<Connection> connection = GetConnection(db_type);
 	ResultSet res;
 	res.impl_ = connection->Execute(query);
 	res.impl_->conn_ = connection;

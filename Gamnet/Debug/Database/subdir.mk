@@ -7,19 +7,22 @@ CPP_SRCS += \
 ../Database/Connection.cpp \
 ../Database/Database.cpp \
 ../Database/DatabaseImpl.cpp \
-../Database/ResultSet.cpp 
+../Database/ResultSet.cpp \
+../Database/Transaction.cpp 
 
 OBJS += \
 ./Database/Connection.o \
 ./Database/Database.o \
 ./Database/DatabaseImpl.o \
-./Database/ResultSet.o 
+./Database/ResultSet.o \
+./Database/Transaction.o 
 
 CPP_DEPS += \
 ./Database/Connection.d \
 ./Database/Database.d \
 ./Database/DatabaseImpl.d \
-./Database/ResultSet.d 
+./Database/ResultSet.d \
+./Database/Transaction.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
