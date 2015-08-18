@@ -1,0 +1,8 @@
+Gamnet/Debug/*.d
+Gamnet/Debug/Database/*.d
+Gamnet/Debug/Library/*.d
+Gamnet/Debug/Network/*.d
+Gamnet/Debug/Test/*.d
+Gamnet/Debug/Http/*.d
+Gamnet/Debug/Log/*.d
+Gamnet/Debug/Router/*.d
