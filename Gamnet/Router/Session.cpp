@@ -15,9 +15,16 @@ namespace Gamnet { namespace Router {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
-Session::Session() : Network::Session() {}
+Session::Session() : Network::Session() {
+	onRouterConnect = [](const Address&) {};
+	onRouterClose = [](const Address&) {};
+}
 
 Session::~Session() {}
+
+void Session::OnAccept() {
+	onRouterClose = RouterListener::onRouterClose;
+}
 
 void Session::Connect(const char* host, int port, int timeout)
 {
@@ -78,6 +85,10 @@ void Session::OnConnect()
 void Session::OnClose(int reason)
 {
 	Log::Write(GAMNET_INF, "[Router] remote server closed(ip:", remote_address_.to_string(), ", service_name:", addr.service_name, ")");
+	if("" != addr.service_name)
+	{
+		onRouterClose(addr);
+	}
 	watingSessionManager_.Clear();
 	Singleton<RouterCaster>::GetInstance().UnregisterAddress(addr);
 }

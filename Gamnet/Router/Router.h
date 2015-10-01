@@ -15,8 +15,8 @@
 
 namespace Gamnet { namespace Router {
 
-void Listen(const char* service_name, int port=20001, int max_session = 4096);
-void Connect(const char* host, int port=20001, int timeout=5);
+void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose);
+void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose);
 template <class FUNC, class FACTORY>
 bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 {

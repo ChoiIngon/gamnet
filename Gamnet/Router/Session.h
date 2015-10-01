@@ -14,6 +14,7 @@
 
 namespace Gamnet { namespace Router {
 #include "MsgRouter.h"
+
 class Session : public Network::Session {
 private :
 	struct AnswerWatingSessionManager
@@ -78,10 +79,12 @@ public:
 	virtual ~Session();
 
 	Address addr;
+	std::function<void(const Address& addr)> onRouterConnect;
+	std::function<void(const Address& addr)> onRouterClose;
 
 	void Init();
 	void Connect(const char* host, int port, int timeout = 5);
-	virtual void OnAccept() {}
+	virtual void OnAccept();
 	virtual void OnConnect();
 	virtual void OnClose(int reason);
 };

@@ -95,9 +95,9 @@ void RouterHandler::Recv_SetAddress_Ans(std::shared_ptr<Session> session, std::s
 			throw Gamnet::Exception(ans.nErrorCode, "[", __FILE__, ":", __func__, "@" , __LINE__, "] Recv_SetAddress_Ans fail");
 #endif
 		}
-
 		Log::Write(GAMNET_INF, "[Router] recv SetAddress_Ans(", session->remote_address_.to_string(), "->localhost, service_name:", ans.tRemoteAddr.service_name, ")");
 		Singleton<RouterCaster>::GetInstance().RegisterAddress(ans.tRemoteAddr, session);
+		session->onRouterConnect(session->addr);
 	}
 	catch(const Gamnet::Exception& e) {
 		Log::Write(GAMNET_ERR, e.what(), "(error_code:", e.error_code(), ")");
@@ -124,6 +124,7 @@ void RouterHandler::Recv_SetAddress_Ntf(std::shared_ptr<Session> session, std::s
 		}
 		Log::Write(GAMNET_INF, "[Router] recv SetAddress_Ntf (", session->remote_address_.to_string(), "->localhost)");
 		Singleton<RouterCaster>::GetInstance().RegisterAddress(session->addr, session);
+		RouterListener::onRouterAccept(session->addr);
 	}
 	catch(const Gamnet::Exception& e) {
 		Log::Write(GAMNET_ERR, e.what(), "(error_code:", e.error_code(), ")");

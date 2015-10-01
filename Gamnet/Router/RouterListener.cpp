@@ -10,6 +10,9 @@
 
 namespace Gamnet { namespace Router {
 
+std::function<void(const Address& addr)> RouterListener::onRouterAccept = [](const Address&) {};
+std::function<void(const Address& addr)> RouterListener::onRouterClose = [](const Address&) {};
+
 RouterListener::RouterListener() : Network::Listener<Session>()
 {
 }
@@ -17,8 +20,10 @@ RouterListener::RouterListener() : Network::Listener<Session>()
 RouterListener::~RouterListener() {
 }
 
-void RouterListener::Init(const char* service_name, int port)
+void RouterListener::Init(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose)
 {
+	RouterListener::onRouterAccept = onAccept;
+	RouterListener::onRouterClose = onClose;
 	RegisterHandler(
 		MsgRouter_SetAddress_Req::MSG_ID,
 		&RouterHandler::Recv_SetAddress_Req,
@@ -57,7 +62,7 @@ void RouterListener::Init(const char* service_name, int port)
 	Listener::Init(port, 4096, 0);
 }
 
-bool RouterListener::Connect(const char* host, int port, int timeout)
+bool RouterListener::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
 {
 	std::shared_ptr<Session> session = sessionPool_.Create();
 	if(NULL == session)
@@ -66,7 +71,10 @@ bool RouterListener::Connect(const char* host, int port, int timeout)
 		return false;
 	}
 	session->listener_ = this;
+	session->onRouterConnect = onConnect;
+	session->onRouterClose = onClose;
 	session->Connect(host, port, timeout);
+
 	return true;
 }
 
