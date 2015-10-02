@@ -87,6 +87,7 @@ void Session::OnClose(int reason)
 	Log::Write(GAMNET_INF, "[Router] remote server closed(ip:", remote_address_.to_string(), ", service_name:", addr.service_name, ")");
 	if("" != addr.service_name)
 	{
+		std::lock_guard<std::mutex> lo(RouterListener::lock_);
 		onRouterClose(addr);
 	}
 	watingSessionManager_.Clear();

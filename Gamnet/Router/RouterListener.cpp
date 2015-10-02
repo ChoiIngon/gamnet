@@ -12,6 +12,7 @@ namespace Gamnet { namespace Router {
 
 std::function<void(const Address& addr)> RouterListener::onRouterAccept = [](const Address&) {};
 std::function<void(const Address& addr)> RouterListener::onRouterClose = [](const Address&) {};
+std::mutex RouterListener::lock;
 
 RouterListener::RouterListener() : Network::Listener<Session>()
 {

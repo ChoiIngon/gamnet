@@ -18,6 +18,7 @@ namespace Gamnet { namespace Router {
 struct RouterListener : Network::Listener<Router::Session> {
 public :
 	Address localAddr_;
+	static std::mutex lock;
 	static std::function<void(const Address& addr)> onRouterAccept;
 	static std::function<void(const Address& addr)> onRouterClose;
 public :
