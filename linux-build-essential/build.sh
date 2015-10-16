@@ -57,8 +57,8 @@ fi
 if [ ! -f "$pkg_name/usr/local/bin/idlc" ]; then
     cd src/idlc/Debug
     make clean; make
-    cp idlc ../../../$pkg_name/usr/local/bin
     cd -
+    cp src/idlc/Debug/idlc $pkg_name/usr/local/bin
 fi
 
 dpkg -b $pkg_name
