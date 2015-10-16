@@ -366,6 +366,22 @@ bool GenerateRuleCpp::CompileMessage(const Token::Message* pToken)
 	}
 	std::cout << "\t}" << std::endl;
 
+	if("" != pToken->m_sParentName) 
+	{
+		std::cout << "\t" << pToken->GetName() << "(const " << pToken->m_sParentName << "& base)";
+		std::cout << " : " << pToken->m_sParentName << "(base)";
+		std::cout << "\t{" << std::endl;
+		for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+		{
+			if(Token::TYPE_NULL == (*itr)->Type())
+			{
+				continue;
+			}
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
+			GenerateVariableInit(pVarDecl->m_pVarType, pVarDecl->m_pVarName->GetName());
+		}
+		std::cout << "\t}" << std::endl;
+	}
 	// Size
 	std::cout << "	int32_t Size() const {" << std::endl;
 	std::cout << "		int32_t nSize = 0;" << std::endl;

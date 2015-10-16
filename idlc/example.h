@@ -482,6 +482,8 @@ struct DerivedData : public DefaultData {
 	ContainerData	containerData_;
 	DerivedData() : DefaultData()	{
 	}
+	DerivedData(const DefaultData& base) : DefaultData(base)	{
+	}
 	int32_t Size() const {
 		int32_t nSize = 0;
 		nSize += DefaultData::Size();
