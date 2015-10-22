@@ -30,7 +30,6 @@ public:
 		res.impl_->conn_ = connection;
 		return res;
 	}
-	unsigned int LastInsertID();
 	void Commit();
 };
 
