@@ -26,6 +26,7 @@ struct ResultSetImpl
 {
 	MYSQL_RES* res_;
 	unsigned int affectedRowCount_;
+	unsigned int lastInsertID_;
 	std::map<std::string, unsigned short> mapColumnName_;
 	std::shared_ptr<Connection> conn_;
 
@@ -108,6 +109,7 @@ struct ResultSet
 
 	unsigned int GetAffectedRow() const;
 	unsigned int GetRowCount();
+	unsigned int GetLastInsertID() const;
 
 	iterator begin();
 	iterator end() const;

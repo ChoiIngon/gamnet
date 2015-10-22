@@ -11,7 +11,7 @@
 
 namespace Gamnet { namespace Database {
 
-ResultSetImpl::ResultSetImpl() : res_(NULL), affectedRowCount_(0), conn_(NULL)
+ResultSetImpl::ResultSetImpl() : res_(NULL), affectedRowCount_(0), lastInsertID_(0), conn_(NULL)
 {
 }
 
@@ -131,6 +131,11 @@ unsigned int ResultSet::GetRowCount()
 		return 0;
 	}
 	return mysql_num_rows(impl_->res_);
+}
+
+unsigned int ResultSet::GetLastInsertID() const
+{
+	return impl_->lastInsertID_;
 }
 
 ResultSet::iterator ResultSet::begin()

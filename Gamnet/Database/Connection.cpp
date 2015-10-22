@@ -68,8 +68,10 @@ std::shared_ptr<ResultSetImpl> Connection::Execute(const std::string& query)
 	else
 	{
 		impl->affectedRowCount_ = mysql_affected_rows(&conn_) ;
+		impl->lastInsertID_ = static_cast<unsigned int>(mysql_insert_id(&conn_)) ;
 	}
 	return impl;
 }
+
 } /* namespace Database */
 } /* namespace Gamnet */
