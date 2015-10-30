@@ -15,9 +15,9 @@ namespace Gamnet {
 	template <class T>
 	struct Atomic {
 	    T obj;
-	    std::mutex lock;
+	    std::recursive_mutex lock;
 	    T operator = (const T& t) {
-	        std::lock_guard<std::mutex> lo(lock);
+	        std::lock_guard<std::recursive_mutex> lo(lock);
 	        obj = t;
 	        return obj;
 	    }
