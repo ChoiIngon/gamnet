@@ -20,8 +20,6 @@ Session::Session()
 	  readBuffer_(NULL),
 	  lastHeartBeatTime_(0)
 {
-	boost::asio::socket_base::send_buffer_size option(Session::SEND_BUFFER_SIZE);
-	socket_.set_option(option);
 }
 
 Session::~Session()

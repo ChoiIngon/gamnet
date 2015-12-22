@@ -71,6 +71,8 @@ void Session::Connect(const char* host, int port, int timeout)
 void Session::OnConnect()
 {
 	watingSessionManager_.Clear();
+	boost::asio::socket_base::send_buffer_size option(Session::SEND_BUFFER_SIZE);
+	socket_.set_option(option);
 
 	Log::Write(GAMNET_INF, "[Router] connect success..(remote ip:", remote_address_.to_string(), ")");
 	MsgRouter_SetAddress_Req req;
