@@ -18,6 +18,7 @@ Session::Session()
 	  sessionKey_(0),
 	  listener_(NULL),
 	  readBuffer_(NULL),
+	  sendBuffer_(NULL),
 	  lastHeartBeatTime_(0)
 {
 }

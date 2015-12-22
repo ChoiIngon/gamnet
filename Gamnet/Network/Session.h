@@ -30,6 +30,7 @@ public :
 			session->sessionKey_ = 0;
 			session->listener_ = NULL;
 			session->readBuffer_ = Packet::Create();
+			session->sendBuffer_ = Packet::Create();
 			session->lastHeartBeatTime_ = ::time(NULL);
 			session->handlerContainer_.Init();
 			return session;
