@@ -16,7 +16,6 @@ class MultiLock
         template <class... LOCKS>
         MultiLockImpl(LOCKS&&... locks) {
             Lock(locks...);
-
             for(auto lock : setLocks)
             {
                 lock->lock();
@@ -25,7 +24,7 @@ class MultiLock
 
         ~MultiLockImpl()
         {
-            for(auto lock : setLocks)
+        	for(auto lock : setLocks)
             {
                 lock->unlock();
             }

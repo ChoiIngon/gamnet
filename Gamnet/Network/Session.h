@@ -42,6 +42,7 @@ public :
 	uint64_t sessionKey_;
 	IListener* listener_;
 	std::shared_ptr<Packet> readBuffer_;
+	std::shared_ptr<Packet> sendBuffer_;
 	time_t lastHeartBeatTime_;
 	HandlerContainer handlerContainer_;
 
@@ -53,8 +54,15 @@ public :
 	virtual void OnError(int reason);
 
 	virtual void AsyncRead();
+	void AsyncSend(std::shared_ptr<Packet> packet);
+	void AsyncSend(const char* buf, int len);
+
 	int	Send(std::shared_ptr<Packet> buffer);
 	int Send(const char* buf, int len);
+
+	static int SEND_BUFFER_SIZE;
+private :
+	void FlushSend();
 };
 }}
 #endif /* NETWORK_SESSION_H_ */

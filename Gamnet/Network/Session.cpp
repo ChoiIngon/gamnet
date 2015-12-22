@@ -10,6 +10,7 @@
 namespace Gamnet { namespace Network {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
+int Session::SEND_BUFFER_SIZE = 16384;
 
 Session::Session()
 	: socket_(io_service_),
@@ -19,6 +20,8 @@ Session::Session()
 	  readBuffer_(NULL),
 	  lastHeartBeatTime_(0)
 {
+	boost::asio::socket_base::send_buffer_size option(Session::SEND_BUFFER_SIZE);
+	socket_.set_option(option);
 }
 
 Session::~Session()
@@ -107,14 +110,49 @@ void Session::AsyncRead()
 	);
 }
 
+void Session::AsyncSend(std::shared_ptr<Packet> packet)
+{
+	AsyncSend(packet->ReadPtr(), packet->Size());
+}
+
+void Session::AsyncSend(const char* buf, int len)
+{
+	sendBuffer_->Append(buf, len);
+	FlushSend();
+}
+
+void Session::FlushSend()
+{
+	auto self(shared_from_this());
+	boost::asio::async_write(socket_, boost::asio::buffer(sendBuffer_->ReadPtr(), sendBuffer_->Size()),
+		strand_.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
+			if (0 != ec)
+			{
+				self->OnError(errno); // no error, just closed socket
+				return;
+			}
+
+			self->sendBuffer_->Remove(transferredBytes);
+
+			if(0 < self->sendBuffer_->Size())
+			{
+				self->FlushSend();
+			}
+		}));
+}
+
 int	Session::Send(std::shared_ptr<Packet> packet)
 {
+	/*
 	int transferredBytes = Send(packet->ReadPtr(), packet->Size());
 	if(0 < transferredBytes)
 	{
 		packet->Remove(transferredBytes);
 	}
 	return transferredBytes;
+	*/
+	AsyncSend(packet);
+	return packet->Size();
 }
 
 int Session::Send(const char* buf, int len)
@@ -127,8 +165,12 @@ int Session::Send(const char* buf, int len)
 			int sentBytes = boost::asio::write(socket_, boost::asio::buffer(buf+totalSentBytes, len-totalSentBytes), ec);
 			if(0 > sentBytes || 0 != ec)
 			{
-
-				Log::Write(GAMNET_ERR, "fail to send(session_key:", sessionKey_, ", errno:", errno, ", errstr:", strerror(errno), ")");
+				Log::Write(GAMNET_ERR, "fail to send(session_key:", sessionKey_, ", errno:", errno, ", errstr:", strerror(errno), ", ec:", ec, ")");
+				return -1;
+			}
+			if(0 == sentBytes)
+			{
+				Log::Write(GAMNET_WRN, "send zero byte(session_key:", sessionKey_, ", errno:", errno, ", errstr:", strerror(errno), ", ec:", ec, ")");
 				return -1;
 			}
 			totalSentBytes += sentBytes;
