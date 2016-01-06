@@ -92,6 +92,11 @@ void Buffer::Remove(uint16_t size)
 	{
 		readCursor_ = writeCursor_;
 	}
+	if(readCursor_ == writeCursor_)
+	{
+		writeCursor_ = 0;
+		readCursor_ = 0;
+	}
 }
 
 size_t Buffer::Size() const
