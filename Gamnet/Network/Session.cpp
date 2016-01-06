@@ -116,8 +116,14 @@ void Session::AsyncSend(std::shared_ptr<Packet> packet)
 
 void Session::AsyncSend(const char* buf, int len)
 {
+	bool bFlush = (sendBuffer_->Available() == sendBuffer_->Capacity());
 	sendBuffer_->Append(buf, len);
-	FlushSend();
+	//같은 ReadPtr()에 대한 async_write가 중복해서 발생하는 것 방지
+	// => FlushSend는 async_write OnWriteCallback 에서도 이뤄지기 때문에 여기서는 callback 큐가 비어있을 때 호출하면 됨
+	if (true == bFlush) 
+	{
+		FlushSend();
+	}
 }
 
 void Session::FlushSend()
