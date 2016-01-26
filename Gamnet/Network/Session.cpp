@@ -146,21 +146,17 @@ void Session::FlushSend()
 		}));
 }
 
-int	Session::Send(std::shared_ptr<Packet> packet)
+int	Session::SyncSend(std::shared_ptr<Packet> packet)
 {
-	/*
 	int transferredBytes = Send(packet->ReadPtr(), packet->Size());
 	if(0 < transferredBytes)
 	{
 		packet->Remove(transferredBytes);
 	}
 	return transferredBytes;
-	*/
-	AsyncSend(packet);
-	return packet->Size();
 }
 
-int Session::Send(const char* buf, int len)
+int Session::SyncSend(const char* buf, int len)
 {
 	int totalSentBytes = 0;
 	while(len > totalSentBytes)
@@ -187,6 +183,18 @@ int Session::Send(const char* buf, int len)
 		}
 	}
 	return totalSentBytes;
+}
+
+int	Session::Send(std::shared_ptr<Packet> packet)
+{
+	AsyncSend(packet);
+	return packet->Size();
+}
+
+int Session::Send(const char* buf, int len)
+{
+	AsyncSend(buf, len);
+	return len;
 }
 
 }}
