@@ -57,8 +57,10 @@ public :
 	virtual void AsyncRead();
 	void AsyncSend(std::shared_ptr<Packet> packet);
 	void AsyncSend(const char* buf, int len);
+	int SyncSend(std::shared_ptr<Packet> buffer);
+	int SyncSend(const char* buf, int len);
 
-	int	Send(std::shared_ptr<Packet> buffer);
+	int Send(std::shared_ptr<Packet> buffer);
 	int Send(const char* buf, int len);
 
 	static int SEND_BUFFER_SIZE;
