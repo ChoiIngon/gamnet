@@ -18,6 +18,7 @@ namespace Gamnet {
 
     struct Buffer
     {
+    	static int MAX_SIZE;
     	struct Init
 		{
     		Buffer* operator() (Buffer* buffer)

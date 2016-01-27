@@ -8,6 +8,8 @@
 #include "Buffer.h"
 namespace Gamnet {
 
+int Buffer::MAX_SIZE = 0x0000ffff;
+
 Buffer::Buffer(uint16_t size) : writeCursor_(0), readCursor_(0), bufSize_(size), buf_(NULL)
 {
 	buf_ = new char[bufSize_];

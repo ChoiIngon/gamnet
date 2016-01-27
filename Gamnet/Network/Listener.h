@@ -72,7 +72,7 @@ public :
 	{
 		if(0 == error)
 		{
-			boost::asio::socket_base::send_buffer_size option(Session::SEND_BUFFER_SIZE);
+			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 			session->socket_.set_option(option);
 			session->sessionKey_ = ++IListener::uniqueSessionKey_;
 			session->listener_ = this;

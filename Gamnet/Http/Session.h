@@ -25,6 +25,7 @@ public:
 			session->sessionKey_ = 0;
 			session->listener_ = NULL;
 			session->readBuffer_ = Network::Packet::Create();
+			session->sendBuffers_.clear();
 			session->lastHeartBeatTime_ = ::time(NULL);
 			session->handlerContainer_.Init();
 			return session;

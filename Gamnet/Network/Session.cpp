@@ -10,7 +10,6 @@
 namespace Gamnet { namespace Network {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
-int Session::SEND_BUFFER_SIZE = 16384;
 
 Session::Session()
 	: socket_(io_service_),
@@ -18,7 +17,6 @@ Session::Session()
 	  sessionKey_(0),
 	  listener_(NULL),
 	  readBuffer_(NULL),
-	  sendBuffer_(NULL),
 	  lastHeartBeatTime_(0)
 {
 }
@@ -109,41 +107,50 @@ void Session::AsyncRead()
 	);
 }
 
-void Session::AsyncSend(std::shared_ptr<Packet> packet)
-{
-	AsyncSend(packet->ReadPtr(), packet->Size());
-}
-
 void Session::AsyncSend(const char* buf, int len)
 {
-	bool bFlush = (sendBuffer_->Available() == sendBuffer_->Capacity());
-	sendBuffer_->Append(buf, len);
-	//같은 ReadPtr()에 대한 async_write가 중복해서 발생하는 것 방지
-	// => FlushSend는 async_write OnWriteCallback 에서도 이뤄지기 때문에 여기서는 callback 큐가 비어있을 때 호출하면 됨
-	if (true == bFlush) 
+	std::shared_ptr<Packet> pBuffer = Packet::Create();
+	if(NULL == pBuffer)
 	{
-		FlushSend();
+		Log::Write(GAMNET_ERR, "Can't create more buffer(session_key:", sessionKey_, ")");
+		return;
 	}
+
+	AsyncSend(pBuffer);
+}
+
+void Session::AsyncSend(std::shared_ptr<Packet> packet)
+{
+	auto self(shared_from_this());
+	strand_.wrap([self](std::shared_ptr<Packet> packet) {
+		bool needFlush = self->sendBuffers_.empty();
+		self->sendBuffers_.push_back(packet);
+		if(true == needFlush)
+		{
+			self->FlushSend();
+		}
+	})(packet);
 }
 
 void Session::FlushSend()
 {
-	auto self(shared_from_this());
-	boost::asio::async_write(socket_, boost::asio::buffer(sendBuffer_->ReadPtr(), sendBuffer_->Size()),
-		strand_.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
-			if (0 != ec)
-			{
-				self->OnError(errno); // no error, just closed socket
-				return;
-			}
+	if(false == sendBuffers_.empty())
+	{
+		auto self(shared_from_this());
+		const std::shared_ptr<Packet>& sendBuffer = sendBuffers_.front();
+		boost::asio::async_write(socket_, boost::asio::buffer(sendBuffer->ReadPtr(), sendBuffer->Size()),
+			strand_.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
+				if (0 != ec)
+				{
+					self->OnError(errno); // no error, just closed socket
+					return;
+				}
 
-			self->sendBuffer_->Remove(transferredBytes);
-
-			if(0 < self->sendBuffer_->Size())
-			{
+				self->sendBuffers_.pop_front();
 				self->FlushSend();
 			}
-		}));
+		));
+	}
 }
 
 int	Session::SyncSend(std::shared_ptr<Packet> packet)

@@ -12,6 +12,7 @@
 #include <mutex>
 #include <list>
 #include <boost/asio.hpp>
+#include <deque>
 #include "Packet.h"
 #include "HandlerContainer.h"
 
@@ -30,7 +31,7 @@ public :
 			session->sessionKey_ = 0;
 			session->listener_ = NULL;
 			session->readBuffer_ = Packet::Create();
-			session->sendBuffer_ = Packet::Create();
+			session->sendBuffers_.clear();
 			session->lastHeartBeatTime_ = ::time(NULL);
 			session->handlerContainer_.Init();
 			return session;
@@ -43,7 +44,7 @@ public :
 	uint64_t sessionKey_;
 	IListener* listener_;
 	std::shared_ptr<Packet> readBuffer_;
-	std::shared_ptr<Packet> sendBuffer_;
+	std::deque<std::shared_ptr<Packet>> sendBuffers_;
 	time_t lastHeartBeatTime_;
 	HandlerContainer handlerContainer_;
 
@@ -62,8 +63,6 @@ public :
 
 	int Send(std::shared_ptr<Packet> buffer);
 	int Send(const char* buf, int len);
-
-	static int SEND_BUFFER_SIZE;
 private :
 	void FlushSend();
 };

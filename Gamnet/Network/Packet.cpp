@@ -12,7 +12,7 @@
 
 namespace Gamnet { namespace Network {
 
-Packet::Packet() : Buffer(MAX_LENGTH)
+Packet::Packet() : Buffer(Buffer::MAX_SIZE)
 {
 }
 
