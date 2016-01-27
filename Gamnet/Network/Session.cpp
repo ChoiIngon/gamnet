@@ -115,7 +115,7 @@ void Session::AsyncSend(const char* buf, int len)
 		Log::Write(GAMNET_ERR, "Can't create more buffer(session_key:", sessionKey_, ")");
 		return;
 	}
-
+	pBuffer->Append(buf, len);
 	AsyncSend(pBuffer);
 }
 
