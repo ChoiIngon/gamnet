@@ -20,14 +20,14 @@ public :
 	template <class... ARGS>
 	Exception(int error_code, ARGS... args) : error_code_(error_code), detail_(Format(args...))
 	{
-		stack_trace();
+		//stack_trace();
 	}
 	virtual ~Exception() throw();
 	virtual const char* what() const throw();
 	int error_code() const throw();
 
 private :
-	void stack_trace();
+	//void stack_trace();
 };
 
 }

@@ -18,7 +18,7 @@ int Exception::error_code() const throw()
 {
 	return error_code_;
 }
-
+/*
 void Exception::stack_trace()
 {
     void* trace[16];
@@ -44,4 +44,5 @@ void Exception::stack_trace()
         pclose(fp);
     }
 }
+*/
 }
