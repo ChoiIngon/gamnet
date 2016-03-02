@@ -204,6 +204,20 @@ int Session::Send(const char* buf, int len)
 	return len;
 }
 
+void Session::SetListener(IListener* listener)
+{
+	auto self(shared_from_this());
+	strand_.wrap([self](IListener* listener) {
+		if(NULL != self->listener_)
+		{
+			self->listener_->sessionManager_.DelSession(self->sessionKey_, self);
+		}
+		self->sessionKey_ = ++IListener::uniqueSessionKey_;
+		self->listener_ = listener;
+		listener->sessionManager_.AddSession(self->sessionKey_, self);
+	})(listener);
+}
+
 }}
 
 

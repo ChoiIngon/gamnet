@@ -1,10 +1,3 @@
-/*
- * Session.h
- *
- *  Created on: 2012. 10. 8.
- *      Author: jjaehuny
- */
-
 #ifndef GAMNET_NETWORK_SESSION_H_
 #define GAMNET_NETWORK_SESSION_H_
 
@@ -63,6 +56,8 @@ public :
 
 	int Send(std::shared_ptr<Packet> buffer);
 	int Send(const char* buf, int len);
+
+	void SetListener(IListener* listener);
 private :
 	void FlushSend();
 };
