@@ -49,9 +49,9 @@ $ make
  - boost_filesystem
  - boost_system
  - boost_thread
+ - json_sprit
+ - curl
  - pthread
 - optional library
- - json_sprit
  - crypto
- - curl
  - mysqlclient_r
