@@ -74,11 +74,11 @@ int main()
 
 ## Keywords
 
-- "message" : 구조화된 데이터. eg) C++ struct
-- "struct" : 메시지 아이디가 할당 되지 않는 순수 구조체
-- "enum" : enumerator. eg) C++ enum
-- ".cpp|.cs|.py %% ~ %%" : 각 언어에 따라 ~ 의 문자열을 그대로 출력
-- "typedef" : 타입 이름 재정의 eg) C++ typedef.
+- "message" : numbered and structured data to be serialized/de-serialized.
+- "struct" : pure structured data to be serialized/de-serialized.
+- "enum" : enumerator.
+- ".cpp|.cs|.py %% ~ %%" : literal block for each language.
+- "typedef" : re-definition of type name
 
 ## Support data types
 
