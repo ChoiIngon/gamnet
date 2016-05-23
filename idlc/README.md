@@ -6,7 +6,7 @@
 ## Quick Example
 
 1. write below "example.idl" and save it.
- ```
+..```
 message Person : 1 
 {
 	int32 id; 
