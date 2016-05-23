@@ -6,21 +6,24 @@
 - included debian package contains pre-compiled boost library and some other needed tools.
 - if your developement environment is 'Ubuntu', you just download and execute apt-get and gdebi. Frist, get the package
 
-> $ svn co https://github.com/ChoiIngon/gamnet/trunk/linux-build-essential/gamnet-linux-build-essential.deb
+```
+$ svn co https://github.com/ChoiIngon/gamnet/trunk/linux-build-essential/gamnet-linux-build-essential.deb
+```
 
 - to install provided package in 'Ubuntu' environment you need gdebi
 
-> $ sudo apt-get update
-
->  $ sudo apt-get install gdebi-core
+```
+$ sudo apt-get update 
+$ sudo apt-get install gdebi-core
+```
 
 - move to 'gamnet' directory and execute 'gdebi' to install build essential
 
-> $ cd gamnet/linux-build-essential
-
-> $ ls build.sh control gamnet-linux-build-essential.deb postinst src
-
-> $ sudo gdebi gamnet-linux-build-essential.deb
+```
+$ cd gamnet/linux-build-essential
+$ ls build.sh control gamnet-linux-build-essential.deb postinst src
+$ sudo gdebi gamnet-linux-build-essential.deb
+```
 
 ### Others
 
