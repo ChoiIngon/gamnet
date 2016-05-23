@@ -31,14 +31,15 @@ std::cout << "person email : " << person2_.email << std::endl;
 return 0;
 } ```
 
-Keywords
+## Keywords
 
-"message" : 구조화된 데이터. eg) C++ struct
-"struct" : 메시지 아이디가 할당 되지 않는 순수 구조체
-"enum" : enumerator. eg) C++ enum
-".cpp|.cs|.py %% ~ %%" : 각 언어에 따라 ~ 의 문자열을 그대로 출력
-"typedef" : 타입 이름 재정의 eg) C++ typedef.
-Support data types
+- "message" : 구조화된 데이터. eg) C++ struct
+- "struct" : 메시지 아이디가 할당 되지 않는 순수 구조체
+- "enum" : enumerator. eg) C++ enum
+- ".cpp|.cs|.py %% ~ %%" : 각 언어에 따라 ~ 의 문자열을 그대로 출력
+- "typedef" : 타입 이름 재정의 eg) C++ typedef.
+
+## Support data types
 
 | Category     | Type name | Data size      | Serialize result | 
 |--------------|-----------|----------------|------------------| 
@@ -58,7 +59,7 @@ Support data types
 |              |array      |static          |sizeof(T) 'element count'| 
 |              |map        |dynamic         |signed 4 bytes(element count) + sizeof(K) 'element count' + sizeof(E) 'element count'|
 
-Grammar
+## Grammar
 
 ``` stmt_list : stmt | stmt_list stmt
 
