@@ -6,6 +6,7 @@
 ## Quick Example
 
 1. write below "example.idl" and save it.
+
 ```
 message Person : 1 
 {
@@ -14,9 +15,13 @@ message Person : 1
 	string email; 
 };
 ```
+
 2. To translate this file, compile "example.idl" file with '''idlc'''. In this example, we will translate it from .idl to .cpp.
- > idlc -lcpp example.idl
+
+> idlc -lcpp example.idl
+
 3. result
+
 ```
 // example.h 
 struct Person 
@@ -48,7 +53,9 @@ struct Person
 	}
 }; // end of struct ‘Person’ 
 ```
+
 4. Use it in your project
+
 ```
 include "example.h"
 
