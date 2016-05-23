@@ -42,3 +42,16 @@ $ make
 ```
 
 ## Create your project and Import Libarary
+
+### Ubuntu 64bit
+- required library
+ - Gamnet
+ - boost_filesystem
+ - boost_system
+ - boost_thread
+ - pthread
+- optional library
+ - json_sprit
+ - crypto
+ - curl
+ - mysqlclient_r
