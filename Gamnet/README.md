@@ -12,11 +12,6 @@ https://github.com/ChoiIngon/gamnet
 - gamnet provides pre-compiled debian package for your convenient
 - included debian package contains pre-compiled boost library and some other needed tools.
 - if your developement environment is 'Ubuntu', you just download and execute apt-get and gdebi. Frist, get the package
-
-```
-$ svn co https://github.com/ChoiIngon/gamnet/trunk/linux-build-essential/gamnet-linux-build-essential.deb
-```
-
 - to install provided package in 'Ubuntu' environment you need gdebi
 
 ```
@@ -39,3 +34,11 @@ $ sudo gdebi gamnet-linux-build-essential.deb
 - libmysqlclient-dev, libmysql++-dev - http://dev.mysql.com/
 - libcurl4-openssl-dev - https://www.openssl.org/
 - json-spirit - http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented
+
+## Build 'Gamnet'
+'''
+$ cd gamnet/Gamnet/Debug
+$ make
+'''
+
+## Create your project and Import Libarary
