@@ -1,3 +1,10 @@
+## Getting source code
+
+```
+https://github.com/ChoiIngon/gamnet
+```
+- Github provides several way(svn, git) you can get the source code of gamnet. 
+
 ## Setting build enviroment
 
 ### Ubuntu 64bit
