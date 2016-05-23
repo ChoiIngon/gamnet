@@ -1,8 +1,7 @@
 # IDLC(Interface Definition Language Compiler)
 
-## What is "IDLC
-
-IDL이란 Interface Definition Language 의 약자로써, idlc는 .idl 파일에 정의 되어 있는 인터페이스를 컴파일하여 C++/Python/Java 언어로 된 자료구조들과 해당 자료구조의 serialize/de-serialize 코드를 생성하는 컴파일러 입니다.
+- 'idlc' is a kind of interface language compiler. 
+- .idl file It will compile .0idl files and generater파일에 정의 되어 있는 인터페이스를 컴파일하여 C++/Python/Java 언어로 된 자료구조들과 해당 자료구조의 serialize/de-serialize 코드를 생성하는 컴파일러 입니다.
 
 Getting source files
 
@@ -41,15 +40,23 @@ Keywords
 "typedef" : 타입 이름 재정의 eg) C++ typedef.
 Support data types
 
-| Category | Type name | Data size | Serialize result | |:---------|:----------|:----------|:-----------------| |Primitive type|byte |signed 1 byte|signed 1 byte | | |boolean |unsigned 1 byte|unsigned 1 byte | | |int16 |signed 2 bytes|signed 2 bytes | | |int32 |signed 4 bytes|signed 4 bytes | | |int64 |signed 8 bytes|signed 8 bytes | | |uint16 |unsigned 2 bytes|unsigned 2 bytes | | |uint32 |unsigned 4 bytes|unsigned 4 bytes | | |uint64 |unsigned 8 bytes|unsigned 8 bytes | | |float |float 4 bytes|float 4 bytes | | |double |float 8 bytes|float 8 bytes | |string type|string |dynamic |signed 4 bytes(for 'length') + sizeof(char)length| |container type|list
-
-<T>
-
-|dynamic |signed 4 bytes(element count) + sizeof(T) 'element count'| | |array
-
-<T>
-
-|dynamic |signed 4 bytes(element count) + sizeof(T) 'element count'| | |array|static |sizeof(T) 'element count'| | |map |dynamic |signed 4 bytes(element count) + sizeof(K) 'element count' + sizeof(E) 'element count'|
+| Category     | Type name | Data size      | Serialize result | 
+|--------------|-----------|----------------|------------------| 
+|Primitive type|byte       |signed 1 byte   |signed 1 byte     | 
+|              |boolean    |unsigned 1 byte |unsigned 1 byte   | 
+|              |int16      |signed 2 bytes  |signed 2 bytes    | 
+|              |int32      |signed 4 bytes  |signed 4 bytes    | 
+|              |int64      |signed 8 bytes  |signed 8 bytes    | 
+|              |uint16     |unsigned 2 bytes|unsigned 2 bytes  | 
+|              |uint32     |unsigned 4 bytes|unsigned 4 bytes  | 
+|              |uint64     |unsigned 8 bytes|unsigned 8 bytes  | 
+|              |float      |float 4 bytes   |float 4 bytes     | 
+|              |double     |float 8 bytes   |float 8 bytes     | 
+|string type   |string     |dynamic         |signed 4 bytes(for 'length') + sizeof(char)length|
+|container type|list<T>    |dynamic         |signed 4 bytes(element count) + sizeof(T) 'element count'| 
+|              |array<T>   |dynamic         |signed 4 bytes(element count) + sizeof(T) 'element count'| 
+|              |array      |static          |sizeof(T) 'element count'| 
+|              |map        |dynamic         |signed 4 bytes(element count) + sizeof(K) 'element count' + sizeof(E) 'element count'|
 
 Grammar
 
