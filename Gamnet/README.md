@@ -36,9 +36,9 @@ $ sudo gdebi gamnet-linux-build-essential.deb
 - json-spirit - http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented
 
 ## Build 'Gamnet'
-'''
+```
 $ cd gamnet/Gamnet/Debug
 $ make
-'''
+```
 
 ## Create your project and Import Libarary
