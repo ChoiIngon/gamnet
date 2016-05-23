@@ -3,17 +3,36 @@
 - 'idlc' is a kind of interface language compiler. 
 - .idl file It will compile .0idl files and generater파일에 정의 되어 있는 인터페이스를 컴파일하여 C++/Python/Java 언어로 된 자료구조들과 해당 자료구조의 serialize/de-serialize 코드를 생성하는 컴파일러 입니다.
 
-Getting source files
+## Quick Example
 
-svn checkout http://gamnet.googlecode.com/svn/trunk/ gamnet-read-only
-
-Quick Example
-
-example.idl 파일을 작성합니다 message Person : 1 { int32 id; string name; string email; };
-이 파일을 C++ 혹은 Python, Java 코드로 변환하기 위해 idlc로 컴파일 합니다. 만일 C++을 선택 했다면 아래와 같은 코드가 나옵니다. ``` // example.h struct Person { enum { MSG_ID = 1; } int32_t id; std::string name; std::string email;
-
-int Size() const; bool Store(std::vector& buf); bool Store(char** buf); bool Load(const std::vector& buf); bool Load(const char** buf); }; // end of struct ‘Person’ ```
-
+1. write below "example.idl" and save it.
+```
+message Person : 1 
+{ 
+  int32 id; 
+  string name; 
+  string email; 
+};
+```
+2. To translate this file, compile "example.idl" file with '''idlc'''. In this example, we will translate it from .idl to .cpp.
+> idlc -lcpp example.idl
+3. result
+```
+// example.h 
+struct Person 
+{ 
+	enum { MSG_ID = 1; } 
+	int32_t id; 
+	std::string name; 
+	std::string email;
+	
+	int Size() const; 
+	bool Store(std::vector& buf); 
+	bool Store(char** buf); 
+	bool Load(const std::vector& buf); 
+	bool Load(const char** buf); 
+}; // end of struct ‘Person’ 
+```
 위 파일은 아래와 같이 사용 할 수 있습니다. ```
 include "example.h"
 
@@ -59,7 +78,7 @@ return 0;
 |              |array      |static          |sizeof(T) 'element count'| 
 |              |map        |dynamic         |signed 4 bytes(element count) + sizeof(K) 'element count' + sizeof(E) 'element count'|
 
-## Grammar
+## Grammar(BNF)
 
 ``` stmt_list : stmt | stmt_list stmt
 
