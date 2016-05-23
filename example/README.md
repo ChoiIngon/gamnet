@@ -5,7 +5,7 @@
 - You can find more information at '[README](https://github.com/ChoiIngon/gamnet/blob/master/idlc/README.md)' in 'gamnet/idlc/' directory
 
 #Write sample echo server
-```
+```C++
 /** 1. include 'Gamnet.h' and using namespace may make you a little bit comfortable for writing code */
 #include "Gamnet.h"
 #include "Message.h" // generated from Message.idl by 'idlc'
