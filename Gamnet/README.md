@@ -11,12 +11,15 @@
 - to install provided package in 'Ubuntu' environment you need gdebi
 
 > $ sudo apt-get update
+
 > $ sudo apt-get install gdebi-core
 
 - move to 'gamnet' directory and execute 'gdebi' to install build essential
 
 > $ cd gamnet/linux-build-essential
+
 > $ ls build.sh control gamnet-linux-build-essential.deb postinst src
+
 > $ sudo gdebi gamnet-linux-build-essential.deb
 
 ### Others
