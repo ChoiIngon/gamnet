@@ -28,12 +28,19 @@ $ sudo gdebi gamnet-linux-build-essential.deb
 ```
 
 ### Windows
-- Download and install 'boost'
- - https://sourceforge.net/projects/boost/files/boost-binaries/1.61.0/
+- Download and install 'boost'(It is too big to commit github. so you should download from SourceForge)
+ - get binary install version : https://sourceforge.net/projects/boost/files/boost-binaries/1.61.0/
+ - install boost under 'C:\local\boost_1_61_0'
 - install mysql connector
- - $GAMNET/windows-build-essential/mysql-connector-c-6.1.6-winx64.msi
+ - execute '$GAMNET_ROOT/windows-build-essential/mysql-connector-c-6.1.6-winx64.msi'
+ - click 'Typical' button. It will install mysql under 'C:\Program Files\MySQL\MySQL Connector C 6.1\'
 - install openssl
- - $GAMNET/windows-build-essential/Win64OpenSSL-1_0_2c.exe
+ - execute '$GAMNET_ROOT/windows-build-essential/Win64OpenSSL-1_0_2c.exe'
+ - It will install openssl under 'C:\local\OpenSSL-Win64'
+- install curl
+ - unzip '$GAMNET_ROOT/windows-build-essential/curl-7.43.0-win64.zip'
+ - copy 'curl-7.43.0-win64' directory to 'C:\local\curl-7.43.0-win64' dirctory
+
 ### Others
 
 - you should install the package for yourself.
