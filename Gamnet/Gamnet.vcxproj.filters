@@ -9,25 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Gamnet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="database\Connection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="database\Database.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="database\DatabaseImpl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="database\ResultSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="http\Dispatcher.cpp">
@@ -105,21 +89,24 @@
     <ClCompile Include="test\Session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="database\Connection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="database\Database.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="database\DatabaseImpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="database\ResultSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="database\Transaction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Gamnet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="database\Connection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="database\Database.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="database\DatabaseImpl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="database\ResultSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="http\Dispatcher.h">
@@ -140,6 +127,9 @@
     <ClInclude Include="http\Session.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="library\Atomic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="library\Base64.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -153,6 +143,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="library\MD5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="library\MultiLock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="library\Pool.h">
@@ -234,6 +227,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="test\Tester.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="database\Connection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="database\Database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="database\DatabaseImpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="database\ResultSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="database\Transaction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

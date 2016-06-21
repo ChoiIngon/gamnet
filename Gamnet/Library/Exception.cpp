@@ -5,7 +5,6 @@
  *      Author: kukuta
  */
 #include "Exception.h"
-#include <execinfo.h>
 
 namespace Gamnet
 {
