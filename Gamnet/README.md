@@ -27,6 +27,13 @@ $ ls build.sh control gamnet-linux-build-essential.deb postinst src
 $ sudo gdebi gamnet-linux-build-essential.deb
 ```
 
+### Windows
+- Download and install 'boost'
+ - https://sourceforge.net/projects/boost/files/boost-binaries/1.61.0/
+- install mysql connector
+ - $GAMNET/windows-build-essential/mysql-connector-c-6.1.6-winx64.msi
+- install openssl
+ - $GAMNET/windows-build-essential/Win64OpenSSL-1_0_2c.exe
 ### Others
 
 - you should install the package for yourself.
