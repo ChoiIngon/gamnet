@@ -27,7 +27,7 @@ $ ls build.sh control gamnet-linux-build-essential.deb postinst src
 $ sudo gdebi gamnet-linux-build-essential.deb
 ```
 
-### Windows
+### Windows(64bit)
 - Download and install 'boost'(It is too big to commit github. so you should download from SourceForge)
  - get binary install version : https://sourceforge.net/projects/boost/files/boost-binaries/1.61.0/
  - install boost under 'C:\local\boost_1_61_0'
