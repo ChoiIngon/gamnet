@@ -146,6 +146,7 @@
     <ClCompile Include="http\Listener.cpp" />
     <ClCompile Include="http\Response.cpp" />
     <ClCompile Include="http\Session.cpp" />
+    <ClCompile Include="Json\jsoncpp.cpp" />
     <ClCompile Include="library\Base64.cpp" />
     <ClCompile Include="library\Buffer.cpp" />
     <ClCompile Include="library\Exception.cpp" />
@@ -179,6 +180,8 @@
     <ClInclude Include="http\Listener.h" />
     <ClInclude Include="http\Response.h" />
     <ClInclude Include="http\Session.h" />
+    <ClInclude Include="Json\json-forwards.h" />
+    <ClInclude Include="Json\json.h" />
     <ClInclude Include="library\Atomic.h" />
     <ClInclude Include="library\Base64.h" />
     <ClInclude Include="library\Buffer.h" />
