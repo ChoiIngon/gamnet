@@ -16,7 +16,7 @@ def EnumTestLoad(buf) :
 	return [val, buf]
 class EnumTest2 :
 	ENUM_TEST2_1 = 100
-	ENUM_TEST2_2 = 101
+	ENUM_TEST2_2 = 268435455
 def EnumTest2Init() : 
 	return 0
 def EnumTest2Store(e) :

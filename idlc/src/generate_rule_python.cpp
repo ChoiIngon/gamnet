@@ -7,6 +7,7 @@
 #include "generate_rule_python.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <sstream>
 
 GenerateRulePython::GenerateRulePython(const std::string& sFileName) : Token::Parser(sFileName)
 {
@@ -255,7 +256,15 @@ bool GenerateRulePython::CompileEnum(const Token::Enum* pToken)
 		std::cout << "\t" << pElmt->m_pElmt->GetName();
 		if("" != pElmt->m_sNumber)
 		{
-			nMaxNumber = atoi(pElmt->m_sNumber.c_str());
+			if (std::string::npos != pElmt->m_sNumber.find("0x"))
+			{
+				std::stringstream ss;
+				ss << std::hex << pElmt->m_sNumber.c_str();
+				ss >> nMaxNumber;
+			}
+			else {
+				nMaxNumber = atoi(pElmt->m_sNumber.c_str());
+			}
 		}
 		else
 		{

@@ -265,7 +265,8 @@ void GenerateRuleCpp::GenerateVariableSize(const Token::Base* typeInfo, const st
 								" >::const_iterator " << sVarName << "_itr = " << sVarName << ".begin(); " << sVarName << "_itr != " << sVarName << ".end(); " << sVarName << "_itr++) {" << std::endl;
 		{
 			auto itr = m_mapSymbolTable.find(static_cast<const Token::MapType*>(typeInfo)->m_pKeyType->GetName());
-			if(Token::TYPE_PRIMITIVE != itr->second.m_eType)
+			//if(Token::TYPE_PRIMITIVE != itr->second.m_eType)
+			if (m_mapSymbolTable.end() == itr)
 			{
 				std::cout << sIndent << "\tconst " << TranslateVariableType(static_cast<const Token::MapType*>(typeInfo)->m_pKeyType) << "& " << sVarName << "_key = " << sVarName << "_itr->first;" << std::endl;
 			}
@@ -282,7 +283,8 @@ void GenerateRuleCpp::GenerateVariableSize(const Token::Base* typeInfo, const st
 							 << " >::const_iterator " << sVarName << "_itr = " << sVarName << ".begin(); " << sVarName << "_itr != " << sVarName << ".end(); " << sVarName << "_itr++)	{" << std::endl;
 		{
 			auto itr = m_mapSymbolTable.find(static_cast<const Token::MapType*>(typeInfo)->m_pKeyType->GetName());
-			if(Token::TYPE_PRIMITIVE != itr->second.m_eType)
+			//if(Token::TYPE_PRIMITIVE != itr->second.m_eType)
+			if(m_mapSymbolTable.end() == itr)
 			{
 				std::cout << sIndent << "\tconst " << TranslateVariableType(static_cast<const Token::ListType*>(typeInfo)->m_pElmtType) << "& " << sVarName << "_elmt = *" << sVarName << "_itr;" << std::endl;
 			}
@@ -297,7 +299,8 @@ void GenerateRuleCpp::GenerateVariableSize(const Token::Base* typeInfo, const st
 							 << " >::const_iterator " << sVarName << "_itr = " << sVarName << ".begin(); " << sVarName << "_itr != " << sVarName << ".end(); " << sVarName << "_itr++)	{" << std::endl;
 		{
 			auto itr = m_mapSymbolTable.find(static_cast<const Token::MapType*>(typeInfo)->m_pKeyType->GetName());
-			if(Token::TYPE_PRIMITIVE != itr->second.m_eType)
+			//if(Token::TYPE_PRIMITIVE != itr->second.m_eType)
+			if (m_mapSymbolTable.end() == itr)
 			{
 				std::cout << sIndent << "\tconst " << TranslateVariableType(static_cast<const Token::ArrayType*>(typeInfo)->m_pElmtType) << "& " << sVarName << "_elmt = *" << sVarName << "_itr;" << std::endl;
 			}
