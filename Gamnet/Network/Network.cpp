@@ -20,8 +20,18 @@ boost::asio::ip::address GetLocalAddress()
 {
 #ifdef _WIN32
 	boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
-	boost::asio::ip::tcp::endpoint endpoint_ = *resolver_.resolve({boost::asio::ip::host_name(), ""});
-	return endpoint_.address();
+	boost::asio::ip::tcp::resolver::query query_(boost::asio::ip::host_name(), ""); 
+	boost::asio::ip::tcp::resolver::iterator itr = resolver_.resolve(query_);
+	boost::asio::ip::address addr;
+	while (itr != boost::asio::ip::tcp::resolver::iterator())
+	{
+		addr = (itr++)->endpoint().address();
+		if (addr.is_v4())
+		{
+			break;
+		}
+	}
+	return addr;
 #else
 	ifaddrs* ifAddrStruct=NULL;
 	getifaddrs(&ifAddrStruct);
