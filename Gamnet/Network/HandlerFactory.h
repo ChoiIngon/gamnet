@@ -32,11 +32,7 @@ struct IHandlerFactory
 template <class T>
 struct HandlerCreate : public IHandlerFactory
 {
-#ifdef _DEBUG
-	Pool<T, std::mutex, typename T::DebugInfo> pool_;
-#else
 	Pool<T, std::mutex> pool_;
-#endif
 	HandlerCreate() : pool_(65535)
 	{
 	}
