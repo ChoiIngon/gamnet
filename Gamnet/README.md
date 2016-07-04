@@ -1,10 +1,3 @@
-## Getting source code
-
-```
-https://github.com/ChoiIngon/gamnet
-```
-- Github provides several way(svn, git) you can get the source code of gamnet. 
-
 ## Setting build enviroment
 
 ### Ubuntu 64bit
@@ -49,23 +42,10 @@ $ sudo gdebi gamnet-linux-build-essential.deb
 - libcurl4-openssl-dev - https://www.openssl.org/
 - json-spirit - http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented
 
-## Build 'Gamnet'
+## Unit Test
+ - config.xml
 ```
-$ cd gamnet/Gamnet/Debug
-$ make
+<test host="127.0.0.1" port="20001" session_count="1" loop_count="1" interval="1000">
+ <message name="TestMessageHandler"/>
+</test>
 ```
-
-## Create your project and Import Libarary
-
-### Ubuntu 64bit
-- required library
- - Gamnet
- - boost_filesystem
- - boost_system
- - boost_thread
- - json_sprit
- - curl
- - pthread
-- optional library
- - crypto
- - mysqlclient_r
