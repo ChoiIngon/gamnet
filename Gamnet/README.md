@@ -16,7 +16,8 @@ $ sudo apt-get install gdebi-core
 
 ```
 $ cd gamnet/linux-build-essential
-$ ls build.sh control gamnet-linux-build-essential.deb postinst src
+$ ls 
+build.sh control gamnet-linux-build-essential.deb postinst src
 $ sudo gdebi gamnet-linux-build-essential.deb
 ```
 
