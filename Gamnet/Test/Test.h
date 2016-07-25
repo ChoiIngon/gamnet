@@ -23,9 +23,10 @@ namespace Gamnet { namespace Test {
 	}
 
 	template<class SESSION_T, class NTF_T>
-	void RegisterHandler(typename Tester<SESSION_T>::RECV_HANDLER_TYPE recv)
+	bool RegisterHandler(typename Tester<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
 		Singleton<Tester<SESSION_T>>::GetInstance().template RegisterHandler<NTF_T>(recv);
+		return true;
 	}
 
 	template<class SESSION_T, class REQ_T, class ANS_T>
@@ -70,4 +71,12 @@ namespace Gamnet { namespace Test {
 			&send_func, &recv_func \
 	)
 
+#define GAMNET_BIND_TEST_ANS_HANDLER(session_type, send_msg_type, recv_msg_type, send_func, recv_func) \
+	static bool Test_##send_msg_type##_##send_func = Gamnet::Test::RegisterHandler<session_type, send_msg_type, recv_msg_type>( \
+			#send_msg_type, \
+			&send_func, &recv_func \
+	)
+
+#define GAMNET_BIND_TEST_NTF_HANDLER(session_type, msg_type, func) \
+	static bool Test_##msg_type##_##func = Gamnet::Test::RegisterHandler<session_type, msg_type>(func)
 #endif /* TEST_H_ */
