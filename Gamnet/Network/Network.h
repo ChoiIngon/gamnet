@@ -77,7 +77,7 @@ namespace Gamnet { namespace Network {
 }}
 
 #define GAMNET_BIND_NETWORK_HANDLER(session_type, message_type, class_type, func, policy) \
-	static bool Network_##class_type##_##func = Gamnet::Network::RegisterHandler<session_type>( \
+	static bool Network_##message_type##_##class_type##_##func = Gamnet::Network::RegisterHandler<session_type>( \
 			message_type::MSG_ID, \
 			&class_type::func, \
 			new Gamnet::Network::policy<class_type>() \
