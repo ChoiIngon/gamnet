@@ -17,6 +17,7 @@
 #include <boost/lexical_cast.hpp>
 #include <string>
 #include <map>
+#include "ColumnValue.h"
 
 namespace Gamnet { namespace Database {
 
@@ -57,6 +58,12 @@ struct ResultSet
 			return boost::lexical_cast<T>(getString(column_name));
 		}
 		const std::string getString(const std::string& column_name);
+
+		ColumnValue operator [] (const std::string& column_name)
+		{
+			ColumnValue val(getString(column_name));
+			return val;
+		}
 
 		uint32_t getUInt(const std::string& column_name)
 		{

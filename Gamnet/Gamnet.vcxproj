@@ -138,6 +138,7 @@
     <ClCompile Include="database\Database.cpp" />
     <ClCompile Include="database\DatabaseImpl.cpp" />
     <ClCompile Include="database\ResultSet.cpp" />
+    <ClCompile Include="Database\ColumnValue.cpp" />
     <ClCompile Include="database\Transaction.cpp" />
     <ClCompile Include="Gamnet.cpp" />
     <ClCompile Include="http\Dispatcher.cpp" />
@@ -168,6 +169,7 @@
     <ClCompile Include="test\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Database\ColumnValue.h" />
     <ClInclude Include="database\Connection.h" />
     <ClInclude Include="database\Database.h" />
     <ClInclude Include="database\DatabaseImpl.h" />
