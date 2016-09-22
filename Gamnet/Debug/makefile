@@ -13,6 +13,7 @@ RM := rm -rf
 -include Network/subdir.mk
 -include Log/subdir.mk
 -include Library/subdir.mk
+-include Json/subdir.mk
 -include Http/subdir.mk
 -include Database/subdir.mk
 -include subdir.mk
