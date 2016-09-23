@@ -12,7 +12,7 @@ namespace Gamnet {	namespace Database {
 		ColumnValue(const std::string& val);
 
 		operator bool() const;
-		operator const char*() const;
+		operator const std::string () const;
 
 		operator double() const;
 		operator float() const;
