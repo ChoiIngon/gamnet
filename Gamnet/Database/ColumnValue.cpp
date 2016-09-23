@@ -49,12 +49,7 @@ Gamnet::Database::ColumnValue::	operator bool() const
 	return boost::lexical_cast<bool>(value); 
 }
 
-Gamnet::Database::ColumnValue::operator const char*() const 
+Gamnet::Database::ColumnValue::operator const char*() const
 { 
-	return value.c_str(); 
-}
-
-Gamnet::Database::ColumnValue::operator std::string() const 
-{ 
-	return value; 
+	return value.c_str();
 }

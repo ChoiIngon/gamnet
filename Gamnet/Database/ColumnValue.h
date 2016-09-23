@@ -13,7 +13,6 @@ namespace Gamnet {	namespace Database {
 
 		operator bool() const;
 		operator const char*() const;
-		operator std::string() const;
 
 		operator double() const;
 		operator float() const;
