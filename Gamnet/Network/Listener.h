@@ -74,7 +74,9 @@ public :
 		{
 			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 			session->socket_.set_option(option);
+			session->sessionKey_ = ++IListener::uniqueSessionKey_;
 			session->SetListener(this);
+			sessionManager_.AddSession(session->sessionKey_, session);
 			try {
 				session->remote_address_ = session->socket_.remote_endpoint().address();
 				session->OnAccept();

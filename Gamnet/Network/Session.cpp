@@ -212,9 +212,7 @@ void Session::SetListener(IListener* listener)
 		{
 			self->listener_->sessionManager_.DelSession(self->sessionKey_, self);
 		}
-		self->sessionKey_ = ++IListener::uniqueSessionKey_;
 		self->listener_ = listener;
-		listener->sessionManager_.AddSession(self->sessionKey_, self);
 	})(listener);
 }
 

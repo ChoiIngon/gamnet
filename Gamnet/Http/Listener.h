@@ -51,10 +51,10 @@ public :
 		if(0 == error)
 		{
 			session->sessionKey_ = ++IListener::uniqueSessionKey_;
-			session->listener_ = this;
+			session->SetListener(this);
+			sessionManager_.AddSession(session->sessionKey_, session);
 			try {
 				session->remote_address_ = session->socket_.remote_endpoint().address();
-				sessionManager_.AddSession(session->sessionKey_, session);
 				session->OnAccept();
 				session->AsyncRead();
 			}
