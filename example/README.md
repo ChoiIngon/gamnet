@@ -5,13 +5,14 @@
 - You can find more information at '[README](https://github.com/ChoiIngon/gamnet/blob/master/idlc/README.md)' in 'gamnet/idlc/' directory
 
 #Write sample echo server
+##Write custom Session class
+- To store session data per user.
+- You need to describe your own customized session class
+- You can do what ever you want to be. but the custom session class shoud be derived from 'Network::Session' class
+- And it has to be implemented 'OnAccept', 'OnClose' pure virtual function.
 ```C++
-/** 1. include 'Gamnet.h' and using namespace may make you a little bit comfortable for writing code */
-#include "Gamnet.h"
-#include "Message.h" // generated from Message.idl by 'idlc'
-using namespace Gamnet;
-
-/** 2. Write Your Own Session class It may store Data for your service. 
+/** 
+      Write Your Own Session class It may store Data for your service. 
       eg) client's state or user id, user's some other any thing 
 */ 
 
@@ -23,8 +24,15 @@ public :
   virtual void OnAccept() {} 
   virtual void OnClose(int reason) {} 
 };
+```
+##Write message handler
+```C++
+/** 1. include 'Gamnet.h' and using namespace may make you a little bit comfortable for writing code */
+#include "Gamnet.h"
+#include "Message.h" // generated from Message.idl by 'idlc'
+using namespace Gamnet;
 
-/** 3. Write Service Handler Class and Handler Function For Quick Example
+/** 2. Write Service Handler Class and Handler Function For Quick Example
       this handler just echo the received message. 
 */ 
 
