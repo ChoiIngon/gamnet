@@ -58,7 +58,7 @@ public :
 		time(&logtime_);
 #ifdef _WIN32 // build Static multithreaded library "libcmt"
 		localtime_s(&when, &logtime_);
-		_snprintf(timebuf, 22, "[%04d-%02d-%02d %02d:%02d:%02d]", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+		_snprintf_s(timebuf, 22, 21, "[%04d-%02d-%02d %02d:%02d:%02d]", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
 #else
 		localtime_r( &logtime_, &when );
 		snprintf(timebuf, 22, "[%04d-%02d-%02d %02d:%02d:%02d]", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
