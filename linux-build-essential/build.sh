@@ -41,18 +41,18 @@ fi
 #	cp -r src/$mysqlconnector_dir/lib $pkg_name/usr/local
 #fi
 
-if [ ! -d "src/json_spirit_v4.06" ]; then
-	cd src;	tar -xvf json_spirit_v4.06.tar.gz
-	cd -
-fi
+#if [ ! -d "src/json_spirit_v4.06" ]; then
+#	cd src;	tar -xvf json_spirit_v4.06.tar.gz
+#	cd -
+#fi
 
-if [ ! -f "$pkg_name/usr/local/lib/libjson_spirit.a" ]; then
-	cd src/json_spirit_v4.06; cmake CMakeLists.txt
-	cd json_spirit; make
-	cd ../../../
-	cp src/json_spirit_v4.06/json_spirit/*.h $pkg_name/usr/local/include 
-	cp src/json_spirit_v4.06/json_spirit/*.a $pkg_name/usr/local/lib
-fi
+#if [ ! -f "$pkg_name/usr/local/lib/libjson_spirit.a" ]; then
+#	cd src/json_spirit_v4.06; cmake CMakeLists.txt
+#	cd json_spirit; make
+#	cd ../../../
+#	cp src/json_spirit_v4.06/json_spirit/*.h $pkg_name/usr/local/include 
+#	cp src/json_spirit_v4.06/json_spirit/*.a $pkg_name/usr/local/lib
+#fi
 
 if [ ! -f "$pkg_name/usr/local/bin/idlc" ]; then
     cd src/idlc/Debug
