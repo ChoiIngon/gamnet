@@ -61,10 +61,15 @@ namespace Gamnet { namespace Network {
 		time_t logtime_;
 		struct tm when;
 		time(&logtime_);
-		localtime_r( &logtime_, &when );
 
 		char timebuf[22] = {0};
-		snprintf (timebuf, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year+1900, when.tm_mon+1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+#ifdef _WIN32
+		localtime_s(&when, &logtime_);
+		_snprintf(timebuf, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+#else
+		localtime_r(&logtime_, &when);
+		snprintf(timebuf, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+#endif
 
 		std::string ret;
 		ret += "{";
