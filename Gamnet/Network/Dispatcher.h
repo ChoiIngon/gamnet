@@ -36,7 +36,20 @@ public :
 		//function_type function_;
 		std::function<void(const std::shared_ptr<IHandler>&, std::shared_ptr<SESSION_T>, std::shared_ptr<Packet>)> function_;
 	};
+
 	std::map<unsigned int, HandlerFunction> mapHandlerFunction_;
+#ifdef _DEBUG
+	struct HandlerCallInfo 
+	{
+		HandlerCallInfo() : handlerID(0), beginCount(0), finishCount(0), elapsedTime(0.0f) {
+		}
+		int handlerID;
+		std::atomic_int beginCount;
+		std::atomic_int finishCount;
+		std::atomic_int64_t elapsedTime;
+	};
+	std::map<unsigned int, std::shared_ptr<HandlerCallInfo>> mapHandlerCallInfo_;
+#endif
 public:
 	Dispatcher() {}
 	~Dispatcher() {}
@@ -53,6 +66,11 @@ public:
 			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ")");
 #endif
 		}
+
+#ifdef _DEBUG
+		std::shared_ptr<HandlerCallInfo> handlerCallInfo(new HandlerCallInfo());
+		mapHandlerCallInfo_.insert(std::make_pair(msg_id, handlerCallInfo));
+#endif
 		return true;
 	}
 
@@ -75,7 +93,15 @@ public:
 			session->OnError(EINVAL);
 			return;
 		}
-		//(handler.get()->*handler_function.function_)(session, packet);
+#ifdef _DEBUG
+
+		boost::posix_time::ptime tick = boost::posix_time::second_clock::local_time();
+		if (mapHandlerCallInfo_.end() != mapHandlerCallInfo_.find(msg_id))
+		{
+			std::shared_ptr<HandlerCallInfo> callInfo = mapHandlerCallInfo_[msg_id];
+			callInfo->beginCount++;
+		}
+#endif
 		try {
 			handler_function.function_(handler, session, packet);
 		}
@@ -83,6 +109,15 @@ public:
 		{
 			Log::Write(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
 		}
+#ifdef _DEBUG
+		if (mapHandlerCallInfo_.end() != mapHandlerCallInfo_.find(msg_id))
+		{
+			std::shared_ptr<HandlerCallInfo> callInfo = mapHandlerCallInfo_[msg_id];
+			boost::posix_time::time_duration diff = boost::posix_time::second_clock::local_time() - tick;
+			callInfo->elapsedTime += diff.total_milliseconds();
+			callInfo->finishCount++;
+		}
+#endif
 	}
 };
 
