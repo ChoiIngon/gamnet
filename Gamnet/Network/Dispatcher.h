@@ -46,7 +46,7 @@ public :
 		int handlerID;
 		std::atomic_int beginCount;
 		std::atomic_int finishCount;
-		std::atomic_int64_t elapsedTime;
+		std::atomic<std::int64_t> elapsedTime;
 	};
 	std::map<unsigned int, std::shared_ptr<HandlerCallInfo>> mapHandlerCallInfo_;
 #endif
