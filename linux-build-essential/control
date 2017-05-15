@@ -3,9 +3,8 @@ Version: 1.2.0
 Section: devel
 Priority: optional
 Architecture: all
-Depends: build-essential, subversion, openjdk-7-jdk, libmysqlclient-dev, libmysql++-dev, libcurl4-openssl-dev,
- libjson0, libjson0-dev, libjsoncpp0, libjsoncpp-dev, python-twisted-core, flex, cmake
-Recommends: libjson0-dbg, python-mysqldb
+Depends: build-essential, subversion, libmysqlclient-dev, libmysql++-dev, libcurl4-openssl-dev, libssl-dev, flex, cmake
+Recommends: libjson0-dbg, python-mysqldb, libjson0, libjson0-dev, libjsoncpp0, libjsoncpp-dev, python-twisted-core
 Maintainer: Gamnet Server Developers <kukuta@gmail.com>
 Description: Gamnet Server Devlopment base library install package
  1.0.0 : init
