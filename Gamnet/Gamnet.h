@@ -18,7 +18,8 @@
 #include "Http/HttpServer.h"
 #include "Router/Router.h"
 #include "Test/Test.h"
-#include "Database/Database.h"
+#include "Database/MySQL/MySQL.h"
+#include "Database/Redis/Redis.h"
 
 namespace Gamnet {
 void Run(int thread_count = 0);

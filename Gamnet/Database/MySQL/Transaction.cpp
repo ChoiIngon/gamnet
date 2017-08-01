@@ -6,16 +6,15 @@
  */
 
 #include "Transaction.h"
-#include "DatabaseImpl.h"
-#include "../Library/Singleton.h"
-#include "../Library/Exception.h"
+#include "../ConnectionPool.h"
+#include "../../Library/Singleton.h"
+#include "../../Library/Exception.h"
 
-namespace Gamnet {
-namespace Database {
+namespace Gamnet { namespace Database { namespace MySQL {
 
 Transaction::Transaction(int db_type) : commit(false)
 {
-	connection = Singleton<DatabaseImpl>::GetInstance().GetConnection(db_type);
+	connection = Singleton<ConnectionPool<Connection, ResultSet>>::GetInstance().GetConnection(db_type);
 	connection->Execute("start transaction");
 }
 /*
@@ -52,3 +51,4 @@ Transaction::~Transaction() {
 
 } /* namespace Database */
 } /* namespace Gamnet */
+}

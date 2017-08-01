@@ -1,30 +1,19 @@
-/*
- * Database.h
- *
- *  Created on: Jul 24, 2013
- *      Author: kukuta
- */
+#ifndef GAMNET_DATABASE_DATABASE_H
+#define GAMNET_DATABASE_DATABASE_H
 
-#ifndef GAMNET_DATABASE_DATABASE_H_
-#define GAMNET_DATABASE_DATABASE_H_
+#include "MySQL/MySQL.h"
+#include "Redis/Redis.h"
 
-#include "DatabaseImpl.h"
-#include "Transaction.h"
-#include "../Library/String.h"
-namespace Gamnet { namespace Database {
+namespace Gamnet {	namespace Database {
+	typedef MySQL::ResultSet ResultSet;
+	typedef MySQL::Transaction Transaction;
+	void ReadXml(const char* xml_path);
+	bool Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db);
 
-void ReadXml(const char* xml_path);
-bool 	  Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db);
-ResultSet Execute(int db_type, const std::string& query);
-//void 	  AExecute(int db_type, const std::string& query, std::function<void(ResultSet)> callback);
-
-template <class... ARGS>
-ResultSet Execute(int db_type, ARGS... args)
-{
-	const std::string query = Format(args...);
-	return Execute(db_type, query);
-}
-
+	template <class... ARGS>
+	ResultSet Execute(int db_type, ARGS... args)
+	{
+		return MySQL::Execute(db_type, Format(args...));
+	}
 }}
-
-#endif /* DATABASE_H_ */
+#endif

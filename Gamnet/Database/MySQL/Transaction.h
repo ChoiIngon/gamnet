@@ -1,24 +1,15 @@
-/*
- * Transaction.h
- *
- *  Created on: Jul 24, 2015
- *      Author: wered
- */
-
-#ifndef DATABASE_TRANSACTION_H_
-#define DATABASE_TRANSACTION_H_
+#ifndef GAMNET_DATABASE_MYSQL_TRANSACTION_H_
+#define GAMNET_DATABASE_MYSQL_TRANSACTION_H_
 
 #include "Connection.h"
+#include "../../Library/String.h"
 
-namespace Gamnet {
-namespace Database {
-
+namespace Gamnet { namespace Database { namespace MySQL {
 class Transaction {
 	bool commit;
 	std::shared_ptr<Connection> connection;
 public:
 	Transaction(int db_type);
-	//Transaction(int db_type, std::function<void(Transaction& transaction)> t);
 	virtual ~Transaction();
 
 	template <class... ARGS>
@@ -33,7 +24,5 @@ public:
 	void Commit();
 };
 
-} /* namespace Database */
-} /* namespace Gamnet */
-
+} } }
 #endif /* DATABASE_TRANSACTION_H_ */

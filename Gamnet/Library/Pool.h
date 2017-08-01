@@ -1,10 +1,3 @@
-/*
- * LockPool.h
- *
- *  Created on: 2013. 4. 25.
- *      Author: jjaehuny
- */
-
 #ifndef __GAMNET_LIB_POOL_H_
 #define __GAMNET_LIB_POOL_H_
 

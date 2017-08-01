@@ -124,8 +124,9 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\local\boost_1_61_0;C:\local\OpenSSL-Win64\include;C:\local\curl-7.43.0-win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\local\boost_1_64_0;C:\local\OpenSSL-Win64\include;C:\local\curl-7.43.0-win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -134,12 +135,14 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="database\Connection.cpp" />
-    <ClCompile Include="database\Database.cpp" />
-    <ClCompile Include="database\DatabaseImpl.cpp" />
-    <ClCompile Include="database\ResultSet.cpp" />
-    <ClCompile Include="Database\ColumnValue.cpp" />
-    <ClCompile Include="database\Transaction.cpp" />
+    <ClCompile Include="Database\Database.cpp" />
+    <ClCompile Include="Database\MySQL\Connection.cpp" />
+    <ClCompile Include="Database\MySQL\MySQL.cpp" />
+    <ClCompile Include="Database\Redis\Connection.cpp" />
+    <ClCompile Include="Database\Redis\Redis.cpp" />
+    <ClCompile Include="Database\Redis\ResultSet.cpp" />
+    <ClCompile Include="Database\MySQL\ResultSet.cpp" />
+    <ClCompile Include="Database\MySQL\Transaction.cpp" />
     <ClCompile Include="Gamnet.cpp" />
     <ClCompile Include="http\Dispatcher.cpp" />
     <ClCompile Include="http\HttpClient.cpp" />
@@ -152,6 +155,7 @@
     <ClCompile Include="library\Buffer.cpp" />
     <ClCompile Include="library\Exception.cpp" />
     <ClCompile Include="library\MD5.cpp" />
+    <ClCompile Include="Library\Variant.cpp" />
     <ClCompile Include="log\File.cpp" />
     <ClCompile Include="log\Log.cpp" />
     <ClCompile Include="log\Logger.cpp" />
@@ -169,12 +173,15 @@
     <ClCompile Include="test\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Database\ColumnValue.h" />
-    <ClInclude Include="database\Connection.h" />
-    <ClInclude Include="database\Database.h" />
-    <ClInclude Include="database\DatabaseImpl.h" />
-    <ClInclude Include="database\ResultSet.h" />
-    <ClInclude Include="database\Transaction.h" />
+    <ClInclude Include="Database\ConnectionPool.h" />
+    <ClInclude Include="Database\Database.h" />
+    <ClInclude Include="Database\MySQL\Connection.h" />
+    <ClInclude Include="Database\MySQL\MySQL.h" />
+    <ClInclude Include="Database\Redis\Connection.h" />
+    <ClInclude Include="Database\Redis\Redis.h" />
+    <ClInclude Include="Database\Redis\ResultSet.h" />
+    <ClInclude Include="Database\MySQL\ResultSet.h" />
+    <ClInclude Include="Database\MySQL\Transaction.h" />
     <ClInclude Include="Gamnet.h" />
     <ClInclude Include="http\Dispatcher.h" />
     <ClInclude Include="http\HttpClient.h" />
@@ -196,6 +203,7 @@
     <ClInclude Include="library\String.h" />
     <ClInclude Include="library\ThreadPool.h" />
     <ClInclude Include="library\Timer.h" />
+    <ClInclude Include="Library\Variant.h" />
     <ClInclude Include="log\File.h" />
     <ClInclude Include="log\Log.h" />
     <ClInclude Include="log\Logger.h" />
