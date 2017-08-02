@@ -8,18 +8,26 @@
 
 # Usage
 ## MySQL
-### Connect
+* There are two way for connection to MySQL. Using 'Connect' function directly or 'ReadXml' function reading configueration from xml file.
+### Direct 'Connect' function
 ```cpp
-namespace Gamnet { namespace Database { namespace MySQL {
-	void ReadXml(const char* xml_path);
-	bool Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db);
-	ResultSet Execute(int db_type, const std::string& query);
-	template <class... ARGS>
-	ResultSet Execute(int db_type, ARGS... args)
-	{
-		return Execute(db_type, Format(args...));
-	}
-}}}
+#include <Gamnet.h>
+
+int main()
+{
+	// 'Gamnet::Database::MySQL' uses internally 'Gamnet::Log'. so before calling 'Connect' function, you should init Log
+	Gamnet::Log::ReadXml("config.xml");
+	
+	int db_type = 1; // id for identify database connection pool
+	const char* host = "some.host.com"; // domain name or ip of mysql server
+	int port = 3306; // mysql server port
+	const char* id = "mysql_user_id"; // mysql user id
+	const char* passwd = "mysq_user_passwd"; // mysql user password
+	const char* db = "db_name"; // database name
+	
+	Gamnet::Database::MySQL::Connect(db_type, host, port, "mysql_id", "mysql_password", "db_name");
+	return 0;	
+}
 ```
 ### Query
 
