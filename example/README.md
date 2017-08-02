@@ -1,32 +1,36 @@
-#Write 'IDL'
-- To send and receive the data structure as byte stream through network, you should define data structures in .idl file and complie it.
-- 'idlc' will translated idl code to specific language code and generate serialize/de-serialize code.
-- please refer [Message.idl](https://github.com/ChoiIngon/gamnet/blob/master/example/Message.idl) sample code
-- You can find more information at '[README](https://github.com/ChoiIngon/gamnet/blob/master/idlc/README.md)' in 'gamnet/idlc/' directory
+# Write 'IDL'
+* To send and receive the data structure as byte stream through network, you should define data structures in .idl file and complie it.
+* 'idlc' will translated idl code to specific language code and generate serialize/de-serialize code.
+* please refer [Message.idl](https://github.com/ChoiIngon/gamnet/blob/master/example/Message.idl) sample code
+* You can find more information at '[README](https://github.com/ChoiIngon/gamnet/blob/master/idlc/README.md)' in 'gamnet/idlc/' directory
 
-#Write sample echo server
-##Write custom Session class
-- To store session data per user.
-- You need to describe your own customized session class
-- You can do what ever you want to be. but the custom session class shoud be derived from 'Network::Session' class
-- And it has to be implemented 'OnAccept', 'OnClose' pure virtual function.
-```C++
+# Write sample echo server
+1. Write custom Session class
+  * custom 'Session' class is used to store information per each connection.
+  * You need to describe your own customized session class derived from 'Gamnet::Network::Session'
+  * custom 'Session' class has to be implemented 'OnAccept', 'OnClose' pure virtual function.
+1. Write message handler  
+```cpp
 /** 
       Write Your Own Session class It may store Data for your service. 
       eg) client's state or user id, user's some other any thing 
 */ 
-
 class ClientSession : public Network::Session 
 { 
-  std::string userid; 
-  std::string userSomething; 
+      std::string userid; 
+      std::string userSomething; 
 public : 
-  virtual void OnAccept() {} 
-  virtual void OnClose(int reason) {} 
+      void OnAccept() {
+            LOG(DEV, "session accepted");
+      } 
+      void OnClose(int reason) 
+      {
+            LOG(DEV, "session closed");
+      } 
 };
 ```
-##Write message handler
-```C++
+
+```cpp
 /** 1. include 'Gamnet.h' and using namespace may make you a little bit comfortable for writing code */
 #include "Gamnet.h"
 #include "Message.h" // generated from Message.idl by 'idlc'
