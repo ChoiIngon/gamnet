@@ -54,7 +54,7 @@ config.xml
 
 int main()
 {
-	// 'Gamnet::Database::MySQL' uses internally 'Gamnet::Log'. so before calling 'Connect' function, you should init Log
+	// 'Gamnet::Database::MySQL' uses internally 'Gamnet::Log'. so before calling 'ReadXml' function, you should init Log
 	Gamnet::Log::ReadXml("config.xml");
 	Gamnet::Database::MySQL::ReadXml("config.xml");
 	return 0;	
@@ -68,7 +68,6 @@ int main()
 
 int main()
 {
-	// 'Gamnet::Database::MySQL' uses internally 'Gamnet::Log'. so before calling 'Connect' function, you should init Log
 	Gamnet::Log::ReadXml("config.xml");
 	Gamnet::Database::MySQL::ReadXml("config.xml");
 	
@@ -149,7 +148,7 @@ config.xml
 
 int main()
 {
-	// 'Gamnet::Database::MySQL' uses internally 'Gamnet::Log'. so before calling 'Connect' function, you should init Log
+	// 'Gamnet::Database::Redis' uses internally 'Gamnet::Log'. so before calling 'ReadXml' function, you should init Log
 	Gamnet::Log::ReadXml("config.xml");
 	Gamnet::Database::Redis::ReadXml("config.xml");
 	return 0;	
@@ -163,7 +162,6 @@ int main()
 
 int main()
 {
-	// 'Gamnet::Database::MySQL' uses internally 'Gamnet::Log'. so before calling 'Connect' function, you should init Log
 	Gamnet::Log::ReadXml("config.xml");
 	Gamnet::Database::Redis::ReadXml("config.xml");
 	
@@ -172,7 +170,7 @@ int main()
 	std::string user_addr = "Korea";
 
 	// SET
-	Gamnet::Database::Redis::ResultSet select = Gamnet::Database::MySQL::Execute(db_type,
+	Gamnet::Database::Redis::ResultSet select = Gamnet::Database::Redis::Execute(db_type,
 		"SET ", user_seq, " ", user_addr
 	);
 	
