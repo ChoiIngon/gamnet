@@ -52,7 +52,7 @@ config.xml
 	<database name="DB_NAME_2" id="2" host="some.host.com" port="3306" user="user_id" passwd="user_passwd" db="db_name_2" />
 <server/>
 ```
-main.cpp
+
 ```cpp
 #include <Gamnet.h>
 
@@ -65,7 +65,6 @@ int main()
 }
 ```
 ### Query
-main.cpp
 ```cpp
 #include <Gamnet.h>
 #include <string>
