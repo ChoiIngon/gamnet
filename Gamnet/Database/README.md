@@ -9,7 +9,7 @@
 # Usage
 ## MySQL
 * There are two way for connection to MySQL. Using 'Connect' function directly or 'ReadXml' function reading configueration from xml file.
-### Direct 'Connect' function
+### Using 'Connect' function directly
 ```cpp
 #include <Gamnet.h>
 
