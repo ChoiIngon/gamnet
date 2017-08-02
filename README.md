@@ -17,5 +17,5 @@
 # Usage
 - [How to build 'Gamnet' library](https://github.com/ChoiIngon/gamnet/blob/master/Gamnet/README.md)
 - [Write 'IDL(Interface Definition Language)' for data serialize/de-serialize](https://github.com/ChoiIngon/gamnet/blob/master/idlc/README.md)
-- [Usage of 'Gamnet::Database'] (https://github.com/ChoiIngon/gamnet/blob/master/Gamnet/Database/README.md)
+- [Usage of 'Gamnet::Database'](https://github.com/ChoiIngon/gamnet/blob/master/Gamnet/Database/README.md)
 - [Sample project](https://github.com/ChoiIngon/gamnet/tree/master/example)
