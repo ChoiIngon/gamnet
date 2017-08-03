@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef RESPONSE_H_
-#define RESPONSE_H_
+#ifndef GAMNET_HTTP_RESPONSE_H_
+#define GAMNET_HTTP_RESPONSE_H_
 
 #include <string>
 #include <map>

@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef ROUTERIMPL_H_
-#define ROUTERIMPL_H_
+#ifndef GAMNET_ROUTER_LISTENER_H_
+#define GAMNET_ROUTER_LISTENER_H_
 
 #include <list>
 #include <set>

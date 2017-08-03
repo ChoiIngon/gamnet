@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef ROUTER_MSGHANDLER_H_
-#define ROUTER_MSGHANDLER_H_
+#ifndef GAMNET_ROUTER_MSGHANDLER_H_
+#define GAMNET_ROUTER_MSGHANDLER_H_
 
 #include "Session.h"
 #include "../Network/Handler.h"

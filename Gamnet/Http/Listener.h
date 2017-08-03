@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef LISTENER_H_
-#define LISTENER_H_
+#ifndef GAMNET_HTTP_LISTENER_H_
+#define GAMNET_HTTP_LISTENER_H_
 
 #include "Session.h"
 

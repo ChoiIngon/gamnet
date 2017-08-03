@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef HTTPSERVER_H_
-#define HTTPSERVER_H_
+#ifndef GAMNET_HTTP_HTTPSERVER_H_
+#define GAMNET_HTTP_HTTPSERVER_H_
 
 #include "Listener.h"
 #include "Dispatcher.h"

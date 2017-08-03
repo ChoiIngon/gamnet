@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef ROUTER_CASTER_H_
-#define ROUTER_CASTER_H_
+#ifndef GAMNET_ROUTER_CASTER_H_
+#define GAMNET_ROUTER_CASTER_H_
 
 #include <list>
 #include <string>

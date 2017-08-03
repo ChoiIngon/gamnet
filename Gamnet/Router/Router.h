@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef ROUTER_H_
-#define ROUTER_H_
+#ifndef GAMNET_ROUTER_H_
+#define GAMNET_ROUTER_H_
 
 #include "../Network/Network.h"
 #include "RouterListener.h"

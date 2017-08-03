@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef SESSION_H_
-#define SESSION_H_
+#ifndef GAMNET_HTTP_SESSION_H_
+#define GAMNET_HTTP_SESSION_H_
 
 #include "../Network/Network.h"
 #include "Response.h"

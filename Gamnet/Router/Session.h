@@ -5,8 +5,8 @@
  *      Author: kukuta
  */
 
-#ifndef SERVERSESSION_H_
-#define SERVERSESSION_H_
+#ifndef GAMNET_ROUTER_SESSION_H
+#define GAMNET_ROUTER_SESSION_H
 
 #include "../Network/Network.h"
 #include "../Library/Timer.h"
@@ -82,7 +82,6 @@ public:
 	std::function<void(const Address& addr)> onRouterConnect;
 	std::function<void(const Address& addr)> onRouterClose;
 
-	void Init();
 	void Connect(const char* host, int port, int timeout = 5);
 	virtual void OnAccept();
 	virtual void OnConnect();
