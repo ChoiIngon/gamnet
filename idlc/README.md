@@ -1,13 +1,17 @@
 # IDLC(Interface Definition Language Compiler)
 
-- 'idlc' is a kind of interface language compiler. 
-- .idl file It will compile .idl files and generate translated code as specified(eg. C++/Python/C#..) which is used for serializing and de-serializing
+- 'idlc' is a kind of small compiler that translating interface language to each C++, Python or C#(and so on)
+- 'idlc' generates serialize(from structure data to binary stream) and de-serialize(from bynary stream to structure) code about decribed structure
 
 ## Quick Example
 
 1. write below "example.idl" and save it.
 
 ```
+/**
+	'Person' is a name for structure
+	'1' is id for this structure
+*/
 message Person : 1 
 {
 	int32 id; 
@@ -80,12 +84,11 @@ int main()
 ```
 
 ## Keywords
-
-- "message" : numbered and structured data to be serialized/de-serialized.
-- "struct" : pure structured data to be serialized/de-serialized.
-- "enum" : enumerator.
-- ".cpp|.cs|.py %% ~ %%" : literal block for each language.
-- "typedef" : re-definition of type name
+ * "message" : numbered and structured data to be serialized/de-serialized.
+ * "struct" : pure structured data to be serialized/de-serialized.
+ * "enum" : enumerator. 
+ * ".cpp|.cs|.py %% ~ %%" : literal block for each language. 
+ * "typedef" : re-definition of type name
 
 ## Support data types
 
