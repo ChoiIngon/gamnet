@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <mutex>
-#include "../Library/Singleton.h"
+#include "../Library/String.h"
 #include "../Library/Exception.h"
 #include "File.h"
 
@@ -37,6 +37,12 @@ private :
 public :
 	Logger() : IsInit_(false){};
 	virtual ~Logger(){};
+
+	static Logger& GetInstance()
+	{
+		static Logger self;
+		return self;
+	}
 
 	template <typename... Args>
 	void Write(LOG_LEVEL_TYPE level, const Args&... args)

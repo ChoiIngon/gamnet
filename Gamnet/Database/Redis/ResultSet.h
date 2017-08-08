@@ -24,6 +24,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 		iterator begin();
 		iterator end() const;
 		const Variant& operator[](unsigned int index);
+		std::shared_ptr<ResultSetImpl> operator -> ();
 
 		const std::string& error() const;
 	};

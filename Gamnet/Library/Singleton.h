@@ -8,31 +8,66 @@
 #ifndef __GAMNET_LIB_SINGLETON_H_
 #define __GAMNET_LIB_SINGLETON_H_
 
-#include <vector>
 #include <functional>
+#include <set>
+#include <map>
+#include <string>
+#include "Exception.h"
+#include "../Log/Log.h"
 
 namespace Gamnet {
 
 struct SingletonInitHelper
 {
-	std::vector<std::function<void()>> vecInitFunc_;
+	struct InitFuncInfo
+	{
+		std::string name;
+		std::function<void()> func;
+	};
+
+	std::set<std::string> setInitCompleted;
+	std::map<std::string, InitFuncInfo> mapInitFuncInfos;
 	static SingletonInitHelper& GetInstance()
 	{
 		static SingletonInitHelper self;
 		return self;
 	}
 	template<class INIT_FUNC>
-	bool RegisterInitFunction(INIT_FUNC func)
+	bool RegisterInitFunction(const std::string& name, INIT_FUNC func)
 	{
-		vecInitFunc_.push_back(func);
+		InitFuncInfo info;
+		info.name = name;
+		info.func = func;
+		if (false == mapInitFuncInfos.insert(std::make_pair(name, info)).second)
+		{
+			LOG(ERR, "duplicated init function registration(name:", info.name, ")");
+			throw Exception(0, "duplicated init function registration(name:", info.name, ")");
+		}
 		return true;
 	}
 	void Init()
 	{
-		for(auto& init_func :vecInitFunc_)
+		for(auto& itr : mapInitFuncInfos)
 		{
-			init_func();
+			CallInitFunc(itr.second.name);
 		}
+	}
+
+	void CallInitFunc(const std::string& name)
+	{
+		auto itr = mapInitFuncInfos.find(name);
+		if (mapInitFuncInfos.end() == itr)
+		{
+			LOG(ERR, "undefined init function(name:", name, ")");
+			throw Exception(0, "undefined init function(name:", name, ")");
+		}
+
+		const InitFuncInfo& info = itr->second;
+		if (false == setInitCompleted.insert(info.name).second)
+		{
+			return;
+		}
+		info.func();
 	}
 };
 
@@ -48,13 +83,7 @@ public :
 		static T self;
 		return self;
 	}
-
-	template <class INIT_FUNC_PTR>
-	bool RegisterInitFunction(INIT_FUNC_PTR func)
-	{
-		return SingletonInitHelper::GetInstance().RegisterInitFunction(std::bind(func, &GetInstance()));
-	}
-
+	
 	T& operator ()()
 	{
 		return GetInstance();
@@ -64,5 +93,8 @@ public :
 }
 
 #define GAMNET_BIND_INIT_HANDLER(class_type, func_type) \
-	bool Init_##class_type##_##func_type = Gamnet::Singleton<class_type>().RegisterInitFunction(&class_type::func_type)
+	bool Init_##class_type##_##func_type = Gamnet::SingletonInitHelper::GetInstance().RegisterInitFunction(#class_type, std::bind(&class_type::func_type, &Gamnet::Singleton<class_type>::GetInstance()))
+
+#define GAMNET_CALL_INIT_HANDLER(class_type) \
+	SingletonInitHelper::GetInstance().CallInitFunc(#class_type);
 #endif /* TOOLKIT_SINGLE_H_ */

@@ -6,7 +6,6 @@
  */
 
 #include "Logger.h"
-#include "../Library/Singleton.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/exception/diagnostic_information.hpp>
@@ -15,7 +14,7 @@ namespace Gamnet { namespace Log {
 
 void Init(const char* log_dir, const char* prefix, int max_file_size)
 {
-	Singleton<Logger>::GetInstance().Init(log_dir, prefix, max_file_size);
+	Logger::GetInstance().Init(log_dir, prefix, max_file_size);
 }
 
 void ReadXml(const char* xml_path)
@@ -62,13 +61,13 @@ void ReadXml(const char* xml_path)
 			flag |= Logger::LOG_SYSLOG;
 		}
 
-		Singleton<Logger>::GetInstance().SetLevelProperty(level, flag);
+		Logger::GetInstance().SetLevelProperty(level, flag);
 	}
 }
 
 void SetLevelProperty(Logger::LOG_LEVEL_TYPE level, int flag)
 {
-	Singleton<Logger>::GetInstance().SetLevelProperty(level, flag);
+	Logger::GetInstance().SetLevelProperty(level, flag);
 }
 
 }}

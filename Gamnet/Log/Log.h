@@ -9,7 +9,6 @@
 #define GAMNET_LOG_LOG_H_
 
 #include "Logger.h"
-#include "../Library/Singleton.h"
 
 namespace Gamnet { namespace Log {
 	/// \brief Initialize function for Logger lib
@@ -23,7 +22,7 @@ namespace Gamnet { namespace Log {
 	template <typename... Args>
 	void Write(Logger::LOG_LEVEL_TYPE level, const Args&... args)
 	{
-		Singleton<Logger>::GetInstance().Write(level, args...);
+		Logger::GetInstance().Write(level, args...);
 	}
 }}
 

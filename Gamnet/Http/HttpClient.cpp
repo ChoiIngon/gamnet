@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <cstring>
+#include <vector>
 #include "../Log/Log.h"
 struct curl_slist;
 
