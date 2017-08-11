@@ -6,22 +6,33 @@ using System.Collections.Generic;
 
 namespace Gamnet
 {
-	public abstract class Session
-	{
+    public abstract class Session
+    {
         public enum ConnectionState
         {
             Disconnected,
             OnConnecting,
             Connected
         }
+        private Socket _socket = null;
+        private IPEndPoint _endPoint = null;
+        public SyncQueue<NetworkEvent> eventQueue = new SyncQueue<NetworkEvent>();
+        private SyncQueue<byte[]> sendQueue = new SyncQueue<byte[]>(); // 바로 보내지 못하고 
+        public ConnectionState state = ConnectionState.Disconnected;
 
         public abstract class NetworkEvent
         {
-            public Session session;
+            protected Session session;
+            public NetworkEvent(Session session)
+            {
+                this.session = session;
+            }
             public abstract void Event();
         };
+
         public class ConnectEvent : NetworkEvent
         {
+            public ConnectEvent(Session session) : base(session) {}
             public override void Event()
             {
                 session.state = ConnectionState.Connected;
@@ -31,6 +42,7 @@ namespace Gamnet
         }
         public class ReconnectEvent : NetworkEvent
         {
+            public ReconnectEvent(Session session) : base(session) { }
             public override void Event()
             {
                 session.state = ConnectionState.Connected;
@@ -43,14 +55,16 @@ namespace Gamnet
         }
         public class ErrorEvent : NetworkEvent
         {
-            public System.Exception error;
+            public ErrorEvent(Session session) : base(session) { }
+            public System.Exception exception;
             public override void Event()
             {
-                session.OnError(error);
+                session.OnError(exception);
             }
         }
         public class ReceiveEvent : NetworkEvent
         {
+            public ReceiveEvent(Session session) : base(session) { }
             public Gamnet.Buffer buffer;
             public override void Event()
             {
@@ -59,16 +73,16 @@ namespace Gamnet
         }
         public class CloseEvent : NetworkEvent
         {
+            public CloseEvent(Session session) : base(session) { }
             public override void Event()
             {
                 session.state = ConnectionState.Disconnected;
                 session.OnClose();
             }
         }
-        
+
         public class SendStateObject
         {
-            public Socket socket = null;
             public Gamnet.Buffer buffer = null;
         }
 
@@ -107,86 +121,79 @@ namespace Gamnet
                     base.Clear();
             }
         };
-        
+
         public abstract void OnConnect();
         public abstract void OnReconnect();
         public abstract void OnClose();
         public abstract void OnError(System.Exception e);
         public abstract void OnReceive(Gamnet.Buffer buf);
-
-        private Socket _socket = null;
-        private IPEndPoint _endPoint = null;
-        public  SyncQueue<NetworkEvent> eventQueue = new SyncQueue<NetworkEvent>();
-        private SyncQueue<byte[]> sendQueue = new SyncQueue<byte[]>();
-
-        public ConnectionState state = ConnectionState.Disconnected;
-
-		public virtual void Connect(string host, int port)
-		{
-			try {
+        
+        public virtual void Connect(string host, int port)
+        {
+            try
+            {
                 state = ConnectionState.OnConnecting;
                 IPAddress ip = null;
                 try
                 {
                     ip = IPAddress.Parse(host);
                 }
-                catch(System.FormatException)
+                catch (System.FormatException)
                 {
                     IPHostEntry hostEntry = Dns.GetHostEntry(host);
-                    if(hostEntry.AddressList.Length > 0)
+                    if (hostEntry.AddressList.Length > 0)
                     {
                         ip = hostEntry.AddressList[0];
                     }
                 }
-				_endPoint = new IPEndPoint(ip, port);
-				Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-				socket.BeginConnect(_endPoint, new AsyncCallback(Callback_OnConnect), socket);
-			}
-			catch (System.Exception error)
-			{
+                _endPoint = new IPEndPoint(ip, port);
+                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                socket.BeginConnect(_endPoint, new AsyncCallback(Callback_OnConnect), socket);
+            }
+            catch (System.Exception error)
+            {
                 Error(error);
-			}
-		}
+            }
+        }
         private void Reconnect()
         {
             try
             {
-                if(ConnectionState.Disconnected != state)
+                if (ConnectionState.Disconnected != state)
                 {
                     return;
                 }
                 state = ConnectionState.OnConnecting;
                 Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                socket.BeginConnect(_endPoint, new AsyncCallback(Callback_OnConnect), socket);
+                socket.BeginConnect(_endPoint, new AsyncCallback(Callback_OnReconnect), socket);
             }
-            catch(System.Exception error)
+            catch (System.Exception error)
             {
                 Error(error);
             }
         }
-		private   void Receive()
-		{
-			try
-			{
-				ReceiveStateObject obj = new ReceiveStateObject();
-				obj.socket = _socket;
-				obj.buffer = new Gamnet.Buffer();
-				_socket.BeginReceive(obj.buffer.data, 0, Gamnet.Buffer.BUFFER_SIZE, 0, new AsyncCallback(Callback_OnReceive), obj);
-			}
-			catch (System.Exception error)
-			{
+        private void Receive()
+        {
+            try
+            {
+                ReceiveStateObject obj = new ReceiveStateObject();
+                obj.socket = _socket;
+                obj.buffer = new Gamnet.Buffer();
+                _socket.BeginReceive(obj.buffer.data, 0, Gamnet.Buffer.BUFFER_SIZE, 0, new AsyncCallback(Callback_OnReceive), obj);
+            }
+            catch (System.Exception error)
+            {
                 Error(error);
                 Close();
-			}
-		}
+            }
+        }
         protected void Error(System.Exception e)
         {
-            ErrorEvent evt = new ErrorEvent();
-            evt.session = this;
-            evt.error = e;
+            ErrorEvent evt = new ErrorEvent(this);
+            evt.exception = e;
             eventQueue.Enqueue(evt);
         }
-        public    void Close()
+        public void Close()
         {
             try
             {
@@ -198,31 +205,17 @@ namespace Gamnet
                 Error(error);
             }
         }
-        private   void Callback_OnConnect(IAsyncResult result)
+        private void Callback_OnConnect(IAsyncResult result)
         {
             try
             {
-                bool isReconnect = false;
-                if (null != _socket)
-                {
-                    isReconnect = true;
-                }
                 _socket = (Socket)result.AsyncState;
                 _socket.EndConnect(result);
                 _socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
                 _socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
-                if (true == isReconnect)
-                {
-                    ReconnectEvent evt = new ReconnectEvent();
-                    evt.session = this;
-                    eventQueue.Enqueue(evt);
-                }
-                else
-                {
-                    ConnectEvent evt = new ConnectEvent();
-                    evt.session = this;
-                    eventQueue.Enqueue(evt);
-                }
+
+                ConnectEvent evt = new ConnectEvent(this);
+                eventQueue.Enqueue(evt);
                 Receive();
             }
             catch (System.Exception error)
@@ -231,32 +224,49 @@ namespace Gamnet
                 Close();
             }
         }
-        private   void Callback_OnReceive(IAsyncResult result)
-		{
-			try
-			{
-				ReceiveStateObject obj = (ReceiveStateObject)result.AsyncState;
-				int recvBytes = _socket.EndReceive(result);
+        private void Callback_OnReconnect(IAsyncResult result)
+        {
+            try
+            {
+                _socket = (Socket)result.AsyncState;
+                _socket.EndConnect(result);
+                _socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
+                _socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
+                ReconnectEvent evt = new ReconnectEvent(this);
+                eventQueue.Enqueue(evt);
+                Receive();
+            }
+            catch (System.Exception error)
+            {
+                Error(error);
+                Close();
+            }
+        }
+        private void Callback_OnReceive(IAsyncResult result)
+        {
+            try
+            {
+                ReceiveStateObject obj = (ReceiveStateObject)result.AsyncState;
+                int recvBytes = _socket.EndReceive(result);
 
-				if(0 == recvBytes)
-				{
+                if (0 == recvBytes)
+                {
                     Close();
-					return;
-				}
+                    return;
+                }
                 obj.buffer.writeIndex += recvBytes;
 
-				ReceiveEvent evt = new ReceiveEvent();
-				evt.session = this;
-				evt.buffer = obj.buffer;
-				eventQueue.Enqueue(evt);
-				Receive();
-			}
-			catch (System.Exception error)
-			{
+                ReceiveEvent evt = new ReceiveEvent(this);
+                evt.buffer = obj.buffer;
+                eventQueue.Enqueue(evt);
+                Receive();
+            }
+            catch (System.Exception error)
+            {
                 Error(error);
-			}
-		}
-        private   void Callback_OnSend(IAsyncResult result)
+            }
+        }
+        private void Callback_OnSend(IAsyncResult result)
         {
             try
             {
@@ -275,15 +285,14 @@ namespace Gamnet
                 Close();
             }
         }
-        private   void Callback_OnClose(IAsyncResult result)
+        private void Callback_OnClose(IAsyncResult result)
         {
             try
             {
                 _socket.EndDisconnect(result);
                 _socket.Close();
                 _socket = null;
-                CloseEvent evt = new CloseEvent();
-                evt.session = this;
+                CloseEvent evt = new CloseEvent(this);
                 eventQueue.Enqueue(evt);
             }
             catch (System.Exception error)
@@ -292,7 +301,7 @@ namespace Gamnet
             }
         }
 
-        public    void AsyncSend(byte[] buf)
+        public void AsyncSend(byte[] buf)
         {
             try
             {
@@ -304,23 +313,21 @@ namespace Gamnet
                 Error(error);
                 Close();
             }
-        }		
-        private   void PostSend(byte[] buf)
+        }
+        private void PostSend(byte[] buf)
         {
             if (ConnectionState.Connected == state)
             {
                 SendStateObject sendObj = new SendStateObject();
-                sendObj.socket = _socket;
-                sendObj.buffer = new Gamnet.Buffer();
-                sendObj.buffer.Copy(buf);
-                _socket.BeginSend(buf, 0, buf.Length, 0, new AsyncCallback(Callback_OnSend), sendObj);
+                sendObj.buffer = new Gamnet.Buffer(buf);
+                _socket.BeginSend(sendObj.buffer.data, 0, sendObj.buffer.Size(), 0, new AsyncCallback(Callback_OnSend), sendObj);
             }
             else
             {
                 sendQueue.Enqueue(buf);
             }
         }
-		
+
         public void Update()
         {
             while (0 < eventQueue.GetCount())
