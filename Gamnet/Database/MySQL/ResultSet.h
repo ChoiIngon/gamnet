@@ -8,11 +8,7 @@
 #ifndef GAMNET_DATABASE_MYSQL_RESULTSET_H_
 #define GAMNET_DATABASE_MYSQL_RESULTSET_H_
 
-#ifdef _WIN32
 #include <mysql.h>
-#else
-#include <mysql/mysql.h>
-#endif
 #include <memory>
 #include <map>
 #include "../../Library/Variant.h"

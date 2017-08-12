@@ -1,0 +1,41 @@
+.cpp %%
+// 
+//
+//
+%%
+
+.cs %%
+//
+//
+//
+%%
+
+struct ItemData {
+	string item_id;
+	uint32 item_seq;
+};
+
+struct UserData {
+	string user_id;
+	uint32 user_seq;
+	string access_token;
+	list<ItemData> items;
+};
+
+message MsgCliSvr_Login_Req 	: 10000001
+{
+	string user_id;
+	string access_token;
+};
+
+message MsgSvrCli_Login_Ans 	: 10000001
+{
+	uint32 error_code;
+	UserData user_data;
+};
+
+message MsgCliSvr_Move_Ntf 		: 10000002
+{
+	float x;
+	float y;
+};

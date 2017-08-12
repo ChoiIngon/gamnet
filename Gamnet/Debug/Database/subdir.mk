@@ -4,28 +4,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../Database/ColumnValue.cpp \
-../Database/Connection.cpp \
-../Database/Database.cpp \
-../Database/DatabaseImpl.cpp \
-../Database/ResultSet.cpp \
-../Database/Transaction.cpp 
+../Database/Database.cpp 
 
 OBJS += \
-./Database/ColumnValue.o \
-./Database/Connection.o \
-./Database/Database.o \
-./Database/DatabaseImpl.o \
-./Database/ResultSet.o \
-./Database/Transaction.o 
+./Database/Database.o 
 
 CPP_DEPS += \
-./Database/ColumnValue.d \
-./Database/Connection.d \
-./Database/Database.d \
-./Database/DatabaseImpl.d \
-./Database/ResultSet.d \
-./Database/Transaction.d 
+./Database/Database.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
