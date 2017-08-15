@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <server>
-	<log path="log" prefix="rvr" max_file_size="5">
+	<log path="log" prefix="server" max_file_size="5">
 		<dev console="yes" file="yes" sys="no"/>
 		<inf console="yes" file="yes" sys="no"/>
 		<err console="yes" file="yes" sys="no"/>

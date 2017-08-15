@@ -25,6 +25,7 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 			throw Gamnet::Exception(-1, "message load fail");
 		}
 
+		LOG(DEV, "MsgCliSvr_Login_Req(user_id:", req.user_id, ")");
 		UserData& user_data = ans.user_data;
 
 		user_data.user_id = req.user_id;
@@ -39,12 +40,16 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 			item.item_seq = Gamnet::Random::Range(1, 99999);
 			user_data.items.push_back(item);
 		}
+
+		session->user_data = std::shared_ptr<UserData>(new UserData());
+		*(session->user_data) = user_data;
 	}
 	catch(const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.error_code = e.error_code();
 	}
+	LOG(DEV, "MsgSvrCli_Login_Ans(user_seq:", ans.user_data.user_seq, ", error_code:", ans.error_code, ")");
 	Gamnet::Network::SendMsg(session, ans);
 }
 

@@ -13,24 +13,12 @@
 
 class Session : public Gamnet::Network::Session {
 public:
-	Session()
-	{
+	Session();
+	virtual ~Session();
+	virtual void OnAccept();
+	virtual void OnClose(int reason);
 
-	}
-	virtual ~Session()
-	{
-
-	}
-
-	virtual void OnAccept()
-	{
-		LOG(DEV, "session connected(session_key:", sessionKey_, ")");
-	}
-
-	virtual void OnClose(int reason)
-	{
-		LOG(DEV, "session closed(session_key:", sessionKey_, ")");
-	}
+	int msg_seq;
 	std::shared_ptr<UserData> user_data;
 };
 

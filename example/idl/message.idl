@@ -36,6 +36,7 @@ message MsgSvrCli_Login_Ans 	: 10000001
 
 message MsgCliSvr_Move_Ntf 		: 10000002
 {
+	int32 seq;
 	float x;
 	float y;
 };
