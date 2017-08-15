@@ -19,6 +19,7 @@ struct UserData {
 	string user_id;
 	uint32 user_seq;
 	string access_token;
+	uint32 msg_seq;
 	list<ItemData> items;
 };
 
@@ -36,7 +37,7 @@ message MsgSvrCli_Login_Ans 	: 10000001
 
 message MsgCliSvr_Move_Ntf 		: 10000002
 {
-	int32 seq;
+	uint32 seq;
 	float x;
 	float y;
 };

@@ -29,11 +29,11 @@ void Handler_Move::Recv_Ntf(std::shared_ptr<Session> session, std::shared_ptr<Ga
 		}
 
 		LOG(DEV, "MsgCliSvr_Move_Ntf(user_id:", session->user_data->user_id, ", msg_seq:", ntf.seq, ")");
-		if(1 < ntf.seq - session->msg_seq)
+		if(1 < ntf.seq - session->user_data->msg_seq)
 		{
-			throw Gamnet::Exception(-1, "lost message seq:", session->msg_seq);
+			throw Gamnet::Exception(-1, "lost message seq:", session->user_data->msg_seq);
 		}
-		session->msg_seq = std::max(session->msg_seq, ntf.seq);
+		session->user_data->msg_seq = std::max(session->user_data->msg_seq, ntf.seq);
 	}
 	catch(const Gamnet::Exception& e)
 	{

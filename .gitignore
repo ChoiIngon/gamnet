@@ -55,6 +55,7 @@ Gamnet/Debug/*.a
 idlc/Debug/src/*.d
 idlc/Debug/src/*.o
 example/server/log
+example/server/test
 # =============== #
 # Unity generated #
 # =============== #

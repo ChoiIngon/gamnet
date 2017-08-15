@@ -18,7 +18,6 @@ public:
 	virtual void OnAccept();
 	virtual void OnClose(int reason);
 
-	int msg_seq;
 	std::shared_ptr<UserData> user_data;
 };
 

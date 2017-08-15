@@ -6,6 +6,7 @@
  */
 
 #include "Handler_Login.h"
+#include "Manager_Session.h"
 
 Handler_Login::Handler_Login() {
 }
@@ -26,23 +27,34 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 		}
 
 		LOG(DEV, "MsgCliSvr_Login_Req(user_id:", req.user_id, ")");
-		UserData& user_data = ans.user_data;
-
-		user_data.user_id = req.user_id;
-		user_data.user_seq = Gamnet::Random::Range(1, 99999);
-		user_data.access_token = Gamnet::md5(Gamnet::Format(user_data.user_seq, time(NULL), Gamnet::Network::GetLocalAddress().to_string()));
-
-		int count = Gamnet::Random::Range(1, 10);
-		for(int i=0;i<count; i++)
+		if("" == req.access_token)
 		{
-			ItemData item;
-			item.item_id = Gamnet::Format("item_id_", i);
-			item.item_seq = Gamnet::Random::Range(1, 99999);
-			user_data.items.push_back(item);
-		}
+			session->user_data = std::shared_ptr<UserData>(new UserData());
+			const std::shared_ptr<UserData> user_data = session->user_data;
+			user_data->user_id = req.user_id;
+			user_data->user_seq = Gamnet::Random::Range(1, 99999);
+			user_data->access_token = Gamnet::md5(Gamnet::Format(user_data->user_seq, time(NULL), Gamnet::Network::GetLocalAddress().to_string()));
 
-		session->user_data = std::shared_ptr<UserData>(new UserData());
-		*(session->user_data) = user_data;
+			int count = Gamnet::Random::Range(1, 10);
+			for(int i=0;i<count; i++)
+			{
+				ItemData item;
+				item.item_id = Gamnet::Format("item_id_", i);
+				item.item_seq = Gamnet::Random::Range(1, 99999);
+				user_data->items.push_back(item);
+			}
+		}
+		else
+		{
+			session->user_data = Gamnet::Singleton<Manager_Session>::GetInstance().Find(req.access_token);
+			if(NULL == session->user_data)
+			{
+				throw Gamnet::Exception(-1, "invalid reconnect");
+			}
+			LOG(DEV, "success reconnect(user_id:", session->user_data->user_id, ")");
+			Gamnet::Singleton<Manager_Session>::GetInstance().Remove(session->user_data->access_token);
+		}
+		ans.user_data = *(session->user_data);
 	}
 	catch(const Gamnet::Exception& e)
 	{

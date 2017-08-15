@@ -65,15 +65,18 @@ struct UserData {
 	std::string	user_id;
 	uint32_t	user_seq;
 	std::string	access_token;
+	uint32_t	msg_seq;
 	std::list<ItemData >	items;
 	UserData()	{
 		user_seq = 0;
+		msg_seq = 0;
 	}
 	int32_t Size() const {
 		int32_t nSize = 0;
 		nSize += sizeof(uint32_t); nSize += user_id.length();
 		nSize += sizeof(uint32_t);
 		nSize += sizeof(uint32_t); nSize += access_token.length();
+		nSize += sizeof(uint32_t);
 		nSize += sizeof(int32_t);
 		for(std::list<ItemData >::const_iterator items_itr = items.begin(); items_itr != items.end(); items_itr++)	{
 			const ItemData& items_elmt = *items_itr;
@@ -99,6 +102,7 @@ struct UserData {
 		size_t access_token_size = access_token.length();
 		std::memcpy(*_buf_, &access_token_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, access_token.c_str(), access_token.length()); (*_buf_) += access_token.length();
+		std::memcpy(*_buf_, &msg_seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		size_t items_size = items.size();
 		std::memcpy(*_buf_, &items_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		for(std::list<ItemData >::const_iterator items_itr = items.begin(); items_itr != items.end(); items_itr++)	{
@@ -124,6 +128,7 @@ struct UserData {
 		uint32_t access_token_length = 0; std::memcpy(&access_token_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(nSize < access_token_length) { return false; }
 		access_token.assign((char*)*_buf_, access_token_length); (*_buf_) += access_token_length; nSize -= access_token_length;
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&msg_seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t items_length = 0; std::memcpy(&items_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		for(uint32_t i=0; i<items_length; i++) {
@@ -242,7 +247,7 @@ struct MsgSvrCli_Login_Ans_Serializer {
 };
 struct MsgCliSvr_Move_Ntf {
 	enum { MSG_ID = 10000002 }; 
-	int32_t	seq;
+	uint32_t	seq;
 	float	x;
 	float	y;
 	MsgCliSvr_Move_Ntf()	{
@@ -252,7 +257,7 @@ struct MsgCliSvr_Move_Ntf {
 	}
 	int32_t Size() const {
 		int32_t nSize = 0;
-		nSize += sizeof(int32_t);
+		nSize += sizeof(uint32_t);
 		nSize += sizeof(float);
 		nSize += sizeof(float);
 		return nSize;
@@ -268,7 +273,7 @@ struct MsgCliSvr_Move_Ntf {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &seq, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		std::memcpy(*_buf_, &seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		std::memcpy(*_buf_, &x, sizeof(float)); (*_buf_) += sizeof(float);
 		std::memcpy(*_buf_, &y, sizeof(float)); (*_buf_) += sizeof(float);
 		return true;
@@ -281,7 +286,7 @@ struct MsgCliSvr_Move_Ntf {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&seq, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(float) > nSize) { return false; }	std::memcpy(&x, *_buf_, sizeof(float));	(*_buf_) += sizeof(float); nSize -= sizeof(float);
 		if(sizeof(float) > nSize) { return false; }	std::memcpy(&y, *_buf_, sizeof(float));	(*_buf_) += sizeof(float); nSize -= sizeof(float);
 		return true;

@@ -68,6 +68,7 @@ public class UserData {
 	public string	user_id = "";
 	public uint	user_seq = 0;
 	public string	access_token = "";
+	public uint	msg_seq = 0;
 	public List<ItemData >	items = new List<ItemData >();
 	public UserData() {
 	}
@@ -79,6 +80,7 @@ public class UserData {
 			nSize += sizeof(uint);
 			nSize += sizeof(int); 
 			if(null != access_token) { nSize += Encoding.UTF8.GetByteCount(access_token); }
+			nSize += sizeof(uint);
 			nSize += sizeof(int);
 			foreach(var items_itr in items) { 
 				ItemData items_elmt = items_itr;
@@ -108,6 +110,7 @@ public class UserData {
 			else {
 				_buf_.Write(BitConverter.GetBytes(0), 0, sizeof(int));
 			}
+			_buf_.Write(BitConverter.GetBytes(msg_seq), 0, sizeof(uint));
 			_buf_.Write(BitConverter.GetBytes(items.Count), 0, sizeof(int));
 			foreach(var items_itr in items) { 
 				ItemData items_elmt = items_itr;
@@ -139,6 +142,9 @@ public class UserData {
 			Array.Copy(_buf_.GetBuffer(), (int)_buf_.Position, access_token_buf, 0, access_token_length);
 			access_token = System.Text.Encoding.UTF8.GetString(access_token_buf);
 			_buf_.Position += access_token_length;
+			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
+			msg_seq = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(uint);
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
 			int items_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(int);
@@ -272,7 +278,7 @@ public struct MsgSvrCli_Login_Ans_Serializer {
 };
 public class MsgCliSvr_Move_Ntf {
 	public const int MSG_ID = 10000002;
-	public int	seq = 0;
+	public uint	seq = 0;
 	public float	x = 0.0f;
 	public float	y = 0.0f;
 	public MsgCliSvr_Move_Ntf() {
@@ -280,7 +286,7 @@ public class MsgCliSvr_Move_Ntf {
 	public int Size() {
 		int nSize = 0;
 		try {
-			nSize += sizeof(int);
+			nSize += sizeof(uint);
 			nSize += sizeof(float);
 			nSize += sizeof(float);
 		} catch(System.Exception) {
@@ -290,7 +296,7 @@ public class MsgCliSvr_Move_Ntf {
 	}
 	public bool Store(MemoryStream _buf_) {
 		try {
-			_buf_.Write(BitConverter.GetBytes(seq), 0, sizeof(int));
+			_buf_.Write(BitConverter.GetBytes(seq), 0, sizeof(uint));
 			_buf_.Write(BitConverter.GetBytes(x), 0, sizeof(float));
 			_buf_.Write(BitConverter.GetBytes(y), 0, sizeof(float));
 		} catch(System.Exception) {
@@ -300,9 +306,9 @@ public class MsgCliSvr_Move_Ntf {
 	}
 	public bool Load(MemoryStream _buf_) {
 		try {
-			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
-			seq = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(int);
+			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
+			seq = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(uint);
 			if(sizeof(float) > _buf_.Length - _buf_.Position) { return false; }
 			x = BitConverter.ToSingle(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(float);
