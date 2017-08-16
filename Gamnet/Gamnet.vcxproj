@@ -155,6 +155,7 @@
     <ClCompile Include="library\Buffer.cpp" />
     <ClCompile Include="library\Exception.cpp" />
     <ClCompile Include="library\MD5.cpp" />
+    <ClCompile Include="Library\Random.cpp" />
     <ClCompile Include="Library\Variant.cpp" />
     <ClCompile Include="log\File.cpp" />
     <ClCompile Include="log\Log.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="library\MD5.h" />
     <ClInclude Include="library\MultiLock.h" />
     <ClInclude Include="library\Pool.h" />
+    <ClInclude Include="Library\Random.h" />
     <ClInclude Include="library\Singleton.h" />
     <ClInclude Include="library\String.h" />
     <ClInclude Include="library\ThreadPool.h" />

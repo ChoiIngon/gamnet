@@ -22,16 +22,17 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 	try {
 		if(false == Gamnet::Network::Packet::Load(req, packet))
 		{
-			LOG(ERR, "message load fail");
-			throw Gamnet::Exception(-1, "message load fail");
+			throw Gamnet::Exception(1, ERR, "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_Login_Req(user_id:", req.user_id, ")");
+
 		if("" == req.access_token)
 		{
 			session->user_data = std::shared_ptr<UserData>(new UserData());
 			const std::shared_ptr<UserData> user_data = session->user_data;
 			user_data->user_id = req.user_id;
+			user_data->msg_seq = 0;
 			user_data->user_seq = Gamnet::Random::Range(1, 99999);
 			user_data->access_token = Gamnet::md5(Gamnet::Format(user_data->user_seq, time(NULL), Gamnet::Network::GetLocalAddress().to_string()));
 
@@ -46,14 +47,19 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 		}
 		else
 		{
-			session->user_data = Gamnet::Singleton<Manager_Session>::GetInstance().Find(req.access_token);
+			session->user_data = Gamnet::Singleton<Manager_Session>::GetInstance().Find(req.user_id);
 			if(NULL == session->user_data)
 			{
-				throw Gamnet::Exception(-1, "invalid reconnect");
+				throw Gamnet::Exception(1, ERR, "invalid session cache(user_id:", req.user_id, ")");
+			}
+
+			if (req.access_token != session->user_data->access_token)
+			{
+				throw Gamnet::Exception(1, ERR, "invalid access token(req:", req.access_token, ", cached:", session->user_data->access_token, ")");
 			}
 			LOG(DEV, "success reconnect(user_id:", session->user_data->user_id, ")");
-			Gamnet::Singleton<Manager_Session>::GetInstance().Remove(session->user_data->access_token);
 		}
+		Gamnet::Singleton<Manager_Session>::GetInstance().Remove(req.user_id);
 		ans.user_data = *(session->user_data);
 	}
 	catch(const Gamnet::Exception& e)

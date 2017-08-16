@@ -23,5 +23,5 @@ void Session::OnClose(int reason)
 	{
 		return;
 	}
-	Gamnet::Singleton<Manager_Session>::GetInstance().Add(user_data->access_token, user_data);
+	Gamnet::Singleton<Manager_Session>::GetInstance().Add(user_data->user_id, user_data);
 }
