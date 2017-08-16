@@ -68,7 +68,7 @@ public class UnityClient : MonoBehaviour {
 		connect.onClick.AddListener (() => {
 			UILog.Instance.Write("connect to " + host.text.ToString());
             seq = 0;
-			session.Connect (host.text.ToString(), 20000);
+			session.Connect (host.text.ToString(), 20000, 60000);
 		});
 		close.onClick.AddListener(() => {
 			session.Close();

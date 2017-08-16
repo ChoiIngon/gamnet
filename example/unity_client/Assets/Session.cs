@@ -120,7 +120,7 @@ namespace Gamnet
 		private Session session;
 		private Dictionary<int, List<System.Timers.Timer>> timers = new Dictionary<int, List<System.Timers.Timer>>();
 
-		public class TimeoutEvent : Session.ErrorEvent
+		public class TimeoutEvent : Session.SessionEvent
 		{
 			public int msgID = 0;
 			public TimeoutEvent(Session session) : base(session)
@@ -313,6 +313,7 @@ namespace Gamnet
             {
 				timeoutMonitor = new TimeoutMonitor(this);
                 state = ConnectionState.OnConnecting;
+				_socket = null;
                 IPAddress ip = null;
                 try
                 {
