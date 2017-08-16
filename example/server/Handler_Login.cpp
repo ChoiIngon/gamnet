@@ -25,7 +25,7 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 			throw Gamnet::Exception(ERROR_INVALID_MSG_FORMAT, ERR, "message load fail");
 		}
 
-		LOG(DEV, "MsgCliSvr_Login_Req(user_id:", req.user_id, ")");
+		LOG(DEV, "MsgCliSvr_Login_Req(session_key:", session->sessionKey_, ", user_id:", req.user_id, ")");
 
 		session->user_data = std::shared_ptr<UserData>(new UserData());
 		session->user_data->session_key = session->sessionKey_;

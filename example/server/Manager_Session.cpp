@@ -15,7 +15,7 @@ Manager_Session::~Manager_Session() {
 
 void Manager_Session::Init()
 {
-	timer.SetTimer(60, [&]() {
+	timer.SetTimer(300000, [&]() {
 		std::lock_guard<std::mutex> lo(lock);
 		time_t curr = time(NULL);
 		for(auto itr=user_datas.begin(); itr!=user_datas.end();)
