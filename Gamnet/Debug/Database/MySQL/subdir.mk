@@ -4,17 +4,26 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../Json/jsoncpp.cpp 
+../Database/MySQL/Connection.cpp \
+../Database/MySQL/MySQL.cpp \
+../Database/MySQL/ResultSet.cpp \
+../Database/MySQL/Transaction.cpp 
 
 OBJS += \
-./Json/jsoncpp.o 
+./Database/MySQL/Connection.o \
+./Database/MySQL/MySQL.o \
+./Database/MySQL/ResultSet.o \
+./Database/MySQL/Transaction.o 
 
 CPP_DEPS += \
-./Json/jsoncpp.d 
+./Database/MySQL/Connection.d \
+./Database/MySQL/MySQL.d \
+./Database/MySQL/ResultSet.d \
+./Database/MySQL/Transaction.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
-Json/%.o: ../Json/%.cpp
+Database/MySQL/%.o: ../Database/MySQL/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
 	g++ -I/usr/include/mysql -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"

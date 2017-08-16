@@ -8,39 +8,50 @@
 #include "Manager_Session.h"
 
 Manager_Session::Manager_Session() {
-	// TODO Auto-generated constructor stub
-
 }
 
 Manager_Session::~Manager_Session() {
-	// TODO Auto-generated destructor stub
 }
 
 void Manager_Session::Init()
 {
+	timer.SetTimer(60, [&]() {
+		std::lock_guard<std::mutex> lo(lock);
+		time_t curr = time(NULL);
+		for(auto itr=user_datas.begin(); itr!=user_datas.end();)
+		{
+			const std::shared_ptr<UserData>& user_data = itr->second;
+			if(user_data->kickout_time < curr)
+			{
+				LOG(DEV, "timeout session cache(session_key:", user_data->session_key, ")");
+				user_datas.erase(itr++);
+			}
+			else
+			{
+				++itr;
+			}
+		}
+		timer.Resume();
+	});
 }
 
 GAMNET_BIND_INIT_HANDLER(Manager_Session, Init);
 
-bool Manager_Session::Add(const std::string& key, const std::shared_ptr<UserData>& user_data)
+const std::shared_ptr<UserData> Manager_Session::Add(const std::string& user_id, const std::shared_ptr<UserData>& user_data)
 {
 	std::lock_guard<std::mutex> lo(lock);
-	return user_datas.insert(std::make_pair(key, user_data)).second;
-}
-
-const std::shared_ptr<UserData> Manager_Session::Find(const std::string& key)
-{
-	std::lock_guard<std::mutex> lo(lock);
-	auto itr = user_datas.find(key);
-	if(user_datas.end() == itr)
+	std::shared_ptr<UserData> old_value = std::shared_ptr<UserData>(NULL);
+	auto itr = user_datas.find(user_id);
+	if(user_datas.end() != itr)
 	{
-		return NULL;
+		old_value = itr->second;
 	}
-	return itr->second;
+	user_datas[user_id] = user_data;
+	return old_value;
 }
 
-void Manager_Session::Remove(const std::string& key)
+void Manager_Session::Remove(const std::string& user_id)
 {
 	std::lock_guard<std::mutex> lo(lock);
-	user_datas.erase(key);
+	user_datas.erase(user_id);
 }

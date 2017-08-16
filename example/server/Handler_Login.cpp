@@ -27,15 +27,30 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 
 		LOG(DEV, "MsgCliSvr_Login_Req(user_id:", req.user_id, ")");
 
+		session->user_data = std::shared_ptr<UserData>(new UserData());
+		session->user_data->session_key = session->sessionKey_;
+		session->user_data->kickout_time = ::time(NULL) + 300;
+
+		const std::shared_ptr<UserData> old_ = Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.user_id, session->user_data);
+		if(NULL != old_)
+		{
+			const std::shared_ptr<Session> other = Gamnet::Network::FindSession<Session>(old_->session_key);
+			if(NULL != other)
+			{
+				MsgSvrCli_Kickout_Ntf ntf;
+				ntf.reason = 1;
+				Gamnet::Network::SendMsg(other, ntf);
+				other->strand_.wrap(std::bind(&Session::OnAccept, other))();
+			}
+		}
+
 		if("" == req.access_token)
 		{
-			session->user_data = std::shared_ptr<UserData>(new UserData());
 			const std::shared_ptr<UserData> user_data = session->user_data;
 			user_data->user_id = req.user_id;
 			user_data->msg_seq = 0;
 			user_data->user_seq = Gamnet::Random::Range(1, 99999);
 			user_data->access_token = Gamnet::md5(Gamnet::Format(user_data->user_seq, time(NULL), Gamnet::Network::GetLocalAddress().to_string()));
-
 			int count = Gamnet::Random::Range(1, 10);
 			for(int i=0;i<count; i++)
 			{
@@ -47,16 +62,20 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 		}
 		else
 		{
-			session->user_data = Gamnet::Singleton<Manager_Session>::GetInstance().Find(req.user_id);
-			if(NULL == session->user_data)
+			if(NULL == old_)
 			{
 				throw Gamnet::Exception(1, ERR, "invalid session cache(user_id:", req.user_id, ")");
 			}
 
-			if (req.access_token != session->user_data->access_token)
+			if (req.access_token != old_->access_token)
 			{
-				throw Gamnet::Exception(1, ERR, "invalid access token(req:", req.access_token, ", cached:", session->user_data->access_token, ")");
+				throw Gamnet::Exception(1, ERR, "invalid access token(req:", req.access_token, ", cached:", old_->access_token, ")");
 			}
+
+			old_->session_key = session->user_data->session_key;
+			old_->kickout_time = session->user_data->kickout_time;
+			session->user_data = old_;
+			Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.user_id, session->user_data);
 			LOG(DEV, "success reconnect(user_id:", session->user_data->user_id, ")");
 		}
 		Gamnet::Singleton<Manager_Session>::GetInstance().Remove(req.user_id);

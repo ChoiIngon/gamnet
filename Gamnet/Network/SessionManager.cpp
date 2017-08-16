@@ -27,7 +27,6 @@ bool SessionManager::Init(int nKeepAliveSec)
 				Log::Write(GAMNET_ERR, "idle session timeout(ip:", session->remote_address_.to_string(), ", session_key:", session->sessionKey_,")");
 
 		        this->mapSession_.erase(itr++);
-		        session->sessionKey_ = 0;
 		        session->strand_.wrap(std::bind(&Session::OnError, session, ETIMEDOUT))();
 		    }
 		    else {

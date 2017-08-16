@@ -69,6 +69,8 @@ public class UserData {
 	public uint	user_seq = 0;
 	public string	access_token = "";
 	public uint	msg_seq = 0;
+	public ulong	kickout_time = 0;
+	public ulong	session_key = 0;
 	public List<ItemData >	items = new List<ItemData >();
 	public UserData() {
 	}
@@ -81,6 +83,8 @@ public class UserData {
 			nSize += sizeof(int); 
 			if(null != access_token) { nSize += Encoding.UTF8.GetByteCount(access_token); }
 			nSize += sizeof(uint);
+			nSize += sizeof(ulong);
+			nSize += sizeof(ulong);
 			nSize += sizeof(int);
 			foreach(var items_itr in items) { 
 				ItemData items_elmt = items_itr;
@@ -111,6 +115,8 @@ public class UserData {
 				_buf_.Write(BitConverter.GetBytes(0), 0, sizeof(int));
 			}
 			_buf_.Write(BitConverter.GetBytes(msg_seq), 0, sizeof(uint));
+			_buf_.Write(BitConverter.GetBytes(kickout_time), 0, sizeof(ulong));
+			_buf_.Write(BitConverter.GetBytes(session_key), 0, sizeof(ulong));
 			_buf_.Write(BitConverter.GetBytes(items.Count), 0, sizeof(int));
 			foreach(var items_itr in items) { 
 				ItemData items_elmt = items_itr;
@@ -145,6 +151,12 @@ public class UserData {
 			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
 			msg_seq = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(uint);
+			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
+			kickout_time = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(ulong);
+			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
+			session_key = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(ulong);
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
 			int items_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(int);
@@ -236,14 +248,14 @@ public struct MsgCliSvr_Login_Req_Serializer {
 };
 public class MsgSvrCli_Login_Ans {
 	public const int MSG_ID = 10000001;
-	public uint	error_code = 0;
+	public int	error_code = 0;
 	public UserData	user_data = new UserData();
 	public MsgSvrCli_Login_Ans() {
 	}
 	public int Size() {
 		int nSize = 0;
 		try {
-			nSize += sizeof(uint);
+			nSize += sizeof(int);
 			nSize += UserData_Serializer.Size(user_data);
 		} catch(System.Exception) {
 			return -1;
@@ -252,7 +264,7 @@ public class MsgSvrCli_Login_Ans {
 	}
 	public bool Store(MemoryStream _buf_) {
 		try {
-			_buf_.Write(BitConverter.GetBytes(error_code), 0, sizeof(uint));
+			_buf_.Write(BitConverter.GetBytes(error_code), 0, sizeof(int));
 			if(false == UserData_Serializer.Store(_buf_, user_data)) { return false; }
 		} catch(System.Exception) {
 			return false;
@@ -261,9 +273,9 @@ public class MsgSvrCli_Login_Ans {
 	}
 	public bool Load(MemoryStream _buf_) {
 		try {
-			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
-			error_code = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(uint);
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			error_code = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
 			if(false == UserData_Serializer.Load(ref user_data, _buf_)) { return false; }
 		} catch(System.Exception) {
 			return false;
@@ -276,19 +288,15 @@ public struct MsgSvrCli_Login_Ans_Serializer {
 	public static bool Load(ref MsgSvrCli_Login_Ans obj, MemoryStream _buf_) { return obj.Load(_buf_); }
 	public static int Size(MsgSvrCli_Login_Ans obj) { return obj.Size(); }
 };
-public class MsgCliSvr_Move_Ntf {
+public class MsgSvrCli_Kickout_Ntf {
 	public const int MSG_ID = 10000002;
-	public uint	seq = 0;
-	public float	x = 0.0f;
-	public float	y = 0.0f;
-	public MsgCliSvr_Move_Ntf() {
+	public int	reason = 0;
+	public MsgSvrCli_Kickout_Ntf() {
 	}
 	public int Size() {
 		int nSize = 0;
 		try {
-			nSize += sizeof(uint);
-			nSize += sizeof(float);
-			nSize += sizeof(float);
+			nSize += sizeof(int);
 		} catch(System.Exception) {
 			return -1;
 		}
@@ -296,9 +304,45 @@ public class MsgCliSvr_Move_Ntf {
 	}
 	public bool Store(MemoryStream _buf_) {
 		try {
-			_buf_.Write(BitConverter.GetBytes(seq), 0, sizeof(uint));
-			_buf_.Write(BitConverter.GetBytes(x), 0, sizeof(float));
-			_buf_.Write(BitConverter.GetBytes(y), 0, sizeof(float));
+			_buf_.Write(BitConverter.GetBytes(reason), 0, sizeof(int));
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public bool Load(MemoryStream _buf_) {
+		try {
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			reason = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct MsgSvrCli_Kickout_Ntf_Serializer {
+	public static bool Store(MemoryStream _buf_, MsgSvrCli_Kickout_Ntf obj) { return obj.Store(_buf_); }
+	public static bool Load(ref MsgSvrCli_Kickout_Ntf obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(MsgSvrCli_Kickout_Ntf obj) { return obj.Size(); }
+};
+public class MsgCliSvr_HeartBeat_Ntf {
+	public const int MSG_ID = 10000003;
+	public uint	msg_seq = 0;
+	public MsgCliSvr_HeartBeat_Ntf() {
+	}
+	public int Size() {
+		int nSize = 0;
+		try {
+			nSize += sizeof(uint);
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public bool Store(MemoryStream _buf_) {
+		try {
+			_buf_.Write(BitConverter.GetBytes(msg_seq), 0, sizeof(uint));
 		} catch(System.Exception) {
 			return false;
 		}
@@ -307,23 +351,17 @@ public class MsgCliSvr_Move_Ntf {
 	public bool Load(MemoryStream _buf_) {
 		try {
 			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
-			seq = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			msg_seq = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(uint);
-			if(sizeof(float) > _buf_.Length - _buf_.Position) { return false; }
-			x = BitConverter.ToSingle(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(float);
-			if(sizeof(float) > _buf_.Length - _buf_.Position) { return false; }
-			y = BitConverter.ToSingle(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(float);
 		} catch(System.Exception) {
 			return false;
 		}
 		return true;
 	}
 };
-public struct MsgCliSvr_Move_Ntf_Serializer {
-	public static bool Store(MemoryStream _buf_, MsgCliSvr_Move_Ntf obj) { return obj.Store(_buf_); }
-	public static bool Load(ref MsgCliSvr_Move_Ntf obj, MemoryStream _buf_) { return obj.Load(_buf_); }
-	public static int Size(MsgCliSvr_Move_Ntf obj) { return obj.Size(); }
+public struct MsgCliSvr_HeartBeat_Ntf_Serializer {
+	public static bool Store(MemoryStream _buf_, MsgCliSvr_HeartBeat_Ntf obj) { return obj.Store(_buf_); }
+	public static bool Load(ref MsgCliSvr_HeartBeat_Ntf obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(MsgCliSvr_HeartBeat_Ntf obj) { return obj.Size(); }
 };
 }
