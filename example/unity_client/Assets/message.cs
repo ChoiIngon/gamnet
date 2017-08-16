@@ -8,6 +8,37 @@ namespace message{
 //
 //
 
+public enum ERROR_CODE {
+	ERROR_SUCCESS = 0,
+	ERROR_INVALID_MSG_FORMAT = 1000,
+	ERROR_INVALID_USER = 2000,
+	ERROR_DUPLICATE_CONNECTION = 3000,
+	ERROR_CANT_FIND_CACHE_DATA = 4000,
+	ERROR_INVALID_ACCESSTOKEN = 5000,
+	ERROR_INCORRECT_DATA = 6000,
+}; // ERROR_CODE
+public struct ERROR_CODE_Serializer {
+	public static bool Store(System.IO.MemoryStream _buf_, ERROR_CODE obj) { 
+		try {
+			_buf_.Write(System.BitConverter.GetBytes((int)obj), 0, sizeof(ERROR_CODE));
+		}
+		catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public static bool Load(ref ERROR_CODE obj, MemoryStream _buf_) { 
+		try {
+			obj = (ERROR_CODE)System.BitConverter.ToInt32(_buf_.ToArray(), (int)_buf_.Position);
+			_buf_.Position += sizeof(ERROR_CODE);
+		}
+		catch(System.Exception) { 
+			return false;
+		}
+		return true;
+	}
+	public static System.Int32 Size(ERROR_CODE obj) { return sizeof(ERROR_CODE); }
+};
 public class ItemData {
 	public string	item_id = "";
 	public uint	item_seq = 0;
@@ -248,14 +279,14 @@ public struct MsgCliSvr_Login_Req_Serializer {
 };
 public class MsgSvrCli_Login_Ans {
 	public const int MSG_ID = 10000001;
-	public int	error_code = 0;
+	public ERROR_CODE	error_code = new ERROR_CODE();
 	public UserData	user_data = new UserData();
 	public MsgSvrCli_Login_Ans() {
 	}
 	public int Size() {
 		int nSize = 0;
 		try {
-			nSize += sizeof(int);
+			nSize += ERROR_CODE_Serializer.Size(error_code);
 			nSize += UserData_Serializer.Size(user_data);
 		} catch(System.Exception) {
 			return -1;
@@ -264,7 +295,7 @@ public class MsgSvrCli_Login_Ans {
 	}
 	public bool Store(MemoryStream _buf_) {
 		try {
-			_buf_.Write(BitConverter.GetBytes(error_code), 0, sizeof(int));
+			if(false == ERROR_CODE_Serializer.Store(_buf_, error_code)) { return false; }
 			if(false == UserData_Serializer.Store(_buf_, user_data)) { return false; }
 		} catch(System.Exception) {
 			return false;
@@ -273,9 +304,7 @@ public class MsgSvrCli_Login_Ans {
 	}
 	public bool Load(MemoryStream _buf_) {
 		try {
-			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
-			error_code = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(int);
+			if(false == ERROR_CODE_Serializer.Load(ref error_code, _buf_)) { return false; }
 			if(false == UserData_Serializer.Load(ref user_data, _buf_)) { return false; }
 		} catch(System.Exception) {
 			return false;
@@ -290,13 +319,13 @@ public struct MsgSvrCli_Login_Ans_Serializer {
 };
 public class MsgSvrCli_Kickout_Ntf {
 	public const int MSG_ID = 10000002;
-	public int	reason = 0;
+	public ERROR_CODE	error_code = new ERROR_CODE();
 	public MsgSvrCli_Kickout_Ntf() {
 	}
 	public int Size() {
 		int nSize = 0;
 		try {
-			nSize += sizeof(int);
+			nSize += ERROR_CODE_Serializer.Size(error_code);
 		} catch(System.Exception) {
 			return -1;
 		}
@@ -304,7 +333,7 @@ public class MsgSvrCli_Kickout_Ntf {
 	}
 	public bool Store(MemoryStream _buf_) {
 		try {
-			_buf_.Write(BitConverter.GetBytes(reason), 0, sizeof(int));
+			if(false == ERROR_CODE_Serializer.Store(_buf_, error_code)) { return false; }
 		} catch(System.Exception) {
 			return false;
 		}
@@ -312,9 +341,7 @@ public class MsgSvrCli_Kickout_Ntf {
 	}
 	public bool Load(MemoryStream _buf_) {
 		try {
-			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
-			reason = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(int);
+			if(false == ERROR_CODE_Serializer.Load(ref error_code, _buf_)) { return false; }
 		} catch(System.Exception) {
 			return false;
 		}

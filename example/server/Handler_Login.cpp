@@ -18,11 +18,11 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 {
 	MsgCliSvr_Login_Req req;
 	MsgSvrCli_Login_Ans ans;
-	ans.error_code = 0;
+	ans.error_code = ERROR_SUCCESS;
 	try {
 		if(false == Gamnet::Network::Packet::Load(req, packet))
 		{
-			throw Gamnet::Exception(1, ERR, "message load fail");
+			throw Gamnet::Exception(ERROR_INVALID_MSG_FORMAT, ERR, "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_Login_Req(user_id:", req.user_id, ")");
@@ -34,11 +34,12 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 		const std::shared_ptr<UserData> old_ = Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.user_id, session->user_data);
 		if(NULL != old_)
 		{
+			LOG(WRN, "duplicated session(user_id:", req.user_id, ")");
 			const std::shared_ptr<Session> other = Gamnet::Network::FindSession<Session>(old_->session_key);
 			if(NULL != other)
 			{
 				MsgSvrCli_Kickout_Ntf ntf;
-				ntf.reason = 1;
+				ntf.error_code = ERROR_DUPLICATE_CONNECTION;
 				Gamnet::Network::SendMsg(other, ntf);
 				other->strand_.wrap(std::bind(&Session::OnAccept, other))();
 			}
@@ -64,12 +65,12 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 		{
 			if(NULL == old_)
 			{
-				throw Gamnet::Exception(1, ERR, "invalid session cache(user_id:", req.user_id, ")");
+				throw Gamnet::Exception(ERROR_CANT_FIND_CACHE_DATA, ERR, "invalid session cache(user_id:", req.user_id, ")");
 			}
 
 			if (req.access_token != old_->access_token)
 			{
-				throw Gamnet::Exception(1, ERR, "invalid access token(req:", req.access_token, ", cached:", old_->access_token, ")");
+				throw Gamnet::Exception(ERROR_INVALID_ACCESSTOKEN, ERR, "invalid access token(req:", req.access_token, ", cached:", old_->access_token, ")");
 			}
 
 			old_->session_key = session->user_data->session_key;
@@ -78,13 +79,12 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 			Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.user_id, session->user_data);
 			LOG(DEV, "success reconnect(user_id:", session->user_data->user_id, ")");
 		}
-		Gamnet::Singleton<Manager_Session>::GetInstance().Remove(req.user_id);
 		ans.user_data = *(session->user_data);
 	}
 	catch(const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		ans.error_code = e.error_code();
+		ans.error_code = (ERROR_CODE)e.error_code();
 	}
 	LOG(DEV, "MsgSvrCli_Login_Ans(user_seq:", ans.user_data.user_seq, ", error_code:", ans.error_code, ")");
 	Gamnet::Network::SendMsg(session, ans);

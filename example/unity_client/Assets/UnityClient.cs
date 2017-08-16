@@ -17,17 +17,19 @@ public class UnityClient : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		session.onConnect += () => {
-			UILog.Instance.Write("success connect");
+			UILog.Instance.Write("success connect(host:" + host.text + ", port:20000)");
 			MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
 			req.user_id = "unity_client";
 			req.access_token = "";
+			UILog.Instance.Write("MsgCliSvr_Login_Req(user_id:" + req.user_id + ")");
 			session.SendMsg(req);
 		};
 		session.onReconnect += () => {
-			UILog.Instance.Write("success re-connect");
+			UILog.Instance.Write("success re-connect(host:" + host.text + ", port:20000)");
 			MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
 			req.user_id = user_data.user_id;
 			req.access_token = user_data.access_token;
+			UILog.Instance.Write("MsgCliSvr_Login_Req(user_id:" + req.user_id + ", access_token:" + req.access_token +")");
 			session.SendMsg(req);
 		};
 		session.onClose += () => {
@@ -41,15 +43,28 @@ public class UnityClient : MonoBehaviour {
 			ans.Load(buffer);
 
 			user_data = ans.user_data;
-			UILog.Instance.Write("user_seq:" + user_data.user_seq);
+			UILog.Instance.Write("MsgSvrCli_Login_Ans(user_seq:" + user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
+			if(ERROR_CODE.ERROR_SUCCESS != ans.error_code)
+			{
+				user_data = null;
+				return;
+			}
 
 			if(null != coroutine)
 			{
 				StopCoroutine(coroutine);
 			}
-			coroutine = StartCoroutine(SendMoveNtf());
+			coroutine = StartCoroutine(SendHeartBeat());
 		});
+		session.RegisterHandler (MsgSvrCli_Kickout_Ntf.MSG_ID, (Gamnet.Buffer buffer) => {
+			MsgSvrCli_Kickout_Ntf ntf = new MsgSvrCli_Kickout_Ntf();
+			ntf.Load(buffer);
 
+			UILog.Instance.Write("MsgSvrCli_Kickout_Ntf(reason:" + ntf.error_code.ToString() + ")");
+			session.Close();
+			StopCoroutine(coroutine);
+			coroutine = null;
+		});
 		connect.onClick.AddListener (() => {
 			UILog.Instance.Write("connect to " + host.text.ToString());
             seq = 0;
@@ -65,15 +80,13 @@ public class UnityClient : MonoBehaviour {
 		session.Update ();
 	}
 		
-	IEnumerator SendMoveNtf() {
+	IEnumerator SendHeartBeat() {
 		while (true) {
 			yield return new WaitForSeconds (1.0f);
-			MsgCliSvr_Move_Ntf ntf = new MsgCliSvr_Move_Ntf();
-			ntf.seq = ++seq;
-			ntf.x = Random.Range (0.0f, 1.0f);
-			ntf.y = Random.Range (0.0f, 1.0f);
+			MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
+			ntf.msg_seq = ++seq;
 			session.SendMsg (ntf);
-			UILog.Instance.Write ("MsgCliSvr_Move_Ntf(msg_seq:" + ntf.seq + ")");
+			UILog.Instance.Write ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
 		}
 	}
 }

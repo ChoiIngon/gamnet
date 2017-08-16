@@ -10,6 +10,16 @@
 //
 %%
 
+enum ERROR_CODE {
+	ERROR_SUCCESS = 0,
+	ERROR_INVALID_MSG_FORMAT = 1000,
+	ERROR_INVALID_USER = 2000,
+	ERROR_DUPLICATE_CONNECTION = 3000,
+	ERROR_CANT_FIND_CACHE_DATA = 4000, 
+	ERROR_INVALID_ACCESSTOKEN = 5000,
+	ERROR_INCORRECT_DATA = 6000 
+};
+
 struct ItemData {
 	string item_id;
 	uint32 item_seq;
@@ -33,13 +43,13 @@ message MsgCliSvr_Login_Req 	: 10000001
 
 message MsgSvrCli_Login_Ans 	: 10000001
 {
-	int32 error_code;
+	ERROR_CODE error_code;
 	UserData user_data;
 };
 
 message MsgSvrCli_Kickout_Ntf 	: 10000002
 {
-	int32 reason;
+	ERROR_CODE error_code;
 };
 
 message MsgCliSvr_HeartBeat_Ntf	: 10000003
