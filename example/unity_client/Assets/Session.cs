@@ -364,20 +364,13 @@ namespace Gamnet
 
         private void Reconnect()
         {
-            try
+            if (ConnectionState.Disconnected != state)
             {
-                if (ConnectionState.Disconnected != state)
-                {
-                    return;
-                }
-                state = ConnectionState.OnConnecting;
-                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                socket.BeginConnect(_endPoint, new AsyncCallback(Callback_OnReconnect), socket);
+                return;
             }
-            catch (System.Exception error)
-            {
-                Error(error);
-            }
+            state = ConnectionState.OnConnecting;
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket.BeginConnect(_endPoint, new AsyncCallback(Callback_OnReconnect), socket);
         }
 		private void Callback_OnReconnect(IAsyncResult result)
 		{
@@ -433,6 +426,7 @@ namespace Gamnet
 			catch (System.Exception error)
 			{
 				Error(error);
+				Close ();
 			}
 		}
 		public void OnReceive(Gamnet.Buffer buf)
@@ -507,6 +501,7 @@ namespace Gamnet
         
 		public TimeoutMonitor SendMsg(object msg)
 		{
+			Gamnet.Buffer buffer = null;
 			try
 			{
 				Reconnect();
@@ -525,7 +520,7 @@ namespace Gamnet
 					throw new System.Exception(string.Format("Overflow the send buffer max size : {0}", packetLength));
 				}
 
-				Gamnet.Buffer buffer = new Gamnet.Buffer();
+				buffer = new Gamnet.Buffer();
 				byte[] bufLength = BitConverter.GetBytes(packetLength);
 				byte[] bufMsgID = BitConverter.GetBytes(msgID);
 				buffer.data[0] = bufLength[0];
@@ -538,14 +533,15 @@ namespace Gamnet
 				buffer.Append(ms);
 
 				PostSend(buffer);
-				return timeoutMonitor;
 			}
-			catch (System.Exception error)
+			catch (System.Exception e)
 			{
-				Error(error);
-				Close();
+				if (null != buffer) {
+					sendQueue.Enqueue(buffer);
+				}
+				Error(e);
 			}
-			return null;
+			return timeoutMonitor;
 		}
 		private void PostSend(Gamnet.Buffer buffer)
         {

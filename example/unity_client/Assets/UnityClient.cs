@@ -36,7 +36,7 @@ public class UnityClient : MonoBehaviour {
 			UILog.Instance.Write("session close");
 		};
 		session.onError += (System.Exception e) => {
-			UILog.Instance.Write("session error(message:" + e.Message + ")");
+			UILog.Instance.Write("session error(message:" + e.Message + ", stack:" + e.StackTrace + ")");
 		};
 		session.RegisterHandler (MsgSvrCli_Login_Ans.MSG_ID, (Gamnet.Buffer buffer) => {
 			MsgSvrCli_Login_Ans ans = new MsgSvrCli_Login_Ans();
