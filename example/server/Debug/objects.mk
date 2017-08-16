@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lGamnet -lboost_filesystem -lboost_system
+LIBS := -lGamnet -lboost_filesystem -lboost_system -lpthread
 
