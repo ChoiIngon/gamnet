@@ -15,12 +15,12 @@ void Handler_HeartBeat::Recv_Ntf(std::shared_ptr<Session> session, std::shared_p
 			throw Gamnet::Exception(ERROR(ERROR_INVALID_MSG_FORMAT), "message load fail");
 		}
 
+		LOG(DEV, "MsgCliSvr_HeartBeat_Ntf(session_key:", session->sessionKey_, ", msg_seq:", ntf.msg_seq, ")");
 		if(NULL == session->user_data)
 		{
-			throw Gamnet::Exception(ERROR(ERROR_INVALID_USER), "invalid user");
+			throw Gamnet::Exception(ERROR(ERROR_INVALID_USER), "invalid user(session_key:", session->sessionKey_, ")");
 		}
 
-		LOG(DEV, "MsgCliSvr_HeartBeat_Ntf(user_id:", session->user_data->user_id, ", msg_seq:", ntf.msg_seq, ")");
 		if(1 < ntf.msg_seq - session->user_data->msg_seq)
 		{
 			throw Gamnet::Exception(ERROR(ERROR_INCORRECT_DATA), "lost message seq:", session->user_data->msg_seq);

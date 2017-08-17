@@ -38,8 +38,13 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 			const std::shared_ptr<Session> other = Gamnet::Network::FindSession<Session>(old_->session_key);
 			if(NULL != other)
 			{
+				if(other->sessionKey_ == session->sessionKey_)
+				{
+					throw Gamnet::Exception(ERROR(ERROR_DUPLICATE_CONNECTION), "duplicated session key(session_key:", session->sessionKey_, ")");
+				}
 				MsgSvrCli_Kickout_Ntf ntf;
 				ntf.error_code = ERROR_DUPLICATE_CONNECTION;
+				LOG(DEV, "MsgSvrCli_Kickout_Ntf(session_key:", other->sessionKey_, ")");
 				Gamnet::Network::SendMsg(other, ntf);
 				other->strand_.wrap(std::bind(&Session::OnAccept, other))();
 			}
