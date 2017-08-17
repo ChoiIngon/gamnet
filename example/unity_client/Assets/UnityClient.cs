@@ -12,6 +12,8 @@ public class UnityClient : MonoBehaviour {
 
 	public Button connect;
 	public Button close;
+    public Button pause;
+    bool pauseToggle = false;
 	public InputField host;
     public ScrollRect scrollRect;    
 	// Use this for initialization
@@ -62,7 +64,10 @@ public class UnityClient : MonoBehaviour {
 
 			Log("MsgSvrCli_Kickout_Ntf(error_code:" + ntf.error_code.ToString() + ")");
 			session.Close();
-			StopCoroutine(coroutine);
+            if (null != coroutine)
+            {
+                StopCoroutine(coroutine);
+            }
 			coroutine = null;
 		});
 		connect.onClick.AddListener (() => {
@@ -70,8 +75,35 @@ public class UnityClient : MonoBehaviour {
             seq = 0;
 			session.Connect (host.text.ToString(), 20000, 60000);
 		});
+
+        pause.onClick.AddListener(() =>
+        {
+            if (false == pauseToggle)
+            {
+                pause.transform.Find("Text").GetComponent<Text>().text = "Play";
+                pauseToggle = true;
+
+                if (null != coroutine)
+                {
+                    StopCoroutine(coroutine);
+                }
+                coroutine = null;
+            }
+            else
+            {
+                pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
+                pauseToggle = false;
+
+                coroutine = StartCoroutine(SendHeartBeat());
+            }
+        });
 		close.onClick.AddListener(() => {
-			session.Close();
+            if (null != coroutine)
+            {
+                StopCoroutine(coroutine);
+            }
+            coroutine = null;
+            session.Close();
 		});
 	}
 	

@@ -149,7 +149,7 @@ namespace Gamnet
 			{
 				TimeoutEvent evt = new TimeoutEvent(session);
 				evt.msgID = msg_id;
-				session.eventQueue.Enqueue(evt);
+				session.eventQueue.PushBack(evt);
 			};
 			timer.Start();
 
@@ -173,33 +173,49 @@ namespace Gamnet
 			timers[msg_id].RemoveAt(0);
 		}
 	}
-	public class SyncQueue<T> : Queue<T>
+	public class SyncQueue<T> 
 	{
 		private object _syncObject = new object();
-		public int GetCount()
+        private List<T> datas = new List<T>();
+
+		public int Count()
 		{
 			lock (_syncObject)
-				return base.Count;
+				return datas.Count;
 		}
 
-		public new void Enqueue(T container)
+		public void PushBack(T item)
 		{
 			lock (_syncObject)
 			{
-				base.Enqueue(container);
+				datas.Add(item);
 			}
 		}
 
-		public new T Dequeue()
+        public void PushFront(T item)
+        {
+            lock (_syncObject)
+            {
+                datas.Insert(0, item);
+            }
+        }
+
+		public T PopFront()
 		{
-			lock (_syncObject)
-				return base.Dequeue();
+            lock (_syncObject)
+            {
+                T item = datas[0];
+                datas.RemoveAt(0);
+                return item;
+            }
 		}
 
-		public new void Clear()
+		public void Clear()
 		{
-			lock (_syncObject)
-				base.Clear();
+            lock (_syncObject)
+            {
+                datas.Clear();
+            }
 		}
 	};
 
@@ -226,7 +242,7 @@ namespace Gamnet
 		private Dictionary<int, Action<Gamnet.Buffer>> handlers = new Dictionary<int, Action<Gamnet.Buffer>>();
 
 		public SyncQueue<SessionEvent> eventQueue = new SyncQueue<SessionEvent>();
-		public SyncQueue<Gamnet.Buffer> sendQueue = new SyncQueue<Gamnet.Buffer>(); // 바로 보내지 못하고 
+        public SyncQueue<Gamnet.Buffer> sendQueue = new SyncQueue<Gamnet.Buffer>(); // 바로 보내지 못하고 
         public ConnectionState state = ConnectionState.Disconnected;
 
 		public delegate void OnConnect();
@@ -269,9 +285,9 @@ namespace Gamnet
 				if (null != session.onReconnect) {
 					session.onReconnect ();
 				}
-                while (0 < session.sendQueue.GetCount())
+                while (0 < session.sendQueue.Count())
                 {
-                    session.PostSend(session.sendQueue.Dequeue());
+                    session.PostSend(session.sendQueue.PopFront());
                 }
             }
         }
@@ -352,7 +368,7 @@ namespace Gamnet
 				_socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
 
 				ConnectEvent evt = new ConnectEvent(this);
-				eventQueue.Enqueue(evt);
+				eventQueue.PushBack(evt);
 				Receive();
 			}
 			catch (System.Exception error)
@@ -381,7 +397,7 @@ namespace Gamnet
 				_socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
 				_socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
 				ReconnectEvent evt = new ReconnectEvent(this);
-				eventQueue.Enqueue(evt);
+				eventQueue.PushBack(evt);
 				Receive();
 			}
 			catch (System.Exception error)
@@ -406,28 +422,32 @@ namespace Gamnet
         }
 		private void Callback_OnReceive(IAsyncResult result)
 		{
-			try
-			{
-				Gamnet.Buffer buffer = (Gamnet.Buffer)result.AsyncState;
-				int recvBytes = _socket.EndReceive(result);
+            try
+            {
+                Gamnet.Buffer buffer = (Gamnet.Buffer)result.AsyncState;
+                int recvBytes = _socket.EndReceive(result);
 
-				if (0 == recvBytes)
-				{
-					Close();
-					return;
-				}
-				buffer.writeIndex += recvBytes;
+                if (0 == recvBytes)
+                {
+                    Close();
+                    return;
+                }
+                buffer.writeIndex += recvBytes;
 
-				ReceiveEvent evt = new ReceiveEvent(this);
-				evt.buffer = buffer;
-				eventQueue.Enqueue(evt);
-				Receive();
-			}
-			catch (System.Exception error)
-			{
-				Error(error);
-				Close ();
-			}
+                ReceiveEvent evt = new ReceiveEvent(this);
+                evt.buffer = buffer;
+                eventQueue.PushBack(evt);
+                Receive();
+            }
+            catch (ObjectDisposedException)
+            {
+                // ignore
+            }
+            catch (System.Exception error)
+            {
+                Error(error);
+                Close();
+            }
 		}
 		public void OnReceive(Gamnet.Buffer buf)
 		{
@@ -469,10 +489,14 @@ namespace Gamnet
         {
             ErrorEvent evt = new ErrorEvent(this);
             evt.exception = e;
-            eventQueue.Enqueue(evt);
+            eventQueue.PushBack(evt);
         }
         public void Close()
         {
+            if (ConnectionState.Disconnected == state)
+            {
+                return;
+            }
             try
             {
 				state = ConnectionState.Disconnected;
@@ -491,7 +515,7 @@ namespace Gamnet
 				//_socket.Shutdown(SocketShutdown.Both);
 				_socket.Close();
 				CloseEvent evt = new CloseEvent(this);
-				eventQueue.Enqueue(evt);
+				eventQueue.PushBack(evt);
 			}
 			catch (System.Exception error)
 			{
@@ -537,7 +561,7 @@ namespace Gamnet
 			catch (System.Exception e)
 			{
 				if (null != buffer) {
-					sendQueue.Enqueue(buffer);
+					sendQueue.PushBack(buffer);
 				}
 				Error(e);
 			}
@@ -551,14 +575,14 @@ namespace Gamnet
             }
             else
             {
-                sendQueue.Enqueue(buffer);
+                sendQueue.PushBack(buffer);
             }
         }
-		private void Callback_OnSend(IAsyncResult result)
+        private void Callback_OnSend(IAsyncResult result)
 		{
-			try
+            Gamnet.Buffer buffer = (Gamnet.Buffer)result.AsyncState;
+            try
 			{
-				Gamnet.Buffer buffer = (Gamnet.Buffer)result.AsyncState;
 				int writedBytes = _socket.EndSend(result);
 				buffer.readIndex += writedBytes;
 				if (buffer.Size() > 0)
@@ -567,8 +591,9 @@ namespace Gamnet
 					PostSend(newBuffer);
 				}
 			}
-			catch (System.Exception error)
+            catch (System.Exception error)
 			{
+                sendQueue.PushFront(buffer);
 				Error(error);
 				Close();
 			}
@@ -576,9 +601,9 @@ namespace Gamnet
 			
         public void Update()
         {
-            while (0 < eventQueue.GetCount())
+            while (0 < eventQueue.Count())
             {
-				SessionEvent evt = eventQueue.Dequeue();
+				SessionEvent evt = eventQueue.PopFront();
                 evt.Event();
             }
         }
