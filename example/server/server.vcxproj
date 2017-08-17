@@ -120,15 +120,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Handler_HeartBeat.cpp" />
     <ClCompile Include="Handler_Login.cpp" />
-    <ClCompile Include="Handler_Move.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Manager_Session.cpp" />
     <ClCompile Include="Session.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Handler_HeartBeat.h" />
     <ClInclude Include="Handler_Login.h" />
-    <ClInclude Include="Handler_Move.h" />
     <ClInclude Include="Manager_Session.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="Session.h" />

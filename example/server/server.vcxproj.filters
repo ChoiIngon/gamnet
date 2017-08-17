@@ -18,9 +18,6 @@
     <ClCompile Include="Handler_Login.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Handler_Move.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,12 +27,12 @@
     <ClCompile Include="Session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Handler_HeartBeat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Handler_Login.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Handler_Move.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Manager_Session.h">
@@ -45,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Session.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler_HeartBeat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

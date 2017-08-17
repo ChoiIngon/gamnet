@@ -13,37 +13,37 @@ public class UnityClient : MonoBehaviour {
 	public Button connect;
 	public Button close;
 	public InputField host;
-
+    public ScrollRect scrollRect;    
 	// Use this for initialization
 	void Start () {
 		session.onConnect += () => {
-			UILog.Instance.Write("success connect(host:" + host.text + ", port:20000)");
+			Log("success connect(host:" + host.text + ", port:20000)");
 			MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
 			req.user_id = "unity_client";
 			req.access_token = "";
-			UILog.Instance.Write("MsgCliSvr_Login_Req(user_id:" + req.user_id + ")");
+			Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ")");
 			session.SendMsg(req);
 		};
 		session.onReconnect += () => {
-			UILog.Instance.Write("success re-connect(host:" + host.text + ", port:20000)");
+			Log("success re-connect(host:" + host.text + ", port:20000)");
 			MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
 			req.user_id = user_data.user_id;
 			req.access_token = user_data.access_token;
-			UILog.Instance.Write("MsgCliSvr_Login_Req(user_id:" + req.user_id + ", access_token:" + req.access_token +")");
+			Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ", access_token:" + req.access_token +")");
 			session.SendMsg(req);
 		};
 		session.onClose += () => {
-			UILog.Instance.Write("session close");
+			Log("session close");
 		};
 		session.onError += (System.Exception e) => {
-			UILog.Instance.Write("session error(message:" + e.Message + ", stack:" + e.StackTrace + ")");
+			Log("session error(message:" + e.Message + ", stack:" + e.StackTrace + ")");
 		};
 		session.RegisterHandler (MsgSvrCli_Login_Ans.MSG_ID, (Gamnet.Buffer buffer) => {
 			MsgSvrCli_Login_Ans ans = new MsgSvrCli_Login_Ans();
 			ans.Load(buffer);
 
 			user_data = ans.user_data;
-			UILog.Instance.Write("MsgSvrCli_Login_Ans(user_seq:" + user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
+			Log("MsgSvrCli_Login_Ans(user_seq:" + user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
 			if(ERROR_CODE.ERROR_SUCCESS != ans.error_code)
 			{
 				user_data = null;
@@ -60,13 +60,13 @@ public class UnityClient : MonoBehaviour {
 			MsgSvrCli_Kickout_Ntf ntf = new MsgSvrCli_Kickout_Ntf();
 			ntf.Load(buffer);
 
-			UILog.Instance.Write("MsgSvrCli_Kickout_Ntf(reason:" + ntf.error_code.ToString() + ")");
+			Log("MsgSvrCli_Kickout_Ntf(error_code:" + ntf.error_code.ToString() + ")");
 			session.Close();
 			StopCoroutine(coroutine);
 			coroutine = null;
 		});
 		connect.onClick.AddListener (() => {
-			UILog.Instance.Write("connect to " + host.text.ToString());
+			Log("connect to " + host.text.ToString());
             seq = 0;
 			session.Connect (host.text.ToString(), 20000, 60000);
 		});
@@ -86,7 +86,13 @@ public class UnityClient : MonoBehaviour {
 			MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
 			ntf.msg_seq = ++seq;
 			session.SendMsg (ntf);
-			UILog.Instance.Write ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
+			Log("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
 		}
 	}
+
+    void Log(string text)
+    {
+        UILog.Instance.Write(text);
+        scrollRect.verticalNormalizedPosition = 0.0f;
+    }
 }
