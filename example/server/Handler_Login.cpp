@@ -22,7 +22,7 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 	try {
 		if(false == Gamnet::Network::Packet::Load(req, packet))
 		{
-			throw Gamnet::Exception(ERROR_INVALID_MSG_FORMAT, ERR, "message load fail");
+			throw Gamnet::Exception(ERROR(ERROR_INVALID_MSG_FORMAT), "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_Login_Req(session_key:", session->sessionKey_, ", user_id:", req.user_id, ", access_token:", req.access_token, ")");
@@ -65,12 +65,12 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 		{
 			if(NULL == old_)
 			{
-				throw Gamnet::Exception(ERROR_CANT_FIND_CACHE_DATA, ERR, "invalid session cache(user_id:", req.user_id, ")");
+				throw Gamnet::Exception(ERROR(ERROR_CANT_FIND_CACHE_DATA), "invalid session cache(user_id:", req.user_id, ")");
 			}
 
 			if (req.access_token != old_->access_token)
 			{
-				throw Gamnet::Exception(ERROR_INVALID_ACCESSTOKEN, ERR, "invalid access token(req:", req.access_token, ", cached:", old_->access_token, ")");
+				throw Gamnet::Exception(ERROR(ERROR_INVALID_ACCESSTOKEN), "invalid access token(req:", req.access_token, ", cached:", old_->access_token, ")");
 			}
 
 			old_->session_key = session->user_data->session_key;
@@ -111,7 +111,7 @@ void Test_Login_Ans(std::shared_ptr<TestSession> session, std::shared_ptr<Gamnet
 		if(false == Gamnet::Network::Packet::Load(ans, packet))
 		{
 			LOG(ERR, "message load fail");
-			throw Gamnet::Exception(-1, "message load fail");
+			throw Gamnet::Exception(ERROR(ERROR_INVALID_MSG_FORMAT), "message load fail");
 		}
 		session->user_data = ans.user_data;
 		LOG(INF, "error_code:", ans.error_code, ", user_seq:", session->user_data.user_seq);
