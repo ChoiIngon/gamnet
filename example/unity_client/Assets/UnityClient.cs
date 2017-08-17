@@ -98,11 +98,13 @@ public class UnityClient : MonoBehaviour {
             }
         });
 		close.onClick.AddListener(() => {
+            /*
             if (null != coroutine)
             {
                 StopCoroutine(coroutine);
             }
             coroutine = null;
+            */
             session.Close();
 		});
 	}

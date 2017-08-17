@@ -224,6 +224,15 @@ namespace Gamnet
                 items.Clear();
             }
 		}
+
+        public List<T> Copy()
+        {
+            lock (_syncObject)
+            {
+                List<T> copy = new List<T>(items);
+                return copy;
+            }
+        }
 	};
 
     public class Session
@@ -248,7 +257,8 @@ namespace Gamnet
 		private Gamnet.Buffer recvBuffer = new Gamnet.Buffer();
 		private Dictionary<int, Action<Gamnet.Buffer>> handlers = new Dictionary<int, Action<Gamnet.Buffer>>();
 
-		public SyncQueue<SessionEvent> eventQueue = new SyncQueue<SessionEvent>();
+        private object syncObject = new object();
+        public SyncQueue<SessionEvent> eventQueue = new SyncQueue<SessionEvent>();
         public SyncQueue<Gamnet.Buffer> sendQueue = new SyncQueue<Gamnet.Buffer>(); // 바로 보내지 못하고 
         public ConnectionState state = ConnectionState.Disconnected;
 
@@ -290,9 +300,15 @@ namespace Gamnet
             {
                 session.state = ConnectionState.Connected;
 				if (null != session.onReconnect) {
+                    List<Gamnet.Buffer> sendQueue = session.sendQueue.Copy();
+                    Debug.Log("temp send queue size:" + sendQueue.Count);
+                    session.sendQueue.Clear();
 					session.onReconnect ();
-				}
-                session.FlushSend();
+                    foreach (var itr in sendQueue)
+                    {
+                        session.sendQueue.PushBack(itr);
+                    }
+                }
             }
         }
         public class ErrorEvent : SessionEvent
@@ -389,6 +405,7 @@ namespace Gamnet
             {
                 return;
             }
+            Debug.Log("try to reconnect");
             state = ConnectionState.OnConnecting;
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.BeginConnect(_endPoint, new AsyncCallback(Callback_OnReconnect), socket);
@@ -506,6 +523,7 @@ namespace Gamnet
             }
             try
             {
+                Debug.Log("socket close");
 				state = ConnectionState.Disconnected;
                 _socket.BeginDisconnect(false, new AsyncCallback(Callback_OnClose), _socket);
             }
@@ -532,9 +550,9 @@ namespace Gamnet
         
 		public TimeoutMonitor SendMsg(object msg)
 		{
-			Gamnet.Buffer buffer = null;
 			try
 			{
+                Debug.Log("send msg");
 				Reconnect();
 
 				System.IO.MemoryStream ms = new System.IO.MemoryStream();
@@ -551,7 +569,7 @@ namespace Gamnet
 					throw new System.Exception(string.Format("Overflow the send buffer max size : {0}", packetLength));
 				}
 
-				buffer = new Gamnet.Buffer();
+                Gamnet.Buffer buffer = new Gamnet.Buffer();
 				byte[] bufLength = BitConverter.GetBytes(packetLength);
 				byte[] bufMsgID = BitConverter.GetBytes(msgID);
 				buffer.data[0] = bufLength[0];
@@ -563,9 +581,15 @@ namespace Gamnet
 				buffer.writeIndex = PACKET_HEADER_SIZE;
 				buffer.Append(ms);
 
-                sendQueue.PushBack(buffer);
-                _socket.BeginSend(sendQueue[0].data, 0, sendQueue[0].Size(), 0, new AsyncCallback(Callback_OnSend), buffer);
-                //PostSend(buffer);
+                lock (syncObject)
+                {
+                    sendQueue.PushBack(buffer);
+                    if (1 == sendQueue.Count() && ConnectionState.Connected == state)
+                    {
+                        Debug.Log("begin send 1");
+                        _socket.BeginSend(sendQueue[0].data, 0, sendQueue[0].Size(), 0, new AsyncCallback(Callback_OnSend), buffer);
+                    }
+                }
 			}
 			catch (System.Exception e)
 			{
@@ -573,11 +597,16 @@ namespace Gamnet
 			}
 			return timeoutMonitor;
 		}
+        
         public void FlushSend()
         {
-            if (0 < sendQueue.Count())
+            lock (syncObject)
             {
-                _socket.BeginSend(sendQueue[0].data, 0, sendQueue[0].Size(), 0, new AsyncCallback(Callback_OnSend), sendQueue[0]);
+                if (0 < sendQueue.Count())
+                {
+                    Debug.Log("FlushSend(queue size:" + sendQueue.Count() +")");
+                    _socket.BeginSend(sendQueue[0].data, 0, sendQueue[0].Size(), 0, new AsyncCallback(Callback_OnSend), sendQueue[0]);
+                }
             }
         }
         /*
@@ -597,20 +626,26 @@ namespace Gamnet
 		{
             try
 			{
-                Gamnet.Buffer buffer = sendQueue[0];
-                int writedBytes = _socket.EndSend(result);
-				buffer.readIndex += writedBytes;
-				if (buffer.Size() > 0)
-				{
-					Gamnet.Buffer newBuffer = new Gamnet.Buffer(buffer);
-                    sendQueue.PushFront(newBuffer);
-                    _socket.BeginSend(sendQueue[0].data, 0, sendQueue[0].Size(), 0, new AsyncCallback(Callback_OnSend), newBuffer);
-                    return;
-                }
-                sendQueue.PopFront();
-                if (0 < sendQueue.Count())
+                lock (syncObject)
                 {
-                    _socket.BeginSend(sendQueue[0].data, 0, sendQueue[0].Size(), 0, new AsyncCallback(Callback_OnSend), sendQueue[0]);
+                    Gamnet.Buffer buffer = sendQueue[0];
+                    int writedBytes = _socket.EndSend(result);
+                    buffer.readIndex += writedBytes;
+                    if (buffer.Size() > 0)
+                    {
+                        Gamnet.Buffer newBuffer = new Gamnet.Buffer(buffer);
+                        sendQueue.PushFront(newBuffer);
+                        Debug.Log("begin send 3");
+                        _socket.BeginSend(newBuffer.data, 0, newBuffer.Size(), 0, new AsyncCallback(Callback_OnSend), newBuffer);
+                        return;
+                    }
+
+                    sendQueue.PopFront();
+                    if (0 < sendQueue.Count())
+                    {
+                        Debug.Log("begin send(queue size:" + sendQueue.Count() +")");
+                        _socket.BeginSend(sendQueue[0].data, 0, sendQueue[0].Size(), 0, new AsyncCallback(Callback_OnSend), sendQueue[0]);
+                    }
                 }
                 Debug.Log("send message queue size:" + sendQueue.Count());
 			}
