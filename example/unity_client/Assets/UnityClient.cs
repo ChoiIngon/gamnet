@@ -6,21 +6,21 @@ using message;
 
 public class UnityClient : MonoBehaviour {
 	private Gamnet.Session session = new Gamnet.Session();
-	private Coroutine coroutine;
-	uint seq = 0;
-	UserData user_data;
-
+	private Coroutine coroutine = null;
+	private UserData user_data = null;
+	private uint msg_seq = 0;
+	private bool pause_toggle = false;
+	private NetworkReachability networkReachability = NetworkReachability.NotReachable;
 	public Button connect;
 	public Button close;
     public Button pause;
-    bool pauseToggle = false;
 	public InputField host;
     public ScrollRect scrollRect;    
-	// Use this for initialization
+
 	void Start () {
         connect.onClick.AddListener(() => {
-            Log("connect to " + host.text);
-            seq = 0;
+			networkReachability = Application.internetReachability;
+			msg_seq = 0;
             if ("" == host.text)
             {
                 session.Connect("52.78.185.159", 20000, 60000);
@@ -30,43 +30,56 @@ public class UnityClient : MonoBehaviour {
                 session.Connect(host.text, 20000, 60000);
             }
         });
+		pause.onClick.AddListener(() =>	{
+			if (false == pause_toggle)
+			{
+				pause.transform.Find("Text").GetComponent<Text>().text = "Play";
+				pause_toggle = true;
+
+				if (null != coroutine)
+				{
+					StopCoroutine(coroutine);
+				}
+				coroutine = null;
+			}
+			else
+			{
+				pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
+				pause_toggle = false;
+
+				coroutine = StartCoroutine(SendHeartBeat());
+			}
+		});
+		close.onClick.AddListener(() => {
+			session.Close();
+		});
 
         session.onConnect += () => {
-			Log("onConnect(host:" + host.text + ", port:20000)");
-            Debug.Log("onConnect(host:" + host.text + ", port:20000)");
-
-            MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
-			req.user_id = "unity_client";
+			MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
+			req.user_id = SystemInfo.deviceUniqueIdentifier;
 			req.access_token = "";
 
 			Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ")");
-            Debug.Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ")");
             session.SendMsg(req);
 		};
 		session.onReconnect += () => {
-			Log("onReconnect(host:" + host.text + ", port:20000)");
-            Debug.Log("onReconnect(host:" + host.text + ", port:20000)");
-
-            MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
+			MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
 			req.user_id = user_data.user_id;
 			req.access_token = user_data.access_token;
 
 			Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ", access_token:" + req.access_token +")");
-            Debug.Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ", access_token:" + req.access_token + ")");
             session.SendMsg(req);
 		};
-
-        close.onClick.AddListener(() => {
-            Log("close button click");
-            Debug.Log("close button click");
-            session.Close();
-        });
-        session.onClose += () => {
+		session.onClose += () => {
 			Log("session close");
-            Debug.Log("session close");
         };
 		session.onError += (System.Exception e) => {
-			Log("session error(name:" + e.ToString() + ", message:" + e.Message + ", stack:" + e.StackTrace + ")");
+			Log(e.ToString());
+			if(null != coroutine)
+			{
+				StopCoroutine(coroutine);
+			}
+			coroutine = null;
 		};
 		session.RegisterHandler (MsgSvrCli_Login_Ans.MSG_ID, (Gamnet.Buffer buffer) => {
 			MsgSvrCli_Login_Ans ans = new MsgSvrCli_Login_Ans();
@@ -77,6 +90,7 @@ public class UnityClient : MonoBehaviour {
 			if(ERROR_CODE.ERROR_SUCCESS != ans.error_code)
 			{
 				user_data = null;
+				session.Close();
 				return;
 			}
 
@@ -98,48 +112,30 @@ public class UnityClient : MonoBehaviour {
             }
 			coroutine = null;
 		});
-		
-        pause.onClick.AddListener(() =>
-        {
-            if (false == pauseToggle)
-            {
-                pause.transform.Find("Text").GetComponent<Text>().text = "Play";
-                pauseToggle = true;
-
-                if (null != coroutine)
-                {
-                    StopCoroutine(coroutine);
-                }
-                coroutine = null;
-            }
-            else
-            {
-                pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
-                pauseToggle = false;
-
-                coroutine = StartCoroutine(SendHeartBeat());
-            }
-        });
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		session.Update ();
-	}
-		
+
 	IEnumerator SendHeartBeat() {
 		while (true) {
-			yield return new WaitForSeconds (1.0f);
 			MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
-			ntf.msg_seq = ++seq;
-            Log("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
-            session.SendMsg (ntf);			
+			ntf.msg_seq = ++msg_seq;
+			Log("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
+			session.SendMsg (ntf);			
+			yield return new WaitForSeconds (3.0f);
 		}
 	}
 
+	// Update is called once per frame
+	void Update () {
+		session.Update ();
+		if (networkReachability != Application.internetReachability) {
+			session.Close ();
+			networkReachability = Application.internetReachability;
+		}
+	}
+		
     void Log(string text)
     {
-        UILog.Instance.Write(text);
+        UILog.Write(text);
         scrollRect.verticalNormalizedPosition = 0.0f;
     }
 }

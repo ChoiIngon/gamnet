@@ -25,19 +25,28 @@ public class UILog : MonoBehaviour {
 			return _instance;  
 		}  
 	}	
-	Text text;
-	public int lineLimit;
+	public static void Write(string text)
+	{
+		UILog.Instance._Write (text);
+	}
+
+	private Text text;
 	private int lineCount;
+	private int lineNum;
+	public int lineLimit;
+
 	void Init()
 	{
 		text = GetComponent<Text> ();
 		lineCount = 0;
+		lineNum = 1;
 	}
 
-	public void Write(string text)
+	void _Write(string text)
 	{
-		this.text.text += text + System.Environment.NewLine;
+		this.text.text += lineNum.ToString() + ":" + text + System.Environment.NewLine;
 		lineCount++;
+		lineNum++;
 		if (lineLimit < lineCount) {
 			int index = this.text.text.IndexOf(System.Environment.NewLine);
 			this.text.text = this.text.text.Substring(index + System.Environment.NewLine.Length);
