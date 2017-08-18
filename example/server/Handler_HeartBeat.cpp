@@ -21,7 +21,7 @@ void Handler_HeartBeat::Recv_Ntf(std::shared_ptr<Session> session, std::shared_p
 			throw Gamnet::Exception(ERROR(InvalidUserError), "invalid user(session_key:", session->sessionKey_, ")");
 		}
 
-		if(ntf.msg_seq < session->user_data->msg_seq && 1 < ntf.msg_seq - session->user_data->msg_seq)
+		if(ntf.msg_seq > session->user_data->msg_seq && 1 < ntf.msg_seq - session->user_data->msg_seq)
 		{
 			throw Gamnet::Exception(ERROR(MessageSeqOmmitError), "lost message seq:", session->user_data->msg_seq);
 		}
