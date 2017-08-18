@@ -1,6 +1,5 @@
 #include "Handler_Reconnect.h"
 #include "Manager_Session.h"
-
 Handler_Reconnect::Handler_Reconnect() {
 }
 
@@ -62,7 +61,7 @@ void Handler_Reconnect::Recv_Req(std::shared_ptr<Session> session, std::shared_p
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_Reconnect_Ans(user_seq:", session->user_data->user_seq, ", error_code:", ans.error_code, ")");
+	LOG(DEV, "MsgSvrCli_Reconnect_Ans(user_id:", req.user_id, ", error_code:", ans.error_code, ")");
 	Gamnet::Network::SendMsg(session, ans);
 }
 
