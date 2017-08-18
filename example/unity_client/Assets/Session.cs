@@ -286,7 +286,6 @@ namespace Gamnet
             public override void Event()
             {
                 session.state = ConnectionState.Connected;
-                session.sendQueue.Clear();
 				if (null != session.onConnect) {
 					session.onConnect ();
 				}
@@ -347,6 +346,9 @@ namespace Gamnet
         {
             try
             {
+				sendQueue.Clear();
+				sendQueueIndex = 0;
+
 				connectTimeout = millisecondTimeout;
                 timeoutMonitor = new TimeoutMonitor();
                 state = ConnectionState.OnConnecting;
@@ -455,8 +457,9 @@ namespace Gamnet
 
 					onReconnect ();
 
-					foreach (var itr in tmp) {
-						sendQueue.PushBack (itr);
+					foreach (var packet in tmp) {
+						packet.read_index = 0;
+						sendQueue.PushBack (packet);
 					}
 				}
 			}
