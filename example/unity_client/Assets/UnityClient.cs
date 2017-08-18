@@ -142,7 +142,7 @@ public class UnityClient : MonoBehaviour {
 			MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
 			ntf.msg_seq = ++session.msg_seq;
 			Log("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
-			session.SendMsg (ntf);			
+			session.SendMsg (ntf, true);			
 			yield return new WaitForSeconds (3.0f);
 		}
 	}

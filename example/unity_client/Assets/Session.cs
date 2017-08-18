@@ -122,14 +122,16 @@ namespace Gamnet
 		public const int PACKET_HEADER_SIZE = 6;
 
 		public uint msg_seq;
-
+		public bool reliable;
 		public Packet()
 		{
 			msg_seq = 0;
+			reliable = false;
 		}
 		public Packet(Packet src) : base(src)
 		{
 			msg_seq = src.msg_seq;
+			reliable = src.reliable;
 		}
 	}
 	public class TimeoutMonitor
@@ -206,6 +208,13 @@ namespace Gamnet
             }
 		}
 
+		public void RemoveAt(int index) {
+			lock (_syncObject)
+			{
+				items.RemoveAt(index);
+			}
+		}
+
         public T this[int index]
         {
             get {
@@ -229,6 +238,8 @@ namespace Gamnet
                 return copy;
             }
         }
+
+
 	};
 
     public class Session
@@ -584,7 +595,7 @@ namespace Gamnet
 			}
 		}
         
-		public TimeoutMonitor SendMsg(object msg)
+		public TimeoutMonitor SendMsg(object msg, bool handOverRelility = false)
 		{
 			try
 			{
@@ -617,6 +628,8 @@ namespace Gamnet
 				packet.Append(ms);
 			
 				packet.msg_seq = msg_seq;
+				packet.reliable = handOverRelility;
+
                 lock (syncObject)
                 {
                     Log("SendMsg.sendQueue.PushBack(msg_id:" + msgID + ")");
@@ -636,7 +649,6 @@ namespace Gamnet
 			}
 			return timeoutMonitor;
 		}
-        
         private void Callback_OnSend(IAsyncResult result)
 		{
             try
@@ -656,7 +668,14 @@ namespace Gamnet
                     }
 
                     //sendQueue.PopFront();
-					sendQueueIndex++;
+					if(true == packet.reliable)
+					{
+						sendQueueIndex++;
+					}
+					else
+					{
+						sendQueue.RemoveAt(sendQueueIndex);	
+					}
                     if (sendQueueIndex < sendQueue.Count())
                     {
                         Log("Callback_OnSend.BeginSend.sendQueue(index:" + sendQueueIndex +")");
