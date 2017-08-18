@@ -11,25 +11,26 @@
 //
 //
 
-enum ERROR_CODE {
-		ERROR_SUCCESS = 0,
-		ERROR_INVALID_MSG_FORMAT = 1000,
-		ERROR_INVALID_USER = 2000,
-		ERROR_DUPLICATE_CONNECTION = 3000,
-		ERROR_CANT_FIND_CACHE_DATA = 4000,
-		ERROR_INVALID_ACCESSTOKEN = 5000,
-		ERROR_INCORRECT_DATA = 6000,
-}; // ERROR_CODE
-struct ERROR_CODE_Serializer {
-	static bool Store(char** _buf_, const ERROR_CODE& obj) { 
-		(*(ERROR_CODE*)(*_buf_)) = obj;	(*_buf_) += sizeof(ERROR_CODE);
+enum ErrorCode {
+		Success = 0,
+		MessageFormatError = 1000,
+		MessageSeqOmmitError = 1001,
+		InvalidUserError = 2000,
+		InvalidAccessTokenError = 2001,
+		DuplicateConnectionError = 3000,
+		ReconnectTimeoutError = 4000,
+		AlreadyLoginSessionError = 5000,
+}; // ErrorCode
+struct ErrorCode_Serializer {
+	static bool Store(char** _buf_, const ErrorCode& obj) { 
+		(*(ErrorCode*)(*_buf_)) = obj;	(*_buf_) += sizeof(ErrorCode);
 		return true;
 	}
-	static bool Load(ERROR_CODE& obj, const char** _buf_, size_t& nSize) { 
-		if(sizeof(ERROR_CODE) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(ERROR_CODE));		(*_buf_) += sizeof(ERROR_CODE); nSize -= sizeof(ERROR_CODE);
+	static bool Load(ErrorCode& obj, const char** _buf_, size_t& nSize) { 
+		if(sizeof(ErrorCode) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(ErrorCode));		(*_buf_) += sizeof(ErrorCode); nSize -= sizeof(ErrorCode);
 		return true;
 	}
-	static int32_t Size(const ERROR_CODE& obj) { return sizeof(ERROR_CODE); }
+	static int32_t Size(const ErrorCode& obj) { return sizeof(ErrorCode); }
 };
 struct ItemData {
 	std::string	item_id;
@@ -177,8 +178,99 @@ struct UserData_Serializer {
 struct MsgCliSvr_Login_Req {
 	enum { MSG_ID = 10000001 }; 
 	std::string	user_id;
-	std::string	access_token;
 	MsgCliSvr_Login_Req()	{
+	}
+	int32_t Size() const {
+		int32_t nSize = 0;
+		nSize += sizeof(uint32_t); nSize += user_id.length();
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		size_t user_id_size = user_id.length();
+		std::memcpy(*_buf_, &user_id_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		std::memcpy(*_buf_, user_id.c_str(), user_id.length()); (*_buf_) += user_id.length();
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(int32_t) > nSize) { return false; }
+		uint32_t user_id_length = 0; std::memcpy(&user_id_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		if(nSize < user_id_length) { return false; }
+		user_id.assign((char*)*_buf_, user_id_length); (*_buf_) += user_id_length; nSize -= user_id_length;
+		return true;
+	}
+}; //MsgCliSvr_Login_Req
+struct MsgCliSvr_Login_Req_Serializer {
+	static bool Store(char** _buf_, const MsgCliSvr_Login_Req& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgCliSvr_Login_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static int32_t Size(const MsgCliSvr_Login_Req& obj) { return obj.Size(); }
+};
+struct MsgSvrCli_Login_Ans {
+	enum { MSG_ID = 10000001 }; 
+	ErrorCode	error_code;
+	UserData	user_data;
+	MsgSvrCli_Login_Ans()	{
+	}
+	int32_t Size() const {
+		int32_t nSize = 0;
+		nSize += ErrorCode_Serializer::Size(error_code);
+		nSize += UserData_Serializer::Size(user_data);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		if(false == UserData_Serializer::Store(_buf_, user_data)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		if(false == UserData_Serializer::Load(user_data, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgSvrCli_Login_Ans
+struct MsgSvrCli_Login_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_Login_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_Login_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static int32_t Size(const MsgSvrCli_Login_Ans& obj) { return obj.Size(); }
+};
+struct MsgCliSvr_Reconnect_Req {
+	enum { MSG_ID = 10000002 }; 
+	std::string	user_id;
+	std::string	access_token;
+	MsgCliSvr_Reconnect_Req()	{
 	}
 	int32_t Size() const {
 		int32_t nSize = 0;
@@ -223,22 +315,23 @@ struct MsgCliSvr_Login_Req {
 		access_token.assign((char*)*_buf_, access_token_length); (*_buf_) += access_token_length; nSize -= access_token_length;
 		return true;
 	}
-}; //MsgCliSvr_Login_Req
-struct MsgCliSvr_Login_Req_Serializer {
-	static bool Store(char** _buf_, const MsgCliSvr_Login_Req& obj) { return obj.Store(_buf_); }
-	static bool Load(MsgCliSvr_Login_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static int32_t Size(const MsgCliSvr_Login_Req& obj) { return obj.Size(); }
+}; //MsgCliSvr_Reconnect_Req
+struct MsgCliSvr_Reconnect_Req_Serializer {
+	static bool Store(char** _buf_, const MsgCliSvr_Reconnect_Req& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgCliSvr_Reconnect_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static int32_t Size(const MsgCliSvr_Reconnect_Req& obj) { return obj.Size(); }
 };
-struct MsgSvrCli_Login_Ans {
-	enum { MSG_ID = 10000001 }; 
-	ERROR_CODE	error_code;
-	UserData	user_data;
-	MsgSvrCli_Login_Ans()	{
+struct MsgSvrCli_Reconnect_Ans {
+	enum { MSG_ID = 10000002 }; 
+	ErrorCode	error_code;
+	uint32_t	msg_seq;
+	MsgSvrCli_Reconnect_Ans()	{
+		msg_seq = 0;
 	}
 	int32_t Size() const {
 		int32_t nSize = 0;
-		nSize += ERROR_CODE_Serializer::Size(error_code);
-		nSize += UserData_Serializer::Size(user_data);
+		nSize += ErrorCode_Serializer::Size(error_code);
+		nSize += sizeof(uint32_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -252,8 +345,8 @@ struct MsgSvrCli_Login_Ans {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		if(false == ERROR_CODE_Serializer::Store(_buf_, error_code)) { return false; }
-		if(false == UserData_Serializer::Store(_buf_, user_data)) { return false; }
+		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		std::memcpy(*_buf_, &msg_seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -264,24 +357,24 @@ struct MsgSvrCli_Login_Ans {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(false == ERROR_CODE_Serializer::Load(error_code, _buf_, nSize)) { return false; }
-		if(false == UserData_Serializer::Load(user_data, _buf_, nSize)) { return false; }
+		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&msg_seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		return true;
 	}
-}; //MsgSvrCli_Login_Ans
-struct MsgSvrCli_Login_Ans_Serializer {
-	static bool Store(char** _buf_, const MsgSvrCli_Login_Ans& obj) { return obj.Store(_buf_); }
-	static bool Load(MsgSvrCli_Login_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static int32_t Size(const MsgSvrCli_Login_Ans& obj) { return obj.Size(); }
+}; //MsgSvrCli_Reconnect_Ans
+struct MsgSvrCli_Reconnect_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_Reconnect_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_Reconnect_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static int32_t Size(const MsgSvrCli_Reconnect_Ans& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_Kickout_Ntf {
-	enum { MSG_ID = 10000002 }; 
-	ERROR_CODE	error_code;
+	enum { MSG_ID = 10000003 }; 
+	ErrorCode	error_code;
 	MsgSvrCli_Kickout_Ntf()	{
 	}
 	int32_t Size() const {
 		int32_t nSize = 0;
-		nSize += ERROR_CODE_Serializer::Size(error_code);
+		nSize += ErrorCode_Serializer::Size(error_code);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -295,7 +388,7 @@ struct MsgSvrCli_Kickout_Ntf {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		if(false == ERROR_CODE_Serializer::Store(_buf_, error_code)) { return false; }
+		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -306,7 +399,7 @@ struct MsgSvrCli_Kickout_Ntf {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(false == ERROR_CODE_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
 		return true;
 	}
 }; //MsgSvrCli_Kickout_Ntf
@@ -316,7 +409,7 @@ struct MsgSvrCli_Kickout_Ntf_Serializer {
 	static int32_t Size(const MsgSvrCli_Kickout_Ntf& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_HeartBeat_Ntf {
-	enum { MSG_ID = 10000003 }; 
+	enum { MSG_ID = 10000004 }; 
 	uint32_t	msg_seq;
 	MsgCliSvr_HeartBeat_Ntf()	{
 		msg_seq = 0;
@@ -356,5 +449,47 @@ struct MsgCliSvr_HeartBeat_Ntf_Serializer {
 	static bool Store(char** _buf_, const MsgCliSvr_HeartBeat_Ntf& obj) { return obj.Store(_buf_); }
 	static bool Load(MsgCliSvr_HeartBeat_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static int32_t Size(const MsgCliSvr_HeartBeat_Ntf& obj) { return obj.Size(); }
+};
+struct MsgSvrCli_HeartBeat_Ntf {
+	enum { MSG_ID = 10000004 }; 
+	uint32_t	msg_seq;
+	MsgSvrCli_HeartBeat_Ntf()	{
+		msg_seq = 0;
+	}
+	int32_t Size() const {
+		int32_t nSize = 0;
+		nSize += sizeof(uint32_t);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		std::memcpy(*_buf_, &msg_seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&msg_seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		return true;
+	}
+}; //MsgSvrCli_HeartBeat_Ntf
+struct MsgSvrCli_HeartBeat_Ntf_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_HeartBeat_Ntf& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_HeartBeat_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static int32_t Size(const MsgSvrCli_HeartBeat_Ntf& obj) { return obj.Size(); }
 };
 #endif // __message_H__

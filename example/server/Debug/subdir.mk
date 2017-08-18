@@ -6,6 +6,7 @@
 CPP_SRCS += \
 ../Handler_HeartBeat.cpp \
 ../Handler_Login.cpp \
+../Handler_Reconnect.cpp \
 ../Manager_Session.cpp \
 ../Session.cpp \
 ../main.cpp 
@@ -13,6 +14,7 @@ CPP_SRCS += \
 OBJS += \
 ./Handler_HeartBeat.o \
 ./Handler_Login.o \
+./Handler_Reconnect.o \
 ./Manager_Session.o \
 ./Session.o \
 ./main.o 
@@ -20,6 +22,7 @@ OBJS += \
 CPP_DEPS += \
 ./Handler_HeartBeat.d \
 ./Handler_Login.d \
+./Handler_Reconnect.d \
 ./Manager_Session.d \
 ./Session.d \
 ./main.d 
@@ -29,7 +32,7 @@ CPP_DEPS += \
 %.o: ../%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -I/usr/include/mysql -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	g++ -I/usr/include/mysql -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

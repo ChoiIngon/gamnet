@@ -8,7 +8,6 @@ public class UnityClient : MonoBehaviour {
 	private Gamnet.Session session = new Gamnet.Session();
 	private Coroutine coroutine = null;
 	private UserData user_data = null;
-	private uint msg_seq = 0;
 	private bool pause_toggle = false;
 	private NetworkReachability networkReachability = NetworkReachability.NotReachable;
 	public Button connect;
@@ -20,7 +19,8 @@ public class UnityClient : MonoBehaviour {
 	void Start () {
         connect.onClick.AddListener(() => {
 			networkReachability = Application.internetReachability;
-			msg_seq = 0;
+
+			session.msg_seq = 0;
             if ("" == host.text)
             {
                 session.Connect("52.78.185.159", 20000, 60000);
@@ -31,22 +31,18 @@ public class UnityClient : MonoBehaviour {
             }
         });
 		pause.onClick.AddListener(() =>	{
-			if (false == pause_toggle)
-			{
+ 			if (false == pause_toggle) {
 				pause.transform.Find("Text").GetComponent<Text>().text = "Play";
 				pause_toggle = true;
 
-				if (null != coroutine)
-				{
+				if (null != coroutine) {
 					StopCoroutine(coroutine);
 				}
 				coroutine = null;
 			}
-			else
-			{
+			else {
 				pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
 				pause_toggle = false;
-
 				coroutine = StartCoroutine(SendHeartBeat());
 			}
 		});
@@ -57,17 +53,16 @@ public class UnityClient : MonoBehaviour {
         session.onConnect += () => {
 			MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
 			req.user_id = SystemInfo.deviceUniqueIdentifier;
-			req.access_token = "";
 
 			Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ")");
             session.SendMsg(req);
 		};
 		session.onReconnect += () => {
-			MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
+			MsgCliSvr_Reconnect_Req req = new MsgCliSvr_Reconnect_Req();
 			req.user_id = user_data.user_id;
 			req.access_token = user_data.access_token;
 
-			Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ", access_token:" + req.access_token +")");
+			Log("MsgCliSvr_Reconnect_Req(user_id:" + req.user_id + ", access_token:" + req.access_token +")");
             session.SendMsg(req);
 		};
 		session.onClose += () => {
@@ -83,26 +78,54 @@ public class UnityClient : MonoBehaviour {
 		};
 		session.RegisterHandler (MsgSvrCli_Login_Ans.MSG_ID, (Gamnet.Buffer buffer) => {
 			MsgSvrCli_Login_Ans ans = new MsgSvrCli_Login_Ans();
-			ans.Load(buffer);
+			if(false == ans.Load(buffer)) {
+				Log("MessageFormatError(MsgSvrCli_Login_Ans)");
+				return;
+			}
+				
+			Log("MsgSvrCli_Login_Ans(user_seq:" + ans.user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
 
-			user_data = ans.user_data;
-			Log("MsgSvrCli_Login_Ans(user_seq:" + user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
-			if(ERROR_CODE.ERROR_SUCCESS != ans.error_code)
-			{
-				user_data = null;
+			if(ErrorCode.Success != ans.error_code)	{
 				session.Close();
 				return;
 			}
 
-			if(null != coroutine)
-			{
+			user_data = ans.user_data;
+
+			if(null != coroutine) {
 				StopCoroutine(coroutine);
 			}
 			coroutine = StartCoroutine(SendHeartBeat());
 		});
+		session.RegisterHandler (MsgSvrCli_Reconnect_Ans.MSG_ID, (Gamnet.Buffer buffer) => {
+			MsgSvrCli_Reconnect_Ans ans = new MsgSvrCli_Reconnect_Ans();
+			if(false == ans.Load(buffer)) {
+				Log("MessageFormatError(MsgSvrCli_Reconnect_Ans)");
+				return ;
+			}
+			Log("MsgSvrCli_Reconnect_Ans(msg_seq:" + ans.msg_seq + ")");
+			if(null != coroutine) {
+				StopCoroutine(coroutine);
+			}
+			coroutine = StartCoroutine(SendHeartBeat());
+		});
+		session.RegisterHandler (MsgSvrCli_HeartBeat_Ntf.MSG_ID, (Gamnet.Buffer buffer) => {
+			MsgSvrCli_HeartBeat_Ntf ntf = new MsgSvrCli_HeartBeat_Ntf();
+			if(false == ntf.Load(buffer)) {
+				Log("MessageFormatError(MsgSvrCli_HeartBeat_Ntf)");
+				return;
+			}
+
+			Log("MsgSvrCli_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq.ToString() + ")");
+			session.RemoveSentPacket(ntf.msg_seq);
+			// remove every queued message under msg_seq
+		});
 		session.RegisterHandler (MsgSvrCli_Kickout_Ntf.MSG_ID, (Gamnet.Buffer buffer) => {
 			MsgSvrCli_Kickout_Ntf ntf = new MsgSvrCli_Kickout_Ntf();
-			ntf.Load(buffer);
+			if(false == ntf.Load(buffer)) {
+				Log("MessageFormatError(MsgSvrCli_Kickout_Ntf)");
+				return;
+			}
 
 			Log("MsgSvrCli_Kickout_Ntf(error_code:" + ntf.error_code.ToString() + ")");
 			session.Close();
@@ -117,7 +140,7 @@ public class UnityClient : MonoBehaviour {
 	IEnumerator SendHeartBeat() {
 		while (true) {
 			MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
-			ntf.msg_seq = ++msg_seq;
+			ntf.msg_seq = ++session.msg_seq;
 			Log("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
 			session.SendMsg (ntf);			
 			yield return new WaitForSeconds (3.0f);

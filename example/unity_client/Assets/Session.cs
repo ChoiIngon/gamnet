@@ -12,15 +12,14 @@ namespace Gamnet
 		public static int BUFFER_SIZE = 8192;
 		public static void BlockCopy(Buffer src, Buffer dest)
 		{
-			System.Buffer.BlockCopy(src.data, src.readIndex, dest.data, 0, src.Size());
-			dest.readIndex = 0;
-			dest.writeIndex = src.Size();
+			System.Buffer.BlockCopy(src.data, src.read_index, dest.data, 0, src.Size());
+			dest.read_index = 0;
+			dest.write_index = src.Size();
 		}
 
 		public byte[] data = new byte[BUFFER_SIZE];
-
-		public int readIndex = 0;
-		public int writeIndex = 0;
+		public int read_index = 0;
+		public int write_index = 0;
 
 		public Buffer() {}
 		public Buffer(byte[] src)
@@ -28,9 +27,9 @@ namespace Gamnet
 			Copy(src);
 		}
 
-		public Buffer(MemoryStream ms)
+		public Buffer(MemoryStream src)
 		{
-			Copy(ms);
+			Copy(src);
 		}
 
 		public Buffer(Buffer src)
@@ -40,30 +39,30 @@ namespace Gamnet
 
 		public int Size()
 		{
-			return writeIndex - readIndex;
+			return write_index - read_index;
 		}
 
 		public int Available()
 		{
-			return BUFFER_SIZE - writeIndex;
+			return BUFFER_SIZE - write_index;
 		}
 
 		public void Copy(byte[] src)
 		{
-			readIndex = 0;
-			writeIndex = 0;
+			read_index = 0;
+			write_index = 0;
 			Append(src);
 		}
 		public void Copy(MemoryStream ms)
 		{
-			readIndex = 0;
-			writeIndex = 0;
+			read_index = 0;
+			write_index = 0;
 			Append(ms);
 		}
 		public void Copy(Buffer src)
 		{
-			readIndex = 0;
-			writeIndex = 0;
+			read_index = 0;
+			write_index = 0;
 			Append(src);
 		}
 
@@ -73,8 +72,8 @@ namespace Gamnet
 			{
 				return;
 			}
-			System.Buffer.BlockCopy(src.GetBuffer(), 0, data, writeIndex, (int)src.Position);
-			writeIndex += (int)src.Position;
+			System.Buffer.BlockCopy(src.GetBuffer(), 0, data, write_index, (int)src.Position);
+			write_index += (int)src.Position;
 		}
 		public void Append(Buffer src)
 		{
@@ -82,8 +81,8 @@ namespace Gamnet
 			{
 				return;
 			}
-			System.Buffer.BlockCopy(src.data, 0, data, writeIndex, src.Size());
-			writeIndex += src.Size();
+			System.Buffer.BlockCopy(src.data, src.read_index, data, write_index, src.Size());
+			write_index += src.Size();
 		}
 		public void Append(byte[] src)
 		{
@@ -91,21 +90,21 @@ namespace Gamnet
 			{
 				return;
 			}
-			System.Buffer.BlockCopy(src, 0, data, writeIndex, src.Length);
-			writeIndex += src.Length;
+			System.Buffer.BlockCopy(src, 0, data, write_index, src.Length);
+			write_index += src.Length;
 		}
 
 		public static implicit operator System.IO.MemoryStream(Gamnet.Buffer src)  // explicit byte to digit conversion operator
 		{
 			System.IO.MemoryStream ms = new System.IO.MemoryStream();
-			ms.Write(src.data, src.readIndex, src.Size());
+			ms.Write(src.data, src.read_index, src.Size());
 			ms.Seek(0, System.IO.SeekOrigin.Begin);
 			return ms;
 		}
 		public static implicit operator byte[] (Gamnet.Buffer src)
 		{
 			byte[] dest = new byte[src.Size()];
-			System.Buffer.BlockCopy(src.data, src.readIndex, dest, 0, src.Size());
+			System.Buffer.BlockCopy(src.data, src.read_index, dest, 0, src.Size());
 			return dest;
 		}
 		public static Gamnet.Buffer operator + (Gamnet.Buffer lhs, Gamnet.Buffer rhs)
@@ -113,6 +112,24 @@ namespace Gamnet
 			Gamnet.Buffer buffer = new Gamnet.Buffer (lhs);
 			buffer.Append(rhs);
 			return buffer;
+		}
+	}
+	public class Packet : Buffer
+	{
+		// length<2byte> | msg_id<4byte> | body
+		public const int PACKET_SIZE_OFFSET = 0;
+		public const int MSGID_OFFSET = 2;
+		public const int PACKET_HEADER_SIZE = 6;
+
+		public uint msg_seq;
+
+		public Packet()
+		{
+			msg_seq = 0;
+		}
+		public Packet(Packet src) : base(src)
+		{
+			msg_seq = src.msg_seq;
 		}
 	}
 	public class TimeoutMonitor
@@ -235,21 +252,24 @@ namespace Gamnet
 
 		private Gamnet.Buffer recvBuffer = new Gamnet.Buffer();
 		private Dictionary<int, Action<Gamnet.Buffer>> handlers = new Dictionary<int, Action<Gamnet.Buffer>>();
-
         private object syncObject = new object();
+
+		private int sendQueueIndex = 0;
+		public uint msg_seq = 0;
+
         public SyncQueue<SessionEvent> eventQueue = new SyncQueue<SessionEvent>();
-        public SyncQueue<Gamnet.Buffer> sendQueue = new SyncQueue<Gamnet.Buffer>(); // 바로 보내지 못하고 
+        public SyncQueue<Gamnet.Packet> sendQueue = new SyncQueue<Gamnet.Packet>(); // 바로 보내지 못하고 
         public ConnectionState state = ConnectionState.Disconnected;
 
-		public delegate void OnConnect();
-		public delegate void OnReconnect();
-		public delegate void OnClose();
-		public delegate void OnError(System.Exception e);
+		public delegate void Delegate_OnConnect();
+		public delegate void Delegate_OnReconnect();
+		public delegate void Delegate_OnClose();
+		public delegate void Delegate_OnError(System.Exception e);
 
-		public OnConnect onConnect;
-		public OnReconnect onReconnect;
-		public OnClose onClose;
-		public OnError onError;
+		public Delegate_OnConnect onConnect;
+		public Delegate_OnReconnect onReconnect;
+		public Delegate_OnClose onClose;
+		public Delegate_OnError onError;
 
         public abstract class SessionEvent
         {
@@ -277,16 +297,7 @@ namespace Gamnet
             public ReconnectEvent(Session session) : base(session) { }
             public override void Event()
             {
-                session.state = ConnectionState.Connected;
-				if (null != session.onReconnect) {
-                    List<Gamnet.Buffer> sendQueue = session.sendQueue.Copy();
-                    session.sendQueue.Clear();
-					session.onReconnect ();
-                    foreach (var itr in sendQueue)
-                    {
-                        session.sendQueue.PushBack(itr);
-                    }
-                }
+				session.OnReconnect ();
             }
         }
         public class ErrorEvent : SessionEvent
@@ -433,8 +444,25 @@ namespace Gamnet
 				Close();
 			}
 		}
+		public void OnReconnect()
+		{
+			lock (syncObject) {
+				state = ConnectionState.Connected;
+				if (null != onReconnect) {
+					List<Gamnet.Packet> tmp = sendQueue.Copy ();
+					sendQueue.Clear ();
+					sendQueueIndex = 0;
 
-        private void Receive()
+					onReconnect ();
+
+					foreach (var itr in tmp) {
+						sendQueue.PushBack (itr);
+					}
+				}
+			}
+		}
+        
+		private void Receive()
         {
             try
             {
@@ -459,7 +487,7 @@ namespace Gamnet
                     Close();
                     return;
                 }
-                buffer.writeIndex += recvBytes;
+                buffer.write_index += recvBytes;
 
                 ReceiveEvent evt = new ReceiveEvent(this);
                 evt.buffer = buffer;
@@ -481,7 +509,7 @@ namespace Gamnet
 			recvBuffer += buf;
 			while (recvBuffer.Size() >= PACKET_HEADER_SIZE)
 			{
-				ushort packetLength = BitConverter.ToUInt16(recvBuffer.data, recvBuffer.readIndex + PACKET_SIZE_OFFSET);
+				ushort packetLength = BitConverter.ToUInt16(recvBuffer.data, recvBuffer.read_index + PACKET_SIZE_OFFSET);
 				if (packetLength > Gamnet.Buffer.BUFFER_SIZE)
 				{
 					throw new System.Exception(string.Format("The packet length is greater than the buffer max length."));
@@ -492,12 +520,12 @@ namespace Gamnet
 					return;
 				}
 
-				int msgID = BitConverter.ToInt32(recvBuffer.data, recvBuffer.readIndex + MSGID_OFFSET);
+				int msgID = BitConverter.ToInt32(recvBuffer.data, recvBuffer.read_index + MSGID_OFFSET);
 				if (false == handlers.ContainsKey(msgID))
 				{
 					throw new System.Exception ("can't find registered msg(id:" + msgID + ")");
 				}
-				recvBuffer.readIndex += PACKET_HEADER_SIZE;
+				recvBuffer.read_index += PACKET_HEADER_SIZE;
 				Action<Gamnet.Buffer> handler = handlers[msgID];
 
 				try
@@ -508,7 +536,7 @@ namespace Gamnet
 				catch (System.Exception e) {
 					Error (e);
 				}
-				recvBuffer.readIndex += packetLength - PACKET_HEADER_SIZE;
+				recvBuffer.read_index += packetLength - PACKET_HEADER_SIZE;
 			}
 		}
 
@@ -573,27 +601,28 @@ namespace Gamnet
 					throw new System.Exception(string.Format("Overflow the send buffer max size : {0}", packetLength));
 				}
 
-                Gamnet.Buffer buffer = new Gamnet.Buffer();
+                Gamnet.Packet packet = new Gamnet.Packet();
 				byte[] bufLength = BitConverter.GetBytes(packetLength);
 				byte[] bufMsgID = BitConverter.GetBytes(msgID);
-				buffer.data[0] = bufLength[0];
-				buffer.data[1] = bufLength[1];
-				buffer.data[2] = bufMsgID[0];
-				buffer.data[3] = bufMsgID[1];
-				buffer.data[4] = bufMsgID[2];
-				buffer.data[5] = bufMsgID[3];
-				buffer.writeIndex = PACKET_HEADER_SIZE;
-				buffer.Append(ms);
-
+				packet.data[0] = bufLength[0];
+				packet.data[1] = bufLength[1];
+				packet.data[2] = bufMsgID[0];
+				packet.data[3] = bufMsgID[1];
+				packet.data[4] = bufMsgID[2];
+				packet.data[5] = bufMsgID[3];
+				packet.write_index = PACKET_HEADER_SIZE;
+				packet.Append(ms);
+			
+				packet.msg_seq = msg_seq;
                 lock (syncObject)
                 {
                     Log("SendMsg.sendQueue.PushBack(msg_id:" + msgID + ")");
 
-                    sendQueue.PushBack(buffer);
-                    if (1 == sendQueue.Count() && ConnectionState.Connected == state)
+					sendQueue.PushBack(packet);
+					if (1 == sendQueue.Count() - sendQueueIndex && ConnectionState.Connected == state)
                     {
                         Log("SendMsg.BeginSend(msg_id:" + msgID + ")");
-                        _socket.BeginSend(sendQueue[0].data, 0, sendQueue[0].Size(), 0, new AsyncCallback(Callback_OnSend), buffer);
+						_socket.BeginSend(sendQueue[sendQueueIndex].data, 0, sendQueue[sendQueueIndex].Size(), 0, new AsyncCallback(Callback_OnSend), packet);
                     }
                 }
 			}
@@ -612,27 +641,27 @@ namespace Gamnet
                 lock (syncObject)
                 {
 					Log("Callback_OnSend(queue size:" + sendQueue.Count() + ", connection:" + _socket.Connected.ToString() + ")");
-                    Gamnet.Buffer buffer = sendQueue[0];
 					int writedBytes = _socket.EndSend(result);
-                    buffer.readIndex += writedBytes;
-                    if (buffer.Size() > 0)
+                    Gamnet.Packet packet = sendQueue[sendQueueIndex];
+                    packet.read_index += writedBytes;
+                    if (packet.Size() > 0)
                     {
-                        Gamnet.Buffer newBuffer = new Gamnet.Buffer(buffer);
-                        sendQueue.PushFront(newBuffer);
+                        Gamnet.Packet newPacket = new Gamnet.Packet(packet);
                         Log("Callback_OnSend.BeginSend.newBuffer");
-                        _socket.BeginSend(newBuffer.data, 0, newBuffer.Size(), 0, new AsyncCallback(Callback_OnSend), newBuffer);
+						_socket.BeginSend(newPacket.data, 0, newPacket.Size(), 0, new AsyncCallback(Callback_OnSend), newPacket);
                         return;
                     }
 
-                    sendQueue.PopFront();
-                    if (0 < sendQueue.Count())
+                    //sendQueue.PopFront();
+					sendQueueIndex++;
+                    if (sendQueueIndex < sendQueue.Count())
                     {
-                        Log("Callback_OnSend.BeginSend.QueuedMsg(queue size:" + sendQueue.Count() +")");
-                        _socket.BeginSend(sendQueue[0].data, 0, sendQueue[0].Size(), 0, new AsyncCallback(Callback_OnSend), sendQueue[0]);
+                        Log("Callback_OnSend.BeginSend.sendQueue(index:" + sendQueueIndex +")");
+						_socket.BeginSend(sendQueue[sendQueueIndex].data, 0, sendQueue[sendQueueIndex].Size(), 0, new AsyncCallback(Callback_OnSend), sendQueue[sendQueueIndex]);
 						return;
                     }
                 }
-                Log("Callback_OnSend.sendQueue.Count:" + sendQueue.Count());
+				Log("Callback_OnSend.sendQueue(index:" + sendQueueIndex + ")");
 			}
             catch (SocketException e)
 			{
@@ -641,6 +670,19 @@ namespace Gamnet
 			}
 		}
 
+		public void RemoveSentPacket(uint msg_seq)
+		{
+			lock (syncObject) {
+				while (0 < sendQueue.Count ()) {
+					Gamnet.Packet packet = sendQueue [0];
+					if (packet.msg_seq > msg_seq) {
+						break;
+					}
+					sendQueue.PopFront ();
+					sendQueueIndex--;
+				}
+			}
+		}
         private void Log(string text)
         {
             LogEvent evt = new LogEvent(this, text);

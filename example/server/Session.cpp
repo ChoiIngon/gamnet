@@ -13,6 +13,7 @@ Session::~Session()
 void Session::OnAccept()
 {
 	LOG(DEV, "session connected(session_key:", sessionKey_, ")");
+	ack_seq = 0;
 	user_data = std::shared_ptr<UserData>(NULL);
 }
 
