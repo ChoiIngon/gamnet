@@ -155,7 +155,7 @@ void Session::FlushSend()
 
 int	Session::SyncSend(std::shared_ptr<Packet> packet)
 {
-	int transferredBytes = Send(packet->ReadPtr(), packet->Size());
+	int transferredBytes = SyncSend(packet->ReadPtr(), packet->Size());
 	if(0 < transferredBytes)
 	{
 		packet->Remove(transferredBytes);
