@@ -72,6 +72,7 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 		ans.error_code = (ErrorCode)e.error_code();
 	}
 	LOG(DEV, "MsgSvrCli_Login_Ans(user_seq:", ans.user_data.user_seq, ", error_code:", ans.error_code, ")");
+	LOG(DEV, Gamnet::Network::ServerState<Session>("server"));
 	Gamnet::Network::SendMsg(session, ans);
 }
 

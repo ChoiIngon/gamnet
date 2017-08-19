@@ -6,6 +6,9 @@
 #include <map>
 #include <cstring>
 #include <stdint.h>
+
+namespace Gamnet { namespace Router {
+
 enum ROUTER_ERROR_CODE {
 		ROUTER_ERROR_SUCCESS,
 		ROUTER_ERROR_MESSAGE_FORMAT_ERROR,
@@ -318,4 +321,7 @@ struct MsgRouter_SendMsg_Ntf_Serializer {
 	static bool Load(MsgRouter_SendMsg_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static int32_t Size(const MsgRouter_SendMsg_Ntf& obj) { return obj.Size(); }
 };
+
+}}
+
 #endif // __MsgRouter_H__

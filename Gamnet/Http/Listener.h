@@ -18,7 +18,6 @@ class Listener : public Network::IListener
 	volatile bool bCanAccpet_;
 	boost::asio::ip::tcp::acceptor acceptor_;
 	boost::asio::ip::tcp::endpoint endpoint_;
-	int port_;
 protected :
 	std::mutex lock_;
 	Pool<Session, std::mutex, Session::Init> sessionPool_;

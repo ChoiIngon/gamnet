@@ -30,6 +30,7 @@ void Handler_HeartBeat::Recv_Ntf(std::shared_ptr<Session> session, std::shared_p
 
 		if(10 < session->user_data->msg_seq - session->ack_seq )
 		{
+			Gamnet::Network::ServerState<Session>("server");
 			session->ack_seq = std::max(session->ack_seq, session->user_data->msg_seq);
 			MsgSvrCli_HeartBeat_Ntf ans;
 			ans.msg_seq = session->user_data->msg_seq;

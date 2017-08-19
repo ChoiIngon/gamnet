@@ -10,10 +10,9 @@
 
 #include "../Network/Network.h"
 #include "../Library/Timer.h"
-
+#include "MsgRouter.h"
 
 namespace Gamnet { namespace Router {
-#include "MsgRouter.h"
 
 class Session : public Network::Session {
 private :

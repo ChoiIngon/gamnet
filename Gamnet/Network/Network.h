@@ -10,6 +10,7 @@
 
 #include "Session.h"
 #include "Listener.h"
+#include "../Json/json.h"
 
 namespace Gamnet { namespace Network {
 	template <class SESSION_T>
@@ -56,28 +57,51 @@ namespace Gamnet { namespace Network {
 	template <class SESSION_T>
 	std::string ServerState(const std::string& name)
 	{
-		uint32_t runningSessionCount = Singleton<Listener<SESSION_T>>::GetInstance().sessionManager_.Size();
-		uint32_t idleSessionCount = Singleton<Listener<SESSION_T>>::GetInstance().sessionPool_.Available();
+		Json::Value root;
+		root["name"] = name;
+
 		time_t logtime_;
 		struct tm when;
 		time(&logtime_);
 
-		char timebuf[22] = {0};
+		char date_time[22] = {0};
 #ifdef _WIN32
 		localtime_s(&when, &logtime_);
-		_snprintf(timebuf, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+		_snprintf(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
 #else
 		localtime_r(&logtime_, &when);
-		snprintf(timebuf, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+		snprintf(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
 #endif
+		root["date_time"] = date_time;
 
-		std::string ret;
-		ret += "{";
-		ret += Format("\"date_time\":\"", timebuf,"\", ");
-		ret += Format("\"name\":\"", name, "\", ");
-		ret += Format("\"session\":{\"running_count\":", runningSessionCount, ", \"idle_count\":", idleSessionCount, "}");
-		ret += "}";
-		return ret;
+		Json::Value session;
+		session["running_count"] = (int)Singleton<Listener<SESSION_T>>::GetInstance().sessionManager_.Size();
+		session["idle_count"] = (int)Singleton<Listener<SESSION_T>>::GetInstance().sessionPool_.Available();
+		root["session"] = session;
+
+#ifdef _DEBUG
+		Json::Value message;
+		for(auto itr : Singleton<Dispatcher<SESSION_T>>::GetInstance().mapHandlerCallStatistics_)
+		{
+			Json::Value statistics;
+			statistics["msg_id"] = (int)itr.second->msg_id;
+			statistics["begin_count"] = (int)itr.second->begin_count;
+			statistics["finish_count"] = (int)itr.second->finish_count;
+			statistics["elapsed_time"] = (int)itr.second->elapsed_time;
+			if(0 == itr.second->elapsed_time || 0 == itr.second->finish_count)
+			{
+				statistics["average_time"] = 0;
+			}
+			else
+			{
+				statistics["average_time"] = (int)(itr.second->elapsed_time/itr.second->finish_count);
+			}
+			message.append(statistics);
+		}
+		root["message"] = message;
+#endif
+		Json::StyledWriter writer;
+		return writer.write(root);
 	}
 }}
 

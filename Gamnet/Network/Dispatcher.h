@@ -39,16 +39,16 @@ public :
 
 	std::map<unsigned int, HandlerFunction> mapHandlerFunction_;
 #ifdef _DEBUG
-	struct HandlerCallInfo 
+	struct HandlerCallStatistics
 	{
-		HandlerCallInfo() : handlerID(0), beginCount(0), finishCount(0), elapsedTime(0.0f) {
+		HandlerCallStatistics() : msg_id(0), begin_count(0), finish_count(0), elapsed_time(0.0f) {
 		}
-		int handlerID;
-		std::atomic_int beginCount;
-		std::atomic_int finishCount;
-		std::atomic<std::int64_t> elapsedTime;
+		unsigned int msg_id;
+		std::atomic_int begin_count;
+		std::atomic_int finish_count;
+		std::atomic<std::int64_t> elapsed_time;
 	};
-	std::map<unsigned int, std::shared_ptr<HandlerCallInfo>> mapHandlerCallInfo_;
+	std::map<unsigned int, std::shared_ptr<HandlerCallStatistics>> mapHandlerCallStatistics_;
 #endif
 public:
 	Dispatcher() {}
@@ -68,8 +68,9 @@ public:
 		}
 
 #ifdef _DEBUG
-		std::shared_ptr<HandlerCallInfo> handlerCallInfo(new HandlerCallInfo());
-		mapHandlerCallInfo_.insert(std::make_pair(msg_id, handlerCallInfo));
+		std::shared_ptr<HandlerCallStatistics> statistics = std::shared_ptr<HandlerCallStatistics>(new HandlerCallStatistics());
+		statistics->msg_id = msg_id;
+		mapHandlerCallStatistics_.insert(std::make_pair(msg_id, statistics));
 #endif
 		return true;
 	}
@@ -89,17 +90,16 @@ public:
 		std::shared_ptr<IHandler> handler = handler_function.factory_->GetHandler(&session->handlerContainer_, msg_id);
 		if(NULL == handler)
 		{
-			Log::Write(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->sessionKey_,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
+			LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->sessionKey_,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
 			session->OnError(EINVAL);
 			return;
 		}
 #ifdef _DEBUG
-
 		boost::posix_time::ptime tick = boost::posix_time::second_clock::local_time();
-		if (mapHandlerCallInfo_.end() != mapHandlerCallInfo_.find(msg_id))
+		auto statistics_itr = mapHandlerCallStatistics_.find(msg_id);
+		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
-			std::shared_ptr<HandlerCallInfo> callInfo = mapHandlerCallInfo_[msg_id];
-			callInfo->beginCount++;
+			statistics_itr->second->begin_count++;
 		}
 #endif
 		try {
@@ -107,15 +107,14 @@ public:
 		}
 		catch (const std::exception& e)
 		{
-			Log::Write(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
+			LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
 		}
 #ifdef _DEBUG
-		if (mapHandlerCallInfo_.end() != mapHandlerCallInfo_.find(msg_id))
+		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
-			std::shared_ptr<HandlerCallInfo> callInfo = mapHandlerCallInfo_[msg_id];
 			boost::posix_time::time_duration diff = boost::posix_time::second_clock::local_time() - tick;
-			callInfo->elapsedTime += diff.total_milliseconds();
-			callInfo->finishCount++;
+			statistics_itr->second->elapsed_time += diff.total_milliseconds();
+			statistics_itr->second->finish_count++;
 		}
 #endif
 	}
