@@ -9,7 +9,7 @@ public class UnityClient : MonoBehaviour {
 	private Coroutine coroutine = null;
 	private UserData user_data = null;
 	private bool pause_toggle = false;
-	private NetworkReachability networkReachability = NetworkReachability.NotReachable;
+
 	public Button connect;
 	public Button close;
     public Button pause;
@@ -18,9 +18,7 @@ public class UnityClient : MonoBehaviour {
 
 	void Start () {
         connect.onClick.AddListener(() => {
-			networkReachability = Application.internetReachability;
-
-			session.msg_seq = 0;
+			//session.msg_seq = 0;
             if ("" == host.text)
             {
                 session.Connect("52.78.185.159", 20000, 60000);
@@ -58,12 +56,14 @@ public class UnityClient : MonoBehaviour {
             session.SendMsg(req);
 		};
 		session.onReconnect += () => {
+			/*
 			MsgCliSvr_Reconnect_Req req = new MsgCliSvr_Reconnect_Req();
 			req.user_id = user_data.user_id;
 			req.access_token = user_data.access_token;
 
 			Log("MsgCliSvr_Reconnect_Req(user_id:" + req.user_id + ", access_token:" + req.access_token +")");
             session.SendMsg(req);
+            */
 		};
 		session.onClose += () => {
 			Log("session close");
@@ -140,7 +140,6 @@ public class UnityClient : MonoBehaviour {
 	IEnumerator SendHeartBeat() {
 		while (true) {
 			MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
-			ntf.msg_seq = ++session.msg_seq;
 			Log("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
 			session.SendMsg (ntf, true);			
 			yield return new WaitForSeconds (3.0f);
@@ -150,10 +149,6 @@ public class UnityClient : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		session.Update ();
-		if (networkReachability != Application.internetReachability) {
-			session.Close ();
-			networkReachability = Application.internetReachability;
-		}
 	}
 		
     void Log(string text)

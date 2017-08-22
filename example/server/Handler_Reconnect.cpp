@@ -6,24 +6,24 @@ Handler_Reconnect::Handler_Reconnect() {
 Handler_Reconnect::~Handler_Reconnect() {
 }
 
-void Handler_Reconnect::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<Gamnet::Network::Packet> packet)
+void Handler_Reconnect::Recv_Req(const std::shared_ptr<Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgCliSvr_Reconnect_Req req;
 	MsgSvrCli_Reconnect_Ans ans;
 	ans.error_code = Success;
 	try {
-		if(false == Gamnet::Network::Packet::Load(req, packet))
+		if(false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
 			throw Gamnet::Exception(ERROR(MessageFormatError), "message load fail");
 		}
 
-		LOG(DEV, "MsgCliSvr_Reconnect_Req(session_key:", session->sessionKey_, ", user_id:", req.user_id, ", access_token:", req.access_token, ")");
+		LOG(DEV, "MsgCliSvr_Reconnect_Req(session_key:", session->session_key, ", user_id:", req.user_id, ", access_token:", req.access_token, ")");
 
 		if(NULL != session->user_data)
 		{
-			throw Gamnet::Exception(ERROR(AlreadyLoginSessionError), "session_key:", session->sessionKey_);
+			throw Gamnet::Exception(ERROR(AlreadyLoginSessionError), "session_key:", session->session_key);
 		}
-
+/*
 		const std::shared_ptr<UserData> user_data = std::shared_ptr<UserData>(new UserData());
 		user_data->session_key = session->sessionKey_;
 		user_data->kickout_time = ::time(NULL) + 300;
@@ -55,6 +55,7 @@ void Handler_Reconnect::Recv_Req(std::shared_ptr<Session> session, std::shared_p
 
 		session->user_data = old_;
 		ans.msg_seq = session->user_data->msg_seq;
+*/
 	}
 	catch(const Gamnet::Exception& e)
 	{
@@ -62,10 +63,10 @@ void Handler_Reconnect::Recv_Req(std::shared_ptr<Session> session, std::shared_p
 		ans.error_code = (ErrorCode)e.error_code();
 	}
 	LOG(DEV, "MsgSvrCli_Reconnect_Ans(user_id:", req.user_id, ", error_code:", ans.error_code, ")");
-	Gamnet::Network::SendMsg(session, ans);
+	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
-GAMNET_BIND_NETWORK_HANDLER(
+GAMNET_BIND_TCP_HANDLER(
 	Session,
 	MsgCliSvr_Reconnect_Req,
 	Handler_Reconnect, Recv_Req,

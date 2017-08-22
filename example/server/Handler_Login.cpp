@@ -14,47 +14,49 @@ Handler_Login::Handler_Login() {
 Handler_Login::~Handler_Login() {
 }
 
-void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<Gamnet::Network::Packet> packet)
+void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgCliSvr_Login_Req req;
 	MsgSvrCli_Login_Ans ans;
 	ans.error_code = Success;
 	try {
-		if(false == Gamnet::Network::Packet::Load(req, packet))
+		if(false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
 			throw Gamnet::Exception(ERROR(MessageFormatError), "message load fail");
 		}
 
-		LOG(DEV, "MsgCliSvr_Login_Req(session_key:", session->sessionKey_, ", user_id:", req.user_id, ")");
+		LOG(DEV, "MsgCliSvr_Login_Req(session_key:", session->session_key, ", user_id:", req.user_id, ")");
 
 		if(NULL != session->user_data)
 		{
-			throw Gamnet::Exception(ERROR(AlreadyLoginSessionError), "session_key:", session->sessionKey_);
+			throw Gamnet::Exception(ERROR(AlreadyLoginSessionError), "session_key:", session->session_key);
 		}
 
 		const std::shared_ptr<UserData> user_data = std::shared_ptr<UserData>(new UserData());
-		user_data->session_key = session->sessionKey_;
+		//user_data->session_key = session->session_key;
 		user_data->kickout_time = ::time(NULL) + 300;
 
 		const std::shared_ptr<UserData> old_ = Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.user_id, user_data);
+		/*
 		if(NULL != old_)
 		{
 			LOG(WRN, "duplicated session(user_id:", req.user_id, ")");
-			const std::shared_ptr<Session> other = Gamnet::Network::FindSession<Session>(old_->session_key);
+			const std::shared_ptr<Session> other = Gamnet::Network::Tcp::FindSession<Session>(old_->session_key);
 			if(NULL != other)
 			{
 				MsgSvrCli_Kickout_Ntf ntf;
 				ntf.error_code = DuplicateConnectionError;
-				LOG(DEV, "MsgSvrCli_Kickout_Ntf(session_key:", other->sessionKey_, ")");
-				Gamnet::Network::SendMsg(other, ntf);
-				other->strand_.wrap(std::bind(&Session::OnAccept, other))();
+				LOG(DEV, "MsgSvrCli_Kickout_Ntf(session_key:", other->session_key, ")");
+				Gamnet::Network::Tcp::SendMsg(other, ntf);
+				const std::shared_ptr<Network::Link>& link = session->link.lock();
+				link->strand.wrap(std::bind(&Session::OnAccept), other))();
 			}
 		}
-
+		*/
 		user_data->user_id = req.user_id;
 		user_data->msg_seq = 0;
 		user_data->user_seq = Gamnet::Random::Range(1, 99999);
-		user_data->access_token = Gamnet::md5(Gamnet::Format(user_data->user_seq, time(NULL), Gamnet::Network::GetLocalAddress().to_string()));
+		user_data->access_token = Gamnet::md5(Gamnet::Format(user_data->user_seq, time(NULL), Gamnet::Network::Tcp::GetLocalAddress().to_string()));
 		int count = Gamnet::Random::Range(1, 10);
 		for(int i=0;i<count; i++)
 		{
@@ -72,29 +74,28 @@ void Handler_Login::Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<G
 		ans.error_code = (ErrorCode)e.error_code();
 	}
 	LOG(DEV, "MsgSvrCli_Login_Ans(user_seq:", ans.user_data.user_seq, ", error_code:", ans.error_code, ")");
-	LOG(DEV, Gamnet::Network::ServerState<Session>("server"));
-	Gamnet::Network::SendMsg(session, ans);
+	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
-GAMNET_BIND_NETWORK_HANDLER(
+GAMNET_BIND_TCP_HANDLER(
 	Session,
 	MsgCliSvr_Login_Req,
 	Handler_Login, Recv_Req,
 	HandlerCreate
 );
 
-void Test_Login_Req(std::shared_ptr<TestSession> session)
+void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_Login_Req req;
 	req.user_id = Gamnet::Format("user_id_", Gamnet::Random::Range(1, 99999));
-	Gamnet::Network::SendMsg(session, req);
+	Gamnet::Network::Tcp::SendMsg(session, req);
 }
 
-void Test_Login_Ans(std::shared_ptr<TestSession> session, std::shared_ptr<Gamnet::Network::Packet> packet)
+void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgSvrCli_Login_Ans ans;
 	try {
-		if(false == Gamnet::Network::Packet::Load(ans, packet))
+		if(false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
 			throw Gamnet::Exception(ERROR(MessageFormatError), "message load fail");
 		}

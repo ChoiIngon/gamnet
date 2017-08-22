@@ -15,7 +15,7 @@ public:
 	Handler_Login();
 	virtual ~Handler_Login();
 
-	void Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<Gamnet::Network::Packet> packet);
+	void Recv_Req(const std::shared_ptr<Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
 };
 
 #endif /* HANDLER_LOGIN_H_ */

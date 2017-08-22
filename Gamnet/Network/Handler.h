@@ -20,7 +20,7 @@ struct IHandler : public std::enable_shared_from_this<IHandler>
 	template <class MSG>
 	void BindMessage(std::shared_ptr<Session> session)
 	{
-		session->handlerContainer_.Register(MSG::MSG_ID, shared_from_this());
+		session->handler_container.Register(MSG::MSG_ID, shared_from_this());
 	}
 };
 

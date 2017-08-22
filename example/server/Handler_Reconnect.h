@@ -15,7 +15,7 @@ public:
 	Handler_Reconnect();
 	virtual ~Handler_Reconnect();
 
-	void Recv_Req(std::shared_ptr<Session> session, std::shared_ptr<Gamnet::Network::Packet> packet);
+	void Recv_Req(const std::shared_ptr<Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
 };
 
 #endif /* HANDLER_RECONNECT_H_ */

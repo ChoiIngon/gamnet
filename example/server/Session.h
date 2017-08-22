@@ -11,7 +11,7 @@
 #include "../../Gamnet/Gamnet.h"
 #include "message.h"
 
-class Session : public Gamnet::Network::Session {
+class Session : public Gamnet::Network::Tcp::Session {
 public:
 	Session();
 	virtual ~Session();

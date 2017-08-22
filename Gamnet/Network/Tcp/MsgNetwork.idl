@@ -1,0 +1,61 @@
+.cpp %%
+namespace Gamnet {
+%%
+
+.cs %%
+//
+//
+//
+%%
+
+enum ErrorCode {
+	Success = 0,
+	MessageFormatError 			= 1,
+	InvalidSessionTokenError 	= 2,
+	DuplicateConnectionError 	= 3,
+	ReconnectTimeoutError 		= 4
+};
+
+message MsgNetwork_Connect_Req 		: 0001
+{
+	string user_id;
+};
+
+message MsgNetwork_Connect_Ans 		: 0001
+{
+	ErrorCode error_code;
+	uint64 session_key;
+	string session_token;
+};
+
+message MsgNetwork_Reconnect_Req	: 0002
+{
+	uint64 session_key;
+	string session_token;
+};
+
+message MsgNetwork_Reconnect_Ans	: 0002
+{
+	ErrorCode error_code;
+	uint64 session_key;
+	string session_token;
+	uint32 msg_seq;
+};
+
+message MsgNetwork_Kickout_Ntf 		: 0003
+{
+	ErrorCode error_code;
+};
+
+message MsgNetwork_HeartBeat_Req	: 0004
+{
+};
+
+message MsgNetwork_HeartBeat_Ans 	: 0004
+{
+};
+
+.cpp 
+%%
+}
+%%

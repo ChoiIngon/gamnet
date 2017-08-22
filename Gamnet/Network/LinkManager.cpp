@@ -1,0 +1,189 @@
+/*
+ * Listener.cpp
+ *
+ *  Created on: 2017. 8. 22.
+ *      Author: kukuta
+ */
+
+#include "LinkManager.h"
+
+namespace Gamnet { namespace Network {
+
+std::atomic_ullong LinkManager::link_key;
+
+boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
+
+LinkManager::LinkManager() :
+		_keepalive_time(0),
+		_acceptor(io_service_),
+		_is_acceptable(true)
+{
+}
+
+LinkManager::~LinkManager()
+{
+}
+
+void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
+{
+	if(0 < keep_alive_sec)
+	{
+		_keepalive_time = keep_alive_sec;
+		if (false == _timer.SetTimer(5000, [&](){
+			std::lock_guard<std::recursive_mutex> lo(_lock);
+			time_t now_ = time(NULL);
+			for(auto itr = _links.begin(); itr != _links.end();) {
+				std::shared_ptr<Link> link = itr->second;
+				if(link->heartbeat_time + _keepalive_time < now_)
+				{
+					LOG(GAMNET_ERR, "idle session timeout(ip:", link->remote_address.to_string(), ", session_key:", link->link_key,")");
+			        _links.erase(itr++);
+			        link->strand.wrap(std::bind(&Link::OnError, link, ETIMEDOUT))();
+			    }
+			    else {
+			        ++itr;
+			    }
+			}
+			_timer.Resume();
+		}))
+		{
+			LOG(GAMNET_ERR, "session time out timer init fail");
+#ifdef _WIN32
+			throw Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] session time out timer init fail");
+#else
+			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] session time out timer init fail");
+#endif
+		}
+	}
+	_link_pool.Capacity(max_session);
+	_endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port);
+	_acceptor.open(_endpoint.protocol());
+	_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+	_acceptor.bind(_endpoint);
+	_acceptor.listen();
+	Accept();
+}
+
+void LinkManager::Accept()
+{
+	std::shared_ptr<Link> link = _link_pool.Create();
+	if(NULL == link)
+	{
+		LOG(GAMNET_WRN, "can not create any more session(max:", _link_pool.Capacity(), ", current:", Size(), ")");
+		std::lock_guard<std::recursive_mutex> lo(_lock);
+		_is_acceptable = false;
+		return;
+	}
+	_acceptor.async_accept(link->socket, link->strand.wrap(
+		boost::bind(&LinkManager::Callback_Accept, this, link, boost::asio::placeholders::error)
+	));
+}
+
+void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error)
+{
+	if(0 == error)
+	{
+		boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+		link->socket.set_option(option);
+		link->link_key = ++LinkManager::link_key;
+		try {
+			link->remote_address = link->socket.remote_endpoint().address();
+			OnAccept(link);
+			link->AsyncRead();
+		}
+		catch(const boost::system::system_error& e)
+		{
+			LOG(GAMNET_ERR, "fail to accept(link_key:", link->link_key, ", errno:", errno, ", errstr:", e.what(), ")");
+		}
+	}
+	Accept();
+}
+
+void LinkManager::OnAccept(const std::shared_ptr<Link>& link)
+{
+	Add(link->link_key, link);
+}
+
+void LinkManager::OnConnect(const std::shared_ptr<Link>& link)
+{
+	Add(link->link_key, link);
+}
+
+void LinkManager::OnClose(const std::shared_ptr<Link>& link, int reason)
+{
+	Remove(link->link_key);
+	if(false == _is_acceptable)
+	{
+		std::lock_guard<std::recursive_mutex> lo(_lock);
+		if(false == _is_acceptable)
+		{
+			if(0 < _link_pool.Available())
+			{
+				_is_acceptable = true;
+				Accept();
+			}
+		}
+	}
+}
+
+bool LinkManager::Add(uint64_t key, const std::shared_ptr<Link>& link)
+{
+	std::lock_guard<std::recursive_mutex> lo(_lock);
+	if(false == _links.insert(std::make_pair(key, link)).second)
+	{
+		LOG(GAMNET_ERR, "duplicated link key(link_key:", key, ")");
+		return false;
+	}
+	return true;
+}
+
+void LinkManager::Remove(uint64_t key)
+{
+	if(0 == key)
+	{
+		return;
+	}
+	std::lock_guard<std::recursive_mutex> lo(_lock);
+	_links.erase(key);
+}
+
+std::shared_ptr<Link> LinkManager::Find(uint64_t key)
+{
+	std::lock_guard<std::recursive_mutex> lo(_lock);
+	auto itr = _links.find(key);
+	if(_links.end() == itr)
+	{
+		return NULL;
+	}
+	return itr->second;
+}
+
+size_t LinkManager::Size()
+{
+	std::lock_guard<std::recursive_mutex> lo(_lock);
+	return _links.size();
+}
+
+std::shared_ptr<Link> LinkManager::Create()
+{
+	std::shared_ptr<Link> link = _link_pool.Create();
+	link->AttachManager(this);
+	return link;
+}
+
+int LinkManager::Available()
+{
+	return _link_pool.Available();
+}
+
+int LinkManager::Capacity()
+{
+	return _link_pool.Capacity();
+}
+
+void LinkManager::Capacity(int count)
+{
+	_link_pool.Capacity(count);
+}
+
+}} /* namespace Gamnet */

@@ -18,6 +18,7 @@ namespace Gamnet {
 
     struct Buffer
     {
+    	static std::shared_ptr<Buffer> Create();
     	static int MAX_SIZE;
     	struct Init
 		{

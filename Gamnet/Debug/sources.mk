@@ -23,15 +23,16 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-Database \
-Database/MySQL \
-Database/Redis \
-. \
-Http \
-Json \
-Library \
-Log \
-Network \
-Router \
 Test \
+Network/Tcp \
+Network \
+Network/Router \
+Network/Http \
+Log \
+Library \
+Library/Json \
+. \
+Database/Redis \
+Database/MySQL \
+Database \
 

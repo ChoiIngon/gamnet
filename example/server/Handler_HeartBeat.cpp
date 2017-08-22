@@ -6,19 +6,19 @@ Handler_HeartBeat::Handler_HeartBeat() {
 Handler_HeartBeat::~Handler_HeartBeat() {
 }
 
-void Handler_HeartBeat::Recv_Ntf(std::shared_ptr<Session> session, std::shared_ptr<Gamnet::Network::Packet> packet)
+void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgCliSvr_HeartBeat_Ntf ntf;
 	try {
-		if(false == Gamnet::Network::Packet::Load(ntf, packet))
+		if(false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
 			throw Gamnet::Exception(ERROR(MessageFormatError), "message load fail");
 		}
 
-		LOG(DEV, "MsgCliSvr_HeartBeat_Ntf(session_key:", session->sessionKey_, ", msg_seq:", ntf.msg_seq, ")");
+		LOG(DEV, "MsgCliSvr_HeartBeat_Ntf(session_key:", session->session_key, ", msg_seq:", ntf.msg_seq, ")");
 		if(NULL == session->user_data)
 		{
-			throw Gamnet::Exception(ERROR(InvalidUserError), "invalid user(session_key:", session->sessionKey_, ")");
+			throw Gamnet::Exception(ERROR(InvalidUserError), "invalid user(session_key:", session->session_key, ")");
 		}
 
 		if(ntf.msg_seq > session->user_data->msg_seq && 1 < ntf.msg_seq - session->user_data->msg_seq)
@@ -30,12 +30,12 @@ void Handler_HeartBeat::Recv_Ntf(std::shared_ptr<Session> session, std::shared_p
 
 		if(10 < session->user_data->msg_seq - session->ack_seq )
 		{
-			Gamnet::Network::ServerState<Session>("server");
+			Gamnet::Network::Tcp::ServerState<Session>("server");
 			session->ack_seq = std::max(session->ack_seq, session->user_data->msg_seq);
 			MsgSvrCli_HeartBeat_Ntf ans;
 			ans.msg_seq = session->user_data->msg_seq;
 			LOG(DEV, "MsgSvrCli_HeartBeat_Ntf(msg_seq:", ans.msg_seq, ")");
-			Gamnet::Network::SendMsg(session, ans);
+			Gamnet::Network::Tcp::SendMsg(session, ans);
 		}
 	}
 	catch(const Gamnet::Exception& e)
@@ -43,11 +43,11 @@ void Handler_HeartBeat::Recv_Ntf(std::shared_ptr<Session> session, std::shared_p
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		MsgSvrCli_Kickout_Ntf ntf;
 		ntf.error_code = (ErrorCode)e.error_code();
-		Gamnet::Network::SendMsg(session, ntf);
+		Gamnet::Network::Tcp::SendMsg(session, ntf);
 	}
 }
 
-GAMNET_BIND_NETWORK_HANDLER(
+GAMNET_BIND_TCP_HANDLER(
 	Session,
 	MsgCliSvr_HeartBeat_Ntf,
 	Handler_HeartBeat, Recv_Ntf,

@@ -7,18 +7,17 @@
 
 #ifndef GAMNET_TEST_SESSION_H_
 #define GAMNET_TEST_SESSION_H_
-#include "../Network/Session.h"
+#include "../Network/Network.h"
 
 namespace Gamnet { namespace Test {
 
-class Session : public Network::Session {
+class Session : public Network::Tcp::Session {
 public:
-	int testSEQ_;
+	int test_seq;
 
 	Session();
 	virtual ~Session();
 
-	void Connect(const boost::asio::ip::tcp::endpoint& endpoint);
 	void OnAccept() {}
 	void OnClose(int reason) {}
 };

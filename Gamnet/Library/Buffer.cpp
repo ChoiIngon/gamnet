@@ -6,6 +6,8 @@
  */
 
 #include "Buffer.h"
+#include "Pool.h"
+
 namespace Gamnet {
 
 int Buffer::MAX_SIZE = 0x0000ffff;
@@ -135,6 +137,13 @@ void Buffer::Resize(uint16_t size)
 	writeCursor_ -= readCursor_;
 	readCursor_ = 0;
 	delete [] oldBuf;
+}
+
+static Pool<Buffer, std::mutex, Buffer::Init> pool_(65535);
+
+std::shared_ptr<Buffer> Buffer::Create()
+{
+	return pool_.Create();
 }
 
 }

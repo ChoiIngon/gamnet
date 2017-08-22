@@ -9,12 +9,13 @@ RM := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include Test/subdir.mk
--include Router/subdir.mk
+-include Network/Tcp/subdir.mk
+-include Network/Router/subdir.mk
+-include Network/Http/subdir.mk
 -include Network/subdir.mk
 -include Log/subdir.mk
+-include Library/Json/subdir.mk
 -include Library/subdir.mk
--include Json/subdir.mk
--include Http/subdir.mk
 -include Database/Redis/subdir.mk
 -include Database/MySQL/subdir.mk
 -include Database/subdir.mk

@@ -5,34 +5,28 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../Network/HandlerContainer.cpp \
-../Network/Listener.cpp \
-../Network/Network.cpp \
-../Network/Packet.cpp \
-../Network/Session.cpp \
-../Network/SessionManager.cpp 
+../Network/Link.cpp \
+../Network/LinkManager.cpp \
+../Network/Session.cpp 
 
 OBJS += \
 ./Network/HandlerContainer.o \
-./Network/Listener.o \
-./Network/Network.o \
-./Network/Packet.o \
-./Network/Session.o \
-./Network/SessionManager.o 
+./Network/Link.o \
+./Network/LinkManager.o \
+./Network/Session.o 
 
 CPP_DEPS += \
 ./Network/HandlerContainer.d \
-./Network/Listener.d \
-./Network/Network.d \
-./Network/Packet.d \
-./Network/Session.d \
-./Network/SessionManager.d 
+./Network/Link.d \
+./Network/LinkManager.d \
+./Network/Session.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
 Network/%.o: ../Network/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -I/usr/include/mysql -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	g++ -D_DEBUG -I/usr/include/mysql -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

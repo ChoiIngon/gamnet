@@ -9,37 +9,31 @@
 #define GAMNET_TEST_TEST_H_
 
 #include <string>
-#include "Tester.h"
 #include "Session.h"
 #include "../Library/Singleton.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include "LinkManager.h"
 
 namespace Gamnet { namespace Test {
 	template <class SESSION_T>
 	void Init(unsigned int interval, unsigned int session_count, unsigned int loop_count, const char* host, int port)
 	{
-		Singleton<Tester<SESSION_T>>::GetInstance().Init(host, port, interval, session_count, loop_count);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host, port, interval, session_count, loop_count);
 	}
 
 	template<class SESSION_T, class NTF_T>
-	bool RegisterHandler(typename Tester<SESSION_T>::RECV_HANDLER_TYPE recv)
+	bool RegisterHandler(typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
-		Singleton<Tester<SESSION_T>>::GetInstance().template RegisterHandler<NTF_T>(recv);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().template RegisterHandler<NTF_T>(recv);
 		return true;
 	}
 
 	template<class SESSION_T, class REQ_T, class ANS_T>
-	bool RegisterHandler(const std::string& test_name, typename Tester<SESSION_T>::SEND_HANDER_TYPE send, typename Tester<SESSION_T>::RECV_HANDLER_TYPE recv)
+	bool RegisterHandler(const std::string& test_name, typename LinkManager<SESSION_T>::SEND_HANDLER_TYPE send, typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
-		Singleton<Tester<SESSION_T>>::GetInstance().template RegisterHandler<REQ_T, ANS_T>(test_name, send, recv);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().template RegisterHandler<REQ_T, ANS_T>(test_name, send, recv);
 		return true;
-	}
-
-	template<class SESSION_T>
-	void Run()
-	{
-		Singleton<Tester<SESSION_T>>::GetInstance().Run();
 	}
 
 	template<class SESSION_T>
@@ -58,10 +52,10 @@ namespace Gamnet { namespace Test {
 		{
 			if("message" == elmt.first)
 			{
-				Singleton<Tester<SESSION_T>>::GetInstance().SetTestSequence(elmt.second.get<std::string>("<xmlattr>.name"));
+				Singleton<LinkManager<SESSION_T>>::GetInstance().SetTestSequence(elmt.second.get<std::string>("<xmlattr>.name"));
 			}
 		}
-		Singleton<Tester<SESSION_T>>::GetInstance().Init(host.c_str(), port, interval, session_count, loop_count);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host.c_str(), port, interval, session_count, loop_count);
 	}
 }}
 
