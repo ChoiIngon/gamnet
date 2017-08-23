@@ -24,7 +24,7 @@ namespace Gamnet { namespace Network { namespace Http {
 }}}
 
 #define GAMNET_BIND_HTTP_HANDLER(uri, class_type, func) \
-	static bool Http_##class_type##_##func = Gamnet::Http::RegisterHandler( \
+	static bool Http_##class_type##_##func = Gamnet::Network::Http::RegisterHandler( \
 			uri, \
 			&class_type::func, \
 			new Gamnet::Network::HandlerStatic<class_type>() \

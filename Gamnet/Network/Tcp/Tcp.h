@@ -58,7 +58,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	template <class SESSION_T>
-	std::string ServerState(const std::string& name)
+	Json::Value ServerState(const std::string& name)
 	{
 		Json::Value root;
 		root["name"] = name;
@@ -103,8 +103,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 		root["message"] = message;
 #endif
-		Json::StyledWriter writer;
-		return writer.write(root);
+		return root;
 	}
 }}}
 
