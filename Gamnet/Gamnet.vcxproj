@@ -175,7 +175,6 @@
     <ClCompile Include="Network\Tcp\Packet.cpp" />
     <ClCompile Include="Network\Tcp\Session.cpp" />
     <ClCompile Include="Network\Tcp\Tcp.cpp" />
-    <ClCompile Include="Network\Tcp\TcpHandler.cpp" />
     <ClCompile Include="test\Session.cpp" />
   </ItemGroup>
   <ItemGroup>

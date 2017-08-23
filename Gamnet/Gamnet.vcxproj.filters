@@ -125,9 +125,6 @@
     <ClCompile Include="Library\Json\jsoncpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network\Tcp\TcpHandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Gamnet.h">
