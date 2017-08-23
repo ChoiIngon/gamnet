@@ -21,7 +21,7 @@ public :
 	LinkManager();
 	virtual ~LinkManager();
 
-	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer);
+	void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer);
 };
 
 }}}

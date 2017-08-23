@@ -8,8 +8,15 @@
 #include "Session.h"
 #include "Link.h"
 #include "LinkManager.h"
+#include "../Library/MD5.h"
+#include "../Library/Random.h"
 
 namespace Gamnet { namespace Network {
+
+std::string Session::GenerateSessionKey(uint64_t link_key)
+{
+	return md5(Format(link_key, time(NULL), Random::Range(1, 99999999)));
+}
 
 Session::Session() : expire_time(0), session_key(""), link(std::shared_ptr<Link>(NULL)), manager(NULL), remote_address(NULL)
 {

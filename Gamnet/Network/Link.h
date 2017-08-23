@@ -39,7 +39,7 @@ public:
 	Link();
 	virtual ~Link();
 
-	bool Connect(const char* host, int port, int timeout);
+	virtual void Connect(const char* host, int port, int timeout);
 	virtual void OnError(int reason);
 	virtual void AsyncRead();
 

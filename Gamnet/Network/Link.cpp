@@ -20,7 +20,7 @@ Link::~Link()
 {
 }
 
-bool Link::Connect(const char* host, int port, int timeout)
+void Link::Connect(const char* host, int port, int timeout)
 {
 	if(NULL == host)
 	{
@@ -64,7 +64,6 @@ bool Link::Connect(const char* host, int port, int timeout)
 			OnError(ETIMEDOUT);
 		}));
 	}
-	return true;
 }
 
 void Link::OnError(int reason)

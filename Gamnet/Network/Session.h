@@ -44,6 +44,8 @@ public :
 	void AsyncSend(const char* data, size_t length);
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);
 	int SyncSend(const char* data, size_t length);
+
+	static std::string GenerateSessionKey(uint64_t link_key);
 };
 
 class SessionManager

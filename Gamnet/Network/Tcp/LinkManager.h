@@ -41,6 +41,7 @@ public :
 			link->OnError(EINVAL);
 			return;
 		}
+		session->session_key = Network::Session::GenerateSessionKey(link->link_key);
 		session_manager.Add(session->session_key, session);
 		link->AttachSession(session);
 		session->OnAccept();
@@ -92,16 +93,17 @@ public :
 			}
 
 			uint32_t msg_seq = session->recv_packet->GetSEQ();
-			if(session->msg_seq < msg_seq)
+			if(msg_seq > session->msg_seq)
 			{
-				if(1 < msg_seq - session->msg_seq)
-				{
-					link->OnError(ErrorCode::MessageSeqOmittedError);
-					return;
-				}
 				Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, session->recv_packet);
 				session->msg_seq = msg_seq;
 			}
+#ifdef _DEBUG
+			else
+			{
+				LOG(WRN, "same message seq(link_key:", link->link_key, ")");
+			}
+#endif
 			session->recv_packet->Remove(totalLength);
 
 			if(0 < session->recv_packet->Size())
@@ -126,6 +128,7 @@ public :
 	std::shared_ptr<SESSION_T> FindSession(const std::string& session_key) {
 		return session_manager.Find(session_key);
 	}
+	
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{

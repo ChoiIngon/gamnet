@@ -53,7 +53,7 @@ void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 
 void LinkManager::Accept()
 {
-	std::shared_ptr<Link> link = _link_pool.Create();
+	std::shared_ptr<Link> link = Create();
 	if(NULL == link)
 	{
 		LOG(GAMNET_WRN, "can not create any more session(max:", _link_pool.Capacity(), ", current:", Size(), ")");
@@ -61,8 +61,6 @@ void LinkManager::Accept()
 		_is_acceptable = false;
 		return;
 	}
-
-	link->link_key = ++LinkManager::link_key;
 
 	_acceptor.async_accept(link->socket, link->strand.wrap(
 		boost::bind(&LinkManager::Callback_Accept, this, link, boost::asio::placeholders::error)
@@ -158,6 +156,7 @@ std::shared_ptr<Link> LinkManager::Create()
 	{
 		return NULL;
 	}
+	link->link_key = ++LinkManager::link_key;
 	link->AttachManager(this);
 	return link;
 }

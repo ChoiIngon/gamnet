@@ -20,7 +20,7 @@ public :
 			return init(session);
 		}
 	};
-	uint32_t msg_seq;
+	std::atomic<uint32_t> msg_seq;
 	std::shared_ptr<Packet> recv_packet;
 
 	Session();

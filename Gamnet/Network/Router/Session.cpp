@@ -9,6 +9,11 @@ namespace Gamnet { namespace Network { namespace Router {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
+std::string Session::GenerateSessionKey(const Address& addr)
+{
+	return Format(addr.service_name, ":", addr.cast_type, ":", addr.id);
+}
+
 Session::Session() : Network::Tcp::Session() {
 	onRouterConnect = [](const Address&) {};
 	onRouterClose = [](const Address&) {};
@@ -35,14 +40,31 @@ void Session::OnConnect()
 
 void Session::OnClose(int reason)
 {
-	LOG(GAMNET_INF, "[Router] remote server closed(ip:", remote_address->to_string(), ", service_name:", addr.service_name, ")");
+	LOG(GAMNET_INF, "[Router] remote server closed(session_key:", session_key, ", ip:", remote_address->to_string(), ", service_name:", addr.service_name, ")");
 	if("" != addr.service_name)
 	{
-		std::lock_guard<std::mutex> lo(LinkManager::lock);
-		onRouterClose(addr);
+		{
+			std::lock_guard<std::mutex> lo(LinkManager::lock);
+			onRouterClose(addr);
+		}
+		Singleton<RouterCaster>::GetInstance().UnregisterAddress(addr);
 	}
 	watingSessionManager_.Clear();
-	Singleton<RouterCaster>::GetInstance().UnregisterAddress(addr);
 }
 
+/*
+int	Session::Send(const std::shared_ptr<Network::Tcp::Packet>& packet)
+{
+	msg_seq++;
+	AsyncSend(packet);
+	return packet->Size();
+}
+
+int Session::Send(const char* buf, int len)
+{
+	msg_seq++;
+	AsyncSend(buf, len);
+	return len;
+}
+*/
 }}} /* namespace Gamnet */
