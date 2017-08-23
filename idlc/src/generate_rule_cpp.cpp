@@ -386,8 +386,8 @@ bool GenerateRuleCpp::CompileMessage(const Token::Message* pToken)
 		std::cout << "\t}" << std::endl;
 	}
 	// Size
-	std::cout << "	int32_t Size() const {" << std::endl;
-	std::cout << "		int32_t nSize = 0;" << std::endl;
+	std::cout << "	size_t Size() const {" << std::endl;
+	std::cout << "		size_t nSize = 0;" << std::endl;
 	if("" != pToken->m_sParentName)
 	{
 		std::cout << "		nSize += " << pToken->m_sParentName << "::Size();" << std::endl;
@@ -463,7 +463,7 @@ bool GenerateRuleCpp::CompileMessage(const Token::Message* pToken)
 	std::cout << "struct " << pToken->GetName() << "_Serializer {" << std::endl;
 	std::cout << "\tstatic bool Store(char** _buf_, const " << pToken->GetName() << "& obj) { return obj.Store(_buf_); }" << std::endl;
 	std::cout << "\tstatic bool Load(" << pToken->GetName() << "& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }" << std::endl;
-	std::cout << "\tstatic int32_t Size(const " << pToken->GetName() << "& obj) { return obj.Size(); }" << std::endl;
+	std::cout << "\tstatic size_t Size(const " << pToken->GetName() << "& obj) { return obj.Size(); }" << std::endl;
 	std::cout << "};" << std::endl;
 	return true;
 }
@@ -498,7 +498,7 @@ bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 	std::cout << "\t\t(*_buf_) += sizeof(" << pToken->GetName() << "); nSize -= sizeof(" << pToken->GetName() << ");" << std::endl;;
 	std::cout << "\t\treturn true;" << std::endl;
 	std::cout << "\t}" << std::endl;
-	std::cout << "\tstatic int32_t Size(const " << pToken->GetName() << "& obj) { return sizeof(" << pToken->GetName() << "); }" << std::endl;
+	std::cout << "\tstatic size_t Size(const " << pToken->GetName() << "& obj) { return sizeof(" << pToken->GetName() << "); }" << std::endl;
 	std::cout << "};" << std::endl;
 	return true;
 }
@@ -546,7 +546,7 @@ bool GenerateRuleCpp::CompileTypedef(const Token::Typedef* pToken)
 	GenerateVariableLoad(pToken->m_pVarDecl->m_pVarType, "obj", "\t\t");
 	std::cout << "\t\treturn true;" << std::endl; 
 	std::cout << "\t}" << std::endl;
-	std::cout << "\tstatic int32_t Size(const " << pToken->m_pVarDecl->m_pVarName->GetName() << "& obj) { " << std::endl;
+	std::cout << "\tstatic size_t Size(const " << pToken->m_pVarDecl->m_pVarName->GetName() << "& obj) { " << std::endl;
 	std::cout << "\t\tint32_t nSize = 0;" << std::endl;
 	GenerateVariableSize(pToken->m_pVarDecl->m_pVarType, "obj", "\t\t");
 	std::cout << "\t\treturn nSize;" << std::endl;
