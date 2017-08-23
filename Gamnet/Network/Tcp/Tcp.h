@@ -34,7 +34,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			LOG(GAMNET_ERR, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
-		if(false == packet->Write(msg))
+		if(false == packet->Write<MSG>(session->msg_seq, msg))
 		{
 			LOG(GAMNET_ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
@@ -44,10 +44,17 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	boost::asio::ip::address GetLocalAddress();
+
+	template <class SESSION_T>
+	std::shared_ptr<Link> FindLink(uint32_t link_key)
+	{
+		return LinkManager<SESSION_T >>::GetInstance().Find(link_key);
+	}
+
 	template <class SESSION_T>
 	std::shared_ptr<SESSION_T> FindSession(const std::string& session_key)
 	{
-		return std::static_pointer_cast<SESSION_T>(Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.FindSession(session_key));
+		return Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Find(session_key);
 	}
 
 	template <class SESSION_T>
@@ -63,7 +70,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		char date_time[22] = {0};
 #ifdef _WIN32
 		localtime_s(&when, &logtime_);
-		_snprintf(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+		_snprintf_s(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
 #else
 		localtime_r(&logtime_, &when);
 		snprintf(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);

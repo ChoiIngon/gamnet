@@ -12,7 +12,7 @@ private :
 	{
 	private :
 		std::mutex lock_;
-		std::map<uint64_t, std::pair<time_t, std::shared_ptr<Network::Session>>> mapSession_;
+		std::map<uint64_t, std::pair<time_t, std::shared_ptr<Network::Tcp::Session>>> mapSession_;
 		Timer timer_;
 	public :
 		AnswerWatingSessionManager()
@@ -36,13 +36,13 @@ private :
 		}
 		~AnswerWatingSessionManager() {}
 
-		bool AddSession(uint64_t msg_seq, std::shared_ptr<Network::Session> session)
+		bool AddSession(uint64_t msg_seq, std::shared_ptr<Network::Tcp::Session> session)
 		{
 			std::lock_guard<std::mutex> lo(lock_);
 			return mapSession_.insert(std::make_pair(msg_seq, std::make_pair(time(NULL), session))).second;
 		}
 
-		std::shared_ptr<Network::Session> FindSession(uint64_t msg_seq)
+		std::shared_ptr<Network::Tcp::Session> FindSession(uint64_t msg_seq)
 		{
 			std::lock_guard<std::mutex> lo(lock_);
 			auto itr = mapSession_.find(msg_seq);
@@ -50,7 +50,7 @@ private :
 			{
 				return NULL;
 			}
-			std::shared_ptr<Network::Session> session = itr->second.second;
+			std::shared_ptr<Network::Tcp::Session> session = itr->second.second;
 			mapSession_.erase(itr);
 			return session;
 		}

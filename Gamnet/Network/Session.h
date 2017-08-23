@@ -1,8 +1,8 @@
 #ifndef GAMNET_NETWORK_SESSION_H_
 #define GAMNET_NETWORK_SESSION_H_
 
-#include <map>
 #include <boost/asio.hpp>
+#include <map>
 #include "HandlerContainer.h"
 #include "../Library/Buffer.h"
 #include "../Library/Timer.h"

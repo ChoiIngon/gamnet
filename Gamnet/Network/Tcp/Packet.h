@@ -37,6 +37,12 @@ public:
 	};
 
 public :
+	struct Header {
+		uint16_t length;
+		uint32_t msg_id;
+		uint32_t msg_seq;
+	};
+
 	Packet();
 	virtual ~Packet();
 
@@ -60,12 +66,12 @@ public :
 	}
 
 	template <class MSG>
-	bool Write(const MSG& msg)
+	bool Write(uint32_t msg_seq, const MSG& msg)
 	{
 		Clear();
+		uint16_t total_length = (uint16_t)(msg.Size() + HEADER_SIZE);
 		uint32_t msg_id = MSG::MSG_ID;
-		uint16_t msg_size = (uint16_t)msg.Size();
-		uint16_t total_length = msg_size + HEADER_SIZE;
+		
 		if(Capacity() <= total_length)
 		{
 			LOG(GAMNET_WRN, "packet max capacity over(msg_id:", msg_id, ", size:", total_length, ")");
@@ -78,7 +84,7 @@ public :
 		}
 
 		(*(uint16_t*)(buf_ + OFFSET_LENGTH)) = total_length;
-		(*(uint32_t*)(buf_ + OFFSET_MSGSEQ)) = 0;
+		(*(uint32_t*)(buf_ + OFFSET_MSGSEQ)) = msg_seq;
 		(*(uint32_t*)(buf_ + OFFSET_MSGID)) = msg_id;
 		char* pBuf = buf_ + HEADER_SIZE;
 		if(false == msg.Store(&pBuf))
@@ -88,13 +94,13 @@ public :
 		this->writeCursor_ += total_length;
 		return true;
 	}
-	bool Write(uint32_t msg_id, uint32_t msg_seq, const char* data, size_t length)
+	bool Write(const Header& header, const char* data, size_t length)
 		{
 			Clear();
-			uint16_t total_length = length + HEADER_SIZE;
+			uint16_t total_length = (uint16_t)(length + HEADER_SIZE);
 			if(Capacity() <= total_length)
 			{
-				LOG(GAMNET_WRN, "packet max capacity over(msg_id:", msg_id, ", size:", total_length, ")");
+				LOG(GAMNET_WRN, "packet max capacity over(msg_id:", header.msg_id, ", size:", total_length, ")");
 				return false;
 			}
 
@@ -104,8 +110,8 @@ public :
 			}
 
 			(*(uint16_t*)(buf_ + OFFSET_LENGTH)) = total_length;
-			(*(uint32_t*)(buf_ + OFFSET_MSGSEQ)) = msg_seq;
-			(*(uint32_t*)(buf_ + OFFSET_MSGID)) = msg_id;
+			(*(uint32_t*)(buf_ + OFFSET_MSGSEQ)) = header.msg_seq;
+			(*(uint32_t*)(buf_ + OFFSET_MSGID)) = header.msg_id;
 			std::memcpy(buf_ + HEADER_SIZE, data, length);
 			this->writeCursor_ += total_length;
 			return true;

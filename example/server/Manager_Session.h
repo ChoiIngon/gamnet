@@ -18,12 +18,12 @@ private :
 	Gamnet::Timer timer;
 	std::mutex lock;
 
-	std::map<std::string, std::shared_ptr<UserData>> user_datas;
+	std::map<std::string, std::shared_ptr<Session>> sessions;
 public:
 	Manager_Session();
 	virtual ~Manager_Session();
 	void Init();
-	const std::shared_ptr<UserData> Add(const std::string& user_id, const std::shared_ptr<UserData>& user_data);
+	const std::shared_ptr<Session> Add(const std::string& user_id, const std::shared_ptr<Session>& session);
 	void Remove(const std::string& key);
 };
 

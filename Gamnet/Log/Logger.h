@@ -54,7 +54,7 @@ public :
 
 		if(false == IsInit_)
 		{
-			throw Exception(GAMNET_ERROR_LOG_NOT_INITIALIZED, "write log exception, log is not initialized yet");
+			throw Exception(GAMNET_ERRNO(ErrorCode::NotInitializedError), "write log exception, log is not initialized yet");
 		}
 
 		std::string s = Format(args...);

@@ -61,11 +61,11 @@ void Buffer::RemoveReadBuffer()
     readCursor_ = 0;
 }
 
-void Buffer::Append(const char* buf, uint16_t size)
+void Buffer::Append(const char* buf, size_t size)
 {
 	if(Available() < size)
 	{
-		throw Exception(ENOMEM, "not enough space(need:", size," bytes, left:", Available(), " bytes)");
+		throw Exception(GAMNET_ERRNO(ErrorCode::BufferOverflowError), "not enough space(need:", size," bytes, left:", Available(), " bytes)");
 	}
 
 	if(size > bufSize_ - writeCursor_)

@@ -1,4 +1,5 @@
 #include "Handler_HeartBeat.h"
+#include <algorithm>
 
 Handler_HeartBeat::Handler_HeartBeat() {
 }
@@ -12,31 +13,32 @@ void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const 
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw Gamnet::Exception(ERROR(MessageFormatError), "message load fail");
+			throw Gamnet::Exception(GAMNET_ERRNO(MessageFormatError), "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_HeartBeat_Ntf(session_key:", session->session_key, ", msg_seq:", ntf.msg_seq, ")");
-		if(NULL == session->user_data)
+		if(0 == session->user_data.user_seq)
 		{
-			throw Gamnet::Exception(ERROR(InvalidUserError), "invalid user(session_key:", session->session_key, ")");
+			throw Gamnet::Exception(GAMNET_ERRNO(InvalidUserError), "invalid user(session_key:", session->session_key, ")");
 		}
-
+		/*
 		if(ntf.msg_seq > session->user_data->msg_seq && 1 < ntf.msg_seq - session->user_data->msg_seq)
 		{
-			throw Gamnet::Exception(ERROR(MessageSeqOmmitError), "lost message seq:", session->user_data->msg_seq);
+			throw Gamnet::Exception(GAMNET_ERRNO(MessageSeqOmmitError), "lost message seq:", session->user_data->msg_seq);
 		}
-		session->user_data->msg_seq = std::max(session->user_data->msg_seq, ntf.msg_seq);
+		session->user_data->msg_seq = max(session->user_data->msg_seq, ntf.msg_seq);
 		session->user_data->kickout_time = time(NULL) + 300;
 
 		if(10 < session->user_data->msg_seq - session->ack_seq )
 		{
 			Gamnet::Network::Tcp::ServerState<Session>("server");
-			session->ack_seq = std::max(session->ack_seq, session->user_data->msg_seq);
+			session->ack_seq = max(session->ack_seq, session->user_data->msg_seq);
 			MsgSvrCli_HeartBeat_Ntf ans;
 			ans.msg_seq = session->user_data->msg_seq;
 			LOG(DEV, "MsgSvrCli_HeartBeat_Ntf(msg_seq:", ans.msg_seq, ")");
 			Gamnet::Network::Tcp::SendMsg(session, ans);
 		}
+		*/
 	}
 	catch(const Gamnet::Exception& e)
 	{

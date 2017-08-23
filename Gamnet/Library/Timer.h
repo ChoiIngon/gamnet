@@ -1,17 +1,10 @@
-/*
- * Timer.h
- *
- *  Created on: Jul 16, 2013
- *      Author: kukuta
- */
-
 #ifndef __GAMNET_LIB_TIMER_H_
 #define __GAMNET_LIB_TIMER_H_
 
-#include "Singleton.h"
 #include <boost/asio.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/bind.hpp>
+#include "Singleton.h"
 
 namespace Gamnet
 {

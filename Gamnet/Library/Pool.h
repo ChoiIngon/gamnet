@@ -119,7 +119,6 @@ public:
 			return std::shared_ptr<object>(NULL);
 		}
 
-
 		if(0 >= lstObjectPtr_.size())
 		{
 			cur_size_++;
@@ -134,19 +133,19 @@ public:
 	/*!
 	 * \brief 현재 사용되지 않고 풀에 대기 중인 객체 카운터 리턴
 	 */
-	int Available() 
+	size_t Available() 
 	{
 		std::lock_guard<lock_policy> lo(lock_);
 		return lstObjectPtr_.size() + (max_size_ - cur_size_);
 	}
 
-	int Size() 
+	size_t Size()
 	{
 		std::lock_guard<lock_policy> lo(lock_);
 		return cur_size_;
 	}
 
-	int Capacity() const
+	size_t Capacity() const
 	{
 		return max_size_;
 	}
@@ -168,8 +167,8 @@ private :
 private :
 	lock_policy lock_;
 	std::deque<object*> lstObjectPtr_;
-	int cur_size_;
-	int max_size_;
+	size_t cur_size_;
+	size_t max_size_;
 	init_policy init_;
 	object_factory factory_;
 };

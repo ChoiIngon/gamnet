@@ -21,7 +21,7 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Uni::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Session>& network_session, const Address& addr, const char* buf, int len)
+bool RouterCasterImpl_Uni::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	std::shared_ptr<Session> router_session = FindSession(addr);
 	if(NULL == router_session)
@@ -76,7 +76,7 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, const std::sha
 	return true;
 }
 
-bool RouterCasterImpl_Multi::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Session>& network_session, const Address& addr, const char* buf, int len)
+bool RouterCasterImpl_Multi::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	auto itr = mapRouteTable.find(addr.service_name);
 	if(mapRouteTable.end() == itr)
@@ -136,7 +136,7 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Any::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Session>& network_session, const Address& addr, const char* buf, int len)
+bool RouterCasterImpl_Any::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	auto itr = mapRouteTable.find(addr.service_name);
 	if(mapRouteTable.end() == itr)
@@ -206,7 +206,7 @@ bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session>
 	return true;
 }
 
-bool RouterCaster::SendMsg(std::shared_ptr<Network::Session> network_session, const Address& addr, const char* buf, int len)
+bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	MsgRouter_SendMsg_Ntf ntf;
 	ntf.nKey = addr.msg_seq;
@@ -220,7 +220,7 @@ bool RouterCaster::SendMsg(std::shared_ptr<Network::Session> network_session, co
 	{
 		return false;
 	}
-	if(false == packet->Write(ntf))
+	if(false == packet->Write(network_session->msg_seq, ntf))
 	{
 		return false;
 	}

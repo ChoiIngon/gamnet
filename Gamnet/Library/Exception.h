@@ -9,8 +9,30 @@
 #define __GAMNET_LIB_EXCEPTION_H_
 
 #include "String.h"
-#include "ErrorCode.h"
+
 namespace Gamnet {
+
+class ErrorCode { 
+public :
+	enum {
+		Success						= 0,
+		ConnectFailError			= 1,
+		ConnectTimeoutError			= 10,
+		InvalidArgumentError		= 20,
+		InvalidSessionTokenError	= 21,
+		InvalidArrayRangeError		= 30,
+		InvalidKeyError				= 40,
+		NotInitializedError			= 50,
+		NullPointerError			= 60,
+		MessageFormatError			= 70,
+		DuplicateConnectionError	= 80,
+		CreateDirectoryFailError	= 90,
+		CreateInstanceFailError		= 91,
+		BufferOverflowError			= 100,
+		MessageSeqOmittedError		= 110,
+		UndefinedError				= 999
+	};
+};
 
 class Exception : public std::exception
 {
@@ -32,5 +54,6 @@ private :
 
 }
 
-#define GAMNET_ERRNO(errno) errno, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] ", #errno
+#define GAMNET_ERRNO(error) error, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] ", #error, " "
+
 #endif /* EXCEPTION_H_ */

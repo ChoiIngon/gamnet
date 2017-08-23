@@ -1,14 +1,9 @@
 #ifndef __GAMNET_LIB_BUFFER_H__
 #define __GAMNET_LIB_BUFFER_H__
-/*
- * Buffer.cpp
- *
- * Created on: Jul 4, 2013
- * Author: kukuta
- */
 
 #include <vector>
 #include <cstring>
+#include <memory>
 #include "Exception.h"
 #ifdef _WIN32
 #include <inttypes.h>
@@ -36,7 +31,7 @@ namespace Gamnet {
         Buffer(uint16_t size = 1024);
         virtual ~Buffer();
 
-        void Append(const char* buf, uint16_t size);
+        void Append(const char* buf, size_t size);
         /**
          * remove read byte, actually just move read pointer
          */

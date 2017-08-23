@@ -26,7 +26,7 @@ void Session::OnConnect()
 	LOG(GAMNET_INF, "[Router] connect success..(remote ip:", remote_address->to_string(), ")");
 	MsgRouter_SetAddress_Req req;
 	req.tLocalAddr = Singleton<LinkManager>::GetInstance().localAddr_;
-	if(false == Network::Tcp::SendMsg(shared_from_this(), req))
+	if(false == Network::Tcp::SendMsg(std::static_pointer_cast<Session>(shared_from_this()), req))
 	{
 		return;
 	}

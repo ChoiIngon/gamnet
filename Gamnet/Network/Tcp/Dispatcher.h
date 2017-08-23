@@ -42,7 +42,7 @@ public :
 #ifdef _DEBUG
 	struct HandlerCallStatistics
 	{
-		HandlerCallStatistics() : msg_id(0), begin_count(0), finish_count(0), elapsed_time(0.0f) {
+		HandlerCallStatistics() : msg_id(0), begin_count(0), finish_count(0), elapsed_time(0) {
 		}
 		unsigned int msg_id;
 		std::atomic_int begin_count;

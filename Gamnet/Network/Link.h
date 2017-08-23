@@ -1,14 +1,14 @@
 #ifndef GAMNET_NETWORK_LINK_H_
 #define GAMNET_NETWORK_LINK_H_
 
-#include <deque>
-#include <boost/asio.hpp>
 #include "Session.h"
+#include <deque>
 
 namespace Gamnet { namespace Network {
 
 class LinkManager;
 class Link : public std::enable_shared_from_this<Link> {
+	LinkManager* 	manager;
 public:
 	struct Init
 	{
@@ -32,8 +32,6 @@ public:
 	uint64_t 	msg_seq;
 	time_t 		heartbeat_time;
 
-	LinkManager* 	manager;
-
 	std::shared_ptr<Buffer> 			read_buffer;
 	std::deque<std::shared_ptr<Buffer>>	send_buffers;
 	std::shared_ptr<Session> session;
@@ -42,10 +40,7 @@ public:
 	virtual ~Link();
 
 	bool Connect(const char* host, int port, int timeout);
-
-	virtual void OnClose(int reason);
 	virtual void OnError(int reason);
-
 	virtual void AsyncRead();
 
 	void AsyncSend(const std::shared_ptr<Buffer>& buffer);

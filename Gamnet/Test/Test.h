@@ -36,6 +36,25 @@ namespace Gamnet { namespace Test {
 		return true;
 	}
 
+	template <class SESSION_T, class MSG>
+	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg)
+	{
+		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+		if (NULL == packet)
+		{
+			LOG(ERR, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			return false;
+		}
+		if (false == packet->Write(++(session->msg_seq), msg))
+		{
+			LOG(ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			return false;
+		}
+		session->msg_seq++;
+		session->AsyncSend(packet);
+		return true;
+	}
+
 	template<class SESSION_T>
 	void ReadXml(const char* xml_path)
 	{

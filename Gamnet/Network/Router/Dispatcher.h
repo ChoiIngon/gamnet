@@ -61,7 +61,7 @@ public:
 				return ;
 			}
 
-			std::shared_ptr<Network::Session> network_session = router_session->watingSessionManager_.FindSession(from.msg_seq);
+			std::shared_ptr<Network::Tcp::Session> network_session = router_session->watingSessionManager_.FindSession(from.msg_seq);
 			if(NULL == network_session)
 			{
 				LOG(GAMNET_ERR, "can't find session(msg_seq:", from.msg_seq, ")");

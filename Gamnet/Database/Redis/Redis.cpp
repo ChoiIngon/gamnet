@@ -25,8 +25,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 			const std::string host = elmt.second.get<std::string>("<xmlattr>.host");
 			if (false == Connect(id, host.c_str(), port))
 			{
-				LOG(ERR, "database connect  fail(id:", id, ", host:", host, ", port:", port, ")");
-				throw Exception(GAMNET_ERROR_DB_CONNECT_FAIL, "database connect  fail(id:", id, ", host:", host, ", port:", port, ")");
+				throw Exception(GAMNET_ERRNO(ErrorCode::ConnectFailError), "database connect  fail(id:", id, ", host:", host, ", port:", port, ")");
 			}
 		}
 	}

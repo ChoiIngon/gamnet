@@ -4,10 +4,6 @@
 #include "Dispatcher.h"
 #include "Packet.h"
 #include "../LinkManager.h"
-#include "../../Library/Json/json.h"
-#include "../../Library/MD5.h"
-#include "../../Library/Random.h"
-#include "../../Library/Singleton.h"
 
 #include "MsgNetwork.h"
 
@@ -22,74 +18,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 template <class SESSION_T>
 class LinkManager : public Network::LinkManager
 {
-	class Network_ConnectHandler : public IHandler
-	{
-	public :
-		void Recv_Connect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
-		{
-			Json::Value root;
-			root["error_code"] = 0;
-			root["link_key"] = session->link.lock()->link_key;
-			root["session_key"] = session->session_key;
-			Json::StyledWriter writer;
-			std::string json = writer.write(root);
-
-			std::shared_ptr<Packet> ans = Packet::Create();
-			ans->Write(0001, session->msg_seq, json.c_str(), json.length());
-			session->AsyncSend(ans);
-		}
-		void Recv_Reconnect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
-		{
-			Json::Value root;
-			root["error_code"] = 0;
-			try {
-				/*
-				std::string json = std::string(packet->ReadPtr() + Packet::HEADER_SIZE, packet->Size());
-				Json::Reader reader;
-				Json::Value req;
-				if(false == reader.parse(json, req))
-				{
-					throw Exception(1, "parse error");
-				}
-
-				uint64_t session_key = req["session_key"].asInt64();
-				std::string session_token = req["session_token"].asString();
-
-				const std::shared_ptr<Session> prev_session = Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.FindSession(session_key);
-				if(NULL == prev_session)
-				{
-					throw Exception(1, "no cache data");
-				}
-
-				if(session_token != prev_session->session_token)
-				{
-					throw Exception(2, "invalid session token");
-				}
-
-					ntf.error_code = DuplicateConnectionError;
-					LOG(DEV, "MsgSvrCli_Kickout_Ntf(session_key:", other->sessionKey_, ")");
-					Gamnet::Network::SendMsg(other, ntf);
-
-				prev_session->socket_->cancel();
-				session->socket_->cancel();
-				prev_session->socket_ = session->socket_;
-				prev_session->AsyncRead();
-				*/
-			}
-			catch(const Exception& e)
-			{
-				root["error_code"] = e.error_code();
-				LOG(GAMNET_ERR, e.what());
-			}
-
-			Json::StyledWriter writer;
-			std::string json = writer.write(root);
-
-			std::shared_ptr<Packet> ans = Packet::Create();
-			ans->Write(0002, session->msg_seq, json.c_str(), json.length());
-			session->AsyncSend(ans);
-		}
-	};
 public :
 	Pool<SESSION_T, std::mutex, Session::Init> session_pool;
 	SessionManager session_manager;
@@ -99,9 +27,6 @@ public :
 
 	void Listen(int port, int max_session, int keepAliveTime)
 	{
-		RegisterHandler(MsgNetwork_Connect_Req::MSG_ID, &Network_ConnectHandler::Recv_Connect_Req,	new HandlerStatic<Network_ConnectHandler>());
-		RegisterHandler(MsgNetwork_Reconnect_Req::MSG_ID, &Network_ConnectHandler::Recv_Reconnect_Req,	new HandlerStatic<Network_ConnectHandler>());
-
 		session_pool.Capacity(max_session);
 		session_manager.Init(keepAliveTime);
 		Network::LinkManager::Listen(port, max_session, keepAliveTime);
@@ -118,6 +43,7 @@ public :
 		}
 		session_manager.Add(session->session_key, session);
 		link->AttachSession(session);
+		session->OnAccept();
 	}
 
 	virtual void OnClose(const std::shared_ptr<Link>& link, int reason)
@@ -125,6 +51,7 @@ public :
 		const std::shared_ptr<Network::Session>& session = link->session;
 		if(NULL != session)
 		{
+			session->OnClose(reason);
 			link->AttachSession(std::shared_ptr<Network::Session>(NULL));
 		}
 		Network::LinkManager::OnClose(link, reason);
@@ -158,32 +85,47 @@ public :
 				return;
 			}
 
-			// 데이터가 부족한 경우
+			// if received bytes are not enough
 			if(totalLength > (uint16_t)session->recv_packet->Size())
 			{
 				break;
 			}
 
-			Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, session->recv_packet);
-			session->recv_packet->Remove(totalLength);
-
-			std::shared_ptr<Packet> packet = Packet::Create();
-			if(NULL == packet)
+			uint32_t msg_seq = session->recv_packet->GetSEQ();
+			if(session->msg_seq < msg_seq)
 			{
-				LOG(GAMNET_ERR, "Can't create more buffer(link_key:", link->link_key, ")");
-				link->OnError(EOVERFLOW);
-				return;
+				if(1 < msg_seq - session->msg_seq)
+				{
+					link->OnError(ErrorCode::MessageSeqOmittedError);
+					return;
+				}
+				Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, session->recv_packet);
+				session->msg_seq = msg_seq;
 			}
+			session->recv_packet->Remove(totalLength);
 
 			if(0 < session->recv_packet->Size())
 			{
+				std::shared_ptr<Packet> packet = Packet::Create();
+				if (NULL == packet)
+				{
+					LOG(GAMNET_ERR, "Can't create more buffer(link_key:", link->link_key, ")");
+					link->OnError(EOVERFLOW);
+					return;
+				}
 				packet->Append(session->recv_packet->ReadPtr(), session->recv_packet->Size());
+				session->recv_packet = packet;
 			}
-
-			session->recv_packet = packet;
+			else
+			{
+				session->recv_packet->Clear();
+			}
 		}
 	}
 
+	std::shared_ptr<SESSION_T> FindSession(const std::string& session_key) {
+		return session_manager.Find(session_key);
+	}
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{

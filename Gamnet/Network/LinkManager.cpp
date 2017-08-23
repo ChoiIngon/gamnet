@@ -1,21 +1,13 @@
-/*
- * Listener.cpp
- *
- *  Created on: 2017. 8. 22.
- *      Author: kukuta
- */
-
 #include "LinkManager.h"
+#include "../Library/Singleton.h"
 
 namespace Gamnet { namespace Network {
 
 std::atomic_ullong LinkManager::link_key;
 
-boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
-
 LinkManager::LinkManager() :
 		_keepalive_time(0),
-		_acceptor(io_service_),
+		_acceptor(Singleton<boost::asio::io_service>::GetInstance()),
 		_is_acceptable(true)
 {
 }
@@ -47,12 +39,7 @@ void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 			_timer.Resume();
 		}))
 		{
-			LOG(GAMNET_ERR, "session time out timer init fail");
-#ifdef _WIN32
-			throw Exception(0, "[", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] session time out timer init fail");
-#else
-			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] session time out timer init fail");
-#endif
+			throw Exception(GAMNET_ERRNO(ErrorCode::UndefinedError), "session time out timer init fail");
 		}
 	}
 	_link_pool.Capacity(max_session);
@@ -74,6 +61,9 @@ void LinkManager::Accept()
 		_is_acceptable = false;
 		return;
 	}
+
+	link->link_key = ++LinkManager::link_key;
+
 	_acceptor.async_accept(link->socket, link->strand.wrap(
 		boost::bind(&LinkManager::Callback_Accept, this, link, boost::asio::placeholders::error)
 	));
@@ -83,13 +73,13 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 {
 	if(0 == error)
 	{
-		boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
-		link->socket.set_option(option);
-		link->link_key = ++LinkManager::link_key;
 		try {
+			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+			link->socket.set_option(option);
 			link->remote_address = link->socket.remote_endpoint().address();
-			OnAccept(link);
+			link->AttachManager(this);
 			link->AsyncRead();
+			OnAccept(link);
 		}
 		catch(const boost::system::system_error& e)
 		{
@@ -101,17 +91,14 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 
 void LinkManager::OnAccept(const std::shared_ptr<Link>& link)
 {
-	Add(link->link_key, link);
 }
 
 void LinkManager::OnConnect(const std::shared_ptr<Link>& link)
 {
-	Add(link->link_key, link);
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Link>& link, int reason)
 {
-	Remove(link->link_key);
 	if(false == _is_acceptable)
 	{
 		std::lock_guard<std::recursive_mutex> lo(_lock);
@@ -167,6 +154,10 @@ size_t LinkManager::Size()
 std::shared_ptr<Link> LinkManager::Create()
 {
 	std::shared_ptr<Link> link = _link_pool.Create();
+	if(NULL == link)
+	{
+		return NULL;
+	}
 	link->AttachManager(this);
 	return link;
 }

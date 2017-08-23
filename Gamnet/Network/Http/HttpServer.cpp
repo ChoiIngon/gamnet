@@ -8,7 +8,7 @@ namespace Gamnet { namespace Network { namespace Http {
 		LOG(GAMNET_INF, "Gamnet Http listener start(port:", port, ", capacity:", max_session, ", keep alive time:", keep_alive, " sec)");
 	}
 
-	bool SendMsg(std::shared_ptr<Session> session, const Response& res)
+	bool SendMsg(const std::shared_ptr<Session>& session, const Response& res)
 	{
 		if(0 > session->Send(res))
 		{

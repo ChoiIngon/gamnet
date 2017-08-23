@@ -136,12 +136,12 @@ ResultSet::iterator ResultSet::operator [] (unsigned int index)
 	iterator itr;
 	if (NULL == impl_ || NULL == impl_->res_)
 	{
-		throw Exception(GAMNET_ERROR_DB_INVALID_RESULTSET, "invalid result set");
+		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid result set");
 	}
 
 	if (index >= mysql_num_rows(impl_->res_))
 	{
-		throw Exception(GAMNET_ERROR_DB_INVALID_NUM_ROWS, "out range row index(index:", index, ")");
+		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidArrayRangeError), "out range row index(index:", index, ")");
 	}
 	mysql_data_seek(impl_->res_, index);
 	itr.impl_ = impl_;
@@ -155,11 +155,11 @@ const std::string ResultSet::iterator::getString(const std::string& column_name)
 	auto itr = impl_->mapColumnName_.find(column_name);
 	if (impl_->mapColumnName_.end() == itr)
 	{
-		throw Exception(GAMNET_ERROR_DB_INVALID_COLUMN, "Unknown column '", column_name, "' in 'field list'");
+		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError), "Unknown column '", column_name, "' in 'field list'");
 	}
 	if (NULL == row_)
 	{
-		throw Exception(GAMNET_ERROR_DB_INVALID_ROW, "invalid data");
+		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid data");
 	}
 
 	return row_[itr->second];

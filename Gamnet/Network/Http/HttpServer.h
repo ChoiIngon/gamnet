@@ -20,7 +20,7 @@ namespace Gamnet { namespace Network { namespace Http {
 		return Singleton<Dispatcher>::GetInstance().RegisterHandler(uri, func, factory);
 	}
 
-	bool SendMsg(std::shared_ptr<Session> session, const Response& res);
+	bool SendMsg(const std::shared_ptr<Session>& session, const Response& res);
 }}}
 
 #define GAMNET_BIND_HTTP_HANDLER(uri, class_type, func) \

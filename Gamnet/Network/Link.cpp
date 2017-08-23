@@ -22,29 +22,37 @@ Link::~Link()
 
 bool Link::Connect(const char* host, int port, int timeout)
 {
+	if(NULL == host)
+	{
+		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid host name");
+	}
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
 	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
 
-	socket.async_connect(endpoint_, strand.wrap([&](const boost::system::error_code& ec){
-		timer.Cancel();
+	link_key = ++LinkManager::link_key;
+
+	auto self = shared_from_this();
+	socket.async_connect(endpoint_, strand.wrap([self](const boost::system::error_code& ec){
+		self->timer.Cancel();
 		if(ec)
 		{
-			OnError(ec.value());
+			self->OnError(ec.value());
 		}
 		else
 		{
-			link_key = ++LinkManager::link_key;
 			try {
-				remote_address = socket.remote_endpoint().address();
-				AsyncRead();
-				if(NULL != manager)
+				boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+				self->socket.set_option(option);
+				self->remote_address = self->socket.remote_endpoint().address();
+				self->AsyncRead();
+				if(NULL != self->manager)
 				{
-					manager->OnConnect(shared_from_this());
+					self->manager->OnConnect(self);
 				}
 			}
 			catch(const boost::system::system_error& e)
 			{
-				LOG(GAMNET_ERR, "fail to accept(session_key:", link_key, ", errno:", errno, ", errstr:", e.what(), ")");
+				LOG(GAMNET_ERR, "fail to accept(session_key:", self->link_key, ", errno:", errno, ", errstr:", e.what(), ")");
 			}
 		}
 	}));
@@ -66,7 +74,11 @@ void Link::OnError(int reason)
 		return;
 	}
 	try {
-		OnClose(reason);
+		if(NULL != manager)
+		{
+			manager->OnClose(shared_from_this(), reason);
+		}
+		AttachManager(NULL);
 	}
 	catch(const Exception& e)
 	{
@@ -76,13 +88,6 @@ void Link::OnError(int reason)
 	socket.close();
 }
 
-void Link::OnClose(int reason)
-{
-	if(NULL != manager)
-	{
-		manager->OnClose(shared_from_this(), reason);
-	}
-}
 void Link::AsyncRead()
 {
 	auto self(shared_from_this());
@@ -196,6 +201,10 @@ void Link::AttachManager(LinkManager* manager)
 			self->manager->Remove(self->link_key);
 		}
 		self->manager = manager;
+		if(NULL != self->manager)
+		{
+			self->manager->Add(self->link_key, self);
+		}
 	})(manager);
 }
 

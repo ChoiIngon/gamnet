@@ -126,7 +126,10 @@
     <ClCompile>
       <AdditionalIncludeDirectories>C:\local\boost_1_64_0;C:\local\OpenSSL-Win64\include;C:\local\curl-7.43.0-win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
-      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -144,16 +147,10 @@
     <ClCompile Include="Database\MySQL\ResultSet.cpp" />
     <ClCompile Include="Database\MySQL\Transaction.cpp" />
     <ClCompile Include="Gamnet.cpp" />
-    <ClCompile Include="http\Dispatcher.cpp" />
-    <ClCompile Include="http\HttpClient.cpp" />
-    <ClCompile Include="http\HttpServer.cpp" />
-    <ClCompile Include="http\Listener.cpp" />
-    <ClCompile Include="http\Response.cpp" />
-    <ClCompile Include="http\Session.cpp" />
-    <ClCompile Include="Json\jsoncpp.cpp" />
     <ClCompile Include="library\Base64.cpp" />
     <ClCompile Include="library\Buffer.cpp" />
     <ClCompile Include="library\Exception.cpp" />
+    <ClCompile Include="Library\Json\jsoncpp.cpp" />
     <ClCompile Include="library\MD5.cpp" />
     <ClCompile Include="Library\Random.cpp" />
     <ClCompile Include="Library\Variant.cpp" />
@@ -161,16 +158,24 @@
     <ClCompile Include="log\Log.cpp" />
     <ClCompile Include="log\Logger.cpp" />
     <ClCompile Include="network\HandlerContainer.cpp" />
-    <ClCompile Include="network\Listener.cpp" />
-    <ClCompile Include="network\Network.cpp" />
-    <ClCompile Include="network\Packet.cpp" />
+    <ClCompile Include="Network\Http\Dispatcher.cpp" />
+    <ClCompile Include="Network\Http\HttpClient.cpp" />
+    <ClCompile Include="Network\Http\HttpServer.cpp" />
+    <ClCompile Include="Network\Http\LinkManager.cpp" />
+    <ClCompile Include="Network\Http\Response.cpp" />
+    <ClCompile Include="Network\Http\Session.cpp" />
+    <ClCompile Include="Network\Link.cpp" />
+    <ClCompile Include="Network\LinkManager.cpp" />
+    <ClCompile Include="Network\Router\LinkManager.cpp" />
+    <ClCompile Include="Network\Router\Router.cpp" />
+    <ClCompile Include="Network\Router\RouterCaster.cpp" />
+    <ClCompile Include="Network\Router\RouterHandler.cpp" />
+    <ClCompile Include="Network\Router\Session.cpp" />
     <ClCompile Include="network\Session.cpp" />
-    <ClCompile Include="network\SessionManager.cpp" />
-    <ClCompile Include="router\Router.cpp" />
-    <ClCompile Include="router\RouterCaster.cpp" />
-    <ClCompile Include="router\RouterHandler.cpp" />
-    <ClCompile Include="router\RouterListener.cpp" />
-    <ClCompile Include="router\Session.cpp" />
+    <ClCompile Include="Network\Tcp\Packet.cpp" />
+    <ClCompile Include="Network\Tcp\Session.cpp" />
+    <ClCompile Include="Network\Tcp\Tcp.cpp" />
+    <ClCompile Include="Network\Tcp\TcpHandler.cpp" />
     <ClCompile Include="test\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -184,19 +189,12 @@
     <ClInclude Include="Database\MySQL\ResultSet.h" />
     <ClInclude Include="Database\MySQL\Transaction.h" />
     <ClInclude Include="Gamnet.h" />
-    <ClInclude Include="http\Dispatcher.h" />
-    <ClInclude Include="http\HttpClient.h" />
-    <ClInclude Include="http\HttpServer.h" />
-    <ClInclude Include="http\Listener.h" />
-    <ClInclude Include="http\Response.h" />
-    <ClInclude Include="http\Session.h" />
-    <ClInclude Include="Json\json-forwards.h" />
-    <ClInclude Include="Json\json.h" />
     <ClInclude Include="library\Atomic.h" />
     <ClInclude Include="library\Base64.h" />
     <ClInclude Include="library\Buffer.h" />
-    <ClInclude Include="library\ErrorCode.h" />
     <ClInclude Include="library\Exception.h" />
+    <ClInclude Include="Library\Json\json-forwards.h" />
+    <ClInclude Include="Library\Json\json.h" />
     <ClInclude Include="library\MD5.h" />
     <ClInclude Include="library\MultiLock.h" />
     <ClInclude Include="library\Pool.h" />
@@ -209,25 +207,48 @@
     <ClInclude Include="log\File.h" />
     <ClInclude Include="log\Log.h" />
     <ClInclude Include="log\Logger.h" />
-    <ClInclude Include="network\Dispatcher.h" />
     <ClInclude Include="network\Handler.h" />
     <ClInclude Include="network\HandlerContainer.h" />
     <ClInclude Include="network\HandlerFactory.h" />
-    <ClInclude Include="network\Listener.h" />
+    <ClInclude Include="Network\Http\Dispatcher.h" />
+    <ClInclude Include="Network\Http\HttpClient.h" />
+    <ClInclude Include="Network\Http\HttpServer.h" />
+    <ClInclude Include="Network\Http\LinkManager.h" />
+    <ClInclude Include="Network\Http\Response.h" />
+    <ClInclude Include="Network\Http\Session.h" />
+    <ClInclude Include="Network\Link.h" />
+    <ClInclude Include="Network\LinkManager.h" />
     <ClInclude Include="network\Network.h" />
-    <ClInclude Include="network\Packet.h" />
+    <ClInclude Include="Network\Router\Dispatcher.h" />
+    <ClInclude Include="Network\Router\LinkManager.h" />
+    <ClInclude Include="Network\Router\MsgRouter.h" />
+    <ClInclude Include="Network\Router\Router.h" />
+    <ClInclude Include="Network\Router\RouterCaster.h" />
+    <ClInclude Include="Network\Router\RouterHandler.h" />
+    <ClInclude Include="Network\Router\Session.h" />
     <ClInclude Include="network\Session.h" />
-    <ClInclude Include="network\SessionManager.h" />
-    <ClInclude Include="router\Dispatcher.h" />
-    <ClInclude Include="router\MsgRouter.h" />
-    <ClInclude Include="router\Router.h" />
-    <ClInclude Include="router\RouterCaster.h" />
-    <ClInclude Include="router\RouterHandler.h" />
-    <ClInclude Include="router\RouterListener.h" />
-    <ClInclude Include="router\Session.h" />
+    <ClInclude Include="Network\Tcp\Dispatcher.h" />
+    <ClInclude Include="Network\Tcp\LinkManager.h" />
+    <ClInclude Include="Network\Tcp\MsgNetwork.h" />
+    <ClInclude Include="Network\Tcp\Packet.h" />
+    <ClInclude Include="Network\Tcp\Session.h" />
+    <ClInclude Include="Network\Tcp\Tcp.h" />
+    <ClInclude Include="Network\Tcp\TcpHandler.h" />
+    <ClInclude Include="Test\LinkManager.h" />
     <ClInclude Include="test\Session.h" />
     <ClInclude Include="test\Test.h" />
-    <ClInclude Include="test\Tester.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Network\Router\MsgRouter.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Router\%(Filename).h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Network\Tcp\MsgNetwork.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Tcp\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Tcp\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Tcp\%(Filename).h</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

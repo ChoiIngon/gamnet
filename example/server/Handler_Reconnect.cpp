@@ -14,14 +14,14 @@ void Handler_Reconnect::Recv_Req(const std::shared_ptr<Session>& session, const 
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw Gamnet::Exception(ERROR(MessageFormatError), "message load fail");
+			throw Gamnet::Exception(GAMNET_ERRNO(MessageFormatError), "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_Reconnect_Req(session_key:", session->session_key, ", user_id:", req.user_id, ", access_token:", req.access_token, ")");
 
-		if(NULL != session->user_data)
+		if(0 != session->user_data.user_seq)
 		{
-			throw Gamnet::Exception(ERROR(AlreadyLoginSessionError), "session_key:", session->session_key);
+			throw Gamnet::Exception(GAMNET_ERRNO(AlreadyLoginSessionError), "session_key:", session->session_key);
 		}
 /*
 		const std::shared_ptr<UserData> user_data = std::shared_ptr<UserData>(new UserData());

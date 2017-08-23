@@ -9,31 +9,13 @@
 
 namespace Gamnet {
 
-enum ErrorCode {
-		Success = 0,
-		MessageFormatError = 1,
-		InvalidSessionTokenError = 2,
-		DuplicateConnectionError = 3,
-		ReconnectTimeoutError = 4,
-}; // ErrorCode
-struct ErrorCode_Serializer {
-	static bool Store(char** _buf_, const ErrorCode& obj) { 
-		(*(ErrorCode*)(*_buf_)) = obj;	(*_buf_) += sizeof(ErrorCode);
-		return true;
-	}
-	static bool Load(ErrorCode& obj, const char** _buf_, size_t& nSize) { 
-		if(sizeof(ErrorCode) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(ErrorCode));		(*_buf_) += sizeof(ErrorCode); nSize -= sizeof(ErrorCode);
-		return true;
-	}
-	static int32_t Size(const ErrorCode& obj) { return sizeof(ErrorCode); }
-};
 struct MsgNetwork_Connect_Req {
 	enum { MSG_ID = 1 }; 
 	std::string	user_id;
 	MsgNetwork_Connect_Req()	{
 	}
-	int32_t Size() const {
-		int32_t nSize = 0;
+	size_t Size() const {
+		size_t nSize = 0;
 		nSize += sizeof(uint32_t); nSize += user_id.length();
 		return nSize;
 	}
@@ -71,19 +53,20 @@ struct MsgNetwork_Connect_Req {
 struct MsgNetwork_Connect_Req_Serializer {
 	static bool Store(char** _buf_, const MsgNetwork_Connect_Req& obj) { return obj.Store(_buf_); }
 	static bool Load(MsgNetwork_Connect_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static int32_t Size(const MsgNetwork_Connect_Req& obj) { return obj.Size(); }
+	static size_t Size(const MsgNetwork_Connect_Req& obj) { return obj.Size(); }
 };
 struct MsgNetwork_Connect_Ans {
 	enum { MSG_ID = 1 }; 
-	ErrorCode	error_code;
+	uint32_t	error_code;
 	uint64_t	session_key;
 	std::string	session_token;
 	MsgNetwork_Connect_Ans()	{
+		error_code = 0;
 		session_key = 0;
 	}
-	int32_t Size() const {
-		int32_t nSize = 0;
-		nSize += ErrorCode_Serializer::Size(error_code);
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(uint32_t);
 		nSize += sizeof(uint64_t);
 		nSize += sizeof(uint32_t); nSize += session_token.length();
 		return nSize;
@@ -99,7 +82,7 @@ struct MsgNetwork_Connect_Ans {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		std::memcpy(*_buf_, &error_code, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		std::memcpy(*_buf_, &session_key, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
 		size_t session_token_size = session_token.length();
 		std::memcpy(*_buf_, &session_token_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
@@ -114,7 +97,7 @@ struct MsgNetwork_Connect_Ans {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&error_code, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&session_key, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t session_token_length = 0; std::memcpy(&session_token_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
@@ -126,7 +109,7 @@ struct MsgNetwork_Connect_Ans {
 struct MsgNetwork_Connect_Ans_Serializer {
 	static bool Store(char** _buf_, const MsgNetwork_Connect_Ans& obj) { return obj.Store(_buf_); }
 	static bool Load(MsgNetwork_Connect_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static int32_t Size(const MsgNetwork_Connect_Ans& obj) { return obj.Size(); }
+	static size_t Size(const MsgNetwork_Connect_Ans& obj) { return obj.Size(); }
 };
 struct MsgNetwork_Reconnect_Req {
 	enum { MSG_ID = 2 }; 
@@ -135,8 +118,8 @@ struct MsgNetwork_Reconnect_Req {
 	MsgNetwork_Reconnect_Req()	{
 		session_key = 0;
 	}
-	int32_t Size() const {
-		int32_t nSize = 0;
+	size_t Size() const {
+		size_t nSize = 0;
 		nSize += sizeof(uint64_t);
 		nSize += sizeof(uint32_t); nSize += session_token.length();
 		return nSize;
@@ -177,21 +160,22 @@ struct MsgNetwork_Reconnect_Req {
 struct MsgNetwork_Reconnect_Req_Serializer {
 	static bool Store(char** _buf_, const MsgNetwork_Reconnect_Req& obj) { return obj.Store(_buf_); }
 	static bool Load(MsgNetwork_Reconnect_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static int32_t Size(const MsgNetwork_Reconnect_Req& obj) { return obj.Size(); }
+	static size_t Size(const MsgNetwork_Reconnect_Req& obj) { return obj.Size(); }
 };
 struct MsgNetwork_Reconnect_Ans {
 	enum { MSG_ID = 2 }; 
-	ErrorCode	error_code;
+	uint32_t	error_code;
 	uint64_t	session_key;
 	std::string	session_token;
 	uint32_t	msg_seq;
 	MsgNetwork_Reconnect_Ans()	{
+		error_code = 0;
 		session_key = 0;
 		msg_seq = 0;
 	}
-	int32_t Size() const {
-		int32_t nSize = 0;
-		nSize += ErrorCode_Serializer::Size(error_code);
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(uint32_t);
 		nSize += sizeof(uint64_t);
 		nSize += sizeof(uint32_t); nSize += session_token.length();
 		nSize += sizeof(uint32_t);
@@ -208,7 +192,7 @@ struct MsgNetwork_Reconnect_Ans {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		std::memcpy(*_buf_, &error_code, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		std::memcpy(*_buf_, &session_key, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
 		size_t session_token_size = session_token.length();
 		std::memcpy(*_buf_, &session_token_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
@@ -224,7 +208,7 @@ struct MsgNetwork_Reconnect_Ans {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&error_code, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&session_key, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t session_token_length = 0; std::memcpy(&session_token_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
@@ -237,16 +221,17 @@ struct MsgNetwork_Reconnect_Ans {
 struct MsgNetwork_Reconnect_Ans_Serializer {
 	static bool Store(char** _buf_, const MsgNetwork_Reconnect_Ans& obj) { return obj.Store(_buf_); }
 	static bool Load(MsgNetwork_Reconnect_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static int32_t Size(const MsgNetwork_Reconnect_Ans& obj) { return obj.Size(); }
+	static size_t Size(const MsgNetwork_Reconnect_Ans& obj) { return obj.Size(); }
 };
 struct MsgNetwork_Kickout_Ntf {
 	enum { MSG_ID = 3 }; 
-	ErrorCode	error_code;
+	uint32_t	error_code;
 	MsgNetwork_Kickout_Ntf()	{
+		error_code = 0;
 	}
-	int32_t Size() const {
-		int32_t nSize = 0;
-		nSize += ErrorCode_Serializer::Size(error_code);
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(uint32_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -260,7 +245,7 @@ struct MsgNetwork_Kickout_Ntf {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		std::memcpy(*_buf_, &error_code, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -271,21 +256,21 @@ struct MsgNetwork_Kickout_Ntf {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&error_code, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		return true;
 	}
 }; //MsgNetwork_Kickout_Ntf
 struct MsgNetwork_Kickout_Ntf_Serializer {
 	static bool Store(char** _buf_, const MsgNetwork_Kickout_Ntf& obj) { return obj.Store(_buf_); }
 	static bool Load(MsgNetwork_Kickout_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static int32_t Size(const MsgNetwork_Kickout_Ntf& obj) { return obj.Size(); }
+	static size_t Size(const MsgNetwork_Kickout_Ntf& obj) { return obj.Size(); }
 };
 struct MsgNetwork_HeartBeat_Req {
 	enum { MSG_ID = 4 }; 
 	MsgNetwork_HeartBeat_Req()	{
 	}
-	int32_t Size() const {
-		int32_t nSize = 0;
+	size_t Size() const {
+		size_t nSize = 0;
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -315,14 +300,14 @@ struct MsgNetwork_HeartBeat_Req {
 struct MsgNetwork_HeartBeat_Req_Serializer {
 	static bool Store(char** _buf_, const MsgNetwork_HeartBeat_Req& obj) { return obj.Store(_buf_); }
 	static bool Load(MsgNetwork_HeartBeat_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static int32_t Size(const MsgNetwork_HeartBeat_Req& obj) { return obj.Size(); }
+	static size_t Size(const MsgNetwork_HeartBeat_Req& obj) { return obj.Size(); }
 };
 struct MsgNetwork_HeartBeat_Ans {
 	enum { MSG_ID = 4 }; 
 	MsgNetwork_HeartBeat_Ans()	{
 	}
-	int32_t Size() const {
-		int32_t nSize = 0;
+	size_t Size() const {
+		size_t nSize = 0;
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -352,7 +337,7 @@ struct MsgNetwork_HeartBeat_Ans {
 struct MsgNetwork_HeartBeat_Ans_Serializer {
 	static bool Store(char** _buf_, const MsgNetwork_HeartBeat_Ans& obj) { return obj.Store(_buf_); }
 	static bool Load(MsgNetwork_HeartBeat_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static int32_t Size(const MsgNetwork_HeartBeat_Ans& obj) { return obj.Size(); }
+	static size_t Size(const MsgNetwork_HeartBeat_Ans& obj) { return obj.Size(); }
 };
 
 }

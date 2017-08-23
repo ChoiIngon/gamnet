@@ -19,8 +19,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	{
 		if (0 > index || index >= impl_->size())
 		{
-			LOG(GAMNET_ERR, "invalid index(index:", index, ")");
-			throw Exception(GAMNET_ERRNO(GAMNET_ERROR_DB_INVALID_COLUMN), "invalid index(index:", index, ")");
+			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidArrayRangeError), "invalid index(index:", index, ")");
 		}
 		return impl_->at(index);
 	}

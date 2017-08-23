@@ -8,13 +8,12 @@
 #ifndef GAMNET_GAMNET_H_
 #define GAMNET_GAMNET_H_
 
+#include "Network/Network.h"
 #include "Database/Database.h"
-
 #include "Library/Json/json.h"
 #include "Library/Atomic.h"
 #include "Library/Base64.h"
 #include "Library/Buffer.h"
-#include "Library/ErrorCode.h"
 #include "Library/Exception.h"
 #include "Library/MD5.h"
 #include "Library/MultiLock.h"
@@ -25,9 +24,7 @@
 #include "Library/ThreadPool.h"
 #include "Library/Timer.h"
 #include "Library/Variant.h"
-
 #include "Log/Log.h"
-#include "Network/Network.h"
 #include "Test/Test.h"
 
 namespace Gamnet {

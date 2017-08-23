@@ -87,6 +87,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\local\boost_1_64_0;C:\local\curl-7.43.0-win64\include;C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include</AdditionalIncludeDirectories>
+      <UndefinePreprocessorDefinitions>WIN32_LEAN_AND_MEAN </UndefinePreprocessorDefinitions>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>../../Gamnet/x64/Debug;C:\local\boost_1_64_0\lib64-msvc-14.0;(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -122,6 +124,7 @@
   <ItemGroup>
     <ClCompile Include="Handler_HeartBeat.cpp" />
     <ClCompile Include="Handler_Login.cpp" />
+    <ClCompile Include="Handler_Reconnect.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Manager_Session.cpp" />
     <ClCompile Include="Session.cpp" />
@@ -129,9 +132,16 @@
   <ItemGroup>
     <ClInclude Include="Handler_HeartBeat.h" />
     <ClInclude Include="Handler_Login.h" />
+    <ClInclude Include="Handler_Reconnect.h" />
     <ClInclude Include="Manager_Session.h" />
-    <ClInclude Include="message.h" />
     <ClInclude Include="Session.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\message.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Message>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

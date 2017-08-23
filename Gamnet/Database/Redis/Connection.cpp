@@ -35,13 +35,13 @@ namespace Gamnet { namespace Database {	namespace Redis {
 		boost::asio::ip::tcp::resolver resolver_(io_service_);
 		boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ connInfo.host, Format(connInfo.port).c_str() }));
 
-		LOG(GAMNET_INF, "[Redis] connect...(host:", connInfo.host, ", port:", connInfo.port, ")");
+		LOG(INF, "[Redis] connect...(host:", connInfo.host, ", port:", connInfo.port, ")");
 
 		boost::system::error_code ec;
 		socket_.connect(endpoint_, ec);
 		if (0 != ec)
 		{
-			LOG(ERR, GAMNET_ERRNO(GAMNET_ERROR_CONNECT_FAIL));
+			LOG(ERR, GAMNET_ERRNO(ErrorCode::ConnectFailError), "(host:", connInfo.host, ", port:", connInfo.port, ")");
 			return false;
 		}
 		return true;
@@ -51,7 +51,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	{	
 		if (false == socket_.is_open())
 		{
-			throw Exception(GAMNET_ERRNO(GAMNET_ERROR_CONNECT_FAIL));
+			throw Exception(GAMNET_ERRNO(ErrorCode::ConnectFailError));
 		}
 	
 		socket_.write_some(boost::asio::buffer(query + "\r\n", query.length()+2));

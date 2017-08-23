@@ -35,7 +35,7 @@ void Logger::Init(const char* logPath, const char* prefix, int max_file_size)
 		boost::filesystem::path dir(file_.logPath_);
 		if(false == boost::filesystem::create_directory(dir))
 		{
-			throw Exception(GAMNET_ERROR_LOG_CANT_CREATE_DIRECTORY, "can't create directory for logging at \"", file_.logPath_, "\"");
+			throw Exception(GAMNET_ERRNO(ErrorCode::CreateDirectoryFailError), "can't create directory for logging at \"", file_.logPath_, "\"");
 		}
 	}
 
@@ -46,7 +46,7 @@ void Logger::SetLevelProperty(LOG_LEVEL_TYPE level, int flag)
 {
 	if(false == IsInit_)
 	{
-		throw Exception(GAMNET_ERROR_LOG_NOT_INITIALIZED, "set log level property exception, log is not initialized yet");
+		throw Exception(GAMNET_ERRNO(ErrorCode::NotInitializedError), "set log level property exception, log is not initialized yet");
 	}
 	Property_[level] = flag;
 }

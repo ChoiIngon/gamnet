@@ -46,7 +46,10 @@ private:
 	Timer 		execute_timer;
 	ThreadPool 	thread_pool;
 	int 		execute_count;
-	public :
+	
+	std::string host;
+	int			port;
+public :
 	LinkManager() : thread_pool(30)
 	{
 	}
@@ -57,39 +60,42 @@ private:
 	void Init(const char* host, int port, int interval, int session_count, int execute_count)
 	{
 		log.Init("test", "test", 5);
-				if(0 == interval)
+		if(0 == interval)
 		{
-			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] interval should be set");
+			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidArgumentError), " 'interval' should be set");
 		}
 		if(0 == session_count)
 		{
-			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] sessionCount_ should be set");
+			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidArgumentError), " 'session_count' should be set");
 		}
 
+		this->host = host;
+		this->port = port;
 		LOG(GAMNET_INF, "test start...");
-		execute_timer.SetTimer(interval, [&]() {
-			for(unsigned int i=0; i<session_count; i++)
+		execute_timer.SetTimer(interval, [this, session_count, execute_count]() {
+			for(size_t i=0; i<session_count; i++)
 			{
-				if(session_count <= (unsigned int)(this->session_pool.Capacity() - this->session_pool.Available()))
+				if(session_count <= this->session_pool.Capacity() - this->session_pool.Available())
 				{
 					break;
 				}
-				thread_pool.PostTask([&]() {
+				thread_pool.PostTask([this]() {
 					std::shared_ptr<Network::Link> link = Network::LinkManager::Create();
-					if(NULL == link) {
-						LOG(GAMNET_WRN, "can not create any more link");
+					if(NULL == link) 
+					{
+						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more link");
 						return;
 					}
 
 					std::shared_ptr<SESSION_T> session = this->session_pool.Create();
 					if(NULL == session)
 					{
-						LOG(GAMNET_WRN, "can not create any more session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Size(), ")");
+						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
 						return;
 					}
 
 					link->AttachSession(session);
-					link->Connect(host, port, 30);
+					link->Connect(this->host.c_str(), this->port, 30);
 				});
 
 				this->execute_count++;
@@ -105,7 +111,7 @@ private:
 			}
 		});
 
-		log_timer.SetTimer(3000, [&]() {
+		log_timer.SetTimer(3000, [this, execute_count]() {
 			log.Write(GAMNET_INF, "[Test] execute count : ", this->execute_count);
 			log.Write(GAMNET_INF, "[Test] running session : ", this->session_manager.Size(), ", idle session : ", this->session_pool.Available());
 			for(auto itr : execute_order)
@@ -127,6 +133,7 @@ private:
 	{
 		const std::shared_ptr<SESSION_T>& session = std::static_pointer_cast<SESSION_T>(link->session);
 		session->test_seq = 0;
+		session->msg_seq = 1;
 		if(session->test_seq < (int)execute_order.size())
 		{
 			execute_order[session->test_seq]->send_handler(session);
@@ -198,6 +205,7 @@ private:
 			}
 			catch(const Gamnet::Exception& e)
 			{
+				LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
 				link->OnError(0);
 				return;
 			}
