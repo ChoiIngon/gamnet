@@ -554,14 +554,15 @@ namespace Gamnet
 				if (1 == _send_queue.Count() - _send_queue_idx && ConnectionState.Connected == _state) {
 					_socket.BeginSend(_send_queue[_send_queue_idx].data, 0, _send_queue[_send_queue_idx].Size(), 0, new AsyncCallback(Callback_SendMsg), packet);
 				}
-                if (0 == _send_queue.Count() % 10)
+				if (0 == _send_queue.Count() % 10 && ConnectionState.Connected == _state)
                 {
                     Gamnet.Packet heartbeat = new Gamnet.Packet();
-                    heartbeat.length = Packet.HEADER_SIZE;
-                    heartbeat.msg_id = MsgID_HeartBeat_Req;
-                    heartbeat.msg_seq = ++_msg_seq;
-                    packet.reliable = false;
-                    _socket.BeginSend(heartbeat.data, 0, heartbeat.Size(), 0, new AsyncCallback(Callback_SendMsg), heartbeat);
+					heartbeat.length = Packet.HEADER_SIZE;
+					heartbeat.msg_id = MsgID_HeartBeat_Req;
+					heartbeat.msg_seq = ++_msg_seq;
+					packet.reliable = false;
+					_send_queue.PushBack(heartbeat);
+					//_socket.BeginSend (heartbeat.data, 0, heartbeat.Size (), 0, new AsyncCallback (Callback_SendMsg), heartbeat);
                 }
             }
 		}
