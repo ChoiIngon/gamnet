@@ -104,7 +104,7 @@ public :
 #ifdef _DEBUG
 			else
 			{
-				LOG(WRN, "same message seq(link_key:", link->link_key, ", msg_seq:", session->msg_seq, ", ", msg_seq, ")");
+				LOG(WRN, "discard messsage(link_key:", link->link_key, ", msg_seq:", session->msg_seq, ", discarded msg_seq:", msg_seq, ")");
 			}
 #endif
 			session->recv_packet->Remove(totalLength);
