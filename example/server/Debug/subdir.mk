@@ -7,7 +7,6 @@ CPP_SRCS += \
 ../Handler_HeartBeat.cpp \
 ../Handler_Http_ServerState.cpp \
 ../Handler_Login.cpp \
-../Handler_Reconnect.cpp \
 ../Manager_Session.cpp \
 ../Session.cpp \
 ../main.cpp 
@@ -16,7 +15,6 @@ OBJS += \
 ./Handler_HeartBeat.o \
 ./Handler_Http_ServerState.o \
 ./Handler_Login.o \
-./Handler_Reconnect.o \
 ./Manager_Session.o \
 ./Session.o \
 ./main.o 
@@ -25,7 +23,6 @@ CPP_DEPS += \
 ./Handler_HeartBeat.d \
 ./Handler_Http_ServerState.d \
 ./Handler_Login.d \
-./Handler_Reconnect.d \
 ./Manager_Session.d \
 ./Session.d \
 ./main.d 
@@ -35,7 +32,7 @@ CPP_DEPS += \
 %.o: ../%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -I/usr/include/mysql -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	g++ -I/usr/include/mysql -I/usr/local/mysql-connector-c-6.1.1/include -I/usr/local/include -I/usr/local/Cellar/openssl/1.0.2l/include -I/usr/local/Cellar/boost/1.64.0_1/include -I/usr/local/Cellar/mysql-connector-c/6.1.6/include -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
