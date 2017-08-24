@@ -67,6 +67,7 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 	}
 
 	session->session_key = ++Network::SessionManager::session_key;
+	session->recv_packet = Network::Tcp::Packet::Create();
 	session->remote_address = &(link->remote_address);
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;

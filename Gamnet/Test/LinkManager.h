@@ -93,7 +93,9 @@ public :
 						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
 						return;
 					}
-
+					session->session_key = ++Network::SessionManager::session_key;
+					session->msg_seq = 0;
+					session->recv_packet = Network::Tcp::Packet::Create();
 					link->AttachSession(session);
 					link->Connect(this->host.c_str(), this->port, 30);
 				});
