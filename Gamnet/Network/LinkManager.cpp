@@ -77,8 +77,8 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 			link->remote_address = link->socket.remote_endpoint().address();
 			link->expire_time = ::time(NULL);
 			link->AttachManager(this);
-			link->AsyncRead();
 			OnAccept(link);
+			link->AsyncRead();
 		}
 		catch(const boost::system::system_error& e)
 		{

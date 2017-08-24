@@ -45,11 +45,11 @@ void Link::Connect(const char* host, int port, int timeout)
 				self->socket.set_option(option);
 				self->remote_address = self->socket.remote_endpoint().address();
 				self->expire_time = 0;
-				self->AsyncRead();
 				if(NULL != self->manager)
 				{
 					self->manager->OnConnect(self);
 				}
+				self->AsyncRead();
 			}
 			catch(const boost::system::system_error& e)
 			{

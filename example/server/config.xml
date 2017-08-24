@@ -12,6 +12,6 @@
 	-->
 	
 	<test host="127.0.0.1" port="20000" session_count="1" loop_count="1" interval="1000">
-		<!--<message name="MsgCliSvr_Login_Req"/>-->
+		<message name="MsgCliSvr_Login_Req"/>
 	</test>
 </server>

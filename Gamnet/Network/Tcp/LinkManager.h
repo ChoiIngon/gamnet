@@ -37,21 +37,25 @@ public :
 
 	virtual void OnAccept(const std::shared_ptr<Link>& link)
 	{
+		LOG(DEV, "accept link(link_key:", link->link_key, ")");
 		Network::LinkManager::OnAccept(link);
 		const std::shared_ptr<SESSION_T> session = session_pool.Create();
 		if(NULL == session)
 		{
+			LOG(ERR, "create session instance fail(link_key:", link->link_key, ")");
 			link->OnError(EINVAL);
 			return;
 		}
 		session->session_key = ++Network::SessionManager::session_key;
-		
+		session->recv_packet = Packet::Create();	
 		link->AttachSession(session);
+		LOG(DEV, "attach session(link_key:", link->link_key, ", session_key:", session->session_key, ")");
 		//session->OnAccept();
 	}
 
 	virtual void OnClose(const std::shared_ptr<Link>& link, int reason)
 	{
+		LOG(DEV, "close link(link_key:", link->link_key, ")");
 		const std::shared_ptr<Network::Session>& session = link->session;
 		if(NULL != session)
 		{
@@ -154,6 +158,7 @@ private :
 
 		void Recv_Connect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
+			LOG(DEV, "recv connect(session_key:", session->session_key, ")");
 			session->session_token = Session::GenerateSessionToken(session->session_key);
 
 			Json::Value ans;
@@ -182,6 +187,7 @@ private :
 
 				uint32_t session_key = req["session_key"].asUInt();
 				std::string session_token = req["session_token"].asString();
+				LOG(DEV, "recv reconnect (session_key:", session_key, ", session_token:", session_token,")");
 				const std::shared_ptr<SESSION_T> other = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
 				if (NULL == other)
 				{
@@ -218,6 +224,7 @@ private :
 		}
 		void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
+			LOG(DEV, "recv hrearbeat(session_key:", session->session_key, ")");
 			Packet::Header header;
 			header.msg_id = MsgID_HeartBeat_Ans;
 			header.msg_seq = session->msg_seq;
