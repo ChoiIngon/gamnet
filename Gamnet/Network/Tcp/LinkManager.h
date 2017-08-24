@@ -213,7 +213,7 @@ private :
 				LOG(GAMNET_ERR, e.what());
 			}
 
-			std::static_pointer_cast<Session>(link->session)->Send(MsgID_Reconnect_Ans, ans);
+			std::static_pointer_cast<SESSION_T>(link->session)->Send(MsgID_Reconnect_Ans, ans);
 			//link->session->OnAccept();
 		}
 		void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)

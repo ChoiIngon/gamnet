@@ -133,7 +133,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 			break;
 		case '*': 
 			{
-				uint32_t count = atoi(token.substr(1).c_str());
+				int count = atoi(token.substr(1).c_str());
 				for (int i = 0; i < count; i++)
 				{
 					Parse(impl, ++itr_token);

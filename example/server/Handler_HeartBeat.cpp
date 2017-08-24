@@ -26,7 +26,7 @@ void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const 
 		{
 			throw Gamnet::Exception(GAMNET_ERRNO(MessageSeqOmmitError), "(recv:", ntf.msg_seq, ", expect:", session->ack_seq + 1);
 		}
-		session->ack_seq = max(session->ack_seq, ntf.msg_seq);
+		session->ack_seq = ntf.msg_seq;
 	}
 	catch(const Gamnet::Exception& e)
 	{

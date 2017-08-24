@@ -47,7 +47,7 @@ int Session::SyncSend(const char* data, size_t length)
 	return _link->SyncSend(data, length);
 }
 
-std::atomic<uint32_t> SessionManager::session_key = 0;
+std::atomic<uint32_t> SessionManager::session_key;
 
 SessionManager::SessionManager() : _keepalive_time(0)
 {
