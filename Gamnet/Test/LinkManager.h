@@ -80,7 +80,7 @@ public :
 					break;
 				}
 				thread_pool.PostTask([this]() {
-					std::shared_ptr<Network::Link> link = Network::LinkManager::Create();
+					std::shared_ptr<Network::Link> link = this->Create();
 					if(NULL == link) 
 					{
 						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more link");
