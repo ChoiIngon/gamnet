@@ -112,7 +112,10 @@ public :
 		(*(uint16_t*)(data + OFFSET_LENGTH)) = total_length;
 		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = header.msg_seq;
 		(*(uint32_t*)(data + OFFSET_MSGID)) = header.msg_id;
-		std::memcpy(data + HEADER_SIZE, buf, length);
+		if(0 < length)
+		{
+			std::memcpy(data + HEADER_SIZE, buf, length);
+		}
 		this->writeCursor_ += total_length;
 		return true;
 	}

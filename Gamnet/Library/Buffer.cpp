@@ -81,6 +81,10 @@ void Buffer::RemoveReadBuffer()
 
 void Buffer::Append(const char* buf, size_t size)
 {
+	if(0 == size)
+	{
+		return;
+	}
 	if(Available() < size)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BufferOverflowError), "not enough space(need:", size," bytes, left:", Available(), " bytes)");

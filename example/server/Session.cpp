@@ -15,6 +15,7 @@ void Session::OnAccept()
 	LOG(DEV, "session connected(session_key:", session_key, ")");
 	user_data.user_id = "";
 	user_data.user_seq = 0;
+	ack_seq = 0;
 }
 
 void Session::OnClose(int reason)

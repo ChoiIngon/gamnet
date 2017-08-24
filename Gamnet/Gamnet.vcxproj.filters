@@ -298,9 +298,6 @@
     <ClInclude Include="Test\LinkManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Tcp\Link.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Network\Router\MsgRouter.idl">

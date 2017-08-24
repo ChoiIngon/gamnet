@@ -227,7 +227,6 @@
     <ClInclude Include="Network\Router\Session.h" />
     <ClInclude Include="network\Session.h" />
     <ClInclude Include="Network\Tcp\Dispatcher.h" />
-    <ClInclude Include="Network\Tcp\Link.h" />
     <ClInclude Include="Network\Tcp\LinkManager.h" />
     <ClInclude Include="Network\Tcp\MsgNetwork.h" />
     <ClInclude Include="Network\Tcp\Packet.h" />

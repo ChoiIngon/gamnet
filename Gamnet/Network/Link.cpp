@@ -7,12 +7,12 @@ static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>
 
 Link::Link()
 	: socket(io_service_),
-	  strand(io_service_),
-	  link_key(0),
-	  msg_seq(0),
-	  manager(NULL),
-	  read_buffer(NULL),
-	  heartbeat_time(0)
+	strand(io_service_),
+	link_key(0),
+	msg_seq(0),
+	manager(NULL),
+	read_buffer(NULL),
+	expire_time(0)
 {
 }
 
@@ -44,6 +44,7 @@ void Link::Connect(const char* host, int port, int timeout)
 				boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 				self->socket.set_option(option);
 				self->remote_address = self->socket.remote_endpoint().address();
+				self->expire_time = 0;
 				self->AsyncRead();
 				if(NULL != self->manager)
 				{
@@ -97,7 +98,7 @@ void Link::AsyncRead()
 				self->OnError(errno); // no error, just closed socket
 				return;
 			}
-			self->heartbeat_time = ::time(NULL);
+			self->expire_time = ::time(NULL);
 			self->read_buffer->writeCursor_ += readbytes;
 			self->manager->OnRecvMsg(self, self->read_buffer);
 			self->read_buffer->Clear();

@@ -19,6 +19,7 @@ public:
 	virtual void OnClose(int reason);
 	
 	UserData user_data;
+	uint32_t ack_seq;
 };
 
 class TestSession : public Gamnet::Test::Session {

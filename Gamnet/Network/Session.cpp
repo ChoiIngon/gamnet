@@ -64,12 +64,12 @@ bool SessionManager::Init(int keepAliveSeconds)
 		return true;
 	}
 	_keepalive_time = keepAliveSeconds;
-	if (false == _timer.SetTimer(5000, [&](){
+	if (false == _timer.SetTimer(5000, [this](){
 		std::lock_guard<std::recursive_mutex> lo(_lock);
 		time_t now_ = time(NULL);
 		for(auto itr = _sessions.begin(); itr != _sessions.end();) {
 			std::shared_ptr<Session> session = itr->second;
-			if(session->expire_time  < now_)
+			if(session->expire_time + _keepalive_time < now_)
 			{
 				LOG(GAMNET_ERR, "idle session timeout(session_key:", session->session_key,")");
 		        _sessions.erase(itr++);

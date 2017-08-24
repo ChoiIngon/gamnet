@@ -16,7 +16,7 @@ public:
 		{
 			link->link_key = 0;
 			link->msg_seq = 0;
-			link->heartbeat_time = ::time(NULL);
+			link->expire_time = 0;
 			link->manager = NULL;
 			link->read_buffer = Buffer::Create();
 			link->send_buffers.clear();
@@ -30,7 +30,7 @@ public:
 	Timer 		timer;
 	uint32_t 	link_key;
 	uint32_t 	msg_seq;
-	time_t 		heartbeat_time;
+	time_t 		expire_time;
 
 	std::shared_ptr<Buffer> 			read_buffer;
 	std::deque<std::shared_ptr<Buffer>>	send_buffers;

@@ -29,6 +29,7 @@ public :
 
 		RegisterHandler(MsgHandler::MsgID_Connect_Req, &MsgHandler::Recv_Connect_Req, new Network::HandlerStatic<MsgHandler>());
 		RegisterHandler(MsgHandler::MsgID_Reconnect_Req, &MsgHandler::Recv_Reconnect_Req, new Network::HandlerStatic<MsgHandler>());
+		RegisterHandler(MsgHandler::MsgID_HeartBeat_Req, &MsgHandler::Recv_HeartBeat_Req, new Network::HandlerStatic<MsgHandler>());
 
 		Network::LinkManager::Listen(port, max_session, keepAliveTime);
 	}
@@ -69,6 +70,7 @@ public :
 			return;
 		}
 
+		session->expire_time = ::time(NULL);
 		session->recv_packet->Append(buffer->ReadPtr(), buffer->Size());
 		while(Packet::HEADER_SIZE <= (int)session->recv_packet->Size())
 		{
@@ -141,7 +143,9 @@ private :
 			MsgID_Connect_Ans = 1,
 			MsgID_Reconnect_Req = 2,
 			MsgID_Reconnect_Ans = 2,
-			MsgID_Kickout_Ntf = 3
+			MsgID_HeartBeat_Req = 3,
+			MsgID_HeartBeat_Ans = 3,
+			MsgID_Kickout_Ntf = 4
 		};
 
 		MsgHandler() {}
@@ -172,7 +176,7 @@ private :
 				Json::Reader reader;
 				if (false == reader.parse(json, req))
 				{
-					throw Exception(ErrorCode::MessageFormatError, "parse error");
+					throw Exception(ErrorCode::MessageFormatError, "parse error(msg:", json, ")");
 				}
 
 				uint32_t session_key = req["session_key"].asUInt();
@@ -210,6 +214,21 @@ private :
 
 			std::static_pointer_cast<Session>(link->session)->Send(MsgID_Reconnect_Ans, ans);
 			//link->session->OnAccept();
+		}
+		void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
+		{
+			Packet::Header header;
+			header.msg_id = MsgID_HeartBeat_Ans;
+			header.msg_seq = session->msg_seq;
+			header.length = (uint16_t)Packet::HEADER_SIZE;
+
+			std::shared_ptr<Packet> ans = Packet::Create();
+			if (NULL == ans)
+			{
+				return;
+			}
+			ans->Write(header, NULL, 0);
+			session->Send(ans);
 		}
 	};
 

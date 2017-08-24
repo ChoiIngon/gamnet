@@ -113,7 +113,9 @@ namespace Gamnet
 		public const int MsgID_Connect_Ans                  = 0001;
 		public const int MsgID_Reconnect_Req 				= 0002;
 		public const int MsgID_Reconnect_Ans                = 0002;
-		public const int MsgID_Kickout_Ntf 	                = 0003;
+        public const int MsgID_HeartBeat_Req                = 0003;
+        public const int MsgID_HeartBeat_Ans                = 0003;
+        public const int MsgID_Kickout_Ntf 	                = 0004;
 
 		private object 		_sync_obj = new object();
         private Socket 		_socket = null;
@@ -246,7 +248,10 @@ namespace Gamnet
                 ReconnectEvent evt = new ReconnectEvent(this);
 				_event_queue.PushBack(evt);
 			});
-			RegisterHandler (MsgID_Kickout_Ntf, (Gamnet.Buffer buffer) => {
+            RegisterHandler(MsgID_HeartBeat_Ans, (Gamnet.Buffer buffer) => {
+                
+            });
+            RegisterHandler (MsgID_Kickout_Ntf, (Gamnet.Buffer buffer) => {
 				Error(new DuplicateConnectionException());
 				Close();
 			});
@@ -291,7 +296,7 @@ namespace Gamnet
         }
 		private void Callback_Connect(IAsyncResult result) {
 			_connect_timer.Stop ();
-			try	{
+            try	{
 				_socket = (Socket)result.AsyncState;
 				_socket.EndConnect(result);
 				_socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
@@ -307,7 +312,18 @@ namespace Gamnet
 				packet.msg_id = MsgID_Connect_Req;
 				packet.msg_seq = ++_msg_seq;
 				SendMsg(packet);
-			}
+                _connect_timer = new System.Timers.Timer();
+                _connect_timer.Interval = 60000;
+                _connect_timer.AutoReset = true;
+                _connect_timer.Elapsed += delegate {
+                    Gamnet.Packet heartbeat = new Gamnet.Packet();
+                    heartbeat.length = Packet.HEADER_SIZE;
+                    heartbeat.msg_id = MsgID_HeartBeat_Req;
+                    heartbeat.msg_seq = ++_msg_seq;
+                    SendMsg(heartbeat);
+                };
+                _connect_timer.Start();
+            }
 			catch (System.Exception e) {
                 Error(e);
 				Close();
@@ -361,7 +377,18 @@ namespace Gamnet
 						_send_queue.PushBack (itr);
 					}
 				}
-			}
+                _connect_timer = new System.Timers.Timer();
+                _connect_timer.Interval = 60000;
+                _connect_timer.AutoReset = true;
+                _connect_timer.Elapsed += delegate {
+                    Gamnet.Packet heartbeat = new Gamnet.Packet();
+                    heartbeat.length = Packet.HEADER_SIZE;
+                    heartbeat.msg_id = MsgID_HeartBeat_Req;
+                    heartbeat.msg_seq = ++_msg_seq;
+                    SendMsg(heartbeat);
+                };
+                _connect_timer.Start();
+            }
 			catch (SocketException e) {
                 Error(e);
 				Close();
@@ -469,6 +496,7 @@ namespace Gamnet
             }
             try {
 				_state = ConnectionState.Disconnected;
+                _connect_timer.Stop();
                 _socket.BeginDisconnect(false, new AsyncCallback(Callback_Close), _socket);
             }
             catch (SocketException e)
@@ -526,7 +554,16 @@ namespace Gamnet
 				if (1 == _send_queue.Count() - _send_queue_idx && ConnectionState.Connected == _state) {
 					_socket.BeginSend(_send_queue[_send_queue_idx].data, 0, _send_queue[_send_queue_idx].Size(), 0, new AsyncCallback(Callback_SendMsg), packet);
 				}
-			}
+                if (0 == _send_queue.Count() % 10)
+                {
+                    Gamnet.Packet heartbeat = new Gamnet.Packet();
+                    heartbeat.length = Packet.HEADER_SIZE;
+                    heartbeat.msg_id = MsgID_HeartBeat_Req;
+                    heartbeat.msg_seq = ++_msg_seq;
+                    packet.reliable = false;
+                    _socket.BeginSend(heartbeat.data, 0, heartbeat.Size(), 0, new AsyncCallback(Callback_SendMsg), heartbeat);
+                }
+            }
 		}
         private void Callback_SendMsg(IAsyncResult result) {
             try	{

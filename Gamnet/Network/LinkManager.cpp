@@ -21,12 +21,12 @@ void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 	if(0 < keep_alive_sec)
 	{
 		_keepalive_time = keep_alive_sec;
-		if (false == _timer.SetTimer(5000, [&](){
+		if (false == _timer.SetTimer(5000, [this](){
 			std::lock_guard<std::recursive_mutex> lo(_lock);
 			time_t now_ = time(NULL);
 			for(auto itr = _links.begin(); itr != _links.end();) {
 				std::shared_ptr<Link> link = itr->second;
-				if(link->heartbeat_time + _keepalive_time < now_)
+				if(0 != link->expire_time && link->expire_time + _keepalive_time < now_)
 				{
 					LOG(GAMNET_ERR, "idle session timeout(ip:", link->remote_address.to_string(), ", link_key:", link->link_key,")");
 			        _links.erase(itr++);
@@ -75,6 +75,7 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 			link->socket.set_option(option);
 			link->remote_address = link->socket.remote_endpoint().address();
+			link->expire_time = ::time(NULL);
 			link->AttachManager(this);
 			link->AsyncRead();
 			OnAccept(link);

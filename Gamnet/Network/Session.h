@@ -34,7 +34,7 @@ public :
 	uint32_t					session_key;
 	std::string					session_token;
 	boost::asio::ip::address*	remote_address;
-	uint32_t					expire_time;
+	time_t						expire_time;
 	std::shared_ptr<Link>		link;
 	LinkManager*				manager;
 	HandlerContainer			handler_container;

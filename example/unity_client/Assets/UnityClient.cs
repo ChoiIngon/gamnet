@@ -9,6 +9,7 @@ public class UnityClient : MonoBehaviour {
 	private Coroutine coroutine = null;
 	private UserData user_data = null;
 	private bool pause_toggle = false;
+    private uint msg_seq = 1;
 
 	public Button connect;
 	public Button close;
@@ -49,6 +50,7 @@ public class UnityClient : MonoBehaviour {
 		});
 
         session.onConnect += () => {
+            msg_seq = 1;
 			MsgCliSvr_Login_Req req = new MsgCliSvr_Login_Req();
 			req.user_id = SystemInfo.deviceUniqueIdentifier;
 
@@ -140,6 +142,7 @@ public class UnityClient : MonoBehaviour {
 	IEnumerator SendHeartBeat() {
 		while (true) {
 			MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
+            ntf.msg_seq = msg_seq++;
 			Log("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
 			session.SendMsg (ntf, true);			
 			yield return new WaitForSeconds (3.0f);
