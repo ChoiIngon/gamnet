@@ -13,12 +13,12 @@
 
 namespace Gamnet { namespace Network {
 
-std::string Session::GenerateSessionKey(uint64_t link_key)
+std::string Session::GenerateSessionToken(uint32_t session_key)
 {
-	return md5(Format(link_key, time(NULL), Random::Range(1, 99999999)));
+	return md5(Format(session_key, time(NULL), Random::Range(1, 99999999)));
 }
 
-Session::Session() : expire_time(0), session_key(""), link(std::shared_ptr<Link>(NULL)), manager(NULL), remote_address(NULL)
+Session::Session() : expire_time(0), session_key(0), link(std::shared_ptr<Link>(NULL)), manager(NULL), remote_address(NULL)
 {
 }
 
@@ -28,24 +28,26 @@ Session::~Session()
 
 void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	std::shared_ptr<Network::Link> _link = link.lock();
+	std::shared_ptr<Link> _link = link;
 	_link->AsyncSend(buffer);
 }
 void Session::AsyncSend(const char* data, size_t length)
 {
-	std::shared_ptr<Network::Link> _link = link.lock();
+	std::shared_ptr<Link> _link = link;
 	_link->AsyncSend(data, length);
 }
 int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	std::shared_ptr<Network::Link> _link = link.lock();
+	std::shared_ptr<Link> _link = link;
 	return _link->SyncSend(buffer);
 }
 int Session::SyncSend(const char* data, size_t length)
 {
-	std::shared_ptr<Network::Link> _link = link.lock();
+	std::shared_ptr<Link> _link = link;
 	return _link->SyncSend(data, length);
 }
+
+std::atomic<uint32_t> SessionManager::session_key = 0;
 
 SessionManager::SessionManager() : _keepalive_time(0)
 {
@@ -85,7 +87,7 @@ bool SessionManager::Init(int keepAliveSeconds)
 	return true;
 }
 
-bool SessionManager::Add(const std::string& key, const std::shared_ptr<Session>& session)
+bool SessionManager::Add(uint32_t key, const std::shared_ptr<Session>& session)
 {
 	std::lock_guard<std::recursive_mutex> lo(_lock);
 	if(false == _sessions.insert(std::make_pair(key, session)).second)
@@ -97,17 +99,13 @@ bool SessionManager::Add(const std::string& key, const std::shared_ptr<Session>&
 	return true;
 }
 
-void SessionManager::Remove(const std::string& key)
+void SessionManager::Remove(uint32_t key)
 {
-	if("" == key)
-	{
-		return;
-	}
 	std::lock_guard<std::recursive_mutex> lo(_lock);
 	_sessions.erase(key);
 }
 
-std::shared_ptr<Session> SessionManager::Find(const std::string& key)
+std::shared_ptr<Session> SessionManager::Find(uint32_t key)
 {
 	std::lock_guard<std::recursive_mutex> lo(_lock);
 	auto itr = _sessions.find(key);

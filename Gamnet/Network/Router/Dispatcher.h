@@ -69,7 +69,7 @@ public:
 			}
 
 			{
-				std::shared_ptr<Link> link = network_session->link.lock();
+				std::shared_ptr<Link> link = network_session->link;
 				auto thread_safe_function = link->strand.wrap([network_session, handler_function, msg_id, from, packet](){
 					std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
 					if(NULL == handler)

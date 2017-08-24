@@ -5,13 +5,10 @@
 #include "Packet.h"
 #include "../LinkManager.h"
 
-#include "MsgNetwork.h"
-
 #include <memory>
 #include <atomic>
 #include <mutex>
 #include <boost/bind.hpp>
-
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
@@ -29,6 +26,10 @@ public :
 	{
 		session_pool.Capacity(max_session);
 		session_manager.Init(keepAliveTime);
+
+		RegisterHandler(MsgHandler::MsgID_Connect_Req, &MsgHandler::Recv_Connect_Req, new Network::HandlerStatic<MsgHandler>());
+		RegisterHandler(MsgHandler::MsgID_Reconnect_Req, &MsgHandler::Recv_Reconnect_Req, new Network::HandlerStatic<MsgHandler>());
+
 		Network::LinkManager::Listen(port, max_session, keepAliveTime);
 	}
 
@@ -41,10 +42,10 @@ public :
 			link->OnError(EINVAL);
 			return;
 		}
-		session->session_key = Network::Session::GenerateSessionKey(link->link_key);
-		session_manager.Add(session->session_key, session);
+		session->session_key = ++Network::SessionManager::session_key;
+		
 		link->AttachSession(session);
-		session->OnAccept();
+		//session->OnAccept();
 	}
 
 	virtual void OnClose(const std::shared_ptr<Link>& link, int reason)
@@ -60,7 +61,7 @@ public :
 
 	virtual void OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
-		const std::shared_ptr<SESSION_T>& session = std::static_pointer_cast<SESSION_T>(link->session);
+		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if(NULL == session)
 		{
 			LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");
@@ -101,7 +102,7 @@ public :
 #ifdef _DEBUG
 			else
 			{
-				LOG(WRN, "same message seq(link_key:", link->link_key, ")");
+				LOG(WRN, "same message seq(link_key:", link->link_key, ", msg_seq:", session->msg_seq, ", ", msg_seq, ")");
 			}
 #endif
 			session->recv_packet->Remove(totalLength);
@@ -118,15 +119,11 @@ public :
 				packet->Append(session->recv_packet->ReadPtr(), session->recv_packet->Size());
 				session->recv_packet = packet;
 			}
-			else
-			{
-				session->recv_packet->Clear();
-			}
 		}
 	}
 
-	std::shared_ptr<SESSION_T> FindSession(const std::string& session_key) {
-		return session_manager.Find(session_key);
+	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key) {
+		return std::static_pointer_cast<SESSION_T>(session_manager.Find(session_key));
 	}
 	
 	template <class FUNC, class FACTORY>
@@ -134,6 +131,88 @@ public :
 	{
 		return Singleton<Dispatcher<SESSION_T>>::GetInstance().RegisterHandler(msg_id, func, factory);
 	}
+
+private :
+	//template <class SESSION_T>
+	struct MsgHandler : public Network::IHandler
+	{
+		enum MSG_ID {
+			MsgID_Connect_Req = 1,
+			MsgID_Connect_Ans = 1,
+			MsgID_Reconnect_Req = 2,
+			MsgID_Reconnect_Ans = 2,
+			MsgID_Kickout_Ntf = 3
+		};
+
+		MsgHandler() {}
+		virtual ~MsgHandler() {}
+
+		void Recv_Connect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
+		{
+			session->session_token = Session::GenerateSessionToken(session->session_key);
+
+			Json::Value ans;
+			ans["error_code"] = 0;
+			ans["session_key"] = session->session_key;
+			ans["session_token"] = session->session_token;
+
+			Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Add(session->session_key, session);
+			session->Send(MsgID_Connect_Ans, ans);
+			session->OnAccept();
+		}
+		void Recv_Reconnect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
+		{
+			std::shared_ptr<Link> link = session->link;
+
+			Json::Value ans;
+			ans["error_code"] = 0;
+			try {
+				Json::Value req;
+				std::string json = std::string(packet->ReadPtr() + Packet::HEADER_SIZE, packet->Size());
+				Json::Reader reader;
+				if (false == reader.parse(json, req))
+				{
+					throw Exception(ErrorCode::MessageFormatError, "parse error");
+				}
+
+				uint32_t session_key = req["session_key"].asUInt();
+				std::string session_token = req["session_token"].asString();
+				const std::shared_ptr<SESSION_T> other = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
+				if (NULL == other)
+				{
+					throw Exception(ErrorCode::ConnectTimeoutError, "no cached data. reconnect timeout");
+				}
+
+				if(other->session_token != session_token)
+				{
+					throw Exception(ErrorCode::InvalidSessionTokenError, "invald session token(session_key:", session_key, ", exist:", other->session_token, ", new:", session_token, ")");
+				}
+				
+				std::shared_ptr<Link> _link = other->link;
+				if (NULL != _link)
+				{
+					_link->AttachSession(NULL);
+				}
+
+				other->recv_packet = session->recv_packet;
+				other->session_token = Session::GenerateSessionToken(other->session_key);
+				link->AttachSession(other);
+				
+				ans["session_key"] = other->session_key;
+				ans["session_token"] = other->session_token;
+				ans["msg_seq"] = (uint32_t)(other->msg_seq);
+			}
+			catch (const Exception& e)
+			{
+				ans["error_code"] = e.error_code();
+				LOG(GAMNET_ERR, e.what());
+			}
+
+			std::static_pointer_cast<Session>(link->session)->Send(MsgID_Reconnect_Ans, ans);
+			//link->session->OnAccept();
+		}
+	};
+
 };
 
 }}}

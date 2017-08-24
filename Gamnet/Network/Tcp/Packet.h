@@ -83,10 +83,10 @@ public :
 			Resize(total_length);
 		}
 
-		(*(uint16_t*)(buf_ + OFFSET_LENGTH)) = total_length;
-		(*(uint32_t*)(buf_ + OFFSET_MSGSEQ)) = msg_seq;
-		(*(uint32_t*)(buf_ + OFFSET_MSGID)) = msg_id;
-		char* pBuf = buf_ + HEADER_SIZE;
+		(*(uint16_t*)(data + OFFSET_LENGTH)) = total_length;
+		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = msg_seq;
+		(*(uint32_t*)(data + OFFSET_MSGID)) = msg_id;
+		char* pBuf = data + HEADER_SIZE;
 		if(false == msg.Store(&pBuf))
 		{
 			return false;
@@ -94,28 +94,28 @@ public :
 		this->writeCursor_ += total_length;
 		return true;
 	}
-	bool Write(const Header& header, const char* data, size_t length)
+	bool Write(const Header& header, const char* buf, size_t length)
+	{
+		Clear();
+		uint16_t total_length = (uint16_t)(length + HEADER_SIZE);
+		if(Capacity() <= total_length)
 		{
-			Clear();
-			uint16_t total_length = (uint16_t)(length + HEADER_SIZE);
-			if(Capacity() <= total_length)
-			{
-				LOG(GAMNET_WRN, "packet max capacity over(msg_id:", header.msg_id, ", size:", total_length, ")");
-				return false;
-			}
-
-			if((uint16_t)Available() < total_length)
-			{
-				Resize(total_length);
-			}
-
-			(*(uint16_t*)(buf_ + OFFSET_LENGTH)) = total_length;
-			(*(uint32_t*)(buf_ + OFFSET_MSGSEQ)) = header.msg_seq;
-			(*(uint32_t*)(buf_ + OFFSET_MSGID)) = header.msg_id;
-			std::memcpy(buf_ + HEADER_SIZE, data, length);
-			this->writeCursor_ += total_length;
-			return true;
+			LOG(GAMNET_WRN, "packet max capacity over(msg_id:", header.msg_id, ", size:", total_length, ")");
+			return false;
 		}
+
+		if((uint16_t)Available() < total_length)
+		{
+			Resize(total_length);
+		}
+
+		(*(uint16_t*)(data + OFFSET_LENGTH)) = total_length;
+		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = header.msg_seq;
+		(*(uint32_t*)(data + OFFSET_MSGID)) = header.msg_id;
+		std::memcpy(data + HEADER_SIZE, buf, length);
+		this->writeCursor_ += total_length;
+		return true;
+	}
 
 	static std::shared_ptr<Packet> Create();
 	template <class MSG>

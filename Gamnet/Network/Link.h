@@ -28,8 +28,8 @@ public:
 	boost::asio::strand strand;
 	boost::asio::ip::address remote_address;
 	Timer 		timer;
-	uint64_t 	link_key;
-	uint64_t 	msg_seq;
+	uint32_t 	link_key;
+	uint32_t 	msg_seq;
 	time_t 		heartbeat_time;
 
 	std::shared_ptr<Buffer> 			read_buffer;

@@ -75,8 +75,6 @@ public:
 	virtual void OnConnect();
 	virtual void OnClose(int reason);
 
-	static std::string GenerateSessionKey(const Address& addr);
-
 	//int Send(const std::shared_ptr<Network::Tcp::Packet>& packet);
 	//int Send(const char* buf, int len);
 };

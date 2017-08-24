@@ -66,7 +66,7 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create session instance");
 	}
 
-	
+	session->session_key = ++Network::SessionManager::session_key;
 	session->remote_address = &(link->remote_address);
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
@@ -83,7 +83,7 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 		link->OnError(ErrorCode::InvalidSessionError);
 		return;
 	}
-	session->session_key = Network::Session::GenerateSessionKey(link->link_key);
+	session->session_token = Network::Session::GenerateSessionToken(session->session_key);
 	session_manager.Add(session->session_key, session);
 	session->OnConnect();
 }
@@ -102,7 +102,7 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 
 void LinkManager::OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer)
 {
-	const std::shared_ptr<Session>& session = std::static_pointer_cast<Session>(link->session);
+	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	if (NULL == session)
 	{
 		LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");

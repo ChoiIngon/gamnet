@@ -58,7 +58,7 @@ struct MsgNetwork_Connect_Req_Serializer {
 struct MsgNetwork_Connect_Ans {
 	enum { MSG_ID = 1 }; 
 	uint32_t	error_code;
-	uint64_t	session_key;
+	uint32_t	session_key;
 	std::string	session_token;
 	MsgNetwork_Connect_Ans()	{
 		error_code = 0;
@@ -67,7 +67,7 @@ struct MsgNetwork_Connect_Ans {
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += sizeof(uint32_t);
-		nSize += sizeof(uint64_t);
+		nSize += sizeof(uint32_t);
 		nSize += sizeof(uint32_t); nSize += session_token.length();
 		return nSize;
 	}
@@ -83,7 +83,7 @@ struct MsgNetwork_Connect_Ans {
 	}
 	bool Store(char** _buf_) const {
 		std::memcpy(*_buf_, &error_code, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
-		std::memcpy(*_buf_, &session_key, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &session_key, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		size_t session_token_size = session_token.length();
 		std::memcpy(*_buf_, &session_token_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, session_token.c_str(), session_token.length()); (*_buf_) += session_token.length();
@@ -98,7 +98,7 @@ struct MsgNetwork_Connect_Ans {
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
 		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&error_code, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&session_key, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&session_key, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t session_token_length = 0; std::memcpy(&session_token_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(nSize < session_token_length) { return false; }
@@ -113,14 +113,14 @@ struct MsgNetwork_Connect_Ans_Serializer {
 };
 struct MsgNetwork_Reconnect_Req {
 	enum { MSG_ID = 2 }; 
-	uint64_t	session_key;
+	uint32_t	session_key;
 	std::string	session_token;
 	MsgNetwork_Reconnect_Req()	{
 		session_key = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += sizeof(uint64_t);
+		nSize += sizeof(uint32_t);
 		nSize += sizeof(uint32_t); nSize += session_token.length();
 		return nSize;
 	}
@@ -135,7 +135,7 @@ struct MsgNetwork_Reconnect_Req {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &session_key, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &session_key, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		size_t session_token_size = session_token.length();
 		std::memcpy(*_buf_, &session_token_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, session_token.c_str(), session_token.length()); (*_buf_) += session_token.length();
@@ -149,7 +149,7 @@ struct MsgNetwork_Reconnect_Req {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&session_key, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&session_key, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t session_token_length = 0; std::memcpy(&session_token_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(nSize < session_token_length) { return false; }
@@ -165,7 +165,7 @@ struct MsgNetwork_Reconnect_Req_Serializer {
 struct MsgNetwork_Reconnect_Ans {
 	enum { MSG_ID = 2 }; 
 	uint32_t	error_code;
-	uint64_t	session_key;
+	uint32_t	session_key;
 	std::string	session_token;
 	uint32_t	msg_seq;
 	MsgNetwork_Reconnect_Ans()	{
@@ -176,7 +176,7 @@ struct MsgNetwork_Reconnect_Ans {
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += sizeof(uint32_t);
-		nSize += sizeof(uint64_t);
+		nSize += sizeof(uint32_t);
 		nSize += sizeof(uint32_t); nSize += session_token.length();
 		nSize += sizeof(uint32_t);
 		return nSize;
@@ -193,7 +193,7 @@ struct MsgNetwork_Reconnect_Ans {
 	}
 	bool Store(char** _buf_) const {
 		std::memcpy(*_buf_, &error_code, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
-		std::memcpy(*_buf_, &session_key, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &session_key, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		size_t session_token_size = session_token.length();
 		std::memcpy(*_buf_, &session_token_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, session_token.c_str(), session_token.length()); (*_buf_) += session_token.length();
@@ -209,7 +209,7 @@ struct MsgNetwork_Reconnect_Ans {
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
 		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&error_code, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&session_key, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&session_key, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t session_token_length = 0; std::memcpy(&session_token_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(nSize < session_token_length) { return false; }

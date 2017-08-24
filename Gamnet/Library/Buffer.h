@@ -14,6 +14,7 @@ namespace Gamnet {
     struct Buffer
     {
     	static std::shared_ptr<Buffer> Create();
+		static void Swap(const std::shared_ptr<Buffer>& lhs, const std::shared_ptr<Buffer>& rhs);
     	static int MAX_SIZE;
     	struct Init
 		{
@@ -23,12 +24,13 @@ namespace Gamnet {
 				return buffer;
 			}
 		};
-        int32_t writeCursor_;
-        int32_t readCursor_;
-        uint16_t bufSize_;
-        char* buf_;
+        size_t writeCursor_;
+        size_t readCursor_;
+        size_t bufSize_;
 
-        Buffer(uint16_t size = 1024);
+        char* data;
+
+        Buffer(size_t size = 1024);
         virtual ~Buffer();
 
         void Append(const char* buf, size_t size);
@@ -59,7 +61,7 @@ namespace Gamnet {
          */
         void Clear();
 
-        void Resize(uint16_t size);
+        void Resize(size_t size);
         void Copy(const Buffer& buffer);
     protected :
         void RemoveReadBuffer();

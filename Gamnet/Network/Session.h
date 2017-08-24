@@ -2,6 +2,7 @@
 #define GAMNET_NETWORK_SESSION_H_
 
 #include <boost/asio.hpp>
+#include <atomic>
 #include <map>
 #include "HandlerContainer.h"
 #include "../Library/Buffer.h"
@@ -20,9 +21,9 @@ public :
 		template <class T>
 		T* operator() (T* session)
 		{
-			session->session_key = "";
+			session->session_key = 0;
 			session->expire_time = 0;
-			session->link = std::shared_ptr<Link>(NULL);;
+			session->link = NULL;
 			session->remote_address = NULL;
 			return session;
 		}
@@ -30,12 +31,13 @@ public :
 	Session();
 	virtual ~Session();
 
-	std::string session_key;
-	boost::asio::ip::address* remote_address;
-	uint32_t expire_time;
-	std::weak_ptr<Link> link;
-	LinkManager* manager;
-	HandlerContainer handler_container;
+	uint32_t					session_key;
+	std::string					session_token;
+	boost::asio::ip::address*	remote_address;
+	uint32_t					expire_time;
+	std::shared_ptr<Link>		link;
+	LinkManager*				manager;
+	HandlerContainer			handler_container;
 
 	virtual void OnAccept() = 0;
 	virtual void OnClose(int reason) = 0;
@@ -45,7 +47,7 @@ public :
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);
 	int SyncSend(const char* data, size_t length);
 
-	static std::string GenerateSessionKey(uint64_t link_key);
+	static std::string GenerateSessionToken(uint32_t session_key);
 };
 
 class SessionManager
@@ -53,15 +55,17 @@ class SessionManager
 	Timer 	_timer;
 	uint32_t	_keepalive_time;
 	std::recursive_mutex _lock;
-	std::map<std::string, std::shared_ptr<Session>> _sessions;
+	std::map<uint32_t, std::shared_ptr<Session>> _sessions;
 public :
+	static std::atomic<uint32_t> session_key;
+
 	SessionManager();
 	~SessionManager();
-
+	
 	bool Init(int keepAliveSeconds);
-	bool Add(const std::string& key, const std::shared_ptr<Session>& session);
-	void Remove(const std::string& key);
-	std::shared_ptr<Session> Find(const std::string& key);
+	bool Add(uint32_t key, const std::shared_ptr<Session>& session);
+	void Remove(uint32_t key);
+	std::shared_ptr<Session> Find(uint32_t key);
 	size_t Size();
 };
 

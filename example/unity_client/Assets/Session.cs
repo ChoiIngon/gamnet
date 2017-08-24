@@ -13,80 +13,7 @@ namespace Gamnet
 		public DuplicateConnectionException(string message, params object[] args) : base(string.Format(message, args)) { }
 		public DuplicateConnectionException(string message, Exception inner) : base(message, inner)	{}
 	}
-	public class Buffer	{
-		public const int BUFFER_SIZE = 8192;
-		public static void BlockCopy(Buffer src, Buffer dest) {
-			System.Buffer.BlockCopy(src.data, src.read_index, dest.data, 0, src.Size());
-			dest.read_index = 0;
-			dest.write_index = src.Size();
-		}
 
-		public byte[] data = new byte[BUFFER_SIZE];
-		public int read_index = 0;
-		public int write_index = 0;
-
-		public Buffer() {}
-		public Buffer(byte[] src) {	Copy(src); }
-		public Buffer(Buffer src) {	Copy(src); }
-		public Buffer(MemoryStream src)	{ Copy(src); }
-
-		public int Size() {	return write_index - read_index; }
-		public int Available() { return BUFFER_SIZE - write_index; }
-
-		public void Copy(byte[] src) {
-			read_index = 0;
-			write_index = 0;
-			Append(src);
-		}
-		public void Copy(Buffer src) {
-			read_index = 0;
-			write_index = 0;
-			Append(src);
-		}
-		public void Copy(MemoryStream src) {
-			read_index = 0;
-			write_index = 0;
-			Append(src);
-		}
-		public void Append(byte[] src) {
-			if (0 == src.Length) {
-				return;
-			}
-			System.Buffer.BlockCopy(src, 0, data, write_index, src.Length);
-			write_index += src.Length;
-		}
-		public void Append(Buffer src) {
-			if (0 == src.Size()) {
-				return;
-			}
-			System.Buffer.BlockCopy(src.data, src.read_index, data, write_index, src.Size());
-			write_index += src.Size();
-		}
-		public void Append(System.IO.MemoryStream src) {
-			if (0 == src.Position) {
-				return;
-			}
-			System.Buffer.BlockCopy(src.GetBuffer(), 0, data, write_index, (int)src.Position);
-			write_index += (int)src.Position;
-		}
-
-		public static implicit operator System.IO.MemoryStream(Gamnet.Buffer src) {
-			System.IO.MemoryStream ms = new System.IO.MemoryStream();
-			ms.Write(src.data, src.read_index, src.Size());
-			ms.Seek(0, System.IO.SeekOrigin.Begin);
-			return ms;
-		}
-		public static implicit operator byte[] (Gamnet.Buffer src) {
-			byte[] dest = new byte[src.Size()];
-			System.Buffer.BlockCopy(src.data, src.read_index, dest, 0, src.Size());
-			return dest;
-		}
-		public static Gamnet.Buffer operator + (Gamnet.Buffer lhs, Gamnet.Buffer rhs) {
-			Gamnet.Buffer buffer = new Gamnet.Buffer (lhs);
-			buffer.Append(rhs);
-			return buffer;
-		}
-	}
 	public class Packet : Buffer {
 		public const int OFFSET_LENGTH = 0;
 		public const int OFFSET_MSGSEQ = 2;
@@ -102,6 +29,7 @@ namespace Gamnet
 			set {
 				byte[] buf_length = BitConverter.GetBytes(value);
 				System.Buffer.BlockCopy(buf_length, 0, data, OFFSET_LENGTH, 2);
+                _length = value;
 			}
 			get {
 				return _length;
@@ -111,6 +39,7 @@ namespace Gamnet
 			set {
 				byte[] buf_msg_seq = BitConverter.GetBytes(value);
 				System.Buffer.BlockCopy(buf_msg_seq, 0, data, OFFSET_MSGSEQ, 4);
+                _msg_seq = value;
 			}
 			get {
 				return _msg_seq;
@@ -120,6 +49,7 @@ namespace Gamnet
 			set {
 				byte[] buf_msg_id = BitConverter.GetBytes(value);
 				System.Buffer.BlockCopy(buf_msg_id, 0, data, OFFSET_MSGID, 4);
+                _msg_id = value;
 			}
 			get {
 				return _msg_id;
@@ -169,64 +99,7 @@ namespace Gamnet
 			timers[msg_id].RemoveAt(0);
 		}
 	}
-	public class SyncQueue<T> {
-		private object _sync_obj = new object();
-        private List<T> items = new List<T>();
-
-		public int Count() {
-			lock (_sync_obj) {
-				return items.Count;
-			}
-		}
-
-		public void PushBack(T item) {
-			lock (_sync_obj) {
-				items.Add(item);
-			}
-		}
-
-        public void PushFront(T item) {
-            lock (_sync_obj) {
-                items.Insert(0, item);
-            }
-        }
-
-		public T PopFront() {
-            lock (_sync_obj) {
-                T item = items[0];
-                items.RemoveAt(0);
-                return item;
-            }
-		}
-
-		public void RemoveAt(int index) {
-			lock (_sync_obj) {
-				items.RemoveAt(index);
-			}
-		}
-
-        public T this[int index] {
-            get {
-				lock (_sync_obj) {
-					return items [index];
-				}
-            }
-        }
-
-        public void Clear() {
-            lock (_sync_obj) {
-                items.Clear();
-            }
-		}
-
-        public List<T> Copy() {
-            lock (_sync_obj) {
-                List<T> copy = new List<T>(items);
-                return copy;
-            }
-        }
-	};
-
+	
     public class Session
     {
 		public enum ConnectionState
@@ -236,11 +109,11 @@ namespace Gamnet
 			Connected
 		}
 		// length<2byte>(header length + body length) | msg_id<4byte> | body
-		public const int MSG_ID_CONNECT_REQ					= 0001;
-		public const int MSG_ID_CONNECT_ANS 				= 0001;
-		public const int MSG_ID_RECONNECT_REQ 				= 0002;
-		public const int MSG_ID_RECONNECT_ANS 				= 0002;
-		public const int MSG_ID_DUPLICATE_CONNECTION_NTF 	= 0003;
+		public const int MsgID_Connect_Req					= 0001;
+		public const int MsgID_Connect_Ans                  = 0001;
+		public const int MsgID_Reconnect_Req 				= 0002;
+		public const int MsgID_Reconnect_Ans                = 0002;
+		public const int MsgID_Kickout_Ntf 	                = 0003;
 
 		private object 		_sync_obj = new object();
         private Socket 		_socket = null;
@@ -339,11 +212,13 @@ namespace Gamnet
 		[System.Serializable] 
 		class ReconnectAns {
 			public int error_code = 0;
+            public uint session_key = 0;
+            public string session_token = "";
 			public uint msg_seq = 0;
 		}
 
 		public Session() {
-			RegisterHandler (MSG_ID_CONNECT_ANS, (Gamnet.Buffer buffer) => {
+			RegisterHandler (MsgID_Connect_Ans, (Gamnet.Buffer buffer) => {
 				string json = System.Text.Encoding.UTF8.GetString(buffer.data, buffer.read_index, buffer.Size());
 				ConnectAns ans = JsonUtility.FromJson<ConnectAns>(json);
 				if(0 != ans.error_code)
@@ -357,7 +232,7 @@ namespace Gamnet
 				ConnectEvent evt = new ConnectEvent(this);
 				_event_queue.PushBack(evt);
 			});
-			RegisterHandler (MSG_ID_RECONNECT_ANS, (Gamnet.Buffer buffer) => {
+			RegisterHandler (MsgID_Reconnect_Ans, (Gamnet.Buffer buffer) => {
 				string json = System.Text.Encoding.UTF8.GetString(buffer.data, buffer.read_index, buffer.Size());
 				ReconnectAns ans = JsonUtility.FromJson<ReconnectAns>(json);
 				if(0 != ans.error_code)
@@ -365,10 +240,13 @@ namespace Gamnet
 					Error(new System.Exception("fail to reconnect"));
 					return;
 				}
-				ReconnectEvent evt = new ReconnectEvent(this);
+                _session_key = ans.session_key;
+                _session_token = ans.session_token;
+                RemoveSentPacket(ans.msg_seq);
+                ReconnectEvent evt = new ReconnectEvent(this);
 				_event_queue.PushBack(evt);
 			});
-			RegisterHandler (MSG_ID_DUPLICATE_CONNECTION_NTF, (Gamnet.Buffer buffer) => {
+			RegisterHandler (MsgID_Kickout_Ntf, (Gamnet.Buffer buffer) => {
 				Error(new DuplicateConnectionException());
 				Close();
 			});
@@ -426,7 +304,7 @@ namespace Gamnet
 				_state = ConnectionState.Connected;
 				Gamnet.Packet packet = new Gamnet.Packet();
 				packet.length = Packet.HEADER_SIZE;
-				packet.msg_id = MSG_ID_CONNECT_REQ;
+				packet.msg_id = MsgID_Connect_Req;
 				packet.msg_seq = ++_msg_seq;
 				SendMsg(packet);
 			}
@@ -468,7 +346,7 @@ namespace Gamnet
 
 				Gamnet.Packet packet = new Gamnet.Packet();
 				packet.length = (ushort)(Packet.HEADER_SIZE + data.Length);
-				packet.msg_id = MSG_ID_RECONNECT_ANS;
+				packet.msg_id = MsgID_Reconnect_Req;
 				packet.msg_seq = ++_msg_seq;
 				packet.Append(data);
 
@@ -630,7 +508,7 @@ namespace Gamnet
 
                 Gamnet.Packet packet = new Gamnet.Packet();
 				packet.length = packetLength;
-				packet.msg_seq = msg_seq;
+				packet.msg_seq = ++_msg_seq;
 				packet.msg_id = msgID;
 				packet.reliable = handOverRelility;
 				packet.Append(ms);

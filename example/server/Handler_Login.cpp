@@ -40,16 +40,16 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 			ntf.error_code = DuplicateConnectionError;
 			LOG(DEV, "MsgSvrCli_Kickout_Ntf(session_key:", other->session_key, ")");
 			Gamnet::Network::Tcp::SendMsg(other, ntf);
-			const std::shared_ptr<Gamnet::Network::Link>& link = other->link.lock();
-			link->AttachSession(NULL);
+			const std::shared_ptr<Gamnet::Network::Link> link = other->link;
+			if(NULL != link)
+			{
+				link->AttachSession(NULL);
+			}
 		}
 		
 		UserData& user_data = session->user_data;
 		user_data.user_id = req.user_id;
 		user_data.user_seq = Gamnet::Random::Range(1, 99999);
-		const std::shared_ptr<Gamnet::Network::Link>& link = session->link.lock();
-		user_data.link_key = link->link_key;
-		user_data.session_key = session->session_key;
 		int count = Gamnet::Random::Range(1, 10);
 		for(int i=0;i<count; i++)
 		{

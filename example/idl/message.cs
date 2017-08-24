@@ -99,10 +99,6 @@ public struct ItemData_Serializer {
 public class UserData {
 	public string	user_id = "";
 	public uint	user_seq = 0;
-	public string	access_token = "";
-	public uint	msg_seq = 0;
-	public ulong	kickout_time = 0;
-	public ulong	session_key = 0;
 	public List<ItemData >	items = new List<ItemData >();
 	public UserData() {
 	}
@@ -112,11 +108,6 @@ public class UserData {
 			nSize += sizeof(int); 
 			if(null != user_id) { nSize += Encoding.UTF8.GetByteCount(user_id); }
 			nSize += sizeof(uint);
-			nSize += sizeof(int); 
-			if(null != access_token) { nSize += Encoding.UTF8.GetByteCount(access_token); }
-			nSize += sizeof(uint);
-			nSize += sizeof(ulong);
-			nSize += sizeof(ulong);
 			nSize += sizeof(int);
 			foreach(var items_itr in items) { 
 				ItemData items_elmt = items_itr;
@@ -138,17 +129,6 @@ public class UserData {
 				_buf_.Write(BitConverter.GetBytes(0), 0, sizeof(int));
 			}
 			_buf_.Write(BitConverter.GetBytes(user_seq), 0, sizeof(uint));
-			if(null != access_token) {
-				int access_token_length = Encoding.UTF8.GetByteCount(access_token);
-				_buf_.Write(BitConverter.GetBytes(access_token_length), 0, sizeof(int));
-				_buf_.Write(Encoding.UTF8.GetBytes(access_token), 0, access_token_length);
-			}
-			else {
-				_buf_.Write(BitConverter.GetBytes(0), 0, sizeof(int));
-			}
-			_buf_.Write(BitConverter.GetBytes(msg_seq), 0, sizeof(uint));
-			_buf_.Write(BitConverter.GetBytes(kickout_time), 0, sizeof(ulong));
-			_buf_.Write(BitConverter.GetBytes(session_key), 0, sizeof(ulong));
 			_buf_.Write(BitConverter.GetBytes(items.Count), 0, sizeof(int));
 			foreach(var items_itr in items) { 
 				ItemData items_elmt = items_itr;
@@ -172,23 +152,6 @@ public class UserData {
 			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
 			user_seq = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(uint);
-			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
-			int access_token_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(int);
-			if(access_token_length > _buf_.Length - _buf_.Position) { return false; }
-			byte[] access_token_buf = new byte[access_token_length];
-			Array.Copy(_buf_.GetBuffer(), (int)_buf_.Position, access_token_buf, 0, access_token_length);
-			access_token = System.Text.Encoding.UTF8.GetString(access_token_buf);
-			_buf_.Position += access_token_length;
-			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
-			msg_seq = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(uint);
-			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
-			kickout_time = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(ulong);
-			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
-			session_key = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(ulong);
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
 			int items_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(int);

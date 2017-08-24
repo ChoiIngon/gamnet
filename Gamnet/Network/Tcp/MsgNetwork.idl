@@ -16,20 +16,20 @@ message MsgNetwork_Connect_Req 		: 0001
 message MsgNetwork_Connect_Ans 		: 0001
 {
 	uint32 error_code;
-	uint64 session_key;
+	uint32 session_key;
 	string session_token;
 };
 
 message MsgNetwork_Reconnect_Req	: 0002
 {
-	uint64 session_key;
+	uint32 session_key;
 	string session_token;
 };
 
 message MsgNetwork_Reconnect_Ans	: 0002
 {
 	uint32 error_code;
-	uint64 session_key;
+	uint32 session_key;
 	string session_token;
 	uint32 msg_seq;
 };

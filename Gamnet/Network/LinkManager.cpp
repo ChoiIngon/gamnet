@@ -28,7 +28,7 @@ void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 				std::shared_ptr<Link> link = itr->second;
 				if(link->heartbeat_time + _keepalive_time < now_)
 				{
-					LOG(GAMNET_ERR, "idle session timeout(ip:", link->remote_address.to_string(), ", session_key:", link->link_key,")");
+					LOG(GAMNET_ERR, "idle session timeout(ip:", link->remote_address.to_string(), ", link_key:", link->link_key,")");
 			        _links.erase(itr++);
 			        link->strand.wrap(std::bind(&Link::OnError, link, ETIMEDOUT))();
 			    }

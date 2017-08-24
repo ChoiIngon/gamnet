@@ -159,7 +159,8 @@ bool RouterCasterImpl_Any::SendMsg(uint64_t msg_seq, const std::shared_ptr<Netwo
 		router_session->watingSessionManager_.AddSession(msg_seq, network_session);
 	}
 
-	return router_session->Send(buf, len);
+	router_session->Send(buf, len);
+	return true;
 }
 
 bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)

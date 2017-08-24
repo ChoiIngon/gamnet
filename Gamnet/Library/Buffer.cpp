@@ -12,22 +12,40 @@ namespace Gamnet {
 
 int Buffer::MAX_SIZE = 0x0000ffff;
 
-Buffer::Buffer(uint16_t size) : writeCursor_(0), readCursor_(0), bufSize_(size), buf_(NULL)
+void Buffer::Swap(const std::shared_ptr<Buffer>& lhs, const std::shared_ptr<Buffer>& rhs)
 {
-	buf_ = new char[bufSize_];
-	if(NULL == buf_)
+	char* tmp_data = lhs->data;
+	size_t tmp_write = lhs->writeCursor_;
+	size_t tmp_read = lhs->readCursor_;
+	size_t tmp_size = lhs->bufSize_;
+
+	lhs->data = rhs->data;
+	lhs->writeCursor_ = rhs->writeCursor_;
+	lhs->readCursor_ = rhs->readCursor_;
+	lhs->bufSize_ = rhs->bufSize_;
+
+	rhs->data = tmp_data;
+	rhs->writeCursor_ = tmp_write;
+	rhs->readCursor_ = tmp_read;
+	rhs->bufSize_ = tmp_size;
+}
+
+Buffer::Buffer(size_t size) : writeCursor_(0), readCursor_(0), bufSize_(size), data(NULL)
+{
+	data = new char[bufSize_];
+	if(NULL == data)
 	{
 		throw Exception(ENOMEM, "not enough space(need:", size," bytes)");
 	}
-	memset(buf_, 0, bufSize_);
+	memset(data, 0, bufSize_);
 }
 
 Buffer::~Buffer()
 {
-	if(NULL != buf_)
+	if(NULL != data)
 	{
-		delete [] buf_;
-		buf_ = NULL;
+		delete [] data;
+		data = NULL;
 	}
 }
 
@@ -55,7 +73,7 @@ void Buffer::RemoveReadBuffer()
 	}
 	if(0 < writeCursor_-readCursor_)
 	{
-		std::memcpy(buf_, buf_+readCursor_, writeCursor_ - readCursor_);
+		std::memcpy(data, data+readCursor_, writeCursor_ - readCursor_);
 	}
 	writeCursor_ -= readCursor_;
     readCursor_ = 0;
@@ -73,7 +91,7 @@ void Buffer::Append(const char* buf, size_t size)
 		RemoveReadBuffer();
 	}
 
-	std::memcpy(buf_+writeCursor_, buf, size);
+	std::memcpy(data+writeCursor_, buf, size);
 	writeCursor_ += size;
 }
 
@@ -85,7 +103,7 @@ void Buffer::Copy(const Buffer& buffer)
 	{
 		Resize(buffer.Size());
 	}
-	std::memcpy(buf_, buffer.ReadPtr(), buffer.Size());
+	std::memcpy(data, buffer.ReadPtr(), buffer.Size());
 	writeCursor_ += buffer.Size();
 }
 
@@ -110,7 +128,7 @@ size_t Buffer::Size() const
 
 const char* Buffer::ReadPtr() const
 {
-	return buf_+readCursor_;
+	return data +readCursor_;
 }
 
 char* Buffer::WritePtr()
@@ -120,18 +138,18 @@ char* Buffer::WritePtr()
 	{
 		return NULL;
 	}
-	return buf_+writeCursor_;
+	return data +writeCursor_;
 }
 
-void Buffer::Resize(uint16_t size)
+void Buffer::Resize(size_t size)
 {
-	char* oldBuf = buf_;
-	buf_ = new char[size];
+	char* oldBuf = data;
+	data = new char[size];
 	bufSize_ = size;
-	memset(buf_, 0, bufSize_);
+	memset(data, 0, bufSize_);
 	if(0 < Size())
 	{
-		std::memcpy(buf_, oldBuf+readCursor_, Size());
+		std::memcpy(data, oldBuf+readCursor_, Size());
 	}
 
 	writeCursor_ -= readCursor_;

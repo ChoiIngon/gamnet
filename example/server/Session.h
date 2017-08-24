@@ -17,8 +17,7 @@ public:
 	virtual ~Session();
 	virtual void OnAccept();
 	virtual void OnClose(int reason);
-
-	uint32_t ack_seq;
+	
 	UserData user_data;
 };
 

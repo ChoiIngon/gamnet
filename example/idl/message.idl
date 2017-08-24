@@ -29,8 +29,6 @@ struct ItemData {
 struct UserData {
 	string user_id;
 	uint32 user_seq;
-	uint32 link_key;
-	string session_key;
 	list<ItemData> items;
 };
 

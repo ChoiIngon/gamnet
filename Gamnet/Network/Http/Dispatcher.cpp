@@ -14,7 +14,7 @@ void Dispatcher::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std
 	auto itr = mapHandlerFunction_.find(uri);
 	if(itr == mapHandlerFunction_.end())
 	{
-		LOG(GAMNET_ERR, "can't find handler function(uri:", uri, ", session_key:", link->link_key,")");
+		LOG(GAMNET_ERR, "can't find handler function(uri:", uri, ", link_key:", link->link_key,")");
 		Response res;
 		res.nErrorCode = 404;
 		res.sBodyContext = "404 Not found";
@@ -27,7 +27,7 @@ void Dispatcher::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std
 	std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&session->handler_container, 0);
 	if(NULL == handler)
 	{
-		Log::Write(GAMNET_ERR, "can't find handler function(uri:", uri, ", session_key:", link->link_key,")");
+		Log::Write(GAMNET_ERR, "can't find handler function(uri:", uri, ", link_key:", link->link_key,")");
 		Response res;
 		res.nErrorCode = 404;
 		res.sBodyContext = "404 Not found";

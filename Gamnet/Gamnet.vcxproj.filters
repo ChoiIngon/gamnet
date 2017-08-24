@@ -119,10 +119,10 @@
     <ClCompile Include="Network\Link.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network\LinkManager.cpp">
+    <ClCompile Include="Library\Json\jsoncpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Library\Json\jsoncpp.cpp">
+    <ClCompile Include="Network\LinkManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -298,7 +298,7 @@
     <ClInclude Include="Test\LinkManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Tcp\TcpHandler.h">
+    <ClInclude Include="Network\Tcp\Link.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

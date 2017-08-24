@@ -85,19 +85,14 @@ struct ItemData_Serializer {
 struct UserData {
 	std::string	user_id;
 	uint32_t	user_seq;
-	uint32_t	link_key;
-	std::string	session_key;
 	std::list<ItemData >	items;
 	UserData()	{
 		user_seq = 0;
-		link_key = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += sizeof(uint32_t); nSize += user_id.length();
 		nSize += sizeof(uint32_t);
-		nSize += sizeof(uint32_t);
-		nSize += sizeof(uint32_t); nSize += session_key.length();
 		nSize += sizeof(int32_t);
 		for(std::list<ItemData >::const_iterator items_itr = items.begin(); items_itr != items.end(); items_itr++)	{
 			const ItemData& items_elmt = *items_itr;
@@ -120,10 +115,6 @@ struct UserData {
 		std::memcpy(*_buf_, &user_id_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, user_id.c_str(), user_id.length()); (*_buf_) += user_id.length();
 		std::memcpy(*_buf_, &user_seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
-		std::memcpy(*_buf_, &link_key, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
-		size_t session_key_size = session_key.length();
-		std::memcpy(*_buf_, &session_key_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
-		std::memcpy(*_buf_, session_key.c_str(), session_key.length()); (*_buf_) += session_key.length();
 		size_t items_size = items.size();
 		std::memcpy(*_buf_, &items_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		for(std::list<ItemData >::const_iterator items_itr = items.begin(); items_itr != items.end(); items_itr++)	{
@@ -145,11 +136,6 @@ struct UserData {
 		if(nSize < user_id_length) { return false; }
 		user_id.assign((char*)*_buf_, user_id_length); (*_buf_) += user_id_length; nSize -= user_id_length;
 		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&user_seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&link_key, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(sizeof(int32_t) > nSize) { return false; }
-		uint32_t session_key_length = 0; std::memcpy(&session_key_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(nSize < session_key_length) { return false; }
-		session_key.assign((char*)*_buf_, session_key_length); (*_buf_) += session_key_length; nSize -= session_key_length;
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t items_length = 0; std::memcpy(&items_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		for(uint32_t i=0; i<items_length; i++) {
