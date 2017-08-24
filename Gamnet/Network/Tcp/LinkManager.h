@@ -4,6 +4,7 @@
 #include "Dispatcher.h"
 #include "Packet.h"
 #include "../LinkManager.h"
+#include "../../Library/Json/json.h"
 
 #include <memory>
 #include <atomic>
