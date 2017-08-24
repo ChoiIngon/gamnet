@@ -43,7 +43,7 @@ all: server
 server: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MacOS X C++ Linker'
-	g++ -L../../../Gamnet/Debug -L/usr/local/lib -o "server" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L../../../Gamnet/Debug -o "server" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

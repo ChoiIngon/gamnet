@@ -370,6 +370,47 @@ struct MsgSvrCli_Reconnect_Ans_Serializer {
 struct MsgSvrCli_Kickout_Ntf {
 	enum { MSG_ID = 10000003 }; 
 	ErrorCode	error_code;
+	MsgSvrCli_Reconnect_Ans()	{
+	}
+	int32_t Size() const {
+		int32_t nSize = 0;
+		nSize += ERROR_CODE_Serializer::Size(error_code);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == ERROR_CODE_Serializer::Store(_buf_, error_code)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == ERROR_CODE_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgSvrCli_Reconnect_Ans
+struct MsgSvrCli_Reconnect_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_Reconnect_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_Reconnect_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static int32_t Size(const MsgSvrCli_Reconnect_Ans& obj) { return obj.Size(); }
+};
+struct MsgSvrCli_Kickout_Ntf {
+	enum { MSG_ID = 10000003 }; 
+	ERROR_CODE	error_code;
 	MsgSvrCli_Kickout_Ntf()	{
 	}
 	int32_t Size() const {
