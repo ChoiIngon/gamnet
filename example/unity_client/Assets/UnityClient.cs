@@ -15,7 +15,13 @@ public class UnityClient : MonoBehaviour {
 	public Button close;
     public Button pause;
 	public InputField host;
-    public ScrollRect scrollRect;    
+    public ScrollRect scrollRect;
+
+    public Text logText;
+    public int lineCount;
+    public int lineNum;
+    public int lineLimit = 1000;
+
 
 	void Start () {
         connect.onClick.AddListener(() => {
@@ -156,7 +162,14 @@ public class UnityClient : MonoBehaviour {
 		
     void Log(string text)
     {
-        UILog.Write(text);
+        logText.text += lineNum.ToString() + ":" + text + System.Environment.NewLine;
+        lineCount++;
+        lineNum++;
+        if (lineLimit < lineCount)
+        {
+            int index = logText.text.IndexOf(System.Environment.NewLine);
+            logText.text = logText.text.Substring(index + System.Environment.NewLine.Length);
+        }
         scrollRect.verticalNormalizedPosition = 0.0f;
     }
 }
