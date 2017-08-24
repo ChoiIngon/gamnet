@@ -48,6 +48,7 @@ public :
 		}
 		session->session_key = ++Network::SessionManager::session_key;
 		session->recv_packet = Packet::Create();	
+		session->msg_seq = 0;
 		link->AttachSession(session);
 		LOG(DEV, "attach session(link_key:", link->link_key, ", session_key:", session->session_key, ")");
 		//session->OnAccept();
@@ -80,6 +81,7 @@ public :
 		while(Packet::HEADER_SIZE <= (int)session->recv_packet->Size())
 		{
 			uint16_t totalLength = session->recv_packet->GetLength();
+			LOG(DEV, "packet length:", totalLength);
 			if(Packet::HEADER_SIZE > totalLength )
 			{
 				LOG(GAMNET_ERR, "buffer underflow(read size:", totalLength, ")");
