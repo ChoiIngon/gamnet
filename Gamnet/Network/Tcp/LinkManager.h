@@ -102,7 +102,7 @@ public :
 			uint32_t msg_seq = session->recv_packet->GetSEQ();
 			if(msg_seq > session->msg_seq)
 			{
-				LOG(DEV, "[link_key:", link->link_key, ", session_key:", session->session_key, "] receive message(msg_seq:", msg_seq, ", msg_id", session->recv_packet->GetID(), ")");
+				LOG(DEV, "[link_key:", link->link_key, ", session_key:", session->session_key, "] receive message(msg_seq:", msg_seq, ", msg_id:", session->recv_packet->GetID(), ")");
 				Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, session->recv_packet);
 				session->msg_seq = msg_seq;
 			}
