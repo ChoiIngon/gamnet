@@ -5,7 +5,11 @@
 
 namespace Gamnet { namespace Database { namespace MySQL {
 
-ResultSetImpl::ResultSetImpl() : res_(NULL), affectedRowCount_(0), lastInsertID_(0), conn_(NULL)
+ResultSetImpl::ResultSetImpl() :
+		conn_(NULL),
+		res_(NULL),
+		affectedRowCount_(0),
+		lastInsertID_(0)
 {
 }
 

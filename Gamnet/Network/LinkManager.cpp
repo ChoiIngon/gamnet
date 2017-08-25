@@ -7,8 +7,8 @@ std::atomic_ullong LinkManager::link_key;
 
 LinkManager::LinkManager() :
 		_keepalive_time(0),
-		_acceptor(Singleton<boost::asio::io_service>::GetInstance()),
-		_is_acceptable(true)
+		_is_acceptable(true),
+		_acceptor(Singleton<boost::asio::io_service>::GetInstance())
 {
 }
 
@@ -28,7 +28,7 @@ void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 				std::shared_ptr<Link> link = itr->second;
 				if(0 != link->expire_time && link->expire_time + _keepalive_time < now_)
 				{
-					LOG(GAMNET_ERR, "idle session timeout(ip:", link->remote_address.to_string(), ", link_key:", link->link_key,")");
+					LOG(GAMNET_ERR, "[link_key:", link->link_key, "] idle link timeout(ip:", link->remote_address.to_string(), ")");
 			        _links.erase(itr++);
 			        link->strand.wrap(std::bind(&Link::OnError, link, ETIMEDOUT))();
 			    }
@@ -82,7 +82,7 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 		}
 		catch(const boost::system::system_error& e)
 		{
-			LOG(GAMNET_ERR, "fail to accept(link_key:", link->link_key, ", errno:", errno, ", errstr:", e.what(), ")");
+			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", errno, ", errstr:", e.what(), ")");
 		}
 	}
 	Accept();
@@ -117,7 +117,7 @@ bool LinkManager::Add(uint64_t key, const std::shared_ptr<Link>& link)
 	std::lock_guard<std::recursive_mutex> lo(_lock);
 	if(false == _links.insert(std::make_pair(key, link)).second)
 	{
-		LOG(GAMNET_ERR, "duplicated link key(link_key:", key, ")");
+		LOG(ERR, "[link_key:", key, "] duplicated link key");
 		return false;
 	}
 	return true;

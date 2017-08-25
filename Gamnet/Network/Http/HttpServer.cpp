@@ -12,7 +12,7 @@ namespace Gamnet { namespace Network { namespace Http {
 	{
 		if(0 > session->Send(res))
 		{
-			LOG(GAMNET_ERR, "fail to send message(session_key:", session->session_key, ")");
+			LOG(GAMNET_ERR, "[link_key:", session->link->link_key,", session_key:", session->session_key, "] send fail");
 			return false;
 		}
 		return true;

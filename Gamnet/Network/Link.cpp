@@ -10,9 +10,10 @@ Link::Link()
 	strand(io_service_),
 	link_key(0),
 	msg_seq(0),
-	manager(NULL),
+	expire_time(0),
 	read_buffer(NULL),
-	expire_time(0)
+	session(NULL),
+	manager(NULL)
 {
 }
 
@@ -24,7 +25,7 @@ void Link::Connect(const char* host, int port, int timeout)
 {
 	if(NULL == host)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid host name");
+		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid host name");
 	}
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
 	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
@@ -49,11 +50,12 @@ void Link::Connect(const char* host, int port, int timeout)
 				{
 					self->manager->OnConnect(self);
 				}
+				LOG(DEV, "[link_key:", self->link_key, "] connect success(remote_address:", self->remote_address.to_string(), ")");
 				self->AsyncRead();
 			}
 			catch(const boost::system::system_error& e)
 			{
-				LOG(GAMNET_ERR, "fail to accept(link_key:", self->link_key, ", errno:", errno, ", errstr:", e.what(), ")");
+				LOG(ERR, "[link_key:", self->link_key, "] connect fail(errno:", errno, ", errstr:", e.what(), ")");
 			}
 		}
 	}));
@@ -82,7 +84,7 @@ void Link::OnError(int reason)
 	}
 	catch(const Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, "exception(error_code:", e.error_code(), ", message:", e.what(), ")");
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 	}
 
 	socket.close();
@@ -173,19 +175,19 @@ int Link::SyncSend(const char* buf, int len)
 			int sentBytes = boost::asio::write(socket, boost::asio::buffer(buf+totalSentBytes, len-totalSentBytes), ec);
 			if(0 > sentBytes || 0 != ec)
 			{
-				LOG(GAMNET_ERR, "fail to send(link_key:", link_key, ", errno:", errno, ", errstr:", strerror(errno), ", ec:", ec, ")");
+				LOG(ERR, "[link_key:", link_key, "] send fail(errno:", errno, ", errstr:", strerror(errno), ", ec:", ec, ")");
 				return -1;
 			}
 			if(0 == sentBytes)
 			{
-				LOG(GAMNET_WRN, "send zero byte(link_key:", link_key, ", errno:", errno, ", errstr:", strerror(errno), ", ec:", ec, ")");
+				LOG(ERR, "[link_key:", link_key, "] send '0' byte(errno:", errno, ", errstr:", strerror(errno), ", ec:", ec, ")");
 				return -1;
 			}
 			totalSentBytes += sentBytes;
 		}
 		catch(const boost::system::system_error& e)
 		{
-			LOG(GAMNET_ERR, "fail to send(link_key:", link_key, ", errno:", errno, ", errstr:", e.what(), ")");
+			LOG(ERR, "[link_key:", link_key, "] send exception(errno:", errno, ", errstr:", strerror(errno), ")");
 			return -1;
 		}
 	}
@@ -213,14 +215,16 @@ void Link::AttachSession(const std::shared_ptr<Session>& session)
 	auto self(shared_from_this());
 	strand.wrap([self](const std::shared_ptr<Session>& session) {
 		if (NULL != self->session) {
+			LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] detach session");
 			self->session->link = NULL;
 			self->session = NULL;
 		}
 		self->session = session;
 		if(NULL != self->session) {
-			session->remote_address = &(self->remote_address);
-			session->link = self;
-			session->manager = self->manager;
+			self->session->remote_address = &(self->remote_address);
+			self->session->link = self;
+			self->session->manager = self->manager;
+			LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] attach session");
 		}
 	})(session);
 }

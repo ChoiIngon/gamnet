@@ -10,17 +10,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 class Session : public Network::Session
 {
 public :
-	struct Init
-	{
-		template <class T>
-		T* operator() (T* session)
-		{
-			session->msg_seq = 0;
-			session->recv_packet = Packet::Create();
-			Network::Session::Init init;
-			return init(session);
-		}
-	};
 	std::atomic<uint32_t> msg_seq;
 	std::shared_ptr<Packet> recv_packet;
 

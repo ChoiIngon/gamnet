@@ -32,7 +32,7 @@ CPP_DEPS += \
 %.o: ../%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -I/usr/include/mysql -I/usr/local/mysql-connector-c-6.1.1/include -I/usr/local/include -I/usr/local/Cellar/openssl/1.0.2l/include -I/usr/local/Cellar/boost/1.64.0_1/include -I/usr/local/Cellar/mysql-connector-c/6.1.6/include -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	g++ -I/usr/include/mysql -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

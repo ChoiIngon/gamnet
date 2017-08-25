@@ -36,9 +36,10 @@ public :
 	boost::asio::ip::address*	remote_address;
 	time_t						expire_time;
 	std::shared_ptr<Link>		link;
-	LinkManager*				manager;
 	HandlerContainer			handler_container;
+	LinkManager*				manager;
 
+public :
 	virtual void OnAccept() = 0;
 	virtual void OnClose(int reason) = 0;
 

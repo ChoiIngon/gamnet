@@ -24,7 +24,6 @@ namespace Gamnet { namespace Database { namespace MySQL {
 		unsigned int affectedRowCount_;
 		unsigned int lastInsertID_;
 		std::map<std::string, unsigned short> mapColumnName_;
-		
 
 		ResultSetImpl();
 		~ResultSetImpl();

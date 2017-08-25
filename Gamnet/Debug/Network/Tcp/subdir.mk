@@ -4,23 +4,23 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../Log/File.cpp \
-../Log/Log.cpp \
-../Log/Logger.cpp 
+../Network/Tcp/Packet.cpp \
+../Network/Tcp/Session.cpp \
+../Network/Tcp/Tcp.cpp 
 
 OBJS += \
-./Log/File.o \
-./Log/Log.o \
-./Log/Logger.o 
+./Network/Tcp/Packet.o \
+./Network/Tcp/Session.o \
+./Network/Tcp/Tcp.o 
 
 CPP_DEPS += \
-./Log/File.d \
-./Log/Log.d \
-./Log/Logger.d 
+./Network/Tcp/Packet.d \
+./Network/Tcp/Session.d \
+./Network/Tcp/Tcp.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
-Log/%.o: ../Log/%.cpp
+Network/Tcp/%.o: ../Network/Tcp/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
 	g++ -D_DEBUG -I/usr/include/mysql -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"

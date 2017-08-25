@@ -8,7 +8,6 @@ namespace Gamnet { namespace Network {
 
 class LinkManager;
 class Link : public std::enable_shared_from_this<Link> {
-	LinkManager* 	manager;
 public:
 	struct Init
 	{
@@ -35,7 +34,10 @@ public:
 	std::shared_ptr<Buffer> 			read_buffer;
 	std::deque<std::shared_ptr<Buffer>>	send_buffers;
 	std::shared_ptr<Session> session;
+private :
+	LinkManager* 	manager;
 
+public :
 	Link();
 	virtual ~Link();
 

@@ -37,7 +37,7 @@ public :
 
 	virtual void OnAccept(const std::shared_ptr<Link>& link)
 	{
-		LOG(DEV, "accept link(link_key:", link->link_key, ")");
+		LOG(DEV, "[link_key:", link->link_key, "] accept link");
 		Network::LinkManager::OnAccept(link);
 		const std::shared_ptr<SESSION_T> session = session_pool.Create();
 		if(NULL == session)
@@ -50,13 +50,11 @@ public :
 		session->recv_packet = Packet::Create();	
 		session->msg_seq = 0;
 		link->AttachSession(session);
-		LOG(DEV, "attach session(link_key:", link->link_key, ", session_key:", session->session_key, ")");
-		//session->OnAccept();
 	}
 
 	virtual void OnClose(const std::shared_ptr<Link>& link, int reason)
 	{
-		LOG(DEV, "close link(link_key:", link->link_key, ")");
+		LOG(DEV, "[link_key:", link->link_key, "] close link");
 		const std::shared_ptr<Network::Session>& session = link->session;
 		if(NULL != session)
 		{
@@ -81,7 +79,6 @@ public :
 		while(Packet::HEADER_SIZE <= (int)session->recv_packet->Size())
 		{
 			uint16_t totalLength = session->recv_packet->GetLength();
-			LOG(DEV, "packet length:", totalLength);
 			if(Packet::HEADER_SIZE > totalLength )
 			{
 				LOG(GAMNET_ERR, "buffer underflow(read size:", totalLength, ")");
@@ -105,13 +102,14 @@ public :
 			uint32_t msg_seq = session->recv_packet->GetSEQ();
 			if(msg_seq > session->msg_seq)
 			{
+				LOG(DEV, "[link_key:", link->link_key, ", session_key:", session->session_key, "] receive message(msg_seq:", msg_seq, ")");
 				Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, session->recv_packet);
 				session->msg_seq = msg_seq;
 			}
 #ifdef _DEBUG
 			else
 			{
-				LOG(WRN, "discard messsage(link_key:", link->link_key, ", msg_seq:", session->msg_seq, ", discarded msg_seq:", msg_seq, ")");
+				LOG(WRN, "[link_key:", link->link_key, ", session_key:", session->session_key, "] discard message(msg_seq:", msg_seq, ", expect:", session->msg_seq+1, ")");
 			}
 #endif
 			session->recv_packet->Remove(totalLength);
@@ -121,7 +119,7 @@ public :
 				std::shared_ptr<Packet> packet = Packet::Create();
 				if (NULL == packet)
 				{
-					LOG(GAMNET_ERR, "Can't create more buffer(link_key:", link->link_key, ")");
+					LOG(ERR, "Can't create more buffer(link_key:", link->link_key, ")");
 					link->OnError(EOVERFLOW);
 					return;
 				}
@@ -160,7 +158,7 @@ private :
 
 		void Recv_Connect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
-			LOG(DEV, "recv connect(session_key:", session->session_key, ")");
+			LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] receive connect request");
 			session->session_token = Session::GenerateSessionToken(session->session_key);
 
 			Json::Value ans;
@@ -170,6 +168,8 @@ private :
 
 			Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Add(session->session_key, session);
 			session->Send(MsgID_Connect_Ans, ans);
+			LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] send connect answer(session_key:", session->session_key, ", session_token:", session->session_token, ")");
+			LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] call OnAccept()");
 			session->OnAccept();
 		}
 		void Recv_Reconnect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
@@ -184,21 +184,21 @@ private :
 				Json::Reader reader;
 				if (false == reader.parse(json, req))
 				{
-					throw Exception(ErrorCode::MessageFormatError, "parse error(msg:", json, ")");
+					throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
 				}
 
 				uint32_t session_key = req["session_key"].asUInt();
 				std::string session_token = req["session_token"].asString();
-				LOG(DEV, "recv reconnect (session_key:", session_key, ", session_token:", session_token,")");
+				LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] receive re-connect request");
 				const std::shared_ptr<SESSION_T> other = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
 				if (NULL == other)
 				{
-					throw Exception(ErrorCode::ConnectTimeoutError, "no cached data. reconnect timeout");
+					throw Exception(GAMNET_ERRNO(ErrorCode::ConnectTimeoutError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] no cached data. reconnect timeout");
 				}
 
 				if(other->session_token != session_token)
 				{
-					throw Exception(ErrorCode::InvalidSessionTokenError, "invald session token(session_key:", session_key, ", exist:", other->session_token, ", new:", session_token, ")");
+					throw Exception(GAMNET_ERRNO(ErrorCode::InvalidSessionTokenError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] invald session token(expect:", other->session_token, ", receive:", session_token, ")");
 				}
 				
 				std::shared_ptr<Link> _link = other->link;
@@ -221,12 +221,13 @@ private :
 				LOG(GAMNET_ERR, e.what());
 			}
 
+			LOG(DEV, "[link_key:", link->link_key, ", session_key:", link->session->session_key, "] send re-connect answer(session_key:", link->session->session_key, ", session_token:", link->session->session_token, ")");
 			std::static_pointer_cast<SESSION_T>(link->session)->Send(MsgID_Reconnect_Ans, ans);
 			//link->session->OnAccept();
 		}
 		void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
-			LOG(DEV, "recv hrearbeat(session_key:", session->session_key, ")");
+			LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] receive heartbeat");
 			Packet::Header header;
 			header.msg_id = MsgID_HeartBeat_Ans;
 			header.msg_seq = session->msg_seq;

@@ -18,7 +18,13 @@ std::string Session::GenerateSessionToken(uint32_t session_key)
 	return md5(Format(session_key, time(NULL), Random::Range(1, 99999999)));
 }
 
-Session::Session() : expire_time(0), session_key(0), link(std::shared_ptr<Link>(NULL)), manager(NULL), remote_address(NULL)
+Session::Session() :
+		session_key(0),
+		session_token(""),
+		remote_address(NULL),
+		expire_time(0),
+		link(NULL),
+		manager(NULL)
 {
 }
 
@@ -69,9 +75,9 @@ bool SessionManager::Init(int keepAliveSeconds)
 		time_t now_ = time(NULL);
 		for(auto itr = _sessions.begin(); itr != _sessions.end();) {
 			std::shared_ptr<Session> session = itr->second;
-			if(session->expire_time + _keepalive_time < now_)
+			if(NULL == session->link && session->expire_time + _keepalive_time < now_)
 			{
-				LOG(GAMNET_ERR, "idle session timeout(session_key:", session->session_key,")");
+				LOG(GAMNET_ERR, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] idle session timeout");
 		        _sessions.erase(itr++);
 		    }
 		    else {
@@ -92,7 +98,7 @@ bool SessionManager::Add(uint32_t key, const std::shared_ptr<Session>& session)
 	std::lock_guard<std::recursive_mutex> lo(_lock);
 	if(false == _sessions.insert(std::make_pair(key, session)).second)
 	{
-		LOG(GAMNET_ERR, "duplicated session key(session_key:", key, ")");
+		LOG(GAMNET_ERR, "[link_key:", session->link->link_key, ", session_key:", key, "] duplicated session key");
 		return false;
 	}
 	session->expire_time = time(NULL) + _keepalive_time;
