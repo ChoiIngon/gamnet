@@ -122,6 +122,7 @@ namespace Gamnet
         private IPEndPoint 	_endpoint = null;
 
 		private ConnectionState 	_state = ConnectionState.Disconnected;
+        public ConnectionState      state { get { return _state; } }
 		private Gamnet.Buffer		_recv_buff = new Gamnet.Buffer();
 		private TimeoutMonitor 		_timeout_monitor = null;
 		private System.Timers.Timer	_connect_timer = null;
