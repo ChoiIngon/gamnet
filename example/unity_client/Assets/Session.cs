@@ -109,14 +109,14 @@ namespace Gamnet
 			Connected
 		}
 		// length<2byte>(header length + body length) | msg_id<4byte> | body
-		public const int MsgID_Connect_Req					= 0001;
-		public const int MsgID_Connect_Ans                  = 0001;
-		public const int MsgID_Reconnect_Req 				= 0002;
-		public const int MsgID_Reconnect_Ans                = 0002;
-        public const int MsgID_HeartBeat_Req                = 0003;
-        public const int MsgID_HeartBeat_Ans                = 0003;
-        public const int MsgID_Kickout_Ntf 	                = 0004;
-
+		private const int MsgID_Connect_Req					= 0001;
+		private const int MsgID_Connect_Ans                  = 0001;
+		private const int MsgID_Reconnect_Req 				= 0002;
+		private const int MsgID_Reconnect_Ans                = 0002;
+		private const int MsgID_HeartBeat_Req                = 0003;
+		private const int MsgID_HeartBeat_Ans                = 0003;
+		private const int MsgID_Kickout_Ntf 	                = 0004;
+		public int heartbeat_time = 60000;
 		private object 		_sync_obj = new object();
         private Socket 		_socket = null;
         private IPEndPoint 	_endpoint = null;
@@ -298,6 +298,7 @@ namespace Gamnet
 		private void Callback_Connect(IAsyncResult result) {
 			_connect_timer.Stop ();
             try	{
+				Debug.Log ("connect()");
 				_socket = (Socket)result.AsyncState;
 				_socket.EndConnect(result);
 				_socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
@@ -312,9 +313,10 @@ namespace Gamnet
 				packet.length = Packet.HEADER_SIZE;
 				packet.msg_id = MsgID_Connect_Req;
 				packet.msg_seq = ++_msg_seq;
+				packet.reliable = false;
 				SendMsg(packet);
                 _connect_timer = new System.Timers.Timer();
-                _connect_timer.Interval = 60000;
+				_connect_timer.Interval = heartbeat_time;
                 _connect_timer.AutoReset = true;
                 _connect_timer.Elapsed += delegate {
                     Gamnet.Packet heartbeat = new Gamnet.Packet();
@@ -335,7 +337,6 @@ namespace Gamnet
             if (ConnectionState.Disconnected != _state) {
                 return;
             }
-            
             _state = ConnectionState.OnConnecting;
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.BeginConnect(_endpoint, new AsyncCallback(Callback_Reconnect), socket);
@@ -344,6 +345,7 @@ namespace Gamnet
 		private void Callback_Reconnect(IAsyncResult result) {
 			_connect_timer.Stop ();
 			try	{
+				Debug.Log ("reconnect");
 				_socket = (Socket)result.AsyncState;
 				_socket.EndConnect(result);
 				_socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
@@ -365,6 +367,7 @@ namespace Gamnet
 				packet.length = (ushort)(Packet.HEADER_SIZE + data.Length);
 				packet.msg_id = MsgID_Reconnect_Req;
 				packet.msg_seq = ++_msg_seq;
+				packet.reliable = false;
 				packet.Append(data);
 
 				lock (_sync_obj) {
@@ -379,7 +382,7 @@ namespace Gamnet
 					}
 				}
                 _connect_timer = new System.Timers.Timer();
-                _connect_timer.Interval = 60000;
+				_connect_timer.Interval = heartbeat_time;
                 _connect_timer.AutoReset = true;
                 _connect_timer.Elapsed += delegate {
                     Gamnet.Packet heartbeat = new Gamnet.Packet();
@@ -495,6 +498,7 @@ namespace Gamnet
             if (ConnectionState.Disconnected == _state) {
                 return;
             }
+			Debug.Log ("close");
             try {
 				_state = ConnectionState.Disconnected;
                 _connect_timer.Stop();
@@ -572,6 +576,7 @@ namespace Gamnet
                 lock (_sync_obj) {
 					int writedBytes = _socket.EndSend(result);
                     Gamnet.Packet packet = _send_queue[_send_queue_idx];
+					Debug.Log ("msg_seq:" + packet.msg_seq + ", msg_id:" + packet.msg_id + ", length:" + packet.length);
                     packet.read_index += writedBytes;
                     if (packet.Size() > 0) {
                         Gamnet.Packet newPacket = new Gamnet.Packet(packet);
