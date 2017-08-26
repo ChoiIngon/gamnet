@@ -227,14 +227,14 @@ public :
 			Packet::Header header;
 			header.msg_id = MsgID_Reconnect_Ans;
 			header.msg_seq = session->msg_seq;
-			header.length = (uint16_t)(Packet::HEADER_SIZE + str.length());
+			header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
 
 			std::shared_ptr<Packet> ans_packet = Packet::Create();
 			if(NULL == ans_packet)
 			{
 				return;
 			}
-			ans_packet->Write(header, str.c_str(), str.length());
+			ans_packet->Write(header, str.c_str(), str.length()+1);
 			link->AsyncSend(ans_packet);
 			//link->session->OnAccept();
 		}
