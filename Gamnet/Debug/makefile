@@ -19,6 +19,9 @@ RM := rm -rf
 -include Database/Redis/subdir.mk
 -include Database/MySQL/subdir.mk
 -include Database/subdir.mk
+-include CMakeFiles/3.9.1/CompilerIdCXX/subdir.mk
+-include CMakeFiles/3.9.1/CompilerIdC/subdir.mk
+-include CMakeFiles/subdir.mk
 -include subdir.mk
 -include objects.mk
 

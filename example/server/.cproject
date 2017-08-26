@@ -23,6 +23,10 @@
 							<tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug.683409526" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug">
 								<option id="macosx.cpp.link.option.paths.2137758655" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="../../../Gamnet/Debug"/>
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/mysql-connector-c/6.1.6/lib"/>
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/boost/1.64.0_1/lib"/>
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/curl/7.55.1/lib"/>
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/openssl/1.0.2l/lib"/>
 								</option>
 								<option id="macosx.cpp.link.option.libs.638178690" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="Gamnet"/>
@@ -44,9 +48,18 @@
 								<option id="gnu.cpp.compilermacosx.exe.debug.option.optimization.level.849764464" name="Optimization Level" superClass="gnu.cpp.compilermacosx.exe.debug.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.macosx.exe.debug.option.debugging.level.516854532" name="Debug Level" superClass="gnu.cpp.compiler.macosx.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1275618484" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="/usr/include/mysql"/>
+									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/openssl/1.0.2l/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/curl/7.55.1/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/mysql-connector-c/6.1.6/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/mysql-connector-c-6.1.1/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/boost/1.64.0_1/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.1816586036" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -std=c++11" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1526478533" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="_DEBUG"/>
+									<listOptionValue builtIn="false" value="DEBUG"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.460322302" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug.1214655479" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug">

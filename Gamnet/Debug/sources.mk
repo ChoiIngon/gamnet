@@ -23,16 +23,19 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-Database \
-Database/MySQL \
-Database/Redis \
-. \
+Test \
+Network/Tcp \
+Network \
+Network/Router \
+Network/Http \
+Log \
 Library \
 Library/Json \
-Log \
-Network \
-Network/Http \
-Network/Router \
-Network/Tcp \
-Test \
+. \
+Database/Redis \
+Database/MySQL \
+Database \
+CMakeFiles \
+CMakeFiles/3.9.1/CompilerIdCXX \
+CMakeFiles/3.9.1/CompilerIdC \
 
