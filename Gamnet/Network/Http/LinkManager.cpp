@@ -1,5 +1,6 @@
 #include "LinkManager.h"
 #include "Dispatcher.h"
+#include "Request.h"
 #include "../../Library/String.h"
 #include <curl/curl.h>
 
@@ -45,38 +46,16 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const st
 			}
 			uri = uri.substr(0, uri_end);
 
-			std::map<std::string, std::string> mapParam;
 			CURL* curl_ = curl_easy_init();
 			if(NULL == curl_)
 			{
-				throw Exception(ERR, "curl lib isn't inited");
+				throw Exception(GAMNET_ERRNO(ErrorCode::NotInitializedError), "curl lib isn't inited");
 			}
-			while(0 < param.length())
-			{
-				size_t equal_pos = param.find("=");
-				if(std::string::npos == equal_pos)
-				{
-					break;
-				}
-				size_t delim_pos = param.find("&");
-				if(std::string::npos == delim_pos)
-				{
-					delim_pos = param.length();
-				}
-
-				std::string name = param.substr(0, equal_pos);
-				std::string value = param.substr(equal_pos+1, delim_pos-(equal_pos+1));
-				mapParam.insert(std::make_pair(name, value));
-				if(delim_pos >= param.length())
-				{
-					break;
-				}
-				param = param.substr(delim_pos+1);
-			}
+			Request req(param);
 
 			const std::shared_ptr<Session> session = std::shared_ptr<Session>(new Session());
 			link->AttachSession(session);
-			Singleton<Dispatcher>::GetInstance().OnRecvMsg(link, uri, mapParam);
+			Singleton<Dispatcher>::GetInstance().OnRecvMsg(link, uri, req);
 			link->OnError(errno); // no error, just closed socket
 			return;
 		}

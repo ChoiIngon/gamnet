@@ -4,18 +4,19 @@
 #include "../Tcp/Tcp.h"
 #include "../HandlerFactory.h"
 #include "Session.h"
+#include "Request.h"
 
 namespace Gamnet { namespace Network { namespace Http {
 
 class Dispatcher {
 public:
-	typedef void(Network::IHandler::*function_type)(const std::shared_ptr<Session>&, const std::map<std::string, std::string>&);
+	typedef void(Network::IHandler::*function_type)(const std::shared_ptr<Session>&, const Request&);
 	struct HandlerFunction
 	{
 		template<class FACTORY, class FUNCTION>
 		HandlerFunction(FACTORY* factory, FUNCTION function) : factory_(factory), function_(function) {}
 		Network::IHandlerFactory* factory_;
-		std::function<void(const std::shared_ptr<Network::IHandler>&, const std::shared_ptr<Session>&, const std::map<std::string, std::string>&)> function_;
+		std::function<void(const std::shared_ptr<Network::IHandler>&, const std::shared_ptr<Session>&, const Request&)> function_;
 	};
 	std::map<std::string, HandlerFunction> mapHandlerFunction_;
 
@@ -33,7 +34,7 @@ public:
 		return true;
 	}
 
-	void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::string& uri, const std::map<std::string, std::string>& param);
+	void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::string& uri, const Request& request);
 };
 
 }}}

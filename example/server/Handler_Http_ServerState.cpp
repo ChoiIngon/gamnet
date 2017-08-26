@@ -9,7 +9,7 @@ Handler_Http_ServerState::~Handler_Http_ServerState()
 {
 }
 
-void Handler_Http_ServerState::Recv_Req(const std::shared_ptr<Gamnet::Network::Http::Session>& session, const std::map<std::string, std::string>& param)
+void Handler_Http_ServerState::Recv_Req(const std::shared_ptr<Gamnet::Network::Http::Session>& session, const Gamnet::Network::Http::Request& param)
 {
 	Gamnet::Network::Http::Response res;
 	res.nErrorCode = 200;
@@ -17,13 +17,7 @@ void Handler_Http_ServerState::Recv_Req(const std::shared_ptr<Gamnet::Network::H
 	try
 	{
 		Json::Value root = Gamnet::Network::Tcp::ServerState<Session>("server");
-		{
-			auto itr = param.find("param");
-			if (param.end() != itr)
-			{
-				root["param"] = itr->second;
-			}
-		}
+		root["param"] = (const std::string)param["param"];
 
 		Json::StyledWriter writer;
 		res.sBodyContext = writer.write(root);

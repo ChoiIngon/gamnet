@@ -8,6 +8,7 @@ CPP_SRCS += \
 ../Network/Http/HttpClient.cpp \
 ../Network/Http/HttpServer.cpp \
 ../Network/Http/LinkManager.cpp \
+../Network/Http/Request.cpp \
 ../Network/Http/Response.cpp \
 ../Network/Http/Session.cpp 
 
@@ -16,6 +17,7 @@ OBJS += \
 ./Network/Http/HttpClient.o \
 ./Network/Http/HttpServer.o \
 ./Network/Http/LinkManager.o \
+./Network/Http/Request.o \
 ./Network/Http/Response.o \
 ./Network/Http/Session.o 
 
@@ -24,6 +26,7 @@ CPP_DEPS += \
 ./Network/Http/HttpClient.d \
 ./Network/Http/HttpServer.d \
 ./Network/Http/LinkManager.d \
+./Network/Http/Request.d \
 ./Network/Http/Response.d \
 ./Network/Http/Session.d 
 
@@ -32,7 +35,7 @@ CPP_DEPS += \
 Network/Http/%.o: ../Network/Http/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -D_DEBUG -I/usr/include/mysql -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	g++ -D_DEBUG -I/usr/local/include -I/usr/local/Cellar/boost/1.64.0_1/include -I/usr/local/Cellar/openssl/1.0.2l/include -I/usr/local/Cellar/curl/7.55.1/include -I/usr/local/Cellar/mysql-connector-c/6.1.6/include -I/usr/local/mysql-connector-c-6.1.1/include -O0 -g3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

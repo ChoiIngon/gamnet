@@ -11,6 +11,7 @@
 #include "Dispatcher.h"
 #include "HttpClient.h"
 #include "LinkManager.h"
+#include "Request.h"
 
 namespace Gamnet { namespace Network { namespace Http {
 	void Listen(int port, int max_session, int keep_alive);

@@ -12,8 +12,9 @@ namespace Gamnet {
 		Variant(const std::string& val);
 
 		operator bool() const;
-		operator const std::string() const;
 
+		operator std::string();
+		operator std::string() const;
 		operator double() const;
 		operator float() const;
 

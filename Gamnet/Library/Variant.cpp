@@ -44,12 +44,24 @@ Gamnet::Variant::operator int64_t() const
 	return boost::lexical_cast<int64_t>(value); 
 }
 
-Gamnet::Variant::	operator bool() const 
+Gamnet::Variant::operator bool() const
 { 
 	return boost::lexical_cast<bool>(value); 
 }
 
+/*
 Gamnet::Variant::operator const std::string () const
+{
+	return value;
+}
+*/
+
+Gamnet::Variant::operator std::string()
+{
+	return value;
+}
+
+Gamnet::Variant::operator std::string() const
 {
 	return value;
 }

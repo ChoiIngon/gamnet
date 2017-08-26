@@ -15,7 +15,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 		return impl_->end();
 	}
 
-	const Variant& ResultSet::operator[] (unsigned int index)
+	const Variant& ResultSet::operator[] (int index)
 	{
 		if (0 > index || index >= impl_->size())
 		{
