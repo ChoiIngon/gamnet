@@ -120,7 +120,7 @@ namespace Gamnet
 		private SyncQueue<SessionEvent> 	_event_queue = new SyncQueue<SessionEvent>();
 		private SyncQueue<Gamnet.Packet>	_send_queue = new SyncQueue<Gamnet.Packet>(); // 바로 보내지 못하고 
 		private int 						_send_queue_idx = 0;
-		private Dictionary<uint, Action<Gamnet.Buffer>> _handlers = new Dictionary<uint, Action<Gamnet.Buffer>>();
+		private Dictionary<uint, Action<System.IO.MemoryStream>> _handlers = new Dictionary<uint, Action<System.IO.MemoryStream>>();
 		private NetworkReachability	_networkReachability = NetworkReachability.NotReachable;
 	
 		private uint 	_session_key = 0;
@@ -137,6 +137,7 @@ namespace Gamnet
 		public delegate void Delegate_OnReconnect();
 		public delegate void Delegate_OnClose();
 		public delegate void Delegate_OnError(Gamnet.Exception e);
+		public delegate void Delegate_OnReceive(System.IO.MemoryStream buffer);
 
 		public Delegate_OnConnect onConnect;
 		public Delegate_OnReconnect onReconnect;
@@ -376,7 +377,7 @@ namespace Gamnet
 				_recv_buff.read_index += Packet.HEADER_SIZE;
 				_timeout_monitor.UnsetTimeout(msgID);
 
-				Action<Gamnet.Buffer> handler = _handlers[msgID];
+				Action<System.IO.MemoryStream> handler = _handlers[msgID];
 
 				try	{
 					handler(_recv_buff);
@@ -403,6 +404,7 @@ namespace Gamnet
             try {
 				_state = ConnectionState.Disconnected;
                 _timer.Stop();
+				//_socket.Shutdown(SocketShutdown.Send);
                 _socket.BeginDisconnect(false, new AsyncCallback(Callback_Close), _socket);
             }
             catch (SocketException e)
@@ -413,7 +415,6 @@ namespace Gamnet
 		private void Callback_Close(IAsyncResult result) {
 			try	{
 				_socket.EndDisconnect(result);
-				//_socket.Shutdown(SocketShutdown.Both);
 				_socket.Close();
 				CloseEvent evt = new CloseEvent(this);
 				_event_queue.PushBack(evt);
@@ -519,10 +520,9 @@ namespace Gamnet
 			if (Application.internetReachability != _networkReachability) {
 				_networkReachability = Application.internetReachability;
 				Close ();
-				Reconnect ();
 			}
         }
-		public void RegisterHandler(uint msg_id, Action<Gamnet.Buffer> handler) {
+		public void RegisterHandler(uint msg_id, Action<System.IO.MemoryStream> handler) {
 			_handlers.Add(msg_id, handler);
 		}
 		public void UnregisterHandler(uint msg_id) {
@@ -547,8 +547,8 @@ namespace Gamnet
 			public uint session_key = 0; 
 			public string session_token = "";
 		}
-		void Recv_Connect_Ans(Gamnet.Buffer buffer) {
-			string json = System.Text.Encoding.UTF8.GetString(buffer.data, buffer.read_index, buffer.Size());
+		void Recv_Connect_Ans(System.IO.MemoryStream buffer) {
+			string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)(buffer.Length - buffer.Position));
 			Msg_Connect_Ans ans = JsonUtility.FromJson<Msg_Connect_Ans>(json);
 			if(0 != ans.error_code)
 			{
@@ -592,8 +592,8 @@ namespace Gamnet
 			public string session_token = "";
 			public uint msg_seq = 0;
 		}
-		void Recv_Reconnect_Ans(Gamnet.Buffer buffer) {
-			string json = System.Text.Encoding.UTF8.GetString(buffer.data, buffer.read_index, buffer.Size());
+		void Recv_Reconnect_Ans(System.IO.MemoryStream buffer) {
+			string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)(buffer.Length - buffer.Position));
 			Msg_Reconnect_Ans ans = JsonUtility.FromJson<Msg_Reconnect_Ans>(json);
 			if(0 != ans.error_code)
 			{
@@ -624,8 +624,8 @@ namespace Gamnet
 			public int error_code = 0;
 			public uint msg_seq = 0;
 		}
-		void Recv_HeartBeat_Ans(Gamnet.Buffer buffer) {
-			string json = System.Text.Encoding.UTF8.GetString(buffer.data, buffer.read_index, buffer.Size());
+		void Recv_HeartBeat_Ans(System.IO.MemoryStream buffer) {
+			string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)(buffer.Length - buffer.Position));
 			Msg_HeartBeat_Ans ans = JsonUtility.FromJson<Msg_HeartBeat_Ans>(json);
 			if(0 != ans.error_code)
 			{
@@ -640,8 +640,8 @@ namespace Gamnet
 		class Msg_Kickout_Ntf {
 			public int error_code = 0;
 		}
-		void Recv_Kickout_Ntf(Gamnet.Buffer buffer) {
-			string json = System.Text.Encoding.UTF8.GetString(buffer.data, buffer.read_index, buffer.Size());
+		void Recv_Kickout_Ntf(System.IO.MemoryStream buffer) {
+			string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)(buffer.Length - buffer.Position));
 			Msg_Kickout_Ntf ntf = JsonUtility.FromJson<Msg_Kickout_Ntf>(json);
 			Error(new Gamnet.Exception(ntf.error_code));
 			Close();

@@ -84,7 +84,7 @@ public class UnityClient : MonoBehaviour {
 			}
 			coroutine = null;
 		};
-		session.RegisterHandler (MsgSvrCli_Login_Ans.MSG_ID, (Gamnet.Buffer buffer) => {
+		session.RegisterHandler (MsgSvrCli_Login_Ans.MSG_ID, (System.IO.MemoryStream buffer) => {
 			MsgSvrCli_Login_Ans ans = new MsgSvrCli_Login_Ans();
 			if(false == ans.Load(buffer)) {
 				Log("MessageFormatError(MsgSvrCli_Login_Ans)");
@@ -105,7 +105,7 @@ public class UnityClient : MonoBehaviour {
 			}
 			coroutine = StartCoroutine(SendHeartBeat());
 		});
-		session.RegisterHandler (MsgSvrCli_Reconnect_Ans.MSG_ID, (Gamnet.Buffer buffer) => {
+		session.RegisterHandler (MsgSvrCli_Reconnect_Ans.MSG_ID, (System.IO.MemoryStream buffer) => {
 			MsgSvrCli_Reconnect_Ans ans = new MsgSvrCli_Reconnect_Ans();
 			if(false == ans.Load(buffer)) {
 				Log("MessageFormatError(MsgSvrCli_Reconnect_Ans)");
@@ -117,7 +117,7 @@ public class UnityClient : MonoBehaviour {
 			}
 			coroutine = StartCoroutine(SendHeartBeat());
 		});
-		session.RegisterHandler (MsgSvrCli_HeartBeat_Ntf.MSG_ID, (Gamnet.Buffer buffer) => {
+		session.RegisterHandler (MsgSvrCli_HeartBeat_Ntf.MSG_ID, (System.IO.MemoryStream buffer) => {
 			MsgSvrCli_HeartBeat_Ntf ntf = new MsgSvrCli_HeartBeat_Ntf();
 			if(false == ntf.Load(buffer)) {
 				Log("MessageFormatError(MsgSvrCli_HeartBeat_Ntf)");
@@ -128,7 +128,7 @@ public class UnityClient : MonoBehaviour {
 			session.RemoveSentPacket(ntf.msg_seq);
 			// remove every queued message under msg_seq
 		});
-		session.RegisterHandler (MsgSvrCli_Kickout_Ntf.MSG_ID, (Gamnet.Buffer buffer) => {
+		session.RegisterHandler (MsgSvrCli_Kickout_Ntf.MSG_ID, (System.IO.MemoryStream buffer) => {
 			MsgSvrCli_Kickout_Ntf ntf = new MsgSvrCli_Kickout_Ntf();
 			if(false == ntf.Load(buffer)) {
 				Log("MessageFormatError(MsgSvrCli_Kickout_Ntf)");
