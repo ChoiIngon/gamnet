@@ -70,11 +70,13 @@ namespace Gamnet
 
 		public TimeoutMonitor()	{}
 
-		public void SetTimeout(uint msg_id, int timeout, System.Timers.ElapsedEventHandler timeout_callback)	{
+		public void SetTimeout(uint msg_id, int timeout, OnTimeout timeout_callback)	{
 			System.Timers.Timer timer = new System.Timers.Timer();
 			timer.Interval = timeout * 1000;
 			timer.AutoReset = false;
-			timer.Elapsed += timeout_callback;
+			timer.Elapsed += delegate {
+				timeout_callback();
+			};
 			timer.Start();
 
 			if (false == timers.ContainsKey(msg_id)) {
@@ -119,7 +121,7 @@ namespace Gamnet
 		private SyncQueue<Gamnet.Packet>	_send_queue = new SyncQueue<Gamnet.Packet>(); // 바로 보내지 못하고 
 		private int 						_send_queue_idx = 0;
 		private Dictionary<uint, Action<Gamnet.Buffer>> _handlers = new Dictionary<uint, Action<Gamnet.Buffer>>();
-		//private NetworkReachability	_networkReachability = NetworkReachability.NotReachable;
+		private NetworkReachability	_networkReachability = NetworkReachability.NotReachable;
 	
 		private uint 	_session_key = 0;
 		private string 	_session_token = "";
@@ -513,12 +515,12 @@ namespace Gamnet
 				SessionEvent evt = _event_queue.PopFront();
                 evt.Event();
             }
-			/*
+
 			if (Application.internetReachability != _networkReachability) {
 				_networkReachability = Application.internetReachability;
 				Close ();
+				Reconnect ();
 			}
-			*/
         }
 		public void RegisterHandler(uint msg_id, Action<Gamnet.Buffer> handler) {
 			_handlers.Add(msg_id, handler);

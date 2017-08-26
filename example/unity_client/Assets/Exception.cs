@@ -13,10 +13,7 @@
 		public const int NullPointerError = 60;
 		public const int MessageFormatError = 70;
 		public const int DuplicateConnectionError = 80;
-		public const int CreateDirectoryFailError = 90;
-		public const int CreateInstanceFailError = 91;
 		public const int BufferOverflowError = 100;
-		public const int MessageSeqOmittedError = 110;
 		public const int UndefinedError = 999;
 	}
 	public class Exception : System.Exception {
