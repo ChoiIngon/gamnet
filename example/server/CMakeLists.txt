@@ -1,5 +1,9 @@
 project(server)
 
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/Debug)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+
 include_directories(
 	/usr/local/include
    	/usr/include/mysql
