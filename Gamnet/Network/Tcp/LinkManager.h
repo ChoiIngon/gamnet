@@ -219,7 +219,7 @@ public :
 				LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 			}
 
-			LOG(DEV, "[link_key:", link->link_key, ", session_key:", NULL == link->session ? 0 : link->session->session_key, "] send re-connect answer(error_code:", ans["error_code"].asInt(), ", session_token:", link->session->session_token, ")");
+			LOG(DEV, "[link_key:", link->link_key, ", session_key:", NULL == link->session ? 0 : link->session->session_key, "] send re-connect answer(error_code:", ans["error_code"].asInt(), ", session_token:", NULL == link->session ? "<null>" : link->session->session_token, ")");
 
 			Json::StyledWriter writer;
 			std::string str = writer.write(ans);
