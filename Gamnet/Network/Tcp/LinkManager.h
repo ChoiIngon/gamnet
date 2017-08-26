@@ -214,12 +214,28 @@ public :
 			}
 			catch (const Exception& e)
 			{
+				link->AttachSession(NULL);
 				ans["error_code"] = e.error_code();
 				LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 			}
 
-			LOG(DEV, "[link_key:", link->link_key, ", session_key:", link->session->session_key, "] send re-connect answer(session_key:", link->session->session_key, ", session_token:", link->session->session_token, ")");
-			std::static_pointer_cast<SESSION_T>(link->session)->Send(MsgID_Reconnect_Ans, ans);
+			LOG(DEV, "[link_key:", link->link_key, ", session_key:", NULL == link->session ? 0 : link->session->session_key, "] send re-connect answer(error_code:", ans["error_code"].asInt(), ", session_token:", link->session->session_token, ")");
+
+			Json::StyledWriter writer;
+			std::string str = writer.write(ans);
+
+			Packet::Header header;
+			header.msg_id = MsgID_Reconnect_Ans;
+			header.msg_seq = session->msg_seq;
+			header.length = (uint16_t)(Packet::HEADER_SIZE + str.length());
+
+			std::shared_ptr<Packet> ans_packet = Packet::Create();
+			if(NULL == ans_packet)
+			{
+				return;
+			}
+			ans_packet->Write(header, str.c_str(), str.length());
+			link->AsyncSend(ans_packet);
 			//link->session->OnAccept();
 		}
 		void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)

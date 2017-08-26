@@ -16,6 +16,9 @@ Session::Session() : Network::Tcp::Session() {
 
 Session::~Session() {}
 
+void Session::OnCreate() {
+}
+
 void Session::OnAccept() {
 	onRouterClose = LinkManager::onRouterClose;
 }

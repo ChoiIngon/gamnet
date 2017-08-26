@@ -71,6 +71,7 @@ public:
 	std::function<void(const Address& addr)> onRouterConnect;
 	std::function<void(const Address& addr)> onRouterClose;
 
+	virtual void OnCreate();
 	virtual void OnAccept();
 	virtual void OnConnect();
 	virtual void OnClose(int reason);

@@ -15,6 +15,7 @@ class Session : public Gamnet::Network::Tcp::Session {
 public:
 	Session();
 	virtual ~Session();
+	virtual void OnCreate();
 	virtual void OnAccept();
 	virtual void OnClose(int reason);
 	

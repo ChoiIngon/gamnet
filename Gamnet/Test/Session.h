@@ -18,6 +18,7 @@ public:
 	Session();
 	virtual ~Session();
 
+	void OnCreate() {}
 	void OnAccept() {}
 	void OnClose(int reason) {}
 

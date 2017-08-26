@@ -15,12 +15,9 @@ public:
 
 	int Send(const Response& res);
 
-	virtual void OnAccept()
-	{
-	}
-	virtual void OnClose(int reason)
-	{
-	}
+	virtual void OnCreate() {}
+	virtual void OnAccept()	{}
+	virtual void OnClose(int reason) {}
 };
 
 } /* namespace Http */

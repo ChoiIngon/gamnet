@@ -22,9 +22,11 @@ public :
 		T* operator() (T* session)
 		{
 			session->session_key = 0;
+			session->session_token = "";
 			session->expire_time = 0;
 			session->link = NULL;
 			session->remote_address = NULL;
+			session->OnCreate();
 			return session;
 		}
 	};
@@ -40,6 +42,7 @@ public :
 	LinkManager*				manager;
 
 public :
+	virtual void OnCreate() = 0;
 	virtual void OnAccept() = 0;
 	virtual void OnClose(int reason) = 0;
 
