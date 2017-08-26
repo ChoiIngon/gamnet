@@ -77,12 +77,12 @@ bool SessionManager::Init(int keepAliveSeconds)
 			std::shared_ptr<Session> session = itr->second;
 			if(NULL == session->link && session->expire_time + _keepalive_time < now_)
 			{
-				LOG(GAMNET_ERR, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] idle session timeout");
-		        _sessions.erase(itr++);
-		    }
-		    else {
-		        ++itr;
-		    }
+				LOG(GAMNET_ERR, "[session_key:", session->session_key, "] idle session timeout");
+			        _sessions.erase(itr++);
+			}
+	 		else { 
+				++itr; 
+			}
 		}
 		_timer.Resume();
 	}))
