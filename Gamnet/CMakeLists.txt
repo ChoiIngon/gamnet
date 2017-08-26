@@ -1,4 +1,8 @@
 project(server)
+	
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/Debug)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 include_directories(
 	/usr/local/include
@@ -37,6 +41,7 @@ add_library(Gamnet STATIC
 	Network/Http/HttpClient.cpp
 	Network/Http/HttpServer.cpp
 	Network/Http/LinkManager.cpp
+	Network/Http/Request.cpp
 	Network/Http/Response.cpp
 	Network/Http/Session.cpp
 	Network/Router/LinkManager.cpp
