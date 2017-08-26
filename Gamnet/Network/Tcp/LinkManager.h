@@ -167,7 +167,6 @@ public :
 			Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Add(session->session_key, session);
 			session->Send(MsgID_Connect_Ans, ans);
 			LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] send connect answer(session_key:", session->session_key, ", session_token:", session->session_token, ")");
-			LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] call OnAccept()");
 			session->OnAccept();
 		}
 		void Recv_Reconnect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
@@ -216,7 +215,7 @@ public :
 			catch (const Exception& e)
 			{
 				ans["error_code"] = e.error_code();
-				LOG(GAMNET_ERR, e.what());
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 			}
 
 			LOG(DEV, "[link_key:", link->link_key, ", session_key:", link->session->session_key, "] send re-connect answer(session_key:", link->session->session_key, ", session_token:", link->session->session_token, ")");
@@ -225,19 +224,13 @@ public :
 		}
 		void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
-			LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] receive heartbeat");
-			Packet::Header header;
-			header.msg_id = MsgID_HeartBeat_Ans;
-			header.msg_seq = session->msg_seq;
-			header.length = (uint16_t)Packet::HEADER_SIZE;
+			LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] receive heartbeat request(msg_seq:", packet->GetSEQ(), ", expect:", session->msg_seq+1, ")");
 
-			std::shared_ptr<Packet> ans = Packet::Create();
-			if (NULL == ans)
-			{
-				return;
-			}
-			ans->Write(header, NULL, 0);
-			session->Send(ans);
+			Json::Value ans;
+			ans["error_code"] = 0;
+			ans["msg_seq"] = (uint32_t)session->msg_seq;
+			session->Send(MsgID_HeartBeat_Ans, ans);
+			LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] send heartbeat ans(msg_seq:", session->msg_seq, ")");
 		}
 	};
 

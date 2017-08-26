@@ -76,7 +76,7 @@ public class UnityClient : MonoBehaviour {
 		session.onClose += () => {
 			Log("session close");
         };
-		session.onError += (System.Exception e) => {
+		session.onError += (Gamnet.Exception e) => {
 			Log(e.ToString());
 			if(null != coroutine)
 			{
