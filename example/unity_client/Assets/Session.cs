@@ -446,6 +446,10 @@ namespace Gamnet
 				packet.Append(ms);
 
 				SendMsg(packet);
+				if (0 == msg_seq % 10 && ConnectionState.Connected == _state)
+				{
+					Send_HeartBeat_Req ();
+				}
 			}
 			catch (System.Exception e) {
 				Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.Message));
@@ -458,10 +462,6 @@ namespace Gamnet
 				if (1 == _send_queue.Count() - _send_queue_idx && ConnectionState.Connected == _state) {
 					_socket.BeginSend(_send_queue[_send_queue_idx].data, 0, _send_queue[_send_queue_idx].Size(), 0, new AsyncCallback(Callback_SendMsg), packet);
 				}
-				if (0 == msg_seq % 10 && ConnectionState.Connected == _state)
-                {
-					Send_HeartBeat_Req ();
-                }
             }
 		}
         private void Callback_SendMsg(IAsyncResult result) {
