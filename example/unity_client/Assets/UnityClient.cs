@@ -18,11 +18,10 @@ public class UnityClient : MonoBehaviour {
     public ScrollRect scrollRect;
 
     public Text logText;
-    public int lineCount;
-    public int lineNum;
+    private int lineCount = 0;
     public int lineLimit = 1000;
 
-
+	const int TimeoutError = 1000;
 	void Start () {
         connect.onClick.AddListener(() => {
 			//session.msg_seq = 0;
@@ -64,20 +63,17 @@ public class UnityClient : MonoBehaviour {
             session.SendMsg(req);
 		};
 		session.onReconnect += () => {
-			/*
-			MsgCliSvr_Reconnect_Req req = new MsgCliSvr_Reconnect_Req();
-			req.user_id = user_data.user_id;
-			req.access_token = user_data.access_token;
 
-			Log("MsgCliSvr_Reconnect_Req(user_id:" + req.user_id + ", access_token:" + req.access_token +")");
-            session.SendMsg(req);
-            */
 		};
 		session.onClose += () => {
 			Log("session close");
         };
 		session.onError += (Gamnet.Exception e) => {
 			Log(e.ToString());
+			if(TimeoutError == e.error_code)
+			{
+				return;
+			}
 			if(null != coroutine)
 			{
 				StopCoroutine(coroutine);
@@ -123,10 +119,7 @@ public class UnityClient : MonoBehaviour {
 				Log("MessageFormatError(MsgSvrCli_HeartBeat_Ntf)");
 				return;
 			}
-
 			Log("MsgSvrCli_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq.ToString() + ")");
-			session.RemoveSentPacket(ntf.msg_seq);
-			// remove every queued message under msg_seq
 		});
 		session.RegisterHandler (MsgSvrCli_Kickout_Ntf.MSG_ID, (System.IO.MemoryStream buffer) => {
 			MsgSvrCli_Kickout_Ntf ntf = new MsgSvrCli_Kickout_Ntf();
@@ -149,9 +142,17 @@ public class UnityClient : MonoBehaviour {
 		while (true) {
 			MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
             ntf.msg_seq = msg_seq++;
-			Log("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
-			session.SendMsg (ntf, true);			
-			yield return new WaitForSeconds (3.0f);
+			if (0 == ntf.msg_seq % 10) {
+				// timeout example
+				Log ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ", timeout in 5 sec)");
+				session.SendMsg (ntf, true).SetTimeout (MsgSvrCli_HeartBeat_Ntf.MSG_ID, 5, () => {
+					session.Error (new Gamnet.Exception (TimeoutError, "msg_seq:" + ntf.msg_seq + " timeout"));			
+				});
+			} else {
+				Log ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
+				session.SendMsg (ntf, true);			
+			}
+			yield return new WaitForSeconds (1.0f);
 		}
 	}
 
@@ -162,9 +163,8 @@ public class UnityClient : MonoBehaviour {
 		
     void Log(string text)
     {
-        logText.text += lineNum.ToString() + ":" + text + System.Environment.NewLine;
-        lineCount++;
-        lineNum++;
+		lineCount++;
+		logText.text += lineCount.ToString() + ":" + text + System.Environment.NewLine;
         if (lineLimit < lineCount)
         {
             int index = logText.text.IndexOf(System.Environment.NewLine);

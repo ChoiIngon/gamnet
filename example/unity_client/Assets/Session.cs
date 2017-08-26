@@ -105,8 +105,8 @@ namespace Gamnet
 		}
 		// length<2byte>(header length + body length) | msg_id<4byte> | body
 
-		public int heartbeat_time = 60000;
-		private int _connect_timeout = 60000;
+		public int 			heartbeat_time = 60000;
+		private int 		_connect_timeout = 60000;
 		private object 		_sync_obj = new object();
         private Socket 		_socket = null;
         private IPEndPoint 	_endpoint = null;
@@ -117,10 +117,12 @@ namespace Gamnet
 		private TimeoutMonitor 		_timeout_monitor = null;
 		private System.Timers.Timer	_timer = null;
 
-		private SyncQueue<SessionEvent> 	_event_queue = new SyncQueue<SessionEvent>();
-		private SyncQueue<Gamnet.Packet>	_send_queue = new SyncQueue<Gamnet.Packet>(); // 바로 보내지 못하고 
-		private int 						_send_queue_idx = 0;
+		private List<SessionEvent> 	_event_queue = new List<SessionEvent>();
+		private List<Gamnet.Packet>	_send_queue = new List<Gamnet.Packet>(); // 바로 보내지 못하고 
+		private int 				_send_queue_idx = 0;
+
 		private Dictionary<uint, Action<System.IO.MemoryStream>> _handlers = new Dictionary<uint, Action<System.IO.MemoryStream>>();
+
 		private NetworkReachability	_networkReachability = NetworkReachability.NotReachable;
 	
 		private uint 	_session_key = 0;
@@ -137,7 +139,6 @@ namespace Gamnet
 		public delegate void Delegate_OnReconnect();
 		public delegate void Delegate_OnClose();
 		public delegate void Delegate_OnError(Gamnet.Exception e);
-		public delegate void Delegate_OnReceive(System.IO.MemoryStream buffer);
 
 		public Delegate_OnConnect onConnect;
 		public Delegate_OnReconnect onReconnect;
@@ -200,8 +201,10 @@ namespace Gamnet
 		}
 		public void Connect(string host, int port, int timeout_sec = 60) {
             try {
-				_send_queue_idx = 0;
-				_send_queue.Clear();
+				lock(_sync_obj) {
+					_send_queue_idx = 0;
+					_send_queue.Clear();
+				}
                 _timeout_monitor = new TimeoutMonitor();
 				_socket = null;
 				_endpoint = null;
@@ -209,6 +212,7 @@ namespace Gamnet
 				_msg_seq = 0;
                 _state = ConnectionState.OnConnecting;
 				_connect_timeout = timeout_sec * 1000;
+
                 IPAddress ip = null;
                 try {
                     ip = IPAddress.Parse(host);
@@ -223,14 +227,7 @@ namespace Gamnet
 
                 Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 socket.BeginConnect(_endpoint, new AsyncCallback(Callback_Connect), socket);
-				_timer = new System.Timers.Timer();
-				_timer.Interval = _connect_timeout;
-				_timer.AutoReset = false;
-				_timer.Elapsed += delegate {
-					Error(new Gamnet.Exception(ErrorCode.ConnectTimeoutError, "fail to connect(" + _endpoint.ToString() + ")"));
-					Close();
-				};
-				_timer.Start();
+				SetConnectTimeout();
             }
             catch (SocketException e) {
 				Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.Message));
@@ -274,15 +271,7 @@ namespace Gamnet
             _state = ConnectionState.OnConnecting;
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.BeginConnect(_endpoint, new AsyncCallback(Callback_Reconnect), socket);
-
-			_timer = new System.Timers.Timer();
-			_timer.Interval = _connect_timeout;
-			_timer.AutoReset = false;
-			_timer.Elapsed += delegate {
-				Error(new Gamnet.Exception(ErrorCode.ConnectTimeoutError, "fail to connect(" + _endpoint.ToString() + ")"));
-				Close();
-			};
-			_timer.Start();
+			SetConnectTimeout();
         }
 		private void Callback_Reconnect(IAsyncResult result) {
 			try	{
@@ -300,13 +289,13 @@ namespace Gamnet
 				_state = ConnectionState.Connected;
 
 				lock (_sync_obj) {
-					List<Gamnet.Packet> tmp = _send_queue.Copy ();
+					List<Gamnet.Packet> tmp = new List<Gamnet.Packet>(_send_queue);
 					_send_queue.Clear ();
 					_send_queue_idx = 0;
 					Send_Reconnect_Req();
 					foreach (var itr in tmp) {
 						itr.read_index = 0;
-						_send_queue.PushBack (itr);
+						_send_queue.Add (itr);
 					}
 				}
                 _timer = new System.Timers.Timer();
@@ -345,7 +334,9 @@ namespace Gamnet
 
                 ReceiveEvent evt = new ReceiveEvent(this);
                 evt.buffer = buffer;
-                _event_queue.PushBack(evt);
+				lock(_sync_obj) {
+                	_event_queue.Add(evt);
+				}
                 Receive();
             }
             catch (SocketException e) {
@@ -393,7 +384,9 @@ namespace Gamnet
 		public void Error(Gamnet.Exception e) {
             ErrorEvent evt = new ErrorEvent(this);
             evt.exception = e;
-            _event_queue.PushBack(evt);
+			lock (_sync_obj) {
+				_event_queue.Add (evt);
+			}
         }
 
         public void Close() {
@@ -417,7 +410,9 @@ namespace Gamnet
 				_socket.EndDisconnect(result);
 				_socket.Close();
 				CloseEvent evt = new CloseEvent(this);
-				_event_queue.PushBack(evt);
+				lock(_sync_obj)	{
+					_event_queue.Add(evt);
+				}
 			}
 			catch (SocketException e) {
 				Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.Message));
@@ -461,8 +456,8 @@ namespace Gamnet
 		}
 		private void SendMsg(Gamnet.Packet packet) {
 			lock (_sync_obj) {
-				_send_queue.PushBack(packet);
-				if (1 == _send_queue.Count() - _send_queue_idx && ConnectionState.Connected == _state) {
+				_send_queue.Add(packet);
+				if (1 == _send_queue.Count - _send_queue_idx && ConnectionState.Connected == _state) {
 					_socket.BeginSend(_send_queue[_send_queue_idx].data, 0, _send_queue[_send_queue_idx].Size(), 0, new AsyncCallback(Callback_SendMsg), packet);
 				}
             }
@@ -487,7 +482,7 @@ namespace Gamnet
 						_send_queue.RemoveAt(_send_queue_idx);	
 					}
 
-                    if (_send_queue_idx < _send_queue.Count()) {
+                    if (_send_queue_idx < _send_queue.Count) {
 						_socket.BeginSend(_send_queue[_send_queue_idx].data, 0, _send_queue[_send_queue_idx].Size(), 0, new AsyncCallback(Callback_SendMsg), _send_queue[_send_queue_idx]);
 						return;
                     }
@@ -499,23 +494,36 @@ namespace Gamnet
 			}
 		}
 
-		public void RemoveSentPacket(uint msg_seq) {
+		void RemoveSentPacket(uint msg_seq) {
 			lock (_sync_obj) {
 				Debug.Log ("remove msg(msg_seq:" + msg_seq + ")");
-				while (0 < _send_queue.Count ()) {
+				while (0 < _send_queue.Count) {
 					if (_send_queue [0].msg_seq > msg_seq) {
 						break;
 					}
-					_send_queue.PopFront ();
+					_send_queue.RemoveAt (0);
 					_send_queue_idx--;
 				}
 			}
 		}
+		void SetConnectTimeout() {
+			_timer = new System.Timers.Timer();
+			_timer.Interval = _connect_timeout;
+			_timer.AutoReset = false;
+			_timer.Elapsed += delegate {
+				Error(new Gamnet.Exception(ErrorCode.ConnectTimeoutError, "fail to connect(" + _endpoint.ToString() + ")"));
+				Close();
+			};
+			_timer.Start();
+		}
         public void Update() {
-            while (0 < _event_queue.Count()) {
-				SessionEvent evt = _event_queue.PopFront();
-                evt.Event();
-            }
+			lock (_sync_obj) {
+				while (0 < _event_queue.Count) {
+					SessionEvent evt = _event_queue[0];
+					_event_queue.RemoveAt (0);
+					evt.Event ();
+				}
+			}
 
 			if (Application.internetReachability != _networkReachability) {
 				_networkReachability = Application.internetReachability;
@@ -559,7 +567,7 @@ namespace Gamnet
 			_session_token = ans.session_token;
 
 			ConnectEvent evt = new ConnectEvent(this);
-			_event_queue.PushBack(evt);
+			_event_queue.Add(evt); // already locked
 		}
 
 		const int MsgID_Reconnect_Req 	= 0002;
@@ -604,7 +612,7 @@ namespace Gamnet
 			_session_token = ans.session_token;
 			//RemoveSentPacket(ans.msg_seq);
 			ReconnectEvent evt = new ReconnectEvent(this);
-			_event_queue.PushBack(evt);
+			_event_queue.Add(evt); // already locked
 		}
 
 		const int MsgID_HeartBeat_Req                = 0003;
