@@ -163,7 +163,6 @@ namespace Gamnet
 		public class ConnectEvent : SessionEvent {
             public ConnectEvent(Session session) : base(session) {}
             public override void Event() {
-                session._state = ConnectionState.Connected;
 				if (null != session.onConnect) {
 					session.onConnect ();
 				}
