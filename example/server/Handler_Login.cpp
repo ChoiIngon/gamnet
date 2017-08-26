@@ -80,7 +80,7 @@ void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_Login_Req req;
 	req.user_id = Gamnet::Format("user_id_", Gamnet::Random::Range(1, 99999));
-	Gamnet::Network::Tcp::SendMsg(session, req);
+	Gamnet::Test::SendMsg(session, req);
 }
 
 void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
@@ -92,6 +92,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 			throw Gamnet::Exception(GAMNET_ERRNO(MessageFormatError), "message load fail");
 		}
 		session->user_data = ans.user_data;
+		LOG(DEV, "user_seq:", session->user_data.user_seq, ", session_token:", session->session_token);
 	}
 	catch(const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());

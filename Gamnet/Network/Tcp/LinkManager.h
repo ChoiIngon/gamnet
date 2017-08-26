@@ -139,8 +139,6 @@ public :
 		return Singleton<Dispatcher<SESSION_T>>::GetInstance().RegisterHandler(msg_id, func, factory);
 	}
 
-private :
-	//template <class SESSION_T>
 	struct MsgHandler : public Network::IHandler
 	{
 		enum MSG_ID {

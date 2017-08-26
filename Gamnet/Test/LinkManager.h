@@ -15,6 +15,7 @@
 #include "../Network/Tcp/LinkManager.h"
 #include "../Library/ThreadPool.h"
 #include <atomic>
+#include <functional>
 
 namespace Gamnet { namespace Test {
 template <class SESSION_T>
@@ -50,8 +51,15 @@ private:
 	std::string host;
 	int			port;
 public :
-	LinkManager() : thread_pool(30)
+	LinkManager() : thread_pool(30), execute_count(0), host(""), port(0)
 	{
+		std::shared_ptr<TestExecuteInfo> info = std::shared_ptr<TestExecuteInfo>(new TestExecuteInfo());
+		info->name = "__connect__";
+		info->send_handler = std::bind(&LinkManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1);
+		info->recv_handler = std::bind(&LinkManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2);
+		execute_infos[info->name] = info;
+		recv_handler[Network::Tcp::LinkManager<SESSION_T>::MsgHandler::MsgID_Connect_Ans] = info->recv_handler;
+		SetTestSequence(info->name);
 	}
 	virtual ~LinkManager()
 	{
@@ -71,6 +79,7 @@ public :
 
 		this->host = host;
 		this->port = port;
+
 		LOG(GAMNET_INF, "test start...");
 		execute_timer.SetTimer(interval, [this, session_count, execute_count]() {
 			for(size_t i=0; i<session_count; i++)
@@ -135,7 +144,7 @@ public :
 	{
 		const std::shared_ptr<SESSION_T>& session = std::static_pointer_cast<SESSION_T>(link->session);
 		session->test_seq = 0;
-		session->msg_seq = 1;
+		session->msg_seq = 0;
 		if(session->test_seq < (int)execute_order.size())
 		{
 			execute_order[session->test_seq]->send_handler(session);
@@ -256,6 +265,35 @@ public :
 		}
 		const std::shared_ptr<TestExecuteInfo>& info = itr->second;
 		execute_order.push_back(info);
+	}
+
+	void Send_Connect_Req(const std::shared_ptr<SESSION_T>& session)
+	{
+		Network::Tcp::Packet::Header header;
+		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgHandler::MsgID_Connect_Req;
+		header.msg_seq = ++session->msg_seq;
+		header.length = Network::Tcp::Packet::HEADER_SIZE;
+
+		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
+		req_packet->Write(header, NULL, 0);
+
+		session->Send(req_packet);
+	}
+
+	void Recv_Connect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+	{
+		std::string json = std::string(packet->ReadPtr() + Network::Tcp::Packet::HEADER_SIZE, packet->Size());
+		Json::Value ans;
+		Json::Reader reader;
+		if (false == reader.parse(json, ans))
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
+		}
+
+		if(ErrorCode::Success == ans["error_code"].asInt())
+		{
+			session->session_token = ans["session_token"].asString();
+		}
 	}
 };
 

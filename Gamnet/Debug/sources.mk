@@ -35,7 +35,4 @@ Library/Json \
 Database/Redis \
 Database/MySQL \
 Database \
-CMakeFiles \
-CMakeFiles/3.9.1/CompilerIdCXX \
-CMakeFiles/3.9.1/CompilerIdC \
 

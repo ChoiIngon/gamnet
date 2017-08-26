@@ -45,12 +45,12 @@ namespace Gamnet { namespace Test {
 			LOG(ERR, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
-		if (false == packet->Write(++(session->msg_seq), msg))
+		session->msg_seq++;
+		if (false == packet->Write(session->msg_seq, msg))
 		{
 			LOG(ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
-		session->msg_seq++;
 		session->AsyncSend(packet);
 		return true;
 	}
