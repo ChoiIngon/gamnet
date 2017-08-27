@@ -32,14 +32,14 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidAddressError), "unique router id is not set");
 	}
-
-	heartbeat_timer.SetTimer(60000, [this] () {
+/*
+	heartbeat_timer.SetTimer(1000, [this] () {
 		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
 		if(NULL != packet) {
 			MsgRouter_HeartBeat_Ntf ntf;
 			packet->Write(0, ntf);
 			std::lock_guard<std::recursive_mutex> lo(_lock);
-			LOG(DEV, "[Router] send heartbeat message");
+			LOG(DEV, "[Router] send heartbeat message(link count:", _links.size(), ")");
 			for(auto itr = _links.begin(); itr != _links.end();) {
 				std::shared_ptr<Link> link = itr->second;
 				link->AsyncSend(packet);
@@ -47,30 +47,9 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 		}
 		this->heartbeat_timer.Resume();
 	});
-
-	if (false == _timer.SetTimer(5000, [this](){
-				std::lock_guard<std::recursive_mutex> lo(_lock);
-				time_t now_ = time(NULL);
-				for(auto itr = _links.begin(); itr != _links.end();) {
-					std::shared_ptr<Link> link = itr->second;
-					if(0 != link->expire_time && link->expire_time + _keepalive_time < now_)
-					{
-						LOG(GAMNET_ERR, "[link_key:", link->link_key, "] idle link timeout(ip:", link->remote_address.to_string(), ")");
-				        _links.erase(itr++);
-				        link->strand.wrap(std::bind(&Link::OnError, link, ETIMEDOUT))();
-				    }
-				    else {
-				        ++itr;
-				    }
-				}
-				_timer.Resume();
-			}))
-			{
-				throw Exception(GAMNET_ERRNO(ErrorCode::UndefinedError), "session time out timer init fail");
-			}
-
-	session_manager.Init(300);
-	Network::LinkManager::Listen(port, 4096, 300);
+*/
+	session_manager.Init(0);
+	Network::LinkManager::Listen(port, 4096, 0);
 }
 
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
@@ -100,8 +79,13 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 {
 	Tcp::LinkManager<Session>::OnAccept(link);
-	session_manager.Add(link->session->session_key, link->session);
-	link->session->OnAccept();
+	const std::shared_ptr<Network::Session>& session = link->session;
+	if(NULL == session)
+	{
+		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link->link_key,"] invalid session");
+	}
+	session_manager.Add(session->session_key, session);
+	session->OnAccept();
 }
 
 void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)

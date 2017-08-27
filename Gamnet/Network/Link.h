@@ -15,7 +15,7 @@ public:
 		{
 			link->link_key = 0;
 			link->msg_seq = 0;
-			link->expire_time = 0;
+			link->expire_time = time(NULL);
 			link->manager = NULL;
 			link->read_buffer = Buffer::Create();
 			link->send_buffers.clear();

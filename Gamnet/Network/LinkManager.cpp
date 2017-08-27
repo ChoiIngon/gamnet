@@ -26,7 +26,7 @@ void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 			time_t now_ = time(NULL);
 			for(auto itr = _links.begin(); itr != _links.end();) {
 				std::shared_ptr<Link> link = itr->second;
-				if(0 != link->expire_time && link->expire_time + _keepalive_time < now_)
+				if(link->expire_time + _keepalive_time < now_)
 				{
 					LOG(GAMNET_ERR, "[link_key:", link->link_key, "] idle link timeout(ip:", link->remote_address.to_string(), ")");
 			        _links.erase(itr++);
