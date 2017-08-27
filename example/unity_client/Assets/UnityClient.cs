@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using message;
+using data;
 
 public class UnityClient : MonoBehaviour {
 	private Gamnet.Session session = new Gamnet.Session();
@@ -96,18 +97,6 @@ public class UnityClient : MonoBehaviour {
 
 			user_data = ans.user_data;
 
-			if(null != coroutine) {
-				StopCoroutine(coroutine);
-			}
-			coroutine = StartCoroutine(SendHeartBeat());
-		});
-		session.RegisterHandler (MsgSvrCli_Reconnect_Ans.MSG_ID, (System.IO.MemoryStream buffer) => {
-			MsgSvrCli_Reconnect_Ans ans = new MsgSvrCli_Reconnect_Ans();
-			if(false == ans.Load(buffer)) {
-				Log("MessageFormatError(MsgSvrCli_Reconnect_Ans)");
-				return ;
-			}
-			Log("MsgSvrCli_Reconnect_Ans(msg_seq:" + ans.msg_seq + ")");
 			if(null != coroutine) {
 				StopCoroutine(coroutine);
 			}
