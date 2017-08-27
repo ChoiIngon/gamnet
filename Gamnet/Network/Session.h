@@ -4,10 +4,11 @@
 #include <boost/asio.hpp>
 #include <atomic>
 #include <map>
-#include "HandlerContainer.h"
+
 #include "../Library/Buffer.h"
 #include "../Library/Timer.h"
 #include "../Log/Log.h"
+#include "HandlerContainer.h"
 
 namespace Gamnet { namespace Network {
 

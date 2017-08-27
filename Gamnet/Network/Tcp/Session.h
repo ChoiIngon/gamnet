@@ -1,9 +1,9 @@
 #ifndef GAMNET_NETWORK_TCP_SESSION_H_
 #define GAMNET_NETWORK_TCP_SESSION_H_
 
-#include "Packet.h"
-#include "../Session.h"
 #include "../../Library/Json/json.h"
+#include "../Session.h"
+#include "Packet.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {
 

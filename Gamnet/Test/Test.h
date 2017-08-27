@@ -9,11 +9,12 @@
 #define GAMNET_TEST_TEST_H_
 
 #include <string>
-#include "Session.h"
-#include "../Library/Singleton.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+
+#include "Session.h"
 #include "LinkManager.h"
+#include "../Library/Singleton.h"
 
 namespace Gamnet { namespace Test {
 	template <class SESSION_T>

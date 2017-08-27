@@ -8,14 +8,13 @@
 #ifndef GAMNET_TEST_TESTER_H_
 #define GAMNET_TEST_TESTER_H_
 
-#include <vector>
 #include <map>
 #include <memory>
-#include "../Network/Link.h"
-#include "../Network/Tcp/LinkManager.h"
-#include "../Library/ThreadPool.h"
+#include <vector>
 #include <atomic>
 #include <functional>
+#include "../Network/Tcp/LinkManager.h"
+#include "../Library/ThreadPool.h"
 
 namespace Gamnet { namespace Test {
 template <class SESSION_T>
@@ -96,16 +95,6 @@ public :
 						return;
 					}
 
-					std::shared_ptr<SESSION_T> session = this->session_pool.Create();
-					if(NULL == session)
-					{
-						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
-						return;
-					}
-					session->session_key = ++Network::SessionManager::session_key;
-					session->msg_seq = 0;
-					session->recv_packet = Network::Tcp::Packet::Create();
-					link->AttachSession(session);
 					link->Connect(this->host.c_str(), this->port, 30);
 				});
 
@@ -142,9 +131,18 @@ public :
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
-		const std::shared_ptr<SESSION_T>& session = std::static_pointer_cast<SESSION_T>(link->session);
-		session->test_seq = 0;
+		std::shared_ptr<SESSION_T> session = this->session_pool.Create();
+		if(NULL == session)
+		{
+			LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
+			return;
+		}
+		session->session_key = ++Network::SessionManager::session_key;
 		session->msg_seq = 0;
+		session->recv_packet = Network::Tcp::Packet::Create();
+		session->test_seq = 0;
+		link->AttachSession(session);
+
 		if(session->test_seq < (int)execute_order.size())
 		{
 			execute_order[session->test_seq]->send_handler(session);
@@ -159,7 +157,7 @@ public :
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
-		const std::shared_ptr<SESSION_T>& session = std::static_pointer_cast<SESSION_T>(link->session);
+		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if(NULL == session)
 		{
 			LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");

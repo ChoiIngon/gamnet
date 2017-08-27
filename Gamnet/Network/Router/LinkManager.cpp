@@ -32,22 +32,22 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidAddressError), "unique router id is not set");
 	}
-/*
-	heartbeat_timer.SetTimer(1000, [this] () {
+
+	heartbeat_timer.SetTimer(60000, [this] () {
 		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
 		if(NULL != packet) {
 			MsgRouter_HeartBeat_Ntf ntf;
 			packet->Write(0, ntf);
 			std::lock_guard<std::recursive_mutex> lo(_lock);
 			LOG(DEV, "[Router] send heartbeat message(link count:", _links.size(), ")");
-			for(auto itr = _links.begin(); itr != _links.end();) {
-				std::shared_ptr<Link> link = itr->second;
+			for(auto itr : _links) {
+				std::shared_ptr<Link> link = itr.second;
 				link->AsyncSend(packet);
 			}
 		}
 		this->heartbeat_timer.Resume();
 	});
-*/
+
 	session_manager.Init(0);
 	Network::LinkManager::Listen(port, 4096, 0);
 }

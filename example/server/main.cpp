@@ -9,7 +9,8 @@ int main() {
 
 	try {
 		Gamnet::Network::Tcp::Listen<Session>(20000, 1024, 300);
-		Gamnet::Network::Router::Listen("GAME", 20001, 
+		Gamnet::Network::Http::Listen(20001, 1024, 300);
+		Gamnet::Network::Router::Listen("GAME", 20002,
 			[](const Gamnet::Network::Router::Address& addr) {
 				LOG(DEV, "Router::OnAccept(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
 			}, 
@@ -18,7 +19,7 @@ int main() {
 			}
 		);
 	
-		Gamnet::Network::Router::Connect("127.0.0.1", 20001, 300, 
+		Gamnet::Network::Router::Connect("52.78.185.159", 20002, 300,
 			[](const Gamnet::Network::Router::Address& addr) {
 				LOG(DEV, "Router::OnConnect(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
 			},
@@ -27,8 +28,6 @@ int main() {
 			}
 		);
 	
-		Gamnet::Network::Http::Listen(8080, 1024, 300);
-
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
 		Gamnet::Run(std::thread::hardware_concurrency());
 	}
