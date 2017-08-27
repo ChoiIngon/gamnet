@@ -496,8 +496,8 @@ bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 	std::cout << "\t" << pToken->GetName() << "() : type(" << default_value << ") {}" << std::endl;
 	std::cout << "\t" << pToken->GetName() << "(int obj) : type((TYPE)obj) {} " << std::endl;
 	std::cout << "\t" << pToken->GetName() << "(TYPE obj) : type(obj) {}" << std::endl;
-	std::cout << "\toperator TYPE() { return type; }" << std::endl;
-	std::cout << "\toperator int() { return (int)type; }" << std::endl;
+	std::cout << "\toperator TYPE() const { return type; }" << std::endl;
+	std::cout << "\toperator int() const { return (int)type; }" << std::endl;
 	std::cout << "\tTYPE operator = (const TYPE& obj) { type = obj; return type; }" << std::endl;
 	std::cout << "}; // " << pToken->GetName() << std::endl;
 

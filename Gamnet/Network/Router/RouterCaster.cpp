@@ -65,7 +65,7 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, const std::sha
 	SessionList& lstSession = mapRouteTable[addr.service_name];
 	for(auto&s : lstSession)
 	{
-		if(addr == s->addr)
+		if(addr == s->address)
 		{
 			LOG(GAMNET_ERR, "[Router] register same multi-cast address(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", router_session->remote_address->to_string(), ")");
 			return false;
@@ -107,7 +107,7 @@ bool RouterCasterImpl_Multi::UnregisterAddress(const Address& addr)
 
 	SessionList& lstSession = itr->second;
 	lstSession.erase(std::remove_if(lstSession.begin(), lstSession.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
-		if(session->addr.id == addr.id)
+		if(addr.id == session->address.id)
 		{
 			LOG(GAMNET_INF, "[Router] unregister multi-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address->to_string(), ")");
 			return true;
@@ -123,7 +123,7 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, const std::share
 	SessionArray& arrSession = pairSessionArray.second;
 	for(auto&s : arrSession)
 	{
-		if(addr == s->addr)
+		if(addr == s->address)
 		{
 			LOG(GAMNET_ERR, "[Router] register same any-cast address(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", router_session->remote_address->to_string(), ")");
 			return false;
@@ -175,7 +175,7 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 	std::pair<int, SessionArray>& pairSessionArray = itr->second;
 	SessionArray& arrSession = pairSessionArray.second;
 	arrSession.erase(std::remove_if(arrSession.begin(), arrSession.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
-		if(session->addr.id == addr.id)
+		if(addr.id == session->address.id)
 		{
 			LOG(GAMNET_INF, "[Router] unregister any-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address->to_string(), ")");
 			return true;
@@ -187,35 +187,35 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 
 RouterCaster::RouterCaster() 
 {
-	msgseq_ = 1;
-	arrCasterImpl_[ROUTER_CAST_UNI] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
-	arrCasterImpl_[ROUTER_CAST_MULTI] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
-	arrCasterImpl_[ROUTER_CAST_ANY] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Any());
+	msg_seq = 1;
+	arrCasterImpl_[ROUTER_CAST_TYPE::UNI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
+	arrCasterImpl_[ROUTER_CAST_TYPE::MULTI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
+	arrCasterImpl_[ROUTER_CAST_TYPE::ANY_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Any());
 }
 
 bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session> session)
 {
 	std::lock_guard<std::mutex> lo(lock_);
-	for(int i=0; i<ROUTER_CAST_MAX; i++)
+	for(int i=0; i<ROUTER_CAST_TYPE::MAX; i++)
 	{
 		if(false == arrCasterImpl_[i]->RegisterAddress(addr, session))
 		{
 			return false;
 		}
 	}
-	session->addr = addr;
+	session->address = addr;
 	return true;
 }
 
 bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	MsgRouter_SendMsg_Ntf ntf;
-	ntf.nKey = addr.msg_seq;
+	ntf.msg_seq = addr.msg_seq;
 	if(NULL != network_session)
 	{
-		ntf.nKey = msgseq_++;
+		ntf.msg_seq = msg_seq++;
 	}
-	ntf.sBuf.assign(buf, len);
+	ntf.buffer.assign(buf, len);
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 	if(NULL == packet)
 	{
@@ -225,19 +225,19 @@ bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network
 	{
 		return false;
 	}
-	if(ROUTER_CAST_MAX <= addr.cast_type)
+	if(ROUTER_CAST_TYPE::MAX <= (int)addr.cast_type)
 	{
-		LOG(GAMNET_ERR, addr.cast_type, " is undefined cast_type");
+		LOG(ERR, "cast_type:",  (int)addr.cast_type, " is undefined cast_type");
 		return false;
 	}
 	std::lock_guard<std::mutex> lo(lock_);
-	return arrCasterImpl_[addr.cast_type]->SendMsg(ntf.nKey, network_session, addr, packet->ReadPtr(), packet->Size());
+	return arrCasterImpl_[(int)addr.cast_type]->SendMsg(ntf.msg_seq, network_session, addr, packet->ReadPtr(), packet->Size());
 }
 
 bool RouterCaster::UnregisterAddress(const Address& addr)
 {
 	std::lock_guard<std::mutex> lo(lock_);
-	for(int i=0; i<ROUTER_CAST_MAX; i++)
+	for(int i=0; i<ROUTER_CAST_TYPE::MAX; i++)
 	{
 		if(false == arrCasterImpl_[i]->UnregisterAddress(addr))
 		{
@@ -250,7 +250,7 @@ bool RouterCaster::UnregisterAddress(const Address& addr)
 std::shared_ptr<Session> RouterCaster::FindSession(const Address& addr)
 {
 	std::lock_guard<std::mutex> lo(lock_);
-	std::shared_ptr<RouterCasterImpl_Uni> caster_impl = std::static_pointer_cast<RouterCasterImpl_Uni>(arrCasterImpl_[ROUTER_CAST_UNI]);
+	std::shared_ptr<RouterCasterImpl_Uni> caster_impl = std::static_pointer_cast<RouterCasterImpl_Uni>(arrCasterImpl_[ROUTER_CAST_TYPE::UNI_CAST]);
 	return caster_impl->FindSession(addr);
 }
 }}}

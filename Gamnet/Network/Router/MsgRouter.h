@@ -9,37 +9,31 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
-enum ROUTER_ERROR_CODE {
-		ROUTER_ERROR_SUCCESS,
-		ROUTER_ERROR_MESSAGE_FORMAT_ERROR,
-}; // ROUTER_ERROR_CODE
-struct ROUTER_ERROR_CODE_Serializer {
-	static bool Store(char** _buf_, const ROUTER_ERROR_CODE& obj) { 
-		(*(ROUTER_ERROR_CODE*)(*_buf_)) = obj;	(*_buf_) += sizeof(ROUTER_ERROR_CODE);
-		return true;
-	}
-	static bool Load(ROUTER_ERROR_CODE& obj, const char** _buf_, size_t& nSize) { 
-		if(sizeof(ROUTER_ERROR_CODE) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(ROUTER_ERROR_CODE));		(*_buf_) += sizeof(ROUTER_ERROR_CODE); nSize -= sizeof(ROUTER_ERROR_CODE);
-		return true;
-	}
-	static size_t Size(const ROUTER_ERROR_CODE& obj) { return sizeof(ROUTER_ERROR_CODE); }
-};
-enum ROUTER_CAST_TYPE {
-		ROUTER_CAST_UNI,
-		ROUTER_CAST_MULTI,
-		ROUTER_CAST_ANY,
-		ROUTER_CAST_MAX,
+struct ROUTER_CAST_TYPE {
+	enum TYPE {
+			UNI_CAST,
+			MULTI_CAST,
+			ANY_CAST,
+			MAX,
+	};
+	TYPE type;
+	ROUTER_CAST_TYPE() : type(UNI_CAST) {}
+	ROUTER_CAST_TYPE(int obj) : type((TYPE)obj) {} 
+	ROUTER_CAST_TYPE(TYPE obj) : type(obj) {}
+	operator TYPE() const { return type; }
+	operator int() const { return (int)type; }
+	TYPE operator = (const TYPE& obj) { type = obj; return type; }
 }; // ROUTER_CAST_TYPE
 struct ROUTER_CAST_TYPE_Serializer {
 	static bool Store(char** _buf_, const ROUTER_CAST_TYPE& obj) { 
-		(*(ROUTER_CAST_TYPE*)(*_buf_)) = obj;	(*_buf_) += sizeof(ROUTER_CAST_TYPE);
+		(*(ROUTER_CAST_TYPE::TYPE*)(*_buf_)) = obj.type;	(*_buf_) += sizeof(ROUTER_CAST_TYPE::TYPE);
 		return true;
 	}
 	static bool Load(ROUTER_CAST_TYPE& obj, const char** _buf_, size_t& nSize) { 
-		if(sizeof(ROUTER_CAST_TYPE) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(ROUTER_CAST_TYPE));		(*_buf_) += sizeof(ROUTER_CAST_TYPE); nSize -= sizeof(ROUTER_CAST_TYPE);
+		if(sizeof(ROUTER_CAST_TYPE::TYPE) > nSize) { return false; }		std::memcpy(&obj.type, *_buf_, sizeof(ROUTER_CAST_TYPE::TYPE));		(*_buf_) += sizeof(ROUTER_CAST_TYPE::TYPE); nSize -= sizeof(ROUTER_CAST_TYPE::TYPE);
 		return true;
 	}
-	static size_t Size(const ROUTER_CAST_TYPE& obj) { return sizeof(ROUTER_CAST_TYPE); }
+	static size_t Size(const ROUTER_CAST_TYPE& obj) { return sizeof(ROUTER_CAST_TYPE::TYPE); }
 };
 struct Address {
 	std::string	service_name;
@@ -115,7 +109,7 @@ inline bool operator < (const Address& lhs, const Address& rhs)
 		}
 		else if(lhs.service_name == rhs.service_name)
 		{
-			if(lhs.cast_type < rhs.cast_type)
+			if((int)lhs.cast_type < (int)rhs.cast_type)
 			{
 				return true;
 			}
@@ -125,10 +119,7 @@ inline bool operator < (const Address& lhs, const Address& rhs)
 }
 inline bool operator == (const Address& lhs, const Address& rhs)
 {
-	if(lhs.service_name != rhs.service_name ||
-	   lhs.cast_type != rhs.cast_type ||
-	   lhs.id != rhs.id
-	)
+	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
 	{
 		return false;
 	}	
@@ -136,10 +127,7 @@ inline bool operator == (const Address& lhs, const Address& rhs)
 }
 inline bool operator != (const Address& lhs, const Address& rhs)
 {
-	if(lhs.service_name != rhs.service_name ||
-	   lhs.cast_type != rhs.cast_type ||
-	   lhs.id != rhs.id
-	)
+	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
 	{
 		return true;
 	}	
@@ -148,12 +136,12 @@ inline bool operator != (const Address& lhs, const Address& rhs)
 
 struct MsgRouter_SetAddress_Req {
 	enum { MSG_ID = 1 }; 
-	Address	tLocalAddr;
+	Address	local_address;
 	MsgRouter_SetAddress_Req()	{
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += Address_Serializer::Size(tLocalAddr);
+		nSize += Address_Serializer::Size(local_address);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -167,7 +155,7 @@ struct MsgRouter_SetAddress_Req {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		if(false == Address_Serializer::Store(_buf_, tLocalAddr)) { return false; }
+		if(false == Address_Serializer::Store(_buf_, local_address)) { return false; }
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -178,7 +166,7 @@ struct MsgRouter_SetAddress_Req {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(false == Address_Serializer::Load(tLocalAddr, _buf_, nSize)) { return false; }
+		if(false == Address_Serializer::Load(local_address, _buf_, nSize)) { return false; }
 		return true;
 	}
 }; //MsgRouter_SetAddress_Req
@@ -189,15 +177,15 @@ struct MsgRouter_SetAddress_Req_Serializer {
 };
 struct MsgRouter_SetAddress_Ans {
 	enum { MSG_ID = 2 }; 
-	uint16_t	nErrorCode;
-	Address	tRemoteAddr;
+	int32_t	error_code;
+	Address	remote_address;
 	MsgRouter_SetAddress_Ans()	{
-		nErrorCode = 0;
+		error_code = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += sizeof(uint16_t);
-		nSize += Address_Serializer::Size(tRemoteAddr);
+		nSize += sizeof(int32_t);
+		nSize += Address_Serializer::Size(remote_address);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -211,8 +199,8 @@ struct MsgRouter_SetAddress_Ans {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &nErrorCode, sizeof(uint16_t)); (*_buf_) += sizeof(uint16_t);
-		if(false == Address_Serializer::Store(_buf_, tRemoteAddr)) { return false; }
+		std::memcpy(*_buf_, &error_code, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		if(false == Address_Serializer::Store(_buf_, remote_address)) { return false; }
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -223,8 +211,8 @@ struct MsgRouter_SetAddress_Ans {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint16_t) > nSize) { return false; }	std::memcpy(&nErrorCode, *_buf_, sizeof(uint16_t));	(*_buf_) += sizeof(uint16_t); nSize -= sizeof(uint16_t);
-		if(false == Address_Serializer::Load(tRemoteAddr, _buf_, nSize)) { return false; }
+		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&error_code, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
+		if(false == Address_Serializer::Load(remote_address, _buf_, nSize)) { return false; }
 		return true;
 	}
 }; //MsgRouter_SetAddress_Ans
@@ -272,15 +260,15 @@ struct MsgRouter_SetAddress_Ntf_Serializer {
 };
 struct MsgRouter_SendMsg_Ntf {
 	enum { MSG_ID = 4 }; 
-	uint64_t	nKey;
-	std::string	sBuf;
+	uint32_t	msg_seq;
+	std::string	buffer;
 	MsgRouter_SendMsg_Ntf()	{
-		nKey = 0;
+		msg_seq = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += sizeof(uint64_t);
-		nSize += sizeof(uint32_t); nSize += sBuf.length();
+		nSize += sizeof(uint32_t);
+		nSize += sizeof(uint32_t); nSize += buffer.length();
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -294,10 +282,10 @@ struct MsgRouter_SendMsg_Ntf {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &nKey, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
-		size_t sBuf_size = sBuf.length();
-		std::memcpy(*_buf_, &sBuf_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
-		std::memcpy(*_buf_, sBuf.c_str(), sBuf.length()); (*_buf_) += sBuf.length();
+		std::memcpy(*_buf_, &msg_seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
+		size_t buffer_size = buffer.length();
+		std::memcpy(*_buf_, &buffer_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		std::memcpy(*_buf_, buffer.c_str(), buffer.length()); (*_buf_) += buffer.length();
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -308,11 +296,11 @@ struct MsgRouter_SendMsg_Ntf {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&nKey, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&msg_seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(int32_t) > nSize) { return false; }
-		uint32_t sBuf_length = 0; std::memcpy(&sBuf_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(nSize < sBuf_length) { return false; }
-		sBuf.assign((char*)*_buf_, sBuf_length); (*_buf_) += sBuf_length; nSize -= sBuf_length;
+		uint32_t buffer_length = 0; std::memcpy(&buffer_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		if(nSize < buffer_length) { return false; }
+		buffer.assign((char*)*_buf_, buffer_length); (*_buf_) += buffer_length; nSize -= buffer_length;
 		return true;
 	}
 }; //MsgRouter_SendMsg_Ntf
@@ -321,9 +309,9 @@ struct MsgRouter_SendMsg_Ntf_Serializer {
 	static bool Load(MsgRouter_SendMsg_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static size_t Size(const MsgRouter_SendMsg_Ntf& obj) { return obj.Size(); }
 };
-struct MsgRouter_Heartbeat_Ntf {
+struct MsgRouter_HeartBeat_Ntf {
 	enum { MSG_ID = 5 }; 
-	MsgRouter_Heartbeat_Ntf()	{
+	MsgRouter_HeartBeat_Ntf()	{
 	}
 	size_t Size() const {
 		size_t nSize = 0;
@@ -352,11 +340,11 @@ struct MsgRouter_Heartbeat_Ntf {
 	bool Load(const char** _buf_, size_t& nSize) {
 		return true;
 	}
-}; //MsgRouter_Heartbeat_Ntf
-struct MsgRouter_Heartbeat_Ntf_Serializer {
-	static bool Store(char** _buf_, const MsgRouter_Heartbeat_Ntf& obj) { return obj.Store(_buf_); }
-	static bool Load(MsgRouter_Heartbeat_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static size_t Size(const MsgRouter_Heartbeat_Ntf& obj) { return obj.Size(); }
+}; //MsgRouter_HeartBeat_Ntf
+struct MsgRouter_HeartBeat_Ntf_Serializer {
+	static bool Store(char** _buf_, const MsgRouter_HeartBeat_Ntf& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgRouter_HeartBeat_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgRouter_HeartBeat_Ntf& obj) { return obj.Size(); }
 };
 
 }}}

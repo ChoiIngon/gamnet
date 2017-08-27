@@ -28,41 +28,26 @@ void Session::OnConnect()
 	watingSessionManager_.Clear();
 	LOG(GAMNET_INF, "[Router] connect success..(remote ip:", remote_address->to_string(), ")");
 	MsgRouter_SetAddress_Req req;
-	req.tLocalAddr = Singleton<LinkManager>::GetInstance().localAddr_;
+	req.local_address = Singleton<LinkManager>::GetInstance().local_address;
 	if(false == Network::Tcp::SendMsg(std::static_pointer_cast<Session>(shared_from_this()), req))
 	{
 		return;
 	}
-	LOG(GAMNET_INF, "[Router] send SetAddress_Req (localhost->", remote_address->to_string(), ", service_name:", req.tLocalAddr.service_name.c_str(), ")");
+	LOG(GAMNET_INF, "[Router] send SetAddress_Req (localhost->", remote_address->to_string(), ", service_name:", req.local_address.service_name.c_str(), ")");
 }
 
 void Session::OnClose(int reason)
 {
-	LOG(GAMNET_INF, "[Router] remote server closed(session_key:", session_key, ", ip:", remote_address->to_string(), ", service_name:", addr.service_name, ")");
-	if("" != addr.service_name)
+	LOG(GAMNET_INF, "[Router] remote server closed(session_key:", session_key, ", ip:", remote_address->to_string(), ", service_name:", address.service_name, ")");
+	if("" != address.service_name)
 	{
 		{
 			std::lock_guard<std::mutex> lo(LinkManager::lock);
-			onRouterClose(addr);
+			onRouterClose(address);
 		}
-		Singleton<RouterCaster>::GetInstance().UnregisterAddress(addr);
+		Singleton<RouterCaster>::GetInstance().UnregisterAddress(address);
 	}
 	watingSessionManager_.Clear();
 }
 
-/*
-int	Session::Send(const std::shared_ptr<Network::Tcp::Packet>& packet)
-{
-	msg_seq++;
-	AsyncSend(packet);
-	return packet->Size();
-}
-
-int Session::Send(const char* buf, int len)
-{
-	msg_seq++;
-	AsyncSend(buf, len);
-	return len;
-}
-*/
 }}} /* namespace Gamnet */

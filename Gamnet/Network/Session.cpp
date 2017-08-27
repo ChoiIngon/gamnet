@@ -101,7 +101,7 @@ bool SessionManager::Add(uint32_t key, const std::shared_ptr<Session>& session)
 		LOG(GAMNET_ERR, "[link_key:", session->link->link_key, ", session_key:", key, "] duplicated session key");
 		return false;
 	}
-	session->expire_time = time(NULL) + _keepalive_time;
+	session->expire_time = time(NULL);
 	return true;
 }
 

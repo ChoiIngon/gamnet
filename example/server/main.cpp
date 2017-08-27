@@ -11,19 +11,19 @@ int main() {
 		Gamnet::Network::Tcp::Listen<Session>(20000, 1024, 300);
 		Gamnet::Network::Router::Listen("GAME", 20001, 
 			[](const Gamnet::Network::Router::Address& addr) {
-				LOG(DEV, "Router::OnAccept(address:", addr.service_name, "_", addr.cast_type, "_", addr.id, ")");
+				LOG(DEV, "Router::OnAccept(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
 			}, 
 			[](const Gamnet::Network::Router::Address& addr) {
-				LOG(DEV, "Router::OnClose(address:", addr.service_name, "_", addr.cast_type, "_", addr.id, ")");
+				LOG(DEV, "Router::OnClose(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
 			}
 		);
 	
 		Gamnet::Network::Router::Connect("127.0.0.1", 20001, 300, 
 			[](const Gamnet::Network::Router::Address& addr) {
-				LOG(DEV, "Router::OnConnect(address:", addr.service_name, "_", addr.cast_type, "_", addr.id, ")");
+				LOG(DEV, "Router::OnConnect(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
 			},
 			[](const Gamnet::Network::Router::Address& addr) {
-				LOG(DEV, "Router::OnClose(address:", addr.service_name, "_", addr.cast_type, "_", addr.id, ")");
+				LOG(DEV, "Router::OnClose(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
 			}
 		);
 	

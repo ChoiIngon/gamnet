@@ -52,9 +52,9 @@ struct RouterCasterImpl_Any : public RouterCasterImpl
 
 struct RouterCaster
 {
-	std::atomic_ullong msgseq_;
+	std::atomic<uint32_t> msg_seq;
 	std::mutex lock_;
-	std::shared_ptr<RouterCasterImpl> arrCasterImpl_[ROUTER_CAST_MAX];
+	std::shared_ptr<RouterCasterImpl> arrCasterImpl_[ROUTER_CAST_TYPE::MAX];
 	RouterCaster();
 	bool RegisterAddress(const Address& addr, std::shared_ptr<Session> router_session);
 	bool SendMsg(const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len);

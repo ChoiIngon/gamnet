@@ -1,18 +1,12 @@
 .cpp %%
 namespace Gamnet { namespace Network { namespace Router {
 %%
-enum ROUTER_ERROR_CODE
-{
-	ROUTER_ERROR_SUCCESS,
-	ROUTER_ERROR_MESSAGE_FORMAT_ERROR
-};
-
 enum ROUTER_CAST_TYPE
 {
-	ROUTER_CAST_UNI,
-	ROUTER_CAST_MULTI,
-	ROUTER_CAST_ANY,
-	ROUTER_CAST_MAX	
+	UNI_CAST,
+	MULTI_CAST,
+	ANY_CAST,
+	MAX	
 };
 
 struct Address
@@ -38,7 +32,7 @@ inline bool operator < (const Address& lhs, const Address& rhs)
 		}
 		else if(lhs.service_name == rhs.service_name)
 		{
-			if(lhs.cast_type < rhs.cast_type)
+			if((int)lhs.cast_type < (int)rhs.cast_type)
 			{
 				return true;
 			}
@@ -48,10 +42,7 @@ inline bool operator < (const Address& lhs, const Address& rhs)
 }
 inline bool operator == (const Address& lhs, const Address& rhs)
 {
-	if(lhs.service_name != rhs.service_name ||
-	   lhs.cast_type != rhs.cast_type ||
-	   lhs.id != rhs.id
-	)
+	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
 	{
 		return false;
 	}	
@@ -59,10 +50,7 @@ inline bool operator == (const Address& lhs, const Address& rhs)
 }
 inline bool operator != (const Address& lhs, const Address& rhs)
 {
-	if(lhs.service_name != rhs.service_name ||
-	   lhs.cast_type != rhs.cast_type ||
-	   lhs.id != rhs.id
-	)
+	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
 	{
 		return true;
 	}	
@@ -72,13 +60,13 @@ inline bool operator != (const Address& lhs, const Address& rhs)
 
 message MsgRouter_SetAddress_Req : 	00001
 {
-	Address tLocalAddr;
+	Address local_address;
 };
 
 message MsgRouter_SetAddress_Ans : 	00002
 {
-	uint16 nErrorCode;
-	Address tRemoteAddr; 
+	int32 error_code;
+	Address remote_address; 
 };
 
 message MsgRouter_SetAddress_Ntf : 	00003
@@ -87,11 +75,11 @@ message MsgRouter_SetAddress_Ntf : 	00003
 
 message MsgRouter_SendMsg_Ntf : 	00004
 {
-	uint64 nKey;
-	string sBuf;
+	uint32 msg_seq;
+	string buffer;
 };
 
-message MsgRouter_Heartbeat_Ntf :	00005
+message MsgRouter_HeartBeat_Ntf :	00005
 {
 };
 .cpp %%

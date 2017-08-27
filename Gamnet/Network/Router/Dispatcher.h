@@ -52,7 +52,7 @@ public:
 
 		const HandlerFunction& handler_function = itr->second;
 
-		if(ROUTER_CAST_UNI == from.cast_type && Network::IHandlerFactory::HANDLER_FACTORY_FIND == handler_function.factory_->GetFactoryType())
+		if(ROUTER_CAST_TYPE::UNI_CAST == from.cast_type && Network::IHandlerFactory::HANDLER_FACTORY_FIND == handler_function.factory_->GetFactoryType())
 		{
 			std::shared_ptr<Session> router_session = Singleton<RouterCaster>::GetInstance().FindSession(from);
 			if(NULL == router_session)

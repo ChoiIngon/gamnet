@@ -19,6 +19,7 @@ namespace Gamnet { namespace Network {
 
 class LinkManager
 {
+protected :
 	Timer 		_timer;
 	uint32_t	_keepalive_time;
 	std::recursive_mutex _lock;
