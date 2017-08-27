@@ -18,18 +18,18 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 {
 	MsgCliSvr_Login_Req req;
 	MsgSvrCli_Login_Ans ans;
-	ans.error_code = Success;
+	ans.error_code = ErrorCode::Success;
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(MessageFormatError), "message load fail");
+			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_Login_Req(session_key:", session->session_key, ", user_id:", req.user_id, ")");
 
 		if(0 != session->user_data.user_seq)
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(AlreadyLoginSessionError), "session_key:", session->session_key);
+			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::AlreadyLoginSessionError), "session_key:", session->session_key);
 		}
 
 		const std::shared_ptr<Session> other = Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.user_id, session);
@@ -37,7 +37,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 		{
 			LOG(WRN, "duplicated session(user_id:", req.user_id, ")");
 			MsgSvrCli_Kickout_Ntf ntf;
-			ntf.error_code = DuplicateConnectionError;
+			ntf.error_code = ErrorCode::DuplicateConnectionError;
 			LOG(DEV, "MsgSvrCli_Kickout_Ntf(session_key:", other->session_key, ")");
 			Gamnet::Network::Tcp::SendMsg(other, ntf);
 			const std::shared_ptr<Gamnet::Network::Link> link = other->link;
@@ -65,7 +65,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_Login_Ans(user_seq:", ans.user_data.user_seq, ", error_code:", ans.error_code, ")");
+	LOG(DEV, "MsgSvrCli_Login_Ans(user_seq:", ans.user_data.user_seq, ", error_code:", (int)ans.error_code, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
@@ -89,7 +89,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(MessageFormatError), "message load fail");
+			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "message load fail");
 		}
 		session->user_data = ans.user_data;
 		LOG(DEV, "user_seq:", session->user_data.user_seq, ", session_token:", session->session_token);

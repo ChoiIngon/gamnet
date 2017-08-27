@@ -1,36 +1,11 @@
 .cpp %%
-// 
-//
-//
+#include "data.h"
 %%
 
 .cs %%
-//
-//
-//
+import data;
 %%
 
-enum ErrorCode {
-	Success = 0,
-	MessageFormatError = 1000,
-	MessageSeqOmmitError = 1001,
-	InvalidUserError = 2000,
-	InvalidAccessTokenError = 2001,
-	DuplicateConnectionError = 3000,
-	ReconnectTimeoutError = 4000,
-	AlreadyLoginSessionError = 5000
-};
-
-struct ItemData {
-	string item_id;
-	uint32 item_seq;
-};
-
-struct UserData {
-	string user_id;
-	uint32 user_seq;
-	list<ItemData> items;
-};
 
 message MsgCliSvr_Login_Req 	: 10000001
 {
@@ -41,18 +16,6 @@ message MsgSvrCli_Login_Ans 	: 10000001
 {
 	ErrorCode error_code;
 	UserData user_data;
-};
-
-message MsgCliSvr_Reconnect_Req	: 10000002
-{
-	string user_id;
-	string access_token;
-};
-
-message MsgSvrCli_Reconnect_Ans : 10000002
-{
-	ErrorCode error_code;
-	uint32 msg_seq;
 };
 
 message MsgSvrCli_Kickout_Ntf 	: 10000003

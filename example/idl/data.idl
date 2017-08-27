@@ -1,0 +1,31 @@
+enum ErrorCode {
+	Success = 0,
+	MessageFormatError = 1000,
+	MessageSeqOmmitError = 1001,
+	InvalidUserError = 2000,
+	InvalidAccessTokenError = 2001,
+	DuplicateConnectionError = 3000,
+	ReconnectTimeoutError = 4000,
+	ResponseTimeoutError = 4001,
+	AlreadyLoginSessionError = 5000
+};
+
+enum ItemType {
+	Invalid,
+	Weapon,
+	Armor,
+	Potion
+};
+
+struct ItemData {
+	string item_id;
+	ItemType item_type;
+	uint32 item_seq;
+};
+
+struct UserData {
+	string user_id;
+	uint32 user_seq;
+	list<ItemData> items;
+};
+
