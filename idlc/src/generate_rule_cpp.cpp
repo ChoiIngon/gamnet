@@ -470,7 +470,9 @@ bool GenerateRuleCpp::CompileMessage(const Token::Message* pToken)
 
 bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 {
-	std::cout << "enum " << pToken->GetName() << " {" << std::endl;
+	std::string default_value = "";
+	std::cout << "struct " << pToken->GetName() << " {" << std::endl;
+	std::cout << "\tenum TYPE {" << std::endl;
 	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
 	{
 		if(Token::TYPE_NULL == (*itr)->Type())
@@ -478,27 +480,37 @@ bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 			continue;
 		}
 		const Token::EnumElmt* pElmt = static_cast<const Token::EnumElmt*>(*itr);
-		std::cout << "\t\t" << pElmt->m_pElmt->GetName();
+		std::cout << "\t\t\t" << pElmt->m_pElmt->GetName();
+		if("" == default_value)
+		{
+			default_value = pElmt->m_pElmt->GetName();
+		}
 		if("" != pElmt->m_sNumber)
 		{
 			std::cout << " = " << pElmt->m_sNumber;
 		}
 		std::cout << "," << std::endl;
 	}
+	std::cout << "\t};" << std::endl;
+	std::cout << "\tTYPE type;" << std::endl;
+	std::cout << "\t" << pToken->GetName() << "() : type(" << default_value << ") {}" << std::endl;
+	std::cout << "\t" << pToken->GetName() << "(TYPE obj) : type(obj) {}" << std::endl;
+	std::cout << "\toperator TYPE() { return type; }" << std::endl;
+	std::cout << "\tTYPE operator = (const TYPE& obj) { type = obj; return type; }" << std::endl;
 	std::cout << "}; // " << pToken->GetName() << std::endl;
 
 	std::cout << "struct " << pToken->GetName() << "_Serializer {" << std::endl;
 	std::cout << "\tstatic bool Store(char** _buf_, const " << pToken->GetName() << "& obj) { " << std:: endl;
-	std::cout << "\t\t" << "(*(" << pToken->GetName() << "*)(*_buf_)) = obj;	(*_buf_) += sizeof(" << pToken->GetName() << ");" << std::endl;
+	std::cout << "\t\t" << "(*(" << pToken->GetName() << "::TYPE*)(*_buf_)) = obj.type;	(*_buf_) += sizeof(" << pToken->GetName() << "::TYPE);" << std::endl;
 	std::cout << "\t\treturn true;" << std::endl;
 	std::cout << "\t}" << std::endl;
 	std::cout << "\tstatic bool Load(" << pToken->GetName() << "& obj, const char** _buf_, size_t& nSize) { " << std::endl;
-	std::cout << "\t\tif(sizeof("  << pToken->GetName() << ") > nSize) { return false; }";
-	std::cout << "\t\tstd::memcpy(&obj, *_buf_, sizeof(" << pToken->GetName() << "));";
-	std::cout << "\t\t(*_buf_) += sizeof(" << pToken->GetName() << "); nSize -= sizeof(" << pToken->GetName() << ");" << std::endl;;
+	std::cout << "\t\tif(sizeof("  << pToken->GetName() << "::TYPE) > nSize) { return false; }";
+	std::cout << "\t\tstd::memcpy(&obj.type, *_buf_, sizeof(" << pToken->GetName() << "::TYPE));";
+	std::cout << "\t\t(*_buf_) += sizeof(" << pToken->GetName() << "::TYPE); nSize -= sizeof(" << pToken->GetName() << "::TYPE);" << std::endl;;
 	std::cout << "\t\treturn true;" << std::endl;
 	std::cout << "\t}" << std::endl;
-	std::cout << "\tstatic size_t Size(const " << pToken->GetName() << "& obj) { return sizeof(" << pToken->GetName() << "); }" << std::endl;
+	std::cout << "\tstatic size_t Size(const " << pToken->GetName() << "& obj) { return sizeof(" << pToken->GetName() << "::TYPE); }" << std::endl;
 	std::cout << "};" << std::endl;
 	return true;
 }
