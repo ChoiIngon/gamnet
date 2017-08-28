@@ -71,7 +71,7 @@ public class UnityClient : MonoBehaviour {
         };
 		session.onError += (Gamnet.Exception e) => {
 			Log(e.ToString());
-			if(TimeoutError == e.error_code)
+			if(TimeoutError == e.ErrorCode)
 			{
 				return;
 			}
@@ -81,28 +81,9 @@ public class UnityClient : MonoBehaviour {
 			}
 			coroutine = null;
 		};
-		session.RegisterHandler (MsgSvrCli_Login_Ans.MSG_ID, (System.IO.MemoryStream buffer) => {
-			MsgSvrCli_Login_Ans ans = new MsgSvrCli_Login_Ans();
-			if(false == ans.Load(buffer)) {
-				Log("MessageFormatError(MsgSvrCli_Login_Ans)");
-				return;
-			}
-				
-			Log("MsgSvrCli_Login_Ans(user_seq:" + ans.user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
+        session.RegisterHandler(MsgSvrCli_Login_Ans.MSG_ID, Recv_Login_Ans);
 
-			if(ErrorCode.Success != ans.error_code)	{
-				session.Close();
-				return;
-			}
-
-			user_data = ans.user_data;
-
-			if(null != coroutine) {
-				StopCoroutine(coroutine);
-			}
-			coroutine = StartCoroutine(SendHeartBeat());
-		});
-		session.RegisterHandler (MsgSvrCli_HeartBeat_Ntf.MSG_ID, (System.IO.MemoryStream buffer) => {
+        session.RegisterHandler (MsgSvrCli_HeartBeat_Ntf.MSG_ID, (System.IO.MemoryStream buffer) => {
 			MsgSvrCli_HeartBeat_Ntf ntf = new MsgSvrCli_HeartBeat_Ntf();
 			if(false == ntf.Load(buffer)) {
 				Log("MessageFormatError(MsgSvrCli_HeartBeat_Ntf)");
@@ -160,5 +141,28 @@ public class UnityClient : MonoBehaviour {
             logText.text = logText.text.Substring(index + System.Environment.NewLine.Length);
         }
         scrollRect.verticalNormalizedPosition = 0.0f;
+    }
+
+    void Recv_Login_Ans(System.IO.MemoryStream buffer) {
+		MsgSvrCli_Login_Ans ans = new MsgSvrCli_Login_Ans();
+		if(false == ans.Load(buffer)) {
+            Log("MessageFormatError(MsgSvrCli_Login_Ans)");
+			return;
+		}
+
+        Log("MsgSvrCli_Login_Ans(user_seq:" + ans.user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
+
+		if(ErrorCode.Success != ans.error_code)	{
+			session.Close();
+			return;
+		}
+
+		user_data = ans.user_data;
+
+		if(null != coroutine) {
+
+            StopCoroutine(coroutine);
+		}
+		coroutine = StartCoroutine(SendHeartBeat());
     }
 }

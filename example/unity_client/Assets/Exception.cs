@@ -14,11 +14,12 @@
 		public const int MessageFormatError = 70;
 		public const int DuplicateConnectionError = 80;
 		public const int BufferOverflowError = 100;
+        public const int UnhandledMsgError = 101;
 		public const int UndefinedError = 999;
 	}
 	public class Exception : System.Exception {
 		private int _error_code;
-		public int error_code {
+		public int ErrorCode {
 			get {
 				return _error_code;
 			}

@@ -121,7 +121,7 @@ namespace Gamnet
 		private List<Gamnet.Packet>	_send_queue = new List<Gamnet.Packet>(); // 바로 보내지 못하고 
 		private int 				_send_queue_idx = 0;
 
-		private Dictionary<uint, Action<System.IO.MemoryStream>> _handlers = new Dictionary<uint, Action<System.IO.MemoryStream>>();
+		private Dictionary<uint, Delegate_OnReceive> _handlers = new Dictionary<uint, Delegate_OnReceive>();
 
 		private NetworkReachability	_networkReachability = NetworkReachability.NotReachable;
 	
@@ -139,6 +139,7 @@ namespace Gamnet
 		public delegate void Delegate_OnReconnect();
 		public delegate void Delegate_OnClose();
 		public delegate void Delegate_OnError(Gamnet.Exception e);
+        public delegate void Delegate_OnReceive(System.IO.MemoryStream ms);
 
 		public Delegate_OnConnect onConnect;
 		public Delegate_OnReconnect onReconnect;
@@ -353,7 +354,8 @@ namespace Gamnet
 			{
 				ushort packetLength = BitConverter.ToUInt16(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_LENGTH);
 				if (packetLength > Gamnet.Buffer.BUFFER_SIZE) {
-					throw new System.Exception(string.Format("The packet length is greater than the buffer max length."));
+					Error(new Gamnet.Exception(ErrorCode.BufferOverflowError, "The packet length is greater than the buffer max length."));
+                    return;
 				}
 
 				if (packetLength > _recv_buff.Size()) { // not enough
@@ -362,13 +364,14 @@ namespace Gamnet
 
 				uint msgID = BitConverter.ToUInt32(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_MSGID);
 				if (false == _handlers.ContainsKey(msgID)) {
-					throw new System.Exception ("can't find registered msg(id:" + msgID + ")");
+					Error(new Gamnet.Exception (ErrorCode.UnhandledMsgError , "can't find registered msg(id:" + msgID + ")"));
+                    return;
 				}
 
 				_recv_buff.read_index += Packet.HEADER_SIZE;
 				_timeout_monitor.UnsetTimeout(msgID);
 
-				Action<System.IO.MemoryStream> handler = _handlers[msgID];
+				Delegate_OnReceive handler = _handlers[msgID];
 
 				try	{
 					handler(_recv_buff);
@@ -530,13 +533,36 @@ namespace Gamnet
 				Close ();
 			}
         }
-		public void RegisterHandler(uint msg_id, Action<System.IO.MemoryStream> handler) {
-			_handlers.Add(msg_id, handler);
-		}
-		public void UnregisterHandler(uint msg_id) {
-			_handlers.Remove (msg_id);
-		}
+		public void RegisterHandler(uint msg_id, Delegate_OnReceive handler) {
+            if (_handlers.ContainsKey(msg_id))
+            {
+                _handlers[msg_id] += handler;
+            }
+            else
+            {
+                _handlers.Add(msg_id, handler);
+            }
+        }
+        public void UnregisterHandler(uint msg_id, Delegate_OnReceive handler)
+        {
+            if (_handlers.ContainsKey(msg_id))
+            {
+                _handlers[msg_id] -= handler;
+                if (null == _handlers[msg_id])
+                {
+                    _handlers.Remove(msg_id);
+                }
+            }
+        }
 
+        public void UnregisterHandler(uint msg_id)
+        {
+            if (_handlers.ContainsKey(msg_id))
+            {
+                _handlers.Remove(msg_id);
+            }
+        }
+        
 		const int MsgID_Connect_Req		= 0001;
 		void Send_Connect_Req()
 		{
@@ -581,7 +607,9 @@ namespace Gamnet
 			Msg_Reconnect_Req req = new Msg_Reconnect_Req();
 			req.session_key = _session_key;
 			req.session_token = _session_token;
-			byte[] data = System.Text.Encoding.UTF8.GetBytes(JsonUtility.ToJson(req));
+            string json = JsonUtility.ToJson(req);
+            Debug.Log("send reconnect message(" + json + ")");
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(json);
 
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = (ushort)(Packet.HEADER_SIZE + data.Length);
