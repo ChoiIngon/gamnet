@@ -498,7 +498,31 @@ bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 	std::cout << "\t" << pToken->GetName() << "(TYPE obj) : type(obj) {}" << std::endl;
 	std::cout << "\toperator TYPE() const { return type; }" << std::endl;
 	std::cout << "\toperator int() const { return (int)type; }" << std::endl;
-	std::cout << "\tTYPE operator = (const TYPE& obj) { type = obj; return type; }" << std::endl;
+	std::cout << "\t" << pToken->GetName() << "& operator = (const TYPE& type) { this->type = type; return *this; }" << std::endl;
+
+	std::cout << "\tbool operator == (const " << pToken->GetName() << "& obj) { return type == obj.type; }" << std::endl;
+	std::cout << "\tbool operator == (" << pToken->GetName() << "::TYPE type) { return this->type == type; }" << std::endl;
+	std::cout << "\tbool operator == (int value) { return this->type == value; }" << std::endl;
+
+	std::cout << "\tbool operator != (const " << pToken->GetName() << "& obj) { return type != obj.type; }" << std::endl;
+	std::cout << "\tbool operator != (" << pToken->GetName() << "::TYPE type) { return this->type != type; }" << std::endl;
+	std::cout << "\tbool operator != (int value) { return this->type != value; }" << std::endl;
+
+	std::cout << "\tbool operator < (const " << pToken->GetName() << "& obj) { return type < obj.type; }" << std::endl;
+	std::cout << "\tbool operator < (" << pToken->GetName() << "::TYPE type) { return this->type < type; }" << std::endl;
+	std::cout << "\tbool operator < (int value) { return this->type < value; }" << std::endl;
+
+	std::cout << "\tbool operator > (const " << pToken->GetName() << "& obj) { return type > obj.type; }" << std::endl;
+	std::cout << "\tbool operator > (" << pToken->GetName() << "::TYPE type) { return this->type > type; }" << std::endl;
+	std::cout << "\tbool operator > (int value) { return this->type > value; }" << std::endl;
+
+	std::cout << "\tbool operator <= (const " << pToken->GetName() << "& obj) { return type <= obj.type; }" << std::endl;
+	std::cout << "\tbool operator <= (" << pToken->GetName() << "::TYPE type) { return this->type <= type; }" << std::endl;
+	std::cout << "\tbool operator <= (int value) { return this->type <= value; }" << std::endl;
+
+	std::cout << "\tbool operator >= (const " << pToken->GetName() << "& obj) { return type >= obj.type; }" << std::endl;
+	std::cout << "\tbool operator >= (" << pToken->GetName() << "::TYPE type) { return this->type >= type; }" << std::endl;
+	std::cout << "\tbool operator >= (int value) { return this->type >= value; }" << std::endl;
 	std::cout << "}; // " << pToken->GetName() << std::endl;
 
 	std::cout << "struct " << pToken->GetName() << "_Serializer {" << std::endl;
