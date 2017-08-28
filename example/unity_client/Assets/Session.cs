@@ -206,6 +206,8 @@ namespace Gamnet
 					_send_queue_idx = 0;
 					_send_queue.Clear();
 				}
+
+                _networkReachability = Application.internetReachability;
                 _timeout_monitor = new TimeoutMonitor();
 				_socket = null;
 				_endpoint = null;
