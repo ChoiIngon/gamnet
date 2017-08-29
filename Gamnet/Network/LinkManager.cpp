@@ -155,9 +155,11 @@ std::shared_ptr<Link> LinkManager::Create()
 	std::shared_ptr<Link> link = _link_pool.Create();
 	if(NULL == link)
 	{
+		LOG(ERR, "can't create link instance");
 		return NULL;
 	}
 	link->link_key = ++LinkManager::link_key;
+	LOG(DEV, "[link_key:", link->link_key,"] create link");
 	return link;
 }
 

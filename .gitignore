@@ -33,29 +33,23 @@ Icon?
 ehthumbs.db
 Thumbs.db
 
-Gamnet/Debug/*.d
-Gamnet/Debug/*.o
-Gamnet/Debug/Database/*.d
-Gamnet/Debug/Database/*.o
-Gamnet/Debug/Library/*.d
-Gamnet/Debug/Library/*.o
-Gamnet/Debug/Network/*.d
-Gamnet/Debug/Network/*.o
-Gamnet/Debug/Test/*.d
-Gamnet/Debug/Test/*.o
-Gamnet/Debug/Http/*.d
-Gamnet/Debug/Http/*.o
-Gamnet/Debug/Log/*.d
-Gamnet/Debug/Log/*.o
-Gamnet/Debug/Router/*.d
-Gamnet/Debug/Router/*.o
-Gamnet/Debug/Json/*.d
-Gamnet/Debug/Json/*.o
-Gamnet/Debug/*.a
+Gamnet/Debug
+Gamnet/CMakeFiles
+Gamnet/CMakeCache.txt
+Gamnet/Makefile
+Gamnet/cmake_install.cmake
+Gamnet/install_manifest.txt
 idlc/Debug/src/*.d
 idlc/Debug/src/*.o
 example/server/log
 example/server/test
+example/server/Debug
+example/server/CMakeFiles
+example/server/CMakeCache.txt
+example/server/Makefile
+example/server/cmake_install.cmake
+example/server/install_manifest.txt
+
 # =============== #
 # Unity generated #
 # =============== #

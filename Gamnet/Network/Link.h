@@ -51,7 +51,7 @@ public :
 	int SyncSend(const char* buf, int len);
 
 	void AttachManager(LinkManager* manager);
-	void AttachSession(const std::shared_ptr<Session>& session);
+	void AttachSession(const std::shared_ptr<Session> session);
 private :
 	void FlushSend();
 };

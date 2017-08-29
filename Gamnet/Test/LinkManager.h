@@ -91,10 +91,23 @@ public :
 					std::shared_ptr<Network::Link> link = this->Create();
 					if(NULL == link) 
 					{
-						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more link");
+						LOG(ERR, "can not create any more link");
 						return;
 					}
 					link->AttachManager(this);
+
+					std::shared_ptr<SESSION_T> session = this->session_pool.Create();
+					if(NULL == session)
+					{
+						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
+						return;
+					}
+					session->session_key = ++Network::SessionManager::session_key;
+					session->recv_packet = Network::Tcp::Packet::Create();
+					session->msg_seq = 0;
+					session->test_seq = 0;
+
+					link->AttachSession(session);
 					link->Connect(this->host.c_str(), this->port, 30);
 				});
 
@@ -131,18 +144,7 @@ public :
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
-		std::shared_ptr<SESSION_T> session = this->session_pool.Create();
-		if(NULL == session)
-		{
-			LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
-			return;
-		}
-		session->session_key = ++Network::SessionManager::session_key;
-		session->msg_seq = 0;
-		session->recv_packet = Network::Tcp::Packet::Create();
-		session->test_seq = 0;
-		link->AttachSession(session);
-
+		const std::shared_ptr<SESSION_T>& session = std::static_pointer_cast<SESSION_T>(link->session);
 		if(session->test_seq < (int)execute_order.size())
 		{
 			execute_order[session->test_seq]->send_handler(session);

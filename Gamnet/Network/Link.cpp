@@ -27,10 +27,17 @@ void Link::Connect(const char* host, int port, int timeout)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid host name");
 	}
+
+/*
+	if(NULL == session)
+	{
+		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid session");
+	}
+
+	LOG(DEV, "[link_key:", link_key, ", session_key:", session->session_key,"] try to connect(remote_address:", host, ", port:", port,")");
+*/
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
 	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
-
-	link_key = ++LinkManager::link_key;
 
 	auto self = shared_from_this();
 	socket.async_connect(endpoint_, strand.wrap([self](const boost::system::error_code& ec){
@@ -41,6 +48,11 @@ void Link::Connect(const char* host, int port, int timeout)
 		}
 		else
 		{
+			if(NULL == self->session)
+			{
+				self->OnError(ErrorCode::NullPointerError);
+				return;
+			}
 			try {
 				boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 				self->socket.set_option(option);
@@ -50,7 +62,7 @@ void Link::Connect(const char* host, int port, int timeout)
 				{
 					self->manager->OnConnect(self);
 				}
-				LOG(DEV, "[link_key:", self->link_key, "] connect success(remote_address:", self->remote_address.to_string(), ")");
+				LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key,"] connect success(remote_address:", self->remote_address.to_string(), ")");
 				self->AsyncRead();
 			}
 			catch(const boost::system::system_error& e)
@@ -62,9 +74,9 @@ void Link::Connect(const char* host, int port, int timeout)
 
 	if(0 < timeout)
 	{
-		timer.SetTimer(timeout*1000, strand.wrap([&]() {
-			Log::Write(GAMNET_WRN, "connect timeout(ip:", endpoint_.address().to_string(), ")");
-			OnError(ETIMEDOUT);
+		timer.SetTimer(timeout*1000, strand.wrap([self]() {
+			Log::Write(GAMNET_WRN, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] connect timeout(ip:", self->remote_address.to_string(), ")");
+			self->OnError(ETIMEDOUT);
 		}));
 	}
 }
@@ -210,10 +222,10 @@ void Link::AttachManager(LinkManager* manager)
 	})(manager);
 }
 
-void Link::AttachSession(const std::shared_ptr<Session>& session)
+void Link::AttachSession(const std::shared_ptr<Session> session)
 {
 	auto self(shared_from_this());
-	strand.wrap([self](const std::shared_ptr<Session>& session) {
+	strand.wrap([self](const std::shared_ptr<Session> session) {
 		if (NULL != self->session) {
 			LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] detach session");
 			self->session->link = NULL;
