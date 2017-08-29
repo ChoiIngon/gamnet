@@ -46,6 +46,7 @@ public :
 	virtual void OnCreate() = 0;
 	virtual void OnAccept() = 0;
 	virtual void OnClose(int reason) = 0;
+	virtual void OnDestroy() = 0;
 
 	void AsyncSend(const std::shared_ptr<Buffer>& buffer);
 	void AsyncSend(const char* data, size_t length);

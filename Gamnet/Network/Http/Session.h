@@ -18,6 +18,7 @@ public:
 	virtual void OnCreate() {}
 	virtual void OnAccept()	{}
 	virtual void OnClose(int reason) {}
+	virtual void OnDestroy() {}
 };
 
 } /* namespace Http */

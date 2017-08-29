@@ -10,6 +10,7 @@
 #include "LinkManager.h"
 #include "../Library/MD5.h"
 #include "../Library/Random.h"
+#include <list>
 
 namespace Gamnet { namespace Network {
 
@@ -71,13 +72,15 @@ bool SessionManager::Init(int keepAliveSeconds)
 	}
 	_keepalive_time = keepAliveSeconds;
 	if (false == _timer.SetTimer(5000, [this](){
-		std::lock_guard<std::recursive_mutex> lo(_lock);
+		std::list<std::shared_ptr<Session>> sessions;
 		time_t now_ = time(NULL);
+		std::lock_guard<std::recursive_mutex> lo(_lock);
 		for(auto itr = _sessions.begin(); itr != _sessions.end();) {
 			std::shared_ptr<Session> session = itr->second;
 			if(NULL == session->link && session->expire_time + _keepalive_time < now_)
 			{
-				LOG(GAMNET_ERR, "[session_key:", session->session_key, "] idle session timeout");
+				LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
+				sessions.push_back(session);
 			        _sessions.erase(itr++);
 			}
 	 		else { 
@@ -85,6 +88,10 @@ bool SessionManager::Init(int keepAliveSeconds)
 			}
 		}
 		_timer.Resume();
+		for(auto session : sessions)
+		{
+			session->OnDestroy();	
+		}
 	}))
 	{
 		LOG(GAMNET_ERR, "session time out timer init fail");
@@ -107,8 +114,19 @@ bool SessionManager::Add(uint32_t key, const std::shared_ptr<Session>& session)
 
 void SessionManager::Remove(uint32_t key)
 {
-	std::lock_guard<std::recursive_mutex> lo(_lock);
-	_sessions.erase(key);
+	std::shared_ptr<Session> session;
+	{
+		std::lock_guard<std::recursive_mutex> lo(_lock);
+		auto itr = _sessions.find(key);
+		if(_sessions.end() == itr)
+		{
+			return;
+		}
+		session = itr->second;
+		_sessions.erase(key);
+	}
+	
+	session->OnDestroy();
 }
 
 std::shared_ptr<Session> SessionManager::Find(uint32_t key)

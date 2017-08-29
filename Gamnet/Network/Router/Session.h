@@ -75,6 +75,7 @@ public:
 	virtual void OnAccept();
 	virtual void OnConnect();
 	virtual void OnClose(int reason);
+	virtual void OnDestroy();
 };
 
 }}} /* namespace Gamnet */

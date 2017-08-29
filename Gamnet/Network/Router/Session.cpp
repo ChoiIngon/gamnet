@@ -50,4 +50,8 @@ void Session::OnClose(int reason)
 	watingSessionManager_.Clear();
 }
 
+void Session::OnDestroy()
+{
+}
+
 }}} /* namespace Gamnet */

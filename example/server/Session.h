@@ -18,6 +18,7 @@ public:
 	virtual void OnCreate();
 	virtual void OnAccept();
 	virtual void OnClose(int reason);
+	virtual void OnDestroy() {};
 	
 	UserData user_data;
 	uint32_t ack_seq;
@@ -26,6 +27,7 @@ public:
 class TestSession : public Gamnet::Test::Session {
 public :
 	UserData user_data;
+	virtual void OnDestroy() {};
 };
 
 #endif /* SESSION_H_ */
