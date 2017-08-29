@@ -3,7 +3,6 @@
 int main() {
 	Gamnet::Log::ReadXml("config.xml");
 	LOG(INF, "Server Starts..");
-	LOG(INF, "boost version:", BOOST_LIB_VERSION);
 	LOG(INF, "build date:", __DATE__, " ", __TIME__);
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
@@ -32,7 +31,7 @@ int main() {
 	}
 	catch(const Gamnet::Exception& e)
 	{
-		LOG(ERR, "exception(error_code:", e.error_code(), ", message:", e.what(), ")");
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 	}
 	return 0;
 }
