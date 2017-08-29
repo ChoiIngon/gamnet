@@ -125,7 +125,6 @@
     <ClCompile Include="Handler_HeartBeat.cpp" />
     <ClCompile Include="Handler_Http_ServerState.cpp" />
     <ClCompile Include="Handler_Login.cpp" />
-    <ClCompile Include="Handler_Reconnect.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Manager_Session.cpp" />
     <ClCompile Include="Session.cpp" />
@@ -134,7 +133,6 @@
     <ClInclude Include="Handler_HeartBeat.h" />
     <ClInclude Include="Handler_Http_ServerState.h" />
     <ClInclude Include="Handler_Login.h" />
-    <ClInclude Include="Handler_Reconnect.h" />
     <ClInclude Include="Manager_Session.h" />
     <ClInclude Include="Session.h" />
   </ItemGroup>

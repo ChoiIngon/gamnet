@@ -22,7 +22,25 @@ struct ROUTER_CAST_TYPE {
 	ROUTER_CAST_TYPE(TYPE obj) : type(obj) {}
 	operator TYPE() const { return type; }
 	operator int() const { return (int)type; }
-	TYPE operator = (const TYPE& obj) { type = obj; return type; }
+	ROUTER_CAST_TYPE& operator = (const TYPE& type) { this->type = type; return *this; }
+	bool operator == (const ROUTER_CAST_TYPE& obj) { return type == obj.type; }
+	bool operator == (ROUTER_CAST_TYPE::TYPE type) { return this->type == type; }
+	bool operator == (int value) { return this->type == value; }
+	bool operator != (const ROUTER_CAST_TYPE& obj) { return type != obj.type; }
+	bool operator != (ROUTER_CAST_TYPE::TYPE type) { return this->type != type; }
+	bool operator != (int value) { return this->type != value; }
+	bool operator < (const ROUTER_CAST_TYPE& obj) { return type < obj.type; }
+	bool operator < (ROUTER_CAST_TYPE::TYPE type) { return this->type < type; }
+	bool operator < (int value) { return this->type < value; }
+	bool operator > (const ROUTER_CAST_TYPE& obj) { return type > obj.type; }
+	bool operator > (ROUTER_CAST_TYPE::TYPE type) { return this->type > type; }
+	bool operator > (int value) { return this->type > value; }
+	bool operator <= (const ROUTER_CAST_TYPE& obj) { return type <= obj.type; }
+	bool operator <= (ROUTER_CAST_TYPE::TYPE type) { return this->type <= type; }
+	bool operator <= (int value) { return this->type <= value; }
+	bool operator >= (const ROUTER_CAST_TYPE& obj) { return type >= obj.type; }
+	bool operator >= (ROUTER_CAST_TYPE::TYPE type) { return this->type >= type; }
+	bool operator >= (int value) { return this->type >= value; }
 }; // ROUTER_CAST_TYPE
 struct ROUTER_CAST_TYPE_Serializer {
 	static bool Store(char** _buf_, const ROUTER_CAST_TYPE& obj) { 

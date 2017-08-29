@@ -125,6 +125,9 @@
     <ClCompile Include="Network\LinkManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Network\Http\Request.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Gamnet.h">
@@ -298,12 +301,12 @@
     <ClInclude Include="Test\LinkManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Network\Http\Request.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Network\Router\MsgRouter.idl">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="Network\Tcp\MsgNetwork.idl">
       <Filter>Source Files</Filter>
     </CustomBuild>
   </ItemGroup>

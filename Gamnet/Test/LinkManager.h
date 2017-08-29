@@ -94,7 +94,7 @@ public :
 						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more link");
 						return;
 					}
-
+					link->AttachManager(this);
 					link->Connect(this->host.c_str(), this->port, 30);
 				});
 

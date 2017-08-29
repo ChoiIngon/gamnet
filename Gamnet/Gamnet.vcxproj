@@ -162,6 +162,7 @@
     <ClCompile Include="Network\Http\HttpClient.cpp" />
     <ClCompile Include="Network\Http\HttpServer.cpp" />
     <ClCompile Include="Network\Http\LinkManager.cpp" />
+    <ClCompile Include="Network\Http\Request.cpp" />
     <ClCompile Include="Network\Http\Response.cpp" />
     <ClCompile Include="Network\Http\Session.cpp" />
     <ClCompile Include="Network\Link.cpp" />
@@ -213,6 +214,7 @@
     <ClInclude Include="Network\Http\HttpClient.h" />
     <ClInclude Include="Network\Http\HttpServer.h" />
     <ClInclude Include="Network\Http\LinkManager.h" />
+    <ClInclude Include="Network\Http\Request.h" />
     <ClInclude Include="Network\Http\Response.h" />
     <ClInclude Include="Network\Http\Session.h" />
     <ClInclude Include="Network\Link.h" />
@@ -241,11 +243,6 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Router\%(Filename).h</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="Network\Tcp\MsgNetwork.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Tcp\%(Filename).idl</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Tcp\%(Filename).idl</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Tcp\%(Filename).h</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

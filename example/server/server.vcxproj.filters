@@ -27,9 +27,6 @@
     <ClCompile Include="Handler_HeartBeat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Handler_Reconnect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Manager_Session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -45,9 +42,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Handler_HeartBeat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Handler_Reconnect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Manager_Session.h">

@@ -59,6 +59,7 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create link instance");
 	}
+	link->AttachManager(this);
 
 	const std::shared_ptr<Session> session = session_pool.Create();
 	if(NULL == session)
@@ -71,7 +72,7 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 	session->remote_address = &(link->remote_address);
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
-	
+
 	link->AttachSession(session);
 	link->Connect(host, port, timeout);
 }

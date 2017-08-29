@@ -158,7 +158,6 @@ std::shared_ptr<Link> LinkManager::Create()
 		return NULL;
 	}
 	link->link_key = ++LinkManager::link_key;
-	link->AttachManager(this);
 	return link;
 }
 
