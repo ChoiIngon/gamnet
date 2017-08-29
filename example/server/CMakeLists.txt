@@ -5,16 +5,14 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 include_directories(
-	/usr/local/include
    	/usr/include/mysql
 )
 
 link_directories(
-	../../Gamnet/Debug	
+	/usr/lib/x86_64-linux-gnu
 )
 
 link_libraries(
-	/usr/local/lib
 	Gamnet
 	curl
 	boost_filesystem
@@ -23,7 +21,7 @@ link_libraries(
 )
 
 add_definitions (
-	-g -Wall -std=c++11
+	-g -Wall -std=c++11 -DDEBUG -D_DEBUG
 )
 
 add_executable(server

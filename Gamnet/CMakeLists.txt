@@ -1,5 +1,15 @@
+cmake_minimum_required(VERSION 2.6)
+
 project(server)
 	
+set(GAMNET_VERSION 1.0.1)
+configure_file(
+	${PROJECT_SOURCE_DIR}/Gamnet.h.in
+	${PROJECT_SOURCE_DIR}/Gamnet.h
+)
+
+set(CMAKE_CXX_FLAG_DEBUG "${CMAKE_CXX_FLAG_DEBUG} -g -Wall -DDEBUG -D_DEBUG")
+set(CMAKE_CXX_FLAG_RELEASE "${CMAKE_CXX_FLAG_RELEASE} -Wall")
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/Debug)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
@@ -9,8 +19,8 @@ include_directories(
    	/usr/include/mysql
 )
 
-add_definitions (
-	-g -Wall -std=c++11
+add_definitions ( 
+	-std=c++11
 )
 
 add_library(Gamnet STATIC
@@ -56,3 +66,11 @@ add_library(Gamnet STATIC
 	Gamnet.cpp
 )
 
+
+install (TARGETS Gamnet DESTINATION lib)
+install (DIRECTORY ./ DESTINATION include/Gamnet 
+	FILES_MATCHING PATTERN "*.h"
+	PATTERN "Debug" EXCLUDE
+	PATTERN "CMakeFiles" EXCLUDE
+	PATTERN ".settings" EXCLUDE
+)
