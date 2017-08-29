@@ -8,8 +8,8 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
-	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose);
-	void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose);
+	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept = [](const Address&){}, const std::function<void(const Address& addr)>& onClose = [](const Address&) {});
+	void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect = [](const Address&) {}, const std::function<void(const Address& addr)>& onClose = [](const Address&) {});
 	
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
