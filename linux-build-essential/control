@@ -3,15 +3,9 @@ Version: 1.2.0
 Section: devel
 Priority: optional
 Architecture: all
-Depends: build-essential, subversion, libmysqlclient-dev, libmysql++-dev, libcurl4-openssl-dev, libssl-dev, flex, cmake
-Recommends: libjson0-dbg, python-mysqldb, libjson0, libjson0-dev, libjsoncpp0, libjsoncpp-dev, python-twisted-core
+Depends: build-essential, libboost-all-dev, libmysqlclient-dev, libcurl4-openssl-dev, libssl-dev, flex, cmake
 Maintainer: Gamnet Server Developers <kukuta@gmail.com>
 Description: Gamnet Server Devlopment base library install package
  1.0.0 : init
- 1.0.1 : add idlc
- 1.0.2 : [idlc] c# object array initailze bug fix
- 1.1.0 : [idlc] available comment in enum, available hex integer
- 1.1.1 : [idlc] enum bug fix
- 1.1.2 : [json spirit] enable in multi thread
- 1.2.0 : [idlc] C++ add copy constructor from parent object
+ 1.0.1 : support 'Redis'
 Homepage: http://kukuta.tistory.com
