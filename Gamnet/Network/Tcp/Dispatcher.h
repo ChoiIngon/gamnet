@@ -17,6 +17,9 @@
 #include "../HandlerFactory.h"
 #include "../Link.h"
 #include "../../Log/Log.h"
+#ifdef _DEBUG
+#include <chrono>
+#endif
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
@@ -47,7 +50,7 @@ public :
 		unsigned int msg_id;
 		std::atomic_int begin_count;
 		std::atomic_int finish_count;
-		std::atomic<std::int64_t> elapsed_time;
+		std::atomic<uint64_t> elapsed_time;
 	};
 	std::map<unsigned int, std::shared_ptr<HandlerCallStatistics>> mapHandlerCallStatistics_;
 #endif
@@ -98,7 +101,7 @@ public:
 			return;
 		}
 #ifdef _DEBUG
-		boost::posix_time::ptime tick = boost::posix_time::second_clock::local_time();
+		auto t0 = std::chrono::high_resolution_clock::now();
 		auto statistics_itr = mapHandlerCallStatistics_.find(msg_id);
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
@@ -115,8 +118,10 @@ public:
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
-			boost::posix_time::time_duration diff = boost::posix_time::second_clock::local_time() - tick;
-			statistics_itr->second->elapsed_time += diff.total_milliseconds();
+			auto t1 = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<float> fsec = t1 - t0;
+			std::chrono::milliseconds diff = std::chrono::duration_cast<std::chrono::milliseconds>(fsec);
+			statistics_itr->second->elapsed_time += diff.count();
 			statistics_itr->second->finish_count++;
 		}
 #endif
