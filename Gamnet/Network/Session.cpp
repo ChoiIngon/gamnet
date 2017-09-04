@@ -36,21 +36,37 @@ Session::~Session()
 void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	std::shared_ptr<Link> _link = link;
+	if(NULL == _link)
+	{
+		return;
+	}
 	_link->AsyncSend(buffer);
 }
 void Session::AsyncSend(const char* data, size_t length)
 {
 	std::shared_ptr<Link> _link = link;
+	if (NULL == _link)
+	{
+		return;
+	}
 	_link->AsyncSend(data, length);
 }
 int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	std::shared_ptr<Link> _link = link;
+	if (NULL == _link)
+	{
+		return -1;
+	}
 	return _link->SyncSend(buffer);
 }
 int Session::SyncSend(const char* data, size_t length)
 {
 	std::shared_ptr<Link> _link = link;
+	if (NULL == _link)
+	{
+		return -1;
+	}
 	return _link->SyncSend(data, length);
 }
 

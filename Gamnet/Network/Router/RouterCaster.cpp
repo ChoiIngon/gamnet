@@ -221,7 +221,7 @@ bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network
 	{
 		return false;
 	}
-	if(false == packet->Write(network_session->msg_seq, ntf))
+	if(false == packet->Write(0, ntf))
 	{
 		return false;
 	}
