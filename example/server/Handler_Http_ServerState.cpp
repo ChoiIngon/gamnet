@@ -12,7 +12,7 @@ Handler_Http_ServerState::~Handler_Http_ServerState()
 void Handler_Http_ServerState::Recv_Req(const std::shared_ptr<Gamnet::Network::Http::Session>& session, const Gamnet::Network::Http::Request& param)
 {
 	Gamnet::Network::Http::Response res;
-	res.nErrorCode = 200;
+	res.error_code = 200;
 
 	try
 	{
@@ -20,12 +20,12 @@ void Handler_Http_ServerState::Recv_Req(const std::shared_ptr<Gamnet::Network::H
 		root["param"] = (const std::string)param["param"];
 
 		Json::StyledWriter writer;
-		res.sBodyContext = writer.write(root);
+		res.context = writer.write(root);
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		res.nErrorCode = e.error_code();
-		res.sBodyContext = e.what();
+		res.error_code = e.error_code();
+		res.context = e.what();
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 	}
 	Gamnet::Network::Http::SendMsg(session, res);

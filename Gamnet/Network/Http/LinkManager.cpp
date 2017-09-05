@@ -56,6 +56,7 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const st
 			const std::shared_ptr<Session> session = std::shared_ptr<Session>(new Session());
 			link->AttachSession(session);
 			Singleton<Dispatcher>::GetInstance().OnRecvMsg(link, uri, req);
+			link->AttachSession(NULL);
 			link->OnError(errno); // no error, just closed socket
 			return;
 		}

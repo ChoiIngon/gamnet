@@ -24,7 +24,7 @@ static bool InitErrorCode()
 
 bool bool_InitErrorCode_ = InitErrorCode();
 
-Response::Response() : nErrorCode(0) {
+Response::Response() : error_code(0) {
 }
 
 Response::~Response() {

@@ -16,10 +16,9 @@ void Dispatcher::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std
 	{
 		LOG(ERR, "[link_key:", link->link_key,"] can't find handler function(uri:", uri, ")");
 		Response res;
-		res.nErrorCode = 404;
-		res.sBodyContext = "404 Not found";
+		res.error_code = 404;
+		res.context = "404 Not found";
 		session->Send(res);
-		link->OnError(EINVAL);
 		return ;
 	}
 
@@ -29,10 +28,9 @@ void Dispatcher::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std
 	{
 		LOG(ERR, "[link_key:", link->link_key,"] can't find handler function(uri:", uri, ")");
 		Response res;
-		res.nErrorCode = 404;
-		res.sBodyContext = "404 Not found";
+		res.error_code = 404;
+		res.context = "404 Not found";
 		session->Send(res);
-		link->OnError(EINVAL);
 		return;
 	}
 	try {
@@ -42,6 +40,7 @@ void Dispatcher::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std
 	{
 		Log::Write(Log::Logger::LOG_LEVEL_ERR, "[link_key:", link->link_key,"] unhandled exception occurred(reason:", e.what(), ")");
 	}
+	
 }
 
 }}}

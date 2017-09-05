@@ -11,8 +11,8 @@ public:
 	Response();
 	virtual ~Response();
 
-	int nErrorCode;
-	std::string sBodyContext;
+	int error_code;
+	std::string context;
 };
 
 const char* GetErrorStr(int error_code);

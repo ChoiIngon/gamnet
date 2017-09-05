@@ -8,7 +8,7 @@
 #ifndef SESSION_H_
 #define SESSION_H_
 
-#include <Gamnet/Gamnet.h>
+#include "../../Gamnet/Gamnet.h"
 #include "../idl/message.h"
 
 class Session : public Gamnet::Network::Tcp::Session {

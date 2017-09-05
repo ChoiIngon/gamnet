@@ -56,7 +56,7 @@ void LinkManager::Accept()
 	std::shared_ptr<Link> link = Create();
 	if(NULL == link)
 	{
-		LOG(GAMNET_WRN, "can not create any more session(max:", _link_pool.Capacity(), ", current:", Size(), ")");
+		LOG(GAMNET_WRN, "can not create any more link(max:", _link_pool.Capacity(), ", current:", Size(), ")");
 		std::lock_guard<std::recursive_mutex> lo(_lock);
 		_is_acceptable = false;
 		return;

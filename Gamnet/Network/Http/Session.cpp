@@ -19,9 +19,9 @@ Session::~Session() {
 int Session::Send(const Response& res)
 {
 	std::string response;
-	response += Format("HTTP/1.1 ", res.nErrorCode, " ", GetErrorStr(res.nErrorCode), "\r\n");
+	response += Format("HTTP/1.1 ", res.error_code, " ", GetErrorStr(res.error_code), "\r\n");
 	response += Format("\r\n");
-	response += res.sBodyContext;
+	response += res.context;
 	response += Format("\r\n\r\n");
 	AsyncSend(response.c_str(), response.length());
 	return response.length();
