@@ -30,7 +30,7 @@ namespace Gamnet {
 
         char* data;
 
-        Buffer(size_t size = 1024);
+        Buffer(size_t size = Buffer::MAX_SIZE);
         virtual ~Buffer();
 
         void Append(const char* buf, size_t size);
