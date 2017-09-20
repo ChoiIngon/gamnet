@@ -349,6 +349,12 @@ bool GenerateRuleCpp::CompileMessage(const Token::Message* pToken)
 			}
 			std::cout << ";" << std::endl;
 		}
+/*
+		else if(Token::TYPE_LITERALBLOCK == (*itr)->Type())
+		{
+			CompileLiteralBlock(static_cast<const Token::LiteralBlock*>(*itr));
+		}
+*/
 	}
 
 	// Constructor

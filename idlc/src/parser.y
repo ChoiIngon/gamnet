@@ -131,23 +131,28 @@ enum_decl	: var_name EQUAL INTEGER {
 			$$ = new Token::Base("comment"); 
 		};
 
-var_decl_list   : var_decl {
-					Token::List* pList = new Token::List("var_decl");
-					pList->list_.push_back((Token::VarDecl*)$1);
-					$$ = pList;
-				}
-				| var_decl_list var_decl {
-					Token::List* pList = (Token::List*)$1;
-					pList->list_.push_back((Token::VarDecl*)$2);
-					$$ = pList;
-				};
+var_decl_list   
+		: var_decl { 
+			Token::List* pList = new Token::List("var_decl"); 
+			pList->list_.push_back((Token::VarDecl*)$1); 
+			$$ = pList; 
+		} 
+		| var_decl_list var_decl { 
+			Token::List* pList = (Token::List*)$1; 
+			pList->list_.push_back((Token::VarDecl*)$2); 
+			$$ = pList; 
+		};
 
-
-var_decl	: var_type var_name SEMI_COLON  {
-				$$ = new Token::VarDecl("var_decl", $1, $2);
-			}
-			| COMMENT { $$ = new Token::Base("comment"); } 
-			;
+var_decl	
+		: var_type var_name SEMI_COLON  { 
+			$$ = new Token::VarDecl("var_decl", $1, $2); 
+		}
+		| literal { 
+			$$ = $1; 
+		} 
+		| COMMENT { 
+			$$ = new Token::Base("comment"); 
+		};
 
 literal		: LANGUAGE LITERAL { $$ = new Token::LiteralBlock("literal", $1, $2);}
 			;
