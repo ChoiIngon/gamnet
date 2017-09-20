@@ -329,33 +329,33 @@ bool GenerateRuleCSharp::CompileMessage(const Token::Message* pToken)
 	}
 
 	// member list
-	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	for (const auto& itr : pToken->list_)
 	{
-		if(Token::TYPE_NULL == (*itr)->Type())
+		if (Token::TYPE_VARDECL == itr->Type())
 		{
-			continue;
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(itr);
+			std::cout << "\t" << "public " << TranslateVariableType(pVarDecl->m_pVarType) << "\t" << pVarDecl->m_pVarName->GetName() << " = " << GenerateVariableInit(pVarDecl->m_pVarType) << ";" << std::endl;
 		}
-		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
-		std::cout << "\t" << "public " << TranslateVariableType(pVarDecl->m_pVarType) <<
-			     "\t" << pVarDecl->m_pVarName->GetName() << " = " << GenerateVariableInit(pVarDecl->m_pVarType);
-		std::cout << ";" << std::endl;
+		else if (Token::TYPE_LITERALBLOCK == itr->Type())
+		{
+			CompileLiteralBlock(static_cast<const Token::LiteralBlock*>(itr));
+		}
 	}
 
 	// constructor
 	std::cout << "\t" << "public " << pToken->GetName() << "() {" << std::endl;
-	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	for (const auto& itr : pToken->list_)
 	{
-		if(Token::TYPE_NULL == (*itr)->Type())
+		if (Token::TYPE_VARDECL == itr->Type())
 		{
-			continue;
-		}
-		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
-		if(Token::TYPE_STATIC_ARRAY == pVarDecl->m_pVarType->Type())
-		{
-			const Token::StaticArrayType* pArrType = static_cast<const Token::StaticArrayType*>(pVarDecl->m_pVarType);
-			std::cout << "\t\t" << "for(int i=0;i<" << pArrType->m_sElmtCount << "; i++) { ";
-			std::cout << pVarDecl->m_pVarName->GetName() << "[i] = new " << TranslateVariableType(pArrType->m_pElmtType) << "();";
-			std::cout << " }" << std::endl;
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(itr);
+			if (Token::TYPE_STATIC_ARRAY == pVarDecl->m_pVarType->Type())
+			{
+				const Token::StaticArrayType* pArrType = static_cast<const Token::StaticArrayType*>(pVarDecl->m_pVarType);
+				std::cout << "\t\t" << "for(int i=0;i<" << pArrType->m_sElmtCount << "; i++) { ";
+				std::cout << pVarDecl->m_pVarName->GetName() << "[i] = new " << TranslateVariableType(pArrType->m_pElmtType) << "();";
+				std::cout << " }" << std::endl;
+			}
 		}
 	}
 	std::cout << "\t}" << std::endl;
@@ -367,14 +367,13 @@ bool GenerateRuleCSharp::CompileMessage(const Token::Message* pToken)
 	{
 		std::cout << "\t\t\t" << "nSize = base.Size();" << std::endl;
 	}
-	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	for (const auto& itr : pToken->list_)
 	{
-		if(Token::TYPE_NULL == (*itr)->Type())
+		if (Token::TYPE_VARDECL == itr->Type())
 		{
-			continue;
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(itr);
+			GenerateVariableSize(pVarDecl->m_pVarType, pVarDecl->m_pVarName->GetName(), "\t\t\t");
 		}
-		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
-		GenerateVariableSize(pVarDecl->m_pVarType, pVarDecl->m_pVarName->GetName(), "\t\t\t");
 	}
 	std::cout << "\t\t" << "} catch(System.Exception) {" << std::endl;
 	std::cout << "\t\t\t" << "return -1;" << std::endl;
@@ -388,14 +387,13 @@ bool GenerateRuleCSharp::CompileMessage(const Token::Message* pToken)
 	{
 		std::cout << "\t\t\t" << "base.Store(_buf_);" << std::endl;
 	}
-	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	for (const auto& itr : pToken->list_)
 	{
-		if(Token::TYPE_NULL == (*itr)->Type())
+		if (Token::TYPE_VARDECL == itr->Type())
 		{
-			continue;
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(itr);
+			GenerateVariableStore(pVarDecl->m_pVarType, pVarDecl->m_pVarName->GetName(), "\t\t\t");
 		}
-		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
-		GenerateVariableStore(pVarDecl->m_pVarType, pVarDecl->m_pVarName->GetName(), "\t\t\t");
 	}
 	std::cout << "\t\t" << "} catch(System.Exception) {" << std::endl;
 	std::cout << "\t\t\t" << "return false;" << std::endl;
@@ -410,14 +408,13 @@ bool GenerateRuleCSharp::CompileMessage(const Token::Message* pToken)
 	{
 		std::cout << "\t\t\t" << "if(false == base.Load(_buf_)) return false;" << std::endl;
 	}
-	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	for (const auto& itr : pToken->list_)
 	{
-		if(Token::TYPE_NULL == (*itr)->Type())
+		if (Token::TYPE_VARDECL == itr->Type())
 		{
-			continue;
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(itr);
+			GenerateVariableLoad(pVarDecl->m_pVarType, pVarDecl->m_pVarName->GetName(), "\t\t\t");
 		}
-		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
-		GenerateVariableLoad(pVarDecl->m_pVarType, pVarDecl->m_pVarName->GetName(), "\t\t\t");
 	}
 	std::cout << "\t\t" << "} catch(System.Exception) {" << std::endl;
 	std::cout << "\t\t\t" << "return false;" << std::endl;

@@ -79,21 +79,27 @@ bool GenerateRulePython::CompileMessage(const Token::Message* pToken)
 	}
 
 	int messageElmtCount = 0;
-	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	for(const auto& itr : pToken->list_)
 	{
-		if(Token::TYPE_NULL == (*itr)->Type())
+		if (Token::TYPE_VARDECL == itr->Type())
 		{
-			continue;
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(itr);
+			std::cout << "\t\tself." << pVarDecl->m_pVarName->GetName() << " = " << GenerateInitCode(pVarDecl->m_pVarType) << "\t\t\t# " << pVarDecl->m_pVarType->GetName() << std::endl;
+			messageElmtCount++;
 		}
-		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
-		std::cout << "\t\tself." << pVarDecl->m_pVarName->GetName() << " = " << GenerateInitCode(pVarDecl->m_pVarType) << "\t\t\t# " << pVarDecl->m_pVarType->GetName() <<  std::endl;
-		messageElmtCount++;
 	}
 	if(0 == messageElmtCount)
 	{
 		std::cout << "\t\tpass" << std::endl;
 	}
 
+	for (const auto& itr : pToken->list_)
+	{
+		if (Token::TYPE_LITERALBLOCK == itr->Type())
+		{
+			CompileLiteralBlock(static_cast<const Token::LiteralBlock*>(itr));
+		}
+	}
 	GenerateStore(pToken);
 	GenerateLoad(pToken);
 	std::cout << "def " << pToken->GetName() << "Init() :" << std::endl;
@@ -116,14 +122,13 @@ void GenerateRulePython::GenerateStore(const Token::Message* pToken)
 	{
 		std::cout << "\t" << "\t" << "data += " << pToken->m_sParentName << ".Store(self)" <<  std::endl;
 	}
-	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	for (const auto& itr : pToken->list_)
 	{
-		if(Token::TYPE_NULL == (*itr)->Type())
+		if (Token::TYPE_VARDECL == itr->Type())
 		{
-			continue;
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(itr);
+			GenerateVariableStore(nIndentCount + 1, pVarDecl->m_pVarType, "self.", pVarDecl->m_pVarName->GetName());
 		}
-		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
-		GenerateVariableStore(nIndentCount + 1, pVarDecl->m_pVarType, "self.", pVarDecl->m_pVarName->GetName());
 	}
 	std::cout << "\t" << "\t" << "return data" << std::endl;
 }
@@ -182,14 +187,13 @@ void GenerateRulePython::GenerateLoad(const Token::Message* pToken)
 		std::cout << "\t" << "\t" << "buf = " << pToken->m_sParentName << ".Load(self, buf)" <<  std::endl;
 	}
 
-	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	for (const auto& itr : pToken->list_)
 	{
-		if(Token::TYPE_NULL == (*itr)->Type())
+		if (Token::TYPE_VARDECL == itr->Type())
 		{
-			continue;
+			const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(itr);
+			GenerateVariableLoad(nIndentCount + 1, pVarDecl->m_pVarType, "self.", pVarDecl->m_pVarName->GetName());
 		}
-		const Token::VarDecl* pVarDecl = static_cast<const Token::VarDecl*>(*itr);
-		GenerateVariableLoad(nIndentCount + 1, pVarDecl->m_pVarType, "self.", pVarDecl->m_pVarName->GetName());
 	}
 	std::cout << "\t" << "\t" << "return buf" << std::endl;
 }
