@@ -360,7 +360,15 @@ bool GenerateRuleCSharp::CompileMessage(const Token::Message* pToken)
 	}
 	std::cout << "\t}" << std::endl;
 
-	std::cout << "\t" << "public int Size() {" << std::endl;
+	std::cout << "\t" << "public ";
+	if ("" != pToken->m_sParentName)
+	{
+		std::cout << "override ";
+	}
+	else {
+		std::cout << "virtual ";
+	}
+	std::cout << "int Size() {" << std::endl;
 	std::cout << "\t\t" << "int nSize = 0;" << std::endl;
 	std::cout << "\t\t" << "try {" << std::endl;
 	if("" != pToken->m_sParentName)
@@ -381,7 +389,15 @@ bool GenerateRuleCSharp::CompileMessage(const Token::Message* pToken)
 	std::cout << "\t\t" << "return nSize;" << std::endl;
 	std::cout << "\t" << "}" << std::endl;
 
-	std::cout << "\t" << "public bool Store(MemoryStream _buf_) {" << std::endl;
+	std::cout << "\t" << "public ";
+	if ("" != pToken->m_sParentName)
+	{
+		std::cout << "override ";
+	}
+	else {
+		std::cout << "virtual ";
+	}
+	std::cout << "bool Store(MemoryStream _buf_) {" << std::endl;
 	std::cout << "\t\t" << "try {" << std::endl;
 	if("" != pToken->m_sParentName)
 	{
@@ -402,7 +418,15 @@ bool GenerateRuleCSharp::CompileMessage(const Token::Message* pToken)
 	std::cout << "\t" << "}" << std::endl;
 
 
-	std::cout << "\t" << "public bool Load(MemoryStream _buf_) {" << std::endl;
+	std::cout << "\t" << "public ";
+	if ("" != pToken->m_sParentName)
+	{
+		std::cout << "override ";
+	}
+	else {
+		std::cout << "virtual ";
+	}
+	std::cout << "bool Load(MemoryStream _buf_) {" << std::endl;
 	std::cout << "\t\t" << "try {" << std::endl;
 	if("" != pToken->m_sParentName)
 	{
