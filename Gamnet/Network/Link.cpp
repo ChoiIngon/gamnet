@@ -28,14 +28,6 @@ void Link::Connect(const char* host, int port, int timeout)
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid host name");
 	}
 
-/*
-	if(NULL == session)
-	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid session");
-	}
-
-	LOG(DEV, "[link_key:", link_key, ", session_key:", session->session_key,"] try to connect(remote_address:", host, ", port:", port,")");
-*/
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
 	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
 
@@ -62,7 +54,7 @@ void Link::Connect(const char* host, int port, int timeout)
 				{
 					self->manager->OnConnect(self);
 				}
-				LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key,"] connect success(remote_address:", self->remote_address.to_string(), ")");
+				//LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key,"] connect success(remote_address:", self->remote_address.to_string(), ")");
 				self->AsyncRead();
 			}
 			catch(const boost::system::system_error& e)
@@ -92,7 +84,7 @@ void Link::OnError(int reason)
 		{
 			manager->OnClose(shared_from_this(), reason);
 		}
-		AttachManager(NULL);
+		AttachManager(nullptr);
 	}
 	catch(const Exception& e)
 	{
@@ -112,8 +104,19 @@ void Link::AsyncRead()
 				self->OnError(errno); // no error, just closed socket
 				return;
 			}
+
+			if(0 == readbytes)
+			{
+				self->OnError(errno);
+				return;
+			}
+
 			self->expire_time = ::time(NULL);
 			self->read_buffer->writeCursor_ += readbytes;
+			if(nullptr == self->manager)
+			{
+				return;
+			}
 			self->manager->OnRecvMsg(self, self->read_buffer);
 			self->read_buffer->Clear();
 			self->AsyncRead();
@@ -227,7 +230,7 @@ void Link::AttachSession(const std::shared_ptr<Session> session)
 	auto self(shared_from_this());
 	strand.wrap([self](const std::shared_ptr<Session> session) {
 		if (NULL != self->session) {
-			LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] detach session");
+			//LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] detach session");
 			self->session->link = NULL;
 			self->session = NULL;
 		}
@@ -236,7 +239,7 @@ void Link::AttachSession(const std::shared_ptr<Session> session)
 			self->session->remote_address = &(self->remote_address);
 			self->session->link = self;
 			self->session->manager = self->manager;
-			LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] attach session");
+			//LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] attach session");
 		}
 	})(session);
 }

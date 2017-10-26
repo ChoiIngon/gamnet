@@ -97,7 +97,7 @@ bool SessionManager::Init(int keepAliveSeconds)
 			{
 				LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
 				sessions.push_back(session);
-			        _sessions.erase(itr++);
+				_sessions.erase(itr++);
 			}
 	 		else { 
 				++itr; 
@@ -118,12 +118,15 @@ bool SessionManager::Init(int keepAliveSeconds)
 
 bool SessionManager::Add(uint32_t key, const std::shared_ptr<Session>& session)
 {
-	std::lock_guard<std::recursive_mutex> lo(_lock);
-	if(false == _sessions.insert(std::make_pair(key, session)).second)
 	{
-		LOG(GAMNET_ERR, "[link_key:", session->link->link_key, ", session_key:", key, "] duplicated session key");
-		return false;
+		std::lock_guard<std::recursive_mutex> lo(_lock);
+		if(false == _sessions.insert(std::make_pair(key, session)).second)
+		{
+			LOG(GAMNET_ERR, "[link_key:", session->link->link_key, ", session_key:", key, "] duplicated session key");
+			return false;
+		}
 	}
+	session->OnCreate();
 	session->expire_time = time(NULL);
 	return true;
 }
@@ -136,10 +139,11 @@ void SessionManager::Remove(uint32_t key)
 		auto itr = _sessions.find(key);
 		if(_sessions.end() == itr)
 		{
+			LOG(GAMNET_ERR, "[link_key:", nullptr == session->link ? 0 : session->link->link_key, ", session_key:", session_key, "] can't find session");
 			return;
 		}
 		session = itr->second;
-		_sessions.erase(key);
+		_sessions.erase(itr);
 	}
 	
 	session->OnDestroy();

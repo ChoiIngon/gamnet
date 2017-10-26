@@ -39,7 +39,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 			MsgRouter_HeartBeat_Ntf ntf;
 			packet->Write(0, ntf);
 			std::lock_guard<std::recursive_mutex> lo(_lock);
-			LOG(DEV, "[Router] send heartbeat message(link count:", _links.size(), ")");
+			//LOG(DEV, "[Router] send heartbeat message(link count:", _links.size(), ")");
 			for(auto itr : _links) {
 				std::shared_ptr<Link> link = itr.second;
 				link->AsyncSend(packet);
@@ -79,19 +79,18 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 {
 	Tcp::LinkManager<Session>::OnAccept(link);
-	const std::shared_ptr<Network::Session>& session = link->session;
+	const std::shared_ptr<Network::Session> session = link->session;
 	if(NULL == session)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link->link_key,"] invalid session");
 	}
-	session_manager.Add(session->session_key, session);
 	session->OnAccept();
 }
 
 void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 {	
 	const std::shared_ptr<Session>& session = std::static_pointer_cast<Session>(link->session);
-	if(NULL == link->session)
+	if(nullptr == link->session)
 	{
 		link->OnError(ErrorCode::InvalidSessionError);
 		return;
@@ -103,12 +102,12 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 {
-	const std::shared_ptr<Network::Session>& session = link->session;
-	if (NULL != session)
+	const std::shared_ptr<Network::Session> session = link->session;
+	if (nullptr != session)
 	{
 		session->OnClose(reason);
 		session_manager.Remove(session->session_key);
-		link->AttachSession(std::shared_ptr<Network::Session>(NULL));
+		link->AttachSession(nullptr);
 	}
 	Network::LinkManager::OnClose(link, reason);
 }

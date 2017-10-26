@@ -27,7 +27,6 @@ public :
 			session->expire_time = 0;
 			session->link = NULL;
 			session->remote_address = NULL;
-			session->OnCreate();
 			return session;
 		}
 	};

@@ -1,10 +1,3 @@
-/*
- * Listener.h
- *
- *  Created on: 2017. 8. 22.
- *      Author: kukuta
- */
-
 #ifndef GAMNET_NETWORK_LINKMANAGER_H_
 #define GAMNET_NETWORK_LINKMANAGER_H_
 
