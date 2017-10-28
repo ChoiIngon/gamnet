@@ -15,10 +15,10 @@ class Session : public Gamnet::Network::Tcp::Session {
 public:
 	Session();
 	virtual ~Session();
-	virtual void OnCreate();
-	virtual void OnAccept();
-	virtual void OnClose(int reason);
-	virtual void OnDestroy() {};
+	void OnCreate() override;
+	void OnAccept() override;
+	void OnClose(int reason) override;
+	void OnDestroy() override;
 	
 	UserData user_data;
 	uint32_t ack_seq;

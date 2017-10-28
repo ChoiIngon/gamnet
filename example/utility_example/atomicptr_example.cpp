@@ -2,7 +2,7 @@
 #include <iostream>
 #include <thread>
 
-	Gamnet::Atomic<int> atomic(0);
+Gamnet::Atomic<int> atomic(0);
 // 1. delclear Atomic<T> variable
 
 void ThreadFunction()
@@ -15,10 +15,13 @@ void ThreadFunction()
 		}
 }
 
-int main() {
-	Gamnet::Atomic<std::shared_ptr<int>> shared_atomic;
-	Gamnet::AtomicPtr< std::shared_ptr<int> > ptr(shared_atomic);
 
+AtomicPtr<int> GetLockedObject()
+{
+	AtomicPtr<int> (atomic);
+	return atomic;
+}
+int main() {
 	std::thread t1(ThreadFunction);
 	std::thread t2(ThreadFunction);
 	std::thread t3(ThreadFunction);
@@ -26,5 +29,7 @@ int main() {
 	t1.join();
 	t2.join();
 	t3.join();
+
+	AtomicPtr<int> ptr = GetLockedObject();
 	return 0;
 }

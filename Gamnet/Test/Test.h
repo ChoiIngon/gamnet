@@ -79,15 +79,9 @@ namespace Gamnet { namespace Test {
 	}
 }}
 
-#define GAMNET_BIND_TEST_HANDLER(session_type, send_msg_type, recv_msg_type, send_func, recv_func) \
-	static bool Test_##send_msg_type##_##send_func = Gamnet::Test::RegisterHandler<session_type, send_msg_type, recv_msg_type>( \
-			#send_msg_type, \
-			&send_func, &recv_func \
-	)
-
-#define GAMNET_BIND_TEST_ANS_HANDLER(session_type, send_msg_type, recv_msg_type, send_func, recv_func) \
-	static bool Test_##send_msg_type##_##send_func = Gamnet::Test::RegisterHandler<session_type, send_msg_type, recv_msg_type>( \
-			#send_msg_type, \
+#define GAMNET_BIND_TEST_HANDLER(session_type, test_name, send_msg_type, recv_msg_type, send_func, recv_func) \
+	static bool Test_##send_msg_type##_##send_func##_##__LINE__ = Gamnet::Test::RegisterHandler<session_type, send_msg_type, recv_msg_type>( \
+			test_name, \
 			&send_func, &recv_func \
 	)
 
