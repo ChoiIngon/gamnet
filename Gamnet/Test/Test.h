@@ -20,7 +20,7 @@ namespace Gamnet { namespace Test {
 	template <class SESSION_T>
 	void Init(unsigned int interval, unsigned int session_count, unsigned int loop_count, const char* host, int port)
 	{
-		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host, port, interval, session_count, loop_count);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host, port, interval, session_count, session_count * loop_count);
 	}
 
 	template<class SESSION_T, class NTF_T>
