@@ -4,28 +4,30 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/Debug)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
-#include_directories(
-#   	/usr/include/mysql
-#)
-
 include_directories(
-   	#/usr/local/Cellar/boost/1.64.0_1/include
-   	/usr/local/Cellar/curl/7.55.1/include
-	/usr/local/Cellar/mysql-connector-c/6.1.6/include
-   	/usr/local/Cellar/openssl/1.0.2l/include
+   	/usr/include/mysql
 )
 
-#link_directories(
-#	/usr/lib/x86_64-linux-gnu
+# for mac os
+#include_directories(
+#	/usr/local/Cellar/boost/1.64.0_1/include
+#	/usr/local/Cellar/curl/7.55.1/include
+#	/usr/local/Cellar/mysql-connector-c/6.1.6/include
+#  	/usr/local/Cellar/openssl/1.0.2l/include
 #)
 
 link_directories(
-	/usr/local/lib
-	/usr/local/Cellar/boost/1.64.0_1/lib
-	/usr/local/Cellar/curl/7.55.1/lib
-	/usr/local/Cellar/mysql-connector-c/6.1.6/lib
-	/usr/local/Cellar/openssl/1.0.2l/lib
+	/usr/lib/x86_64-linux-gnu
 )
+
+# for mac os
+#link_directories(
+#	/usr/local/lib
+#	/usr/local/Cellar/boost/1.64.0_1/lib
+#	/usr/local/Cellar/curl/7.55.1/lib
+#	/usr/local/Cellar/mysql-connector-c/6.1.6/lib
+#	/usr/local/Cellar/openssl/1.0.2l/lib
+#)
 
 link_libraries(
 	Gamnet
