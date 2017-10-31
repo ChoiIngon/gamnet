@@ -16,11 +16,13 @@ namespace Gamnet { namespace Network { namespace Tcp {
 template <class SESSION_T>
 class LinkManager : public Network::LinkManager
 {
+protected :
+	std::string _name;
 public :
 	Pool<SESSION_T, std::mutex, Session::Init> session_pool;
 	SessionManager session_manager;
 
-	LinkManager() : session_pool()	{}
+	LinkManager() : _name("TcpLinkManager"), session_pool()	{}
 	virtual ~LinkManager()	{}
 
 	void Listen(int port, int max_session, int keepAliveTime)
@@ -31,7 +33,7 @@ public :
 		RegisterHandler(MsgHandler::MsgID_Connect_Req, &MsgHandler::Recv_Connect_Req, new Network::HandlerStatic<MsgHandler>());
 		RegisterHandler(MsgHandler::MsgID_Reconnect_Req, &MsgHandler::Recv_Reconnect_Req, new Network::HandlerStatic<MsgHandler>());
 		RegisterHandler(MsgHandler::MsgID_HeartBeat_Req, &MsgHandler::Recv_HeartBeat_Req, new Network::HandlerStatic<MsgHandler>());
-
+		RegisterHandler(MsgHandler::MsgID_Close_Ntf, &MsgHandler::Recv_Close_Ntf, new Network::HandlerStatic<MsgHandler>());
 		Network::LinkManager::Listen(port, max_session, keepAliveTime);
 	}
 
@@ -47,6 +49,12 @@ public :
 		}
 		session->session_key = ++Network::SessionManager::session_key;
 		session->recv_packet = Packet::Create();	
+		if (nullptr == session->recv_packet)
+		{
+			LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create packet");
+			link->OnError(errno);
+			return;
+		}
 		session->msg_seq = 0;
 		link->AttachSession(session);
 		session_manager.Add(session->session_key, session);;
@@ -55,11 +63,12 @@ public :
 	virtual void OnClose(const std::shared_ptr<Link>& link, int reason)
 	{
 		//LOG(DEV, "[link_key:", link->link_key, "] close link");
-		const std::shared_ptr<Network::Session> session = link->session;
+		const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 		if(nullptr != session)
 		{
 			session->OnClose(reason);
 			link->AttachSession(nullptr);
+			session->recv_packet = nullptr;
 		}
 		Network::LinkManager::OnClose(link, reason);
 	}
@@ -105,6 +114,11 @@ public :
 				//LOG(DEV, "[link_key:", link->link_key, ", session_key:", session->session_key, "] receive message(msg_seq:", msg_seq, ", msg_id:", session->recv_packet->GetID(), ")");
 				Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, session->recv_packet);
 				session = std::static_pointer_cast<SESSION_T>(link->session);
+				if(nullptr == session)
+				{
+					link->OnError(errno);
+					return;
+				}
 				session->msg_seq = msg_seq;
 			}
 #ifdef _DEBUG
@@ -149,7 +163,8 @@ public :
 			MsgID_Reconnect_Ans = 2,
 			MsgID_HeartBeat_Req = 3,
 			MsgID_HeartBeat_Ans = 3,
-			MsgID_Kickout_Ntf = 4
+			MsgID_Kickout_Ntf = 4,
+			MsgID_Close_Ntf = 5
 		};
 
 		MsgHandler() {}
@@ -238,7 +253,6 @@ public :
 			}
 			ans_packet->Write(header, str.c_str(), str.length()+1);
 			link->AsyncSend(ans_packet);
-			
 		}
 		void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
@@ -249,7 +263,51 @@ public :
 			session->Send(MsgID_HeartBeat_Ans, ans);
 			//LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] send heartbeat ans(msg_seq:", session->msg_seq, ")");
 		}
+		void Recv_Close_Ntf(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
+		{
+			std::shared_ptr<Link> link = session->link;
+			if(nullptr != link)
+			{
+				link->OnError(0);
+			}
+			Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Remove(session->session_key);
+		}
 	};
+
+	Json::Value State()
+	{
+		Json::Value root = Network::LinkManager::State();
+		root["name"] = _name;
+
+		Json::Value session;
+		session["capacity"] = session_pool.Capacity();
+		session["available"] = session_pool.Available();
+		session["running_count"] = session_manager.Size();
+		root["session"] = session;
+
+#ifdef _DEBUG
+		Json::Value message;
+		for (auto itr : Singleton<Dispatcher<SESSION_T>>::GetInstance().mapHandlerCallStatistics_)
+		{
+			Json::Value statistics;
+			statistics["msg_id"] = (int)itr.second->msg_id;
+			statistics["begin_count"] = (int)itr.second->begin_count;
+			statistics["finish_count"] = (int)itr.second->finish_count;
+			statistics["elapsed_time"] = (int)itr.second->elapsed_time;
+			if (0 == itr.second->elapsed_time || 0 == itr.second->finish_count)
+			{
+				statistics["average_time"] = 0;
+			}
+			else
+			{
+				statistics["average_time"] = (int)(itr.second->elapsed_time / itr.second->finish_count);
+			}
+			message.append(statistics);
+		}
+		root["message"] = message;
+#endif
+		return root;
+	}
 };
 
 }}}

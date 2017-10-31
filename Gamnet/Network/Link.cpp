@@ -9,7 +9,7 @@ Link::Link()
 	: socket(io_service_),
 	strand(io_service_),
 	link_key(0),
-	msg_seq(0),
+	//msg_seq(0),
 	expire_time(0),
 	read_buffer(NULL),
 	session(NULL),
@@ -66,9 +66,9 @@ void Link::Connect(const char* host, int port, int timeout)
 
 	if(0 < timeout)
 	{
-		timer.SetTimer(timeout*1000, strand.wrap([self]() {
-			Log::Write(GAMNET_WRN, "[link_key:", self->link_key, ", session_key:", NULL == self->session ? 0 : self->session->session_key, "] connect timeout(ip:", self->remote_address.to_string(), ")");
-			self->OnError(ETIMEDOUT);
+		timer.SetTimer(timeout*1000, strand.wrap([this]() {
+			Log::Write(GAMNET_WRN, "[link_key:", this->link_key, ", session_key:", NULL == this->session ? 0 : this->session->session_key, "] connect timeout(ip:", this->remote_address.to_string(), ")");
+			this->OnError(ETIMEDOUT);
 		}));
 	}
 }
@@ -118,8 +118,11 @@ void Link::AsyncRead()
 				return;
 			}
 			self->manager->OnRecvMsg(self, self->read_buffer);
-			self->read_buffer->Clear();
-			self->AsyncRead();
+			if(nullptr != self->read_buffer)
+			{
+				self->read_buffer->Clear();
+				self->AsyncRead();
+			}
 		})
 	);
 }
@@ -154,7 +157,7 @@ void Link::FlushSend()
 	if(false == send_buffers.empty())
 	{
 		auto self(shared_from_this());
-		const std::shared_ptr<Buffer>& buffer = send_buffers.front();
+		const std::shared_ptr<Buffer> buffer = send_buffers.front();
 		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()),
 			strand.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
 				if (0 != ec)
@@ -163,6 +166,10 @@ void Link::FlushSend()
 					return;
 				}
 
+				if (true == self->send_buffers.empty())
+				{
+					return;
+				}
 				self->send_buffers.pop_front();
 				self->FlushSend();
 			}

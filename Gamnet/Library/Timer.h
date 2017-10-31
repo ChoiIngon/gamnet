@@ -107,13 +107,13 @@ struct Timer
 	virtual ~Timer()
 	{
 		deadline_timer_.expires_at(boost::posix_time::pos_infin);
+		entry_ = nullptr;
 	}
-
-
 
 	void Cancel()
 	{
 		deadline_timer_.cancel();
+		entry_ = nullptr;
 	}
 };
 

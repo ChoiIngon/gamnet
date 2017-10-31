@@ -68,6 +68,8 @@ namespace Gamnet { namespace Test {
 		uint32_t session_count = ptree_.get<uint32_t>("server.test.<xmlattr>.session_count");
 		uint32_t loop_count = ptree_.get<uint32_t>("server.test.<xmlattr>.loop_count");
 		auto test_case = ptree_.get_child("server.test");
+
+		Singleton<LinkManager<SESSION_T>>::GetInstance().SetTestSequence("__connect__");
 		for(auto elmt : test_case)
 		{
 			if("message" == elmt.first)

@@ -56,7 +56,7 @@ void LinkManager::Accept()
 	std::shared_ptr<Link> link = Create();
 	if(NULL == link)
 	{
-		LOG(GAMNET_WRN, "can not create any more link(max:", _link_pool.Capacity(), ", current:", Size(), ")");
+		LOG(GAMNET_ERR, "can not create link(pool_size:", Available(), ")");
 		std::lock_guard<std::recursive_mutex> lo(_lock);
 		_is_acceptable = false;
 		return;
@@ -153,11 +153,17 @@ size_t LinkManager::Size()
 std::shared_ptr<Link> LinkManager::Create()
 {
 	std::shared_ptr<Link> link = _link_pool.Create();
-	if(NULL == link)
+	if(nullptr == link)
 	{
-		LOG(ERR, "can't create link instance");
-		return NULL;
+		return nullptr;
 	}
+
+	if (nullptr == link->read_buffer)
+	{
+		LOG(GAMNET_ERR, "can not create packet");
+		return nullptr;
+	}
+
 	link->link_key = ++LinkManager::link_key;
 	//LOG(DEV, "[link_key:", link->link_key,"] create link");
 	return link;
@@ -178,4 +184,30 @@ void LinkManager::Capacity(int count)
 	_link_pool.Capacity(count);
 }
 
+Json::Value LinkManager::State()
+{
+	Json::Value root;
+
+	time_t logtime_;
+	struct tm when;
+	time(&logtime_);
+
+	char date_time[22] = { 0 };
+#ifdef _WIN32
+	localtime_s(&when, &logtime_);
+	_snprintf_s(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+#else
+	localtime_r(&logtime_, &when);
+	snprintf(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+#endif
+	root["date_time"] = date_time;
+	root["keepalive_time"] = _keepalive_time;
+	
+	Json::Value link;
+	link["capacity"] = Capacity();
+	link["available"] = Available();
+	link["running_count"] = Size();
+	root["link"] = link;
+	return root;
+}
 }} /* namespace Gamnet */

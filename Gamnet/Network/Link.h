@@ -14,7 +14,7 @@ public:
 		Link* operator() (Link* link)
 		{
 			link->link_key = 0;
-			link->msg_seq = 0;
+			//link->msg_seq = 0;
 			link->expire_time = time(NULL);
 			link->manager = NULL;
 			link->read_buffer = Buffer::Create();
@@ -28,7 +28,7 @@ public:
 	boost::asio::ip::address remote_address;
 	Timer 		timer;
 	uint32_t 	link_key;
-	uint32_t 	msg_seq;
+	//uint32_t 	msg_seq;
 	time_t 		expire_time;
 
 	std::shared_ptr<Buffer> 			read_buffer;

@@ -55,6 +55,7 @@ private:
 public :
 	LinkManager() : thread_pool(30), execute_count(0), host(""), port(0)
 	{
+		_name = "TestLinkManager";
 		std::shared_ptr<TestExecuteInfo> executeInfo = std::shared_ptr<TestExecuteInfo>(new TestExecuteInfo());
 		executeInfo->name = "__connect__";
 		executeInfo->send_handler = std::bind(&LinkManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1);
@@ -64,9 +65,8 @@ public :
 		recvHandlerInfo->increase_test_seq = 1;
 		recvHandlerInfo->recv_handler = std::bind(&LinkManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2);
 		recv_handlers[Network::Tcp::LinkManager<SESSION_T>::MsgHandler::MsgID_Connect_Ans] = recvHandlerInfo;
-
-		SetTestSequence(executeInfo->name);
 	}
+
 	virtual ~LinkManager()
 	{
 	}
@@ -90,7 +90,7 @@ public :
 		execute_timer.SetTimer(interval, [this, session_count, execute_count]() {
 			for(size_t i=0; i<session_count; i++)
 			{
-				if(session_count <= this->session_pool.Capacity() - this->session_pool.Available())
+				if(0 == Available())
 				{
 					break;
 				}
@@ -98,24 +98,31 @@ public :
 					std::shared_ptr<Network::Link> link = this->Create();
 					if(NULL == link) 
 					{
-						LOG(ERR, "can not create any more link");
+						LOG(GAMNET_ERR, "can not create link(link_count:", Size(), ", avaiable:", Available(), ", capacity:", Capacity(), ")");
 						return;
 					}
 					link->AttachManager(this);
-
+					
 					std::shared_ptr<SESSION_T> session = this->session_pool.Create();
 					if(NULL == session)
 					{
-						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create any more session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
+						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
+						link->OnError(errno);
 						return;
 					}
 					session->session_key = ++Network::SessionManager::session_key;
 					session->recv_packet = Network::Tcp::Packet::Create();
+					if(nullptr == session->recv_packet)
+					{
+						LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create packet");
+						link->OnError(errno);
+						return;
+					}
 					session->msg_seq = 0;
 					session->test_seq = 0;
 
 					link->AttachSession(session);
-					link->Connect(this->host.c_str(), this->port, 30);
+					link->Connect(this->host.c_str(), this->port, 5);
 				});
 
 				this->execute_count++;
@@ -134,6 +141,7 @@ public :
 		log_timer.SetTimer(3000, [this, execute_count]() {
 			log.Write(GAMNET_INF, "[Test] execute count : ", this->execute_count);
 			log.Write(GAMNET_INF, "[Test] running session : ", this->session_manager.Size(), ", idle session : ", this->session_pool.Available());
+			log.Write(GAMNET_INF, "[Test] running link : ", this->Size(), ", available : ", this->Available());
 			for(auto itr : execute_order)
 			{
 				log.Write(GAMNET_INF, "[Test] running state(name : ", itr->name, ", count : ", itr->execute_count, ")");
@@ -151,7 +159,7 @@ public :
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
-		const std::shared_ptr<SESSION_T>& session = std::static_pointer_cast<SESSION_T>(link->session);
+		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if(session->test_seq < (int)execute_order.size())
 		{
 			execute_order[session->test_seq]->send_handler(session);
@@ -161,7 +169,8 @@ public :
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 	{
-		Network::LinkManager::OnClose(link, reason);
+		Send_Close_Ntf(std::static_pointer_cast<SESSION_T>(link->session));
+		Network::Tcp::LinkManager<SESSION_T>::OnClose(link, reason);
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
@@ -210,6 +219,7 @@ public :
 			handler(session, session->recv_packet);
 
 			session->test_seq += itr->second->increase_test_seq;
+			
 			if(session->test_seq >= (int)execute_order.size())
 			{
 				link->OnError(0);
@@ -288,6 +298,10 @@ public :
 		header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
+		if(nullptr == req_packet)
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "cannot create more packet");
+		}
 		req_packet->Write(header, NULL, 0);
 
 		session->Send(req_packet);
@@ -307,6 +321,28 @@ public :
 		{
 			session->session_token = ans["session_token"].asString();
 		}
+	}
+
+	void Send_Close_Ntf(const std::shared_ptr<SESSION_T>& session)
+	{
+		if(nullptr == session)
+		{
+			LOG(GAMNET_ERR, GAMNET_ERRNO(ErrorCode::InvalidSessionError));
+			return;
+		}
+		Network::Tcp::Packet::Header header;
+		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgHandler::MsgID_Close_Ntf;
+		header.msg_seq = ++session->msg_seq;
+		header.length = Network::Tcp::Packet::HEADER_SIZE;
+
+		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
+		if (nullptr == req_packet)
+		{
+			LOG(GAMNET_ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "cannot create more packet");
+			return;
+		}
+		req_packet->Write(header, NULL, 0);
+		session->Send(req_packet);
 	}
 };
 

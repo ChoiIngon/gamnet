@@ -7,6 +7,7 @@
 
 #include "Link.h"
 #include "../Library/Pool.h"
+#include "../Library/Json/json.h"
 
 namespace Gamnet { namespace Network {
 
@@ -45,6 +46,8 @@ public :
 	int Capacity();
 	void Capacity(int count);
 	size_t Size();
+
+	Json::Value State();
 private :
 	void Accept();
 	void Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error);

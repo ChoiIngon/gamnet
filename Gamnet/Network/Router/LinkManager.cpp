@@ -10,6 +10,7 @@ std::mutex LinkManager::lock;
 
 LinkManager::LinkManager()
 {
+	_name = "RouterLinkManager";
 }
 
 LinkManager::~LinkManager() {
@@ -69,6 +70,10 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 
 	session->session_key = ++Network::SessionManager::session_key;
 	session->recv_packet = Network::Tcp::Packet::Create();
+	if(nullptr == session->recv_packet)
+	{
+		throw Exception(GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "cannot create packet");
+	}
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
 
