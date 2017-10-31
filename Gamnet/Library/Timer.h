@@ -92,6 +92,10 @@ struct Timer
 		{
 			return ;
 		}
+		if (nullptr == entry_)
+		{
+			return;
+		}
 		entry_->OnExpire();
 	}
     /*!
