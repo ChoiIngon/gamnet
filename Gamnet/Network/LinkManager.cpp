@@ -169,17 +169,17 @@ std::shared_ptr<Link> LinkManager::Create()
 	return link;
 }
 
-int LinkManager::Available()
+size_t LinkManager::Available()
 {
 	return _link_pool.Available();
 }
 
-int LinkManager::Capacity()
+size_t LinkManager::Capacity() const
 {
 	return _link_pool.Capacity();
 }
 
-void LinkManager::Capacity(int count)
+void LinkManager::Capacity(size_t count)
 {
 	_link_pool.Capacity(count);
 }
@@ -204,9 +204,9 @@ Json::Value LinkManager::State()
 	root["keepalive_time"] = _keepalive_time;
 	
 	Json::Value link;
-	link["capacity"] = Capacity();
-	link["available"] = Available();
-	link["running_count"] = Size();
+	link["capacity"] = (unsigned int)Capacity();
+	link["available"] = (unsigned int)Available();
+	link["running_count"] = (unsigned int)Size();
 	root["link"] = link;
 	return root;
 }

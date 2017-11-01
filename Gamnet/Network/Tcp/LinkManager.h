@@ -63,7 +63,7 @@ public :
 	virtual void OnClose(const std::shared_ptr<Link>& link, int reason)
 	{
 		//LOG(DEV, "[link_key:", link->link_key, "] close link");
-		const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
+		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if(nullptr != session)
 		{
 			session->OnClose(reason);

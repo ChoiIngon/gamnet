@@ -42,10 +42,10 @@ public :
 	void Remove(uint64_t key);
 	std::shared_ptr<Link> Find(uint64_t key);
 
-	int Available();
-	int Capacity();
-	void Capacity(int count);
+	size_t Available();
 	size_t Size();
+	size_t Capacity() const;
+	void Capacity(size_t count);
 
 	Json::Value State();
 private :

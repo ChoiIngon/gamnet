@@ -149,7 +149,7 @@ public:
 	{
 		return max_size_;
 	}
-	void Capacity(int capacity)
+	void Capacity(size_t capacity)
 	{
 		max_size_ = capacity;
 	}

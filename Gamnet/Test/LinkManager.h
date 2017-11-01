@@ -55,7 +55,7 @@ private:
 public :
 	LinkManager() : thread_pool(30), execute_count(0), host(""), port(0)
 	{
-		_name = "TestLinkManager";
+		Network::Tcp::LinkManager<SESSION_T>::_name = "TestLinkManager";
 		std::shared_ptr<TestExecuteInfo> executeInfo = std::shared_ptr<TestExecuteInfo>(new TestExecuteInfo());
 		executeInfo->name = "__connect__";
 		executeInfo->send_handler = std::bind(&LinkManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1);
@@ -90,7 +90,7 @@ public :
 		execute_timer.SetTimer(interval, [this, session_count, execute_count]() {
 			for(size_t i=0; i<session_count; i++)
 			{
-				if(0 == Available())
+				if(0 == this->Available())
 				{
 					break;
 				}
@@ -98,7 +98,7 @@ public :
 					std::shared_ptr<Network::Link> link = this->Create();
 					if(NULL == link) 
 					{
-						LOG(GAMNET_ERR, "can not create link(link_count:", Size(), ", avaiable:", Available(), ", capacity:", Capacity(), ")");
+						LOG(GAMNET_ERR, "can not create link(link_count:", this->Size(), ", avaiable:", this->Available(), ", capacity:", this->Capacity(), ")");
 						return;
 					}
 					link->AttachManager(this);

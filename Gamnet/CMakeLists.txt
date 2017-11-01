@@ -15,8 +15,17 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 include_directories(
-	/usr/local/include
    	/usr/include/mysql
+)
+
+#include_directories(
+#   	/usr/local/Cellar/curl/7.55.1/include
+#	/usr/local/Cellar/mysql-connector-c/6.1.6/include
+#   	/usr/local/Cellar/openssl/1.0.2l/include
+#)
+
+link_directories(
+	/usr/lib/x86_64-linux-gnu
 )
 
 add_definitions ( 
@@ -65,7 +74,6 @@ add_library(Gamnet STATIC
 	Test/Session.cpp
 	Gamnet.cpp
 )
-
 
 install (TARGETS Gamnet DESTINATION lib)
 install (DIRECTORY ./ DESTINATION include/Gamnet 
