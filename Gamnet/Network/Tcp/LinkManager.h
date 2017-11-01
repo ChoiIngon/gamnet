@@ -280,9 +280,9 @@ public :
 		root["name"] = _name;
 
 		Json::Value session;
-		session["capacity"] = session_pool.Capacity();
-		session["available"] = session_pool.Available();
-		session["running_count"] = session_manager.Size();
+		session["capacity"] = (unsigned int)session_pool.Capacity();
+		session["available"] = (unsigned int)session_pool.Available();
+		session["running_count"] = (unsigned int)session_manager.Size();
 		root["session"] = session;
 
 #ifdef _DEBUG
@@ -290,10 +290,10 @@ public :
 		for (auto itr : Singleton<Dispatcher<SESSION_T>>::GetInstance().mapHandlerCallStatistics_)
 		{
 			Json::Value statistics;
-			statistics["msg_id"] = (int)itr.second->msg_id;
-			statistics["begin_count"] = (int)itr.second->begin_count;
-			statistics["finish_count"] = (int)itr.second->finish_count;
-			statistics["elapsed_time"] = (int)itr.second->elapsed_time;
+			statistics["msg_id"] = (unsigned int)itr.second->msg_id;
+			statistics["begin_count"] = (unsigned int)itr.second->begin_count;
+			statistics["finish_count"] = (unsigned int)itr.second->finish_count;
+			statistics["elapsed_time"] = (unsigned int)itr.second->elapsed_time;
 			if (0 == itr.second->elapsed_time || 0 == itr.second->finish_count)
 			{
 				statistics["average_time"] = 0;
