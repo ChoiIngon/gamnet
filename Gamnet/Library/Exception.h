@@ -32,6 +32,7 @@ public :
 		CreateInstanceFailError		= 91,
 		BufferOverflowError			= 100,
 		MessageSeqOmittedError		= 110,
+		BadLexicalCastError			= 120,
 		UndefinedError				= 999
 	};
 };
