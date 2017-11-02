@@ -146,6 +146,7 @@
     <ClCompile Include="Database\Redis\ResultSet.cpp" />
     <ClCompile Include="Database\MySQL\ResultSet.cpp" />
     <ClCompile Include="Database\MySQL\Transaction.cpp" />
+    <ClCompile Include="Database\Redis\Transaction.cpp" />
     <ClCompile Include="Gamnet.cpp" />
     <ClCompile Include="library\Base64.cpp" />
     <ClCompile Include="library\Buffer.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="Database\Redis\ResultSet.h" />
     <ClInclude Include="Database\MySQL\ResultSet.h" />
     <ClInclude Include="Database\MySQL\Transaction.h" />
+    <ClInclude Include="Database\Redis\Transaction.h" />
     <ClInclude Include="Gamnet.h" />
     <ClInclude Include="library\Atomic.h" />
     <ClInclude Include="library\Base64.h" />

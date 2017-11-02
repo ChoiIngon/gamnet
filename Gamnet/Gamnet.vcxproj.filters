@@ -128,6 +128,9 @@
     <ClCompile Include="Network\Http\Request.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Database\Redis\Transaction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Gamnet.h">
@@ -302,6 +305,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Network\Http\Request.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\Redis\Transaction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

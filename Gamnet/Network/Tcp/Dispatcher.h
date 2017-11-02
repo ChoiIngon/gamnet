@@ -101,7 +101,7 @@ public:
 			return;
 		}
 #ifdef _DEBUG
-		auto t0 = std::chrono::high_resolution_clock::now();
+		ElapseTimer diff;
 		auto statistics_itr = mapHandlerCallStatistics_.find(msg_id);
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
@@ -118,10 +118,7 @@ public:
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
-			auto t1 = std::chrono::high_resolution_clock::now();
-			std::chrono::duration<float> fsec = t1 - t0;
-			std::chrono::milliseconds diff = std::chrono::duration_cast<std::chrono::milliseconds>(fsec);
-			statistics_itr->second->elapsed_time += diff.count();
+			statistics_itr->second->elapsed_time += diff.Count();
 			statistics_itr->second->finish_count++;
 		}
 #endif

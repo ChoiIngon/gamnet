@@ -41,7 +41,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 		socket_.connect(endpoint_, ec);
 		if (0 != ec)
 		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, GAMNET_ERRNO(ErrorCode::ConnectFailError), "[Redis] connect fail(host:", connInfo.host, ", port:", connInfo.port, ")");
+			LOG(GAMNET_ERR, "[Redis] connect fail(host:", connInfo.host, ", port:", connInfo.port, ")");
 			return false;
 		}
 		return true;

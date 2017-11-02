@@ -43,16 +43,16 @@ public :
 		const std::shared_ptr<SESSION_T> session = session_pool.Create();
 		if(nullptr == session)
 		{
-			LOG(ERR, "create session instance fail(link_key:", link->link_key, ")");
-			link->OnError(EINVAL);
+			LOG(GAMNET_ERR, "create session instance fail(link_key:", link->link_key, ")");
+			link->OnError(ErrorCode::CreateInstanceFailError);
 			return;
 		}
 		session->session_key = ++Network::SessionManager::session_key;
 		session->recv_packet = Packet::Create();	
 		if (nullptr == session->recv_packet)
 		{
-			LOG(ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create packet");
-			link->OnError(errno);
+			LOG(GAMNET_ERR, "can not create packet");
+			link->OnError(ErrorCode::CreateInstanceFailError);
 			return;
 		}
 		session->msg_seq = 0;
@@ -134,7 +134,7 @@ public :
 				std::shared_ptr<Packet> packet = Packet::Create();
 				if (NULL == packet)
 				{
-					LOG(ERR, "Can't create more buffer(link_key:", link->link_key, ")");
+					LOG(ERR, "can not create buffer(link_key:", link->link_key, ")");
 					link->OnError(EOVERFLOW);
 					return;
 				}

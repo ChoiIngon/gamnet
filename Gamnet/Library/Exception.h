@@ -58,5 +58,6 @@ private :
 }
 
 #define GAMNET_ERRNO(error) error, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] ", #error, " "
+#define GAMNET_ERRSTR(error) #error, "(", (int)error, ") "
 
 #endif /* EXCEPTION_H_ */

@@ -29,7 +29,7 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 	std::shared_ptr<Network::Tcp::Packet> session_packet = Network::Tcp::Packet::Create();
 	if(nullptr == session_packet)
 	{
-		LOG(GAMNET_ERR, GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "cannot create more packet");
+		LOG(GAMNET_ERR, "can not create packet");
 		return;
 	}
 	session_packet->Clear();

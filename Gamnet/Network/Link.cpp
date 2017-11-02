@@ -132,7 +132,7 @@ void Link::AsyncSend(const char* buf, int len)
 	std::shared_ptr<Buffer> buffer = Buffer::Create();
 	if(NULL == buffer)
 	{
-		LOG(GAMNET_ERR, "Can't create more buffer(link_key:", link_key, ")");
+		LOG(GAMNET_ERR, "can not create buffer(link_key:", link_key, ")");
 		return;
 	}
 	buffer->Append(buf, len);

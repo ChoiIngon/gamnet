@@ -37,7 +37,7 @@ namespace Gamnet {	namespace Database { namespace MySQL {
 		LOG(INF, "[MySQL] connect...(host:", connInfo.uri_, ", port:", connInfo.port_, ", db:", connInfo.db_, ", user:", connInfo.id_, ", passwd:", connInfo.passwd_, ")");
 		if (NULL == mysql_real_connect(&conn_, connInfo.uri_.c_str(), connInfo.id_.c_str(), connInfo.passwd_.c_str(), connInfo.db_.c_str(), connInfo.port_, NULL, 0))
 		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, GAMNET_ERRNO(ErrorCode::ConnectFailError), "[MySQL] connect fail(host:", connInfo.uri_, ", port:", connInfo.port_, ", db:", connInfo.db_, ", user:", connInfo.id_, ", passwd:", connInfo.passwd_, ")");
+			LOG(GAMNET_ERR, "[MySQL] connect fail(host:", connInfo.uri_, ", port:", connInfo.port_, ", db:", connInfo.db_, ", user:", connInfo.id_, ", passwd:", connInfo.passwd_, ")");
 			mysql_thread_end();
 			return false;
 		}
@@ -48,7 +48,7 @@ namespace Gamnet {	namespace Database { namespace MySQL {
 	{
 		if (0 != mysql_real_query(&conn_, query.c_str(), query.length()))
 		{
-			LOG(ERR, mysql_error(&conn_), "(query:", query, ")");
+			LOG(GAMNET_ERR, mysql_error(&conn_), "(query:", query, ")");
 			throw Exception(mysql_errno(&conn_), mysql_error(&conn_), "(query:", query, ")");
 		}
 

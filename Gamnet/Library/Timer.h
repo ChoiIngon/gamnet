@@ -31,7 +31,7 @@ namespace Gamnet
 	});
  * 	</pre>
  */
-struct Timer
+class Timer
 {
 	struct TimerEntry
 	{
@@ -52,13 +52,36 @@ struct Timer
 
 	std::shared_ptr<TimerEntry> entry_;
 	long interval_;
+	bool auto_reset_;
 	boost::asio::deadline_timer deadline_timer_;
 
+	void OnExpire(const boost::system::error_code& ec)
+	{
+		if (0 != ec)
+		{
+			return;
+		}
+		if (nullptr == entry_)
+		{
+			return;
+		}
+		entry_->OnExpire();
+		if(true == auto_reset_)
+		{
+			Resume();
+		}
+	}
+public :
 	Timer() :
-		entry_(NULL), interval_(0), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
+		entry_(NULL), interval_(0), auto_reset_(false), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
 	{
 	}
 
+	~Timer()
+	{
+		deadline_timer_.expires_at(boost::posix_time::pos_infin);
+		entry_ = nullptr;
+	}
 	/*!
 		\param threadPool 타이머 이벤트 발생 시 지정된 함수자를 실행하기 위한 thread pool
 		\param interval ms단위(1/1000초) 단위. 함수 호출 이후 interval 만큼 시간이 흐르면 등록된 함수자가 호출 된다.(100ms 정밀도를 가진다)
@@ -86,32 +109,24 @@ struct Timer
 
 		return true;
 	}
-	void OnExpire(const boost::system::error_code& ec)
-	{
-		if(0 != ec)
-		{
-			return ;
-		}
-		if (nullptr == entry_)
-		{
-			return;
-		}
-		entry_->OnExpire();
-	}
+
     /*!
      * \brief 타이머 이벤트는 1회성이다. 지속적으로 발생 시키기 위해서는 필요할때 마다 Resume() 함수를 호출 해야 한다.
      */
 	bool Resume()
 	{
+		if(nullptr == entry_)
+		{
+			return false;
+		}
 		deadline_timer_.expires_at(deadline_timer_.expires_at() + boost::posix_time::milliseconds(interval_));
 		deadline_timer_.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
 		return true;
 	}
 
-	virtual ~Timer()
+	void AutoReset(bool flag)
 	{
-		deadline_timer_.expires_at(boost::posix_time::pos_infin);
-		entry_ = nullptr;
+		auto_reset_ = flag;
 	}
 
 	void Cancel()
@@ -121,6 +136,23 @@ struct Timer
 	}
 };
 
+class ElapseTimer
+{
+	std::chrono::time_point<std::chrono::high_resolution_clock> t0_;
+public :
+	ElapseTimer() : t0_(std::chrono::high_resolution_clock::now())
+	{
+	}
+
+	template<class TIMEUNIT_T = std::chrono::milliseconds>
+	uint64_t Count() 
+	{
+		auto t1 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float> fsec = t1 - t0_;
+		std::chrono::milliseconds diff = std::chrono::duration_cast<TIMEUNIT_T>(fsec);
+		return diff.count();
+	}
 };
+}
 
 #endif /* TIMER_H_ */

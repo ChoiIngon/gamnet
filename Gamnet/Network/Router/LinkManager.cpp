@@ -160,7 +160,7 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared
 			std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
 			if (NULL == packet)
 			{
-				LOG(GAMNET_ERR, "[link_key:", link->link_key, "] Can't create more buffer");
+				LOG(GAMNET_ERR, "[link_key:", link->link_key, "] can not create packet");
 				link->OnError(EOVERFLOW);
 				return;
 			}
