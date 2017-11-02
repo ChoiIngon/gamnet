@@ -68,15 +68,13 @@ public :
 		auto itr = mapConnectionPool_.find(db_type);
 		if (mapConnectionPool_.end() == itr)
 		{
-			LOG(GAMNET_ERR, "can't find database connection(db_type:", db_type, ")");
-			throw Exception(0, "can't find database connection(db_type:", db_type, ")");
+			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError), "can't find database connection(db_type:", db_type, ")");
 		}
 
 		std::shared_ptr<CONNECTION_T> conn(itr->second->Create());
 		if (NULL == conn)
 		{
-			LOG(GAMNET_ERR, "create Connection object error(db_type:", db_type, ")");
-			throw Exception(0, "create Connection object error(db_type:", db_type, ")");
+			throw Exception(GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "create Connection object error(db_type:", db_type, ")");
 		}
 		return conn;
 	}

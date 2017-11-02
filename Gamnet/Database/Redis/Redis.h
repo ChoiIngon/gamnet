@@ -2,6 +2,7 @@
 #define GAMNET_DATABASE_REDIS_REDIS_H_
 
 #include "Connection.h"
+#include "Transaction.h"
 
 namespace Gamnet { namespace Database { namespace Redis {
 		void ReadXml(const char* xml_path);

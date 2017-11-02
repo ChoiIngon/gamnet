@@ -1,10 +1,3 @@
-/*
- * Transaction.cpp
- *
- *  Created on: Jul 24, 2015
- *      Author: wered
- */
-
 #include "Transaction.h"
 #include "../ConnectionPool.h"
 #include "../../Library/Singleton.h"
@@ -35,15 +28,18 @@ Transaction::Transaction(int db_type, std::function<void(Transaction& transactio
 	connection = NULL;
 }
 */
-void Transaction::Commit()
+ResultSet Transaction::Commit()
 {
-	connection->Execute("commit");
-	connection = NULL;
+	ResultSet ret;
+	ret.impl_ = connection->Execute("commit");
+	ret.impl_->conn_ = connection;
+	connection = nullptr;
 	commit = true;
+	return ret;
 }
 
 Transaction::~Transaction() {
-	if(false == commit && NULL != connection)
+	if(false == commit && nullptr != connection)
 	{
 		connection->Execute("rollback");
 	}

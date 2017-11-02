@@ -21,7 +21,7 @@ public:
 		res.impl_->conn_ = connection;
 		return res;
 	}
-	void Commit();
+	ResultSet Commit();
 };
 
 } } }

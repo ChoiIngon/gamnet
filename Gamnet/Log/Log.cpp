@@ -42,6 +42,10 @@ void ReadXml(const char* xml_path)
 		{
 			level = Logger::LOG_LEVEL_ERR;
 		}
+		if("wrn" == elmt.first)
+		{
+			level = Logger::LOG_LEVEL_WRN;
+		}
 		if(Logger::LOG_LEVEL_MIN == level)
 		{
 			continue;
