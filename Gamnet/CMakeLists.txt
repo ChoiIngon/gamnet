@@ -40,6 +40,7 @@ add_library(Gamnet STATIC
 	Database/Redis/Connection.cpp
 	Database/Redis/Redis.cpp
 	Database/Redis/ResultSet.cpp
+	Database/Redis/Transaction.cpp
 	Database/Database.cpp
 	Library/Json/jsoncpp.cpp
 	Library/Base64.cpp
