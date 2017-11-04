@@ -123,7 +123,7 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared
 	if (NULL == session)
 	{
 		LOG(GAMNET_ERR, "[link_key:", link->link_key, "] invalid session");
-		link->OnError(EINVAL);
+		link->OnError(ErrorCode::InvalidSessionError);
 		return;
 	}
 
@@ -134,14 +134,14 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared
 		if (Tcp::Packet::HEADER_SIZE > totalLength)
 		{
 			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] buffer underflow(read size:", totalLength, ")");
-			link->OnError(EOVERFLOW);
+			link->OnError(ErrorCode::BufferUnderflowError);
 			return;
 		}
 
 		if (totalLength >= session->recv_packet->Capacity())
 		{
 			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] buffer overflow(read size:", totalLength, ")");
-			link->OnError(EOVERFLOW);
+			link->OnError(ErrorCode::BufferOverflowError);
 			return;
 		}
 
@@ -161,7 +161,7 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared
 			if (NULL == packet)
 			{
 				LOG(GAMNET_ERR, "[link_key:", link->link_key, "] can not create packet");
-				link->OnError(EOVERFLOW);
+				link->OnError(ErrorCode::NullPacketError);
 				return;
 			}
 			packet->Append(session->recv_packet->ReadPtr(), session->recv_packet->Size());

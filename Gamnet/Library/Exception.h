@@ -17,6 +17,7 @@ public :
 	enum {
 		Success						= 0,
 		ConnectFailError			= 1,
+		AcceptFailError				= 2,
 		ConnectTimeoutError			= 10,
 		InvalidArgumentError		= 20,
 		InvalidSessionTokenError	= 21,
@@ -24,15 +25,20 @@ public :
 		InvalidArrayRangeError		= 30,
 		InvalidKeyError				= 40,
 		InvalidAddressError			= 41,
+		InvalidLinkManagerError		= 42,
+		InvalidHandlerError			= 43,
 		NotInitializedError			= 50,
 		NullPointerError			= 60,
+		NullPacketError				= 61,
 		MessageFormatError			= 70,
 		DuplicateConnectionError	= 80,
 		CreateDirectoryFailError	= 90,
 		CreateInstanceFailError		= 91,
 		BufferOverflowError			= 100,
+		BufferUnderflowError		= 101,
 		MessageSeqOmittedError		= 110,
 		BadLexicalCastError			= 120,
+		IdleTimeoutError			= 130,
 		UndefinedError				= 999
 	};
 };

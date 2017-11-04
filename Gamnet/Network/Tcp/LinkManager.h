@@ -67,9 +67,9 @@ public :
 		if(nullptr != session)
 		{
 			session->OnClose(reason);
-			link->AttachSession(nullptr);
 			session->recv_packet = nullptr;
 		}
+		link->AttachSession(nullptr);
 		Network::LinkManager::OnClose(link, reason);
 	}
 
@@ -79,7 +79,7 @@ public :
 		if(NULL == session)
 		{
 			LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");
-			link->OnError(EINVAL);
+			link->OnError(ErrorCode::InvalidSessionError);
 			return;
 		}
 
@@ -91,14 +91,14 @@ public :
 			if(Packet::HEADER_SIZE > totalLength )
 			{
 				LOG(GAMNET_ERR, "buffer underflow(read size:", totalLength, ")");
-				link->OnError(EOVERFLOW);
+				link->OnError(ErrorCode::BufferUnderflowError);
 				return;
 			}
 
 			if(totalLength >= session->recv_packet->Capacity())
 			{
 				LOG(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
-				link->OnError(EOVERFLOW);
+				link->OnError(ErrorCode::BufferOverflowError);
 				return;
 			}
 
@@ -116,7 +116,7 @@ public :
 				session = std::static_pointer_cast<SESSION_T>(link->session);
 				if(nullptr == session)
 				{
-					link->OnError(errno);
+					link->OnError(ErrorCode::InvalidSessionError);
 					return;
 				}
 				session->msg_seq = msg_seq;
@@ -135,7 +135,7 @@ public :
 				if (NULL == packet)
 				{
 					LOG(ERR, "can not create buffer(link_key:", link->link_key, ")");
-					link->OnError(EOVERFLOW);
+					link->OnError(ErrorCode::NullPacketError);
 					return;
 				}
 				packet->Append(session->recv_packet->ReadPtr(), session->recv_packet->Size());
@@ -268,7 +268,7 @@ public :
 			std::shared_ptr<Link> link = session->link;
 			if(nullptr != link)
 			{
-				link->OnError(0);
+				link->OnError(ErrorCode::Success);
 			}
 			Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Remove(session->session_key);
 		}

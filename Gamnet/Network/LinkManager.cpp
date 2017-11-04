@@ -30,7 +30,7 @@ void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 				{
 					LOG(GAMNET_ERR, "[link_key:", link->link_key, "] idle link timeout(ip:", link->remote_address.to_string(), ")");
 			        _links.erase(itr++);
-			        link->strand.wrap(std::bind(&Link::OnError, link, ETIMEDOUT))();
+			        link->strand.wrap(std::bind(&Link::OnError, link, ErrorCode::IdleTimeoutError))();
 			    }
 			    else {
 			        ++itr;
@@ -56,7 +56,7 @@ void LinkManager::Accept()
 	std::shared_ptr<Link> link = Create();
 	if(NULL == link)
 	{
-		LOG(GAMNET_ERR, "can not create link(pool_size:", Available(), ")");
+		LOG(GAMNET_INF, "can not create link(pool_size:", Available(), "), link manager will deny addtional conntion");
 		std::lock_guard<std::recursive_mutex> lo(_lock);
 		_is_acceptable = false;
 		return;
@@ -82,7 +82,8 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 		}
 		catch(const boost::system::system_error& e)
 		{
-			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", errno, ", errstr:", e.what(), ")");
+			link->OnError(ErrorCode::AcceptFailError);
+			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
 		}
 	}
 	Accept();
@@ -103,6 +104,7 @@ void LinkManager::OnClose(const std::shared_ptr<Link>& link, int reason)
 		std::lock_guard<std::recursive_mutex> lo(_lock);
 		if(false == _is_acceptable)
 		{
+			LOG(GAMNET_INF, "new connection is available");
 			if(0 < _link_pool.Available())
 			{
 				_is_acceptable = true;

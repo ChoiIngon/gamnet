@@ -17,7 +17,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 
 	const Variant& ResultSet::operator[] (unsigned int index)
 	{
-		if (0 > index || index >= impl_->size())
+		if (index >= impl_->size()) // no neet to compare with 0. size() returns unsigned int
 		{
 			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidArrayRangeError), "invalid index(index:", index, ")");
 		}

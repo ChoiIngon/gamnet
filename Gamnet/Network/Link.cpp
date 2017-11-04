@@ -36,13 +36,19 @@ void Link::Connect(const char* host, int port, int timeout)
 		self->timer.Cancel();
 		if(ec)
 		{
-			self->OnError(ec.value());
+			self->OnError(ErrorCode::ConnectFailError);
+			return;
 		}
 		else
 		{
-			if(NULL == self->session)
+			if(nullptr == self->manager)
 			{
-				self->OnError(ErrorCode::NullPointerError);
+				self->OnError(ErrorCode::InvalidLinkManagerError);
+				return;
+			}
+			if(nullptr == self->session)
+			{
+				self->OnError(ErrorCode::InvalidSessionError);
 				return;
 			}
 			try {
@@ -50,10 +56,7 @@ void Link::Connect(const char* host, int port, int timeout)
 				self->socket.set_option(option);
 				self->remote_address = self->socket.remote_endpoint().address();
 				self->expire_time = 0;
-				if(NULL != self->manager)
-				{
-					self->manager->OnConnect(self);
-				}
+				self->manager->OnConnect(self);
 				//LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key,"] connect success(remote_address:", self->remote_address.to_string(), ")");
 				self->AsyncRead();
 			}
@@ -68,7 +71,7 @@ void Link::Connect(const char* host, int port, int timeout)
 	{
 		timer.SetTimer(timeout*1000, strand.wrap([this]() {
 			Log::Write(GAMNET_WRN, "[link_key:", this->link_key, ", session_key:", NULL == this->session ? 0 : this->session->session_key, "] connect timeout(ip:", this->remote_address.to_string(), ")");
-			this->OnError(ETIMEDOUT);
+			this->OnError(ErrorCode::ConnectTimeoutError);
 		}));
 	}
 }
@@ -101,13 +104,13 @@ void Link::AsyncRead()
 		strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
-				self->OnError(errno); // no error, just closed socket
+				self->OnError(ErrorCode::Success); // no error, just closed socket
 				return;
 			}
 
 			if(0 == readbytes)
 			{
-				self->OnError(errno);
+				self->OnError(ErrorCode::Success);
 				return;
 			}
 
@@ -115,6 +118,7 @@ void Link::AsyncRead()
 			self->read_buffer->writeCursor_ += readbytes;
 			if(nullptr == self->manager)
 			{
+				self->OnError(ErrorCode::InvalidLinkManagerError);
 				return;
 			}
 			self->manager->OnRecvMsg(self, self->read_buffer);
@@ -162,7 +166,7 @@ void Link::FlushSend()
 			strand.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
 				if (0 != ec)
 				{
-					self->OnError(errno); // no error, just closed socket
+					self->OnError(ErrorCode::Success); // no error, just closed socket
 					return;
 				}
 

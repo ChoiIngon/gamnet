@@ -106,7 +106,7 @@ public :
 				if (NULL == session)
 				{
 					LOG(GAMNET_ERR, "can not create session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
-					link->OnError(errno);
+					link->OnError(ErrorCode::InvalidSessionError);
 					return;
 				}
 				session->session_key = ++Network::SessionManager::session_key;
@@ -114,7 +114,7 @@ public :
 				if (nullptr == session->recv_packet)
 				{
 					LOG(GAMNET_ERR, "can not create packet");
-					link->OnError(errno);
+					link->OnError(ErrorCode::NullPacketError);
 					return;
 				}
 				session->msg_seq = 0;
@@ -181,7 +181,7 @@ public :
 		if(NULL == session)
 		{
 			LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");
-			link->OnError(EINVAL);
+			link->OnError(ErrorCode::InvalidSessionError);
 			return;
 		}
 
@@ -192,14 +192,14 @@ public :
 			if(Network::Tcp::Packet::HEADER_SIZE > totalLength )
 			{
 				LOG(GAMNET_ERR, "buffer underflow(read size:", totalLength, ")");
-				link->OnError(EOVERFLOW);
+				link->OnError(ErrorCode::BufferUnderflowError);
 				return;
 			}
 
 			if(totalLength >= session->recv_packet->Capacity())
 			{
 				LOG(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
-				link->OnError(EOVERFLOW);
+				link->OnError(ErrorCode::BufferOverflowError);
 				return;
 			}
 
@@ -214,7 +214,7 @@ public :
 			if(itr == recv_handlers.end())
 			{
 				LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
-				link->OnError(0);
+				link->OnError(ErrorCode::InvalidHandlerError);
 				return ;
 			}
 			RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
@@ -224,7 +224,7 @@ public :
 			
 			if(session->test_seq >= (int)execute_order.size())
 			{
-				link->OnError(0);
+				link->OnError(ErrorCode::Success);
 				return;
 			}
 
@@ -236,7 +236,7 @@ public :
 			catch(const Gamnet::Exception& e)
 			{
 				LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-				link->OnError(0);
+				link->OnError(ErrorCode::UndefinedError);
 				return;
 			}
 			execute_info->execute_count++;
@@ -247,7 +247,7 @@ public :
 			if(NULL == packet)
 			{
 				LOG(GAMNET_ERR, "can not create packet(link_key:", link->link_key, ")");
-				link->OnError(EOVERFLOW);
+				link->OnError(ErrorCode::NullPacketError);
 				return;
 			}
 
