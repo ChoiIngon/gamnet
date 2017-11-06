@@ -32,7 +32,7 @@ void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const 
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		MsgSvrCli_Kickout_Ntf ntf;
-		ntf.error_code = (ErrorCode::TYPE)e.error_code();
+		ntf.error_code = e.error_code();
 		Gamnet::Network::Tcp::SendMsg(session, ntf);
 	}
 }

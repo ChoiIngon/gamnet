@@ -51,6 +51,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 		user_data.user_id = req.user_id;
 		user_data.user_seq = Gamnet::Random::Range(1, 99999);
 		int count = Gamnet::Random::Range(1, 10);
+		user_data.items.clear();
 		for(int i=0;i<count; i++)
 		{
 			ItemData item;
@@ -90,6 +91,11 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 		if(false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
 			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "message load fail");
+		}
+		if(10 < ans.user_data.items.size())
+		{
+			LOG(ERR, "item data size over(size:", ans.user_data.items.size(), ")");
+			assert(!"item size over");
 		}
 		session->user_data = ans.user_data;
 		LOG(DEV, "user_seq:", session->user_data.user_seq, ", session_token:", session->session_token);

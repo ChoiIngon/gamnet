@@ -22,9 +22,27 @@ struct ErrorCode {
 	ErrorCode() : type(Success) {}
 	ErrorCode(int obj) : type((TYPE)obj) {} 
 	ErrorCode(TYPE obj) : type(obj) {}
-	operator TYPE() { return type; }
-	operator int() { return (int)type; }
-	TYPE operator = (const TYPE& obj) { type = obj; return type; }
+	operator TYPE() const { return type; }
+	operator int() const { return (int)type; }
+	ErrorCode& operator = (const TYPE& type) { this->type = type; return *this; }
+	bool operator == (const ErrorCode& obj) { return type == obj.type; }
+	bool operator == (ErrorCode::TYPE type) { return this->type == type; }
+	bool operator == (int value) { return this->type == value; }
+	bool operator != (const ErrorCode& obj) { return type != obj.type; }
+	bool operator != (ErrorCode::TYPE type) { return this->type != type; }
+	bool operator != (int value) { return this->type != value; }
+	bool operator < (const ErrorCode& obj) { return type < obj.type; }
+	bool operator < (ErrorCode::TYPE type) { return this->type < type; }
+	bool operator < (int value) { return this->type < value; }
+	bool operator > (const ErrorCode& obj) { return type > obj.type; }
+	bool operator > (ErrorCode::TYPE type) { return this->type > type; }
+	bool operator > (int value) { return this->type > value; }
+	bool operator <= (const ErrorCode& obj) { return type <= obj.type; }
+	bool operator <= (ErrorCode::TYPE type) { return this->type <= type; }
+	bool operator <= (int value) { return this->type <= value; }
+	bool operator >= (const ErrorCode& obj) { return type >= obj.type; }
+	bool operator >= (ErrorCode::TYPE type) { return this->type >= type; }
+	bool operator >= (int value) { return this->type >= value; }
 }; // ErrorCode
 struct ErrorCode_Serializer {
 	static bool Store(char** _buf_, const ErrorCode& obj) { 
@@ -48,9 +66,27 @@ struct ItemType {
 	ItemType() : type(Invalid) {}
 	ItemType(int obj) : type((TYPE)obj) {} 
 	ItemType(TYPE obj) : type(obj) {}
-	operator TYPE() { return type; }
-	operator int() { return (int)type; }
-	TYPE operator = (const TYPE& obj) { type = obj; return type; }
+	operator TYPE() const { return type; }
+	operator int() const { return (int)type; }
+	ItemType& operator = (const TYPE& type) { this->type = type; return *this; }
+	bool operator == (const ItemType& obj) { return type == obj.type; }
+	bool operator == (ItemType::TYPE type) { return this->type == type; }
+	bool operator == (int value) { return this->type == value; }
+	bool operator != (const ItemType& obj) { return type != obj.type; }
+	bool operator != (ItemType::TYPE type) { return this->type != type; }
+	bool operator != (int value) { return this->type != value; }
+	bool operator < (const ItemType& obj) { return type < obj.type; }
+	bool operator < (ItemType::TYPE type) { return this->type < type; }
+	bool operator < (int value) { return this->type < value; }
+	bool operator > (const ItemType& obj) { return type > obj.type; }
+	bool operator > (ItemType::TYPE type) { return this->type > type; }
+	bool operator > (int value) { return this->type > value; }
+	bool operator <= (const ItemType& obj) { return type <= obj.type; }
+	bool operator <= (ItemType::TYPE type) { return this->type <= type; }
+	bool operator <= (int value) { return this->type <= value; }
+	bool operator >= (const ItemType& obj) { return type >= obj.type; }
+	bool operator >= (ItemType::TYPE type) { return this->type >= type; }
+	bool operator >= (int value) { return this->type >= value; }
 }; // ItemType
 struct ItemType_Serializer {
 	static bool Store(char** _buf_, const ItemType& obj) { 
