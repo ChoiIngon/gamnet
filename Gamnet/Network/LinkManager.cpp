@@ -69,6 +69,8 @@ void LinkManager::Accept()
 
 void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error)
 {
+	Accept();
+
 	if(0 == error)
 	{
 		try {
@@ -86,7 +88,6 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
 		}
 	}
-	Accept();
 }
 
 void LinkManager::OnAccept(const std::shared_ptr<Link>& link)
