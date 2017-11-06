@@ -112,14 +112,14 @@ public :
 			if(msg_seq > session->msg_seq)
 			{
 				//LOG(DEV, "[link_key:", link->link_key, ", session_key:", session->session_key, "] receive message(msg_seq:", msg_seq, ", msg_id:", session->recv_packet->GetID(), ")");
+				session->msg_seq = msg_seq;
 				Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, session->recv_packet);
 				session = std::static_pointer_cast<SESSION_T>(link->session);
 				if(nullptr == session)
 				{
 					link->OnError(ErrorCode::InvalidSessionError);
 					return;
-				}
-				session->msg_seq = msg_seq;
+				}				
 			}
 #ifdef _DEBUG
 			else
@@ -231,7 +231,7 @@ public :
 			}
 			catch (const Exception& e)
 			{
-				//link->AttachSession(NULL);
+				link->AttachSession(nullptr);
 				ans["error_code"] = e.error_code();
 				LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 			}
@@ -256,12 +256,10 @@ public :
 		}
 		void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
-			//LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] receive heartbeat request(msg_seq:", packet->GetSEQ(), ", expect:", session->msg_seq+1, ")");
 			Json::Value ans;
 			ans["error_code"] = 0;
 			ans["msg_seq"] = (uint32_t)session->msg_seq;
 			session->Send(MsgID_HeartBeat_Ans, ans);
-			//LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] send heartbeat ans(msg_seq:", session->msg_seq, ")");
 		}
 		void Recv_Close_Ntf(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
