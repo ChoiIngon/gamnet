@@ -52,8 +52,10 @@ void Link::Connect(const char* host, int port, int timeout)
 				return;
 			}
 			try {
-				boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
-				self->socket.set_option(option);
+				boost::asio::socket_base::linger linger_option(true, 0);
+				self->socket.set_option(linger_option);
+				boost::asio::socket_base::send_buffer_size send_buffer_size_option(Buffer::MAX_SIZE);
+				self->socket.set_option(send_buffer_size_option);
 				self->remote_address = self->socket.remote_endpoint().address();
 				self->expire_time = 0;
 				self->manager->OnConnect(self);
