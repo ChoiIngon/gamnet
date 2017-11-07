@@ -12,6 +12,7 @@ public class UnityClient : MonoBehaviour {
 	private bool pause_toggle = false;
     private uint msg_seq = 1;
 
+	public string host_name;
 	public Button connect;
 	public Button close;
     public Button pause;
@@ -23,12 +24,13 @@ public class UnityClient : MonoBehaviour {
     public int lineLimit = 1000;
 
 	const int TimeoutError = 1000;
+
 	void Start () {
         connect.onClick.AddListener(() => {
 			//session.msg_seq = 0;
             if ("" == host.text)
             {
-                session.Connect("52.78.185.159", 20000, 60000);
+				session.Connect(host_name, 20000, 60000);
             }
             else
             {
@@ -81,23 +83,17 @@ public class UnityClient : MonoBehaviour {
 			}
 			coroutine = null;
 		};
-        session.RegisterHandler(MsgSvrCli_Login_Ans.MSG_ID, Recv_Login_Ans);
 
-        session.RegisterHandler (MsgSvrCli_HeartBeat_Ntf.MSG_ID, (System.IO.MemoryStream buffer) => {
-			MsgSvrCli_HeartBeat_Ntf ntf = new MsgSvrCli_HeartBeat_Ntf();
-			if(false == ntf.Load(buffer)) {
-				Log("MessageFormatError(MsgSvrCli_HeartBeat_Ntf)");
-				return;
-			}
+		session.RegisterHandler<MsgSvrCli_Login_Ans> (Recv_Login_Ans);
+		session.RegisterHandler<MsgSvrCli_Login_Ans> ((MsgSvrCli_Login_Ans ans) => {
+			Debug.Log(ans.user_data.user_id);
+			session.UnregisterHandler<MsgSvrCli_Login_Ans>();
+		});
+
+		session.RegisterHandler<MsgSvrCli_HeartBeat_Ntf>((MsgSvrCli_HeartBeat_Ntf ntf) => {
 			Log("MsgSvrCli_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq.ToString() + ")");
 		});
-		session.RegisterHandler (MsgSvrCli_Kickout_Ntf.MSG_ID, (System.IO.MemoryStream buffer) => {
-			MsgSvrCli_Kickout_Ntf ntf = new MsgSvrCli_Kickout_Ntf();
-			if(false == ntf.Load(buffer)) {
-				Log("MessageFormatError(MsgSvrCli_Kickout_Ntf)");
-				return;
-			}
-
+		session.RegisterHandler<MsgSvrCli_Kickout_Ntf>((MsgSvrCli_Kickout_Ntf ntf) => {
 			Log("MsgSvrCli_Kickout_Ntf(error_code:" + ntf.error_code.ToString() + ")");
 			session.Close();
             if (null != coroutine)
@@ -143,13 +139,7 @@ public class UnityClient : MonoBehaviour {
         scrollRect.verticalNormalizedPosition = 0.0f;
     }
 
-    void Recv_Login_Ans(System.IO.MemoryStream buffer) {
-		MsgSvrCli_Login_Ans ans = new MsgSvrCli_Login_Ans();
-		if(false == ans.Load(buffer)) {
-            Log("MessageFormatError(MsgSvrCli_Login_Ans)");
-			return;
-		}
-
+	void Recv_Login_Ans(MsgSvrCli_Login_Ans ans) {
         Log("MsgSvrCli_Login_Ans(user_seq:" + ans.user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
 
 		if(ErrorCode.Success != ans.error_code)	{
