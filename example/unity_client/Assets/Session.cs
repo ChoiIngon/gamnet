@@ -310,7 +310,7 @@ namespace Gamnet
             {
                 return;
             }
-            Send_HeartBeat_Req();
+            Reconnect();
         }
 
         public void Pause()
@@ -709,14 +709,10 @@ namespace Gamnet
             SendMsg(packet);
 
             foreach (var itr in tmp)
-            {
-                if (itr.msg_seq >= _msg_seq)
-                {
-                    itr.msg_seq = ++_msg_seq;
-                }
-                itr.read_index = 0;
-                _send_queue.Add(itr);
-            }
+			{
+				itr.read_index = 0;
+				_send_queue.Add(itr);
+			}
 		}
 		const uint MsgID_Reconnect_Ans                = 0002;
 		[System.Serializable] 
