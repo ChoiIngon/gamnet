@@ -296,6 +296,11 @@ namespace Gamnet
             Send_HeartBeat_Req();
         }
 
+        public void Pause()
+        {
+            Disconnect();
+        }
+
         private void Reconnect() {
             if (ConnectionState.Disconnected != _state) {
                 return;
@@ -413,26 +418,34 @@ namespace Gamnet
         }
 
         public void Close() {
-            if (ConnectionState.Disconnected == _state) {
+            Send_Close_Ntf();
+            Disconnect();
+        }
+
+        private void Disconnect()
+        {
+            if (ConnectionState.Disconnected == _state)
+            {
                 return;
             }
-			//Debug.Log ("close");
-            try {
-				_state = ConnectionState.Disconnected;
+            try
+            {
+                _state = ConnectionState.Disconnected;
                 _timer.Stop();
 
                 if (null == _socket)
+                {
                     return;
-
-				//_socket.Shutdown(SocketShutdown.Send);
-                _socket.BeginDisconnect(false, new AsyncCallback(Callback_Close), _socket);
+                }
+                //_socket.Shutdown(SocketShutdown.Send);
+                _socket.BeginDisconnect(false, new AsyncCallback(Callback_Disconnect), _socket);
             }
             catch (SocketException e)
             {
-				Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.ToString()));
+                Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.ToString()));
             }
         }
-		private void Callback_Close(IAsyncResult result) {
+		private void Callback_Disconnect(IAsyncResult result) {
 			try	{
 				_socket.EndDisconnect(result);
 				_socket.Close();
@@ -760,5 +773,19 @@ namespace Gamnet
 				session.Close();
 			}
 		}
+        const uint MsgID_Close_Ntf = 0005;
+        void Send_Close_Ntf()
+        {
+            if (ConnectionState.Disconnected == _state)
+            {
+                return;
+            }
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.length = Packet.HEADER_SIZE;
+            packet.msg_seq = ++_msg_seq;
+            packet.msg_id = MsgID_Close_Ntf;
+            packet.reliable = false;
+            SendMsg(packet);
+        }
     }
 }
