@@ -106,6 +106,14 @@ namespace Gamnet
 			Connected
 		}
 
+        public enum DisconnectState
+        {
+            Invalid,
+            Pause,
+            Handover,
+            Closed
+        }
+
 		public abstract class IMsgHandler {
 			public abstract void OnRecvMsg (System.IO.MemoryStream ms);
 		}
@@ -136,9 +144,10 @@ namespace Gamnet
 		private object 		_sync_obj = new object();
         private Socket 		_socket = null;
         private IPEndPoint 	_endpoint = null;
-
+        private bool        _connect_complete = false;
 		private ConnectionState 	_state = ConnectionState.Disconnected;
         public ConnectionState      state { get { return _state; } }
+        private DisconnectState     _disconnectState = DisconnectState.Invalid;
 		private Gamnet.Buffer		_recv_buff = new Gamnet.Buffer();
 		private TimeoutMonitor 		_timeout_monitor = null;
 		private System.Timers.Timer	_timer = null;
@@ -161,15 +170,11 @@ namespace Gamnet
 			}
 		}
 
-		public delegate void Delegate_OnConnect();
-		public delegate void Delegate_OnReconnect();
-		public delegate void Delegate_OnClose();
-		public delegate void Delegate_OnError(Gamnet.Exception e);
-
-		public Delegate_OnConnect onConnect;
-		public Delegate_OnReconnect onReconnect;
-		public Delegate_OnClose onClose;
-		public Delegate_OnError onError;
+		public Action onConnect;
+		public Action onReconnect;
+        public Action onResume;
+		public Action onClose;
+		public Action<Gamnet.Exception> onError;
 
         public abstract class SessionEvent {
             protected Session session;
@@ -192,6 +197,14 @@ namespace Gamnet
 				if (null != session.onReconnect) {
 					session.onReconnect ();
 				}
+            }
+        }
+        public class ResumeEvent : SessionEvent {
+            public ResumeEvent(Session session) : base(session) { }
+            public override void Event() {
+                if (null != session.onResume) {
+                    session.onResume();
+                }
             }
         }
         public class ErrorEvent : SessionEvent {
@@ -293,16 +306,25 @@ namespace Gamnet
 
         public void Resume()
         {
+            if (false == _connect_complete)
+            {
+                return;
+            }
             Send_HeartBeat_Req();
         }
 
         public void Pause()
         {
             Disconnect();
+            _disconnectState = DisconnectState.Pause;
         }
 
         private void Reconnect() {
             if (ConnectionState.Disconnected != _state) {
+                return;
+            }
+            if (DisconnectState.Closed == _disconnectState)
+            {
                 return;
             }
             _state = ConnectionState.OnConnecting;
@@ -318,6 +340,7 @@ namespace Gamnet
 				_socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
                 _timer.Stop ();
                 _state = ConnectionState.Connected;
+                
                 Receive();
 
 				lock (_sync_obj) {
@@ -373,7 +396,7 @@ namespace Gamnet
                 Close();
             }
 		}
-		public void OnReceive(Gamnet.Buffer buf) {
+		void OnReceive(Gamnet.Buffer buf) {
 			_recv_buff += buf;
 			while (_recv_buff.Size() >= Packet.HEADER_SIZE)
 			{
@@ -420,6 +443,7 @@ namespace Gamnet
         public void Close() {
             Send_Close_Ntf();
             Disconnect();
+            _disconnectState = DisconnectState.Closed;
         }
 
         private void Disconnect()
@@ -573,7 +597,8 @@ namespace Gamnet
 
 			if (Application.internetReachability != _networkReachability) {
 				_networkReachability = Application.internetReachability;
-				Close ();
+				Disconnect ();
+                _disconnectState = DisconnectState.Handover;
 			}
         }
 
@@ -648,6 +673,7 @@ namespace Gamnet
 				Debug.Log("recv connect ans(session_key:" + session._session_key + ", session_token:" + session._session_token + ")");
 				session._session_key = ans.session_key;
 				session._session_token = ans.session_token;
+                session._connect_complete = true;
 
 				ConnectEvent evt = new ConnectEvent(session);
 				session._event_queue.Add(evt); // already locked
@@ -679,7 +705,7 @@ namespace Gamnet
             _send_queue.Clear();
             _send_queue_idx = 0;
 
-            Debug.Log("send reconnect req(msg_seq:" + packet.msg_seq + ", msg_id:" + packet.msg_id + ", " + json + ")");
+            Debug.Log("send reconnect req(msg_seq:" + packet.msg_seq + ", disconnect_state:" + _disconnectState.ToString() + ", json:" + json + ")");
             SendMsg(packet);
 
             foreach (var itr in tmp)
@@ -713,17 +739,33 @@ namespace Gamnet
 					session.Error(new Gamnet.Exception(ans.error_code, "fail to reconnect"));
 					return;
 				}
-				Debug.Log("recv reconnect ans(session_key:" + session._session_key + ", session_token:" + session._session_token + ")");
+				Debug.Log("recv reconnect ans(session_key:" + session._session_key + ", session_token:" + session._session_token + ", disconnect_state:" + session._disconnectState.ToString() +")");
 				session._session_key = ans.session_key;
 				session._session_token = ans.session_token;
-				
-				ReconnectEvent evt = new ReconnectEvent(session);
-				session._event_queue.Add(evt); // already locked
+
+                SessionEvent evt = null;
+                switch (session._disconnectState)
+                {
+                    case DisconnectState.Pause:
+                        evt = new ResumeEvent(session);
+                        break;
+                    case DisconnectState.Handover:
+                        evt = new ReconnectEvent(session);
+                        break;
+                    case DisconnectState.Closed:
+                        break;
+                }
+
+                if (null != evt)
+                {
+                    session._event_queue.Add(evt); // already locked
+                }
 			}
 		}
 		const uint MsgID_HeartBeat_Req                = 0003;
 		void Send_HeartBeat_Req()
 		{
+            Reconnect();
 			Gamnet.Packet packet = new Gamnet.Packet ();
 			packet.length = Packet.HEADER_SIZE;
 			packet.msg_seq = ++_msg_seq;

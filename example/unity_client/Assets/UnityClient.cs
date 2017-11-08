@@ -65,11 +65,9 @@ public class UnityClient : MonoBehaviour {
 			Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ")");
             session.SendMsg(req);
 		};
-		session.onReconnect += () => {
-
-		};
-		session.onClose += () => {
-			Log("session close");
+        session.onResume += () =>
+        {
+            Log("UnityClient.onResume");
         };
 		session.onError += (Gamnet.Exception e) => {
 			Log(e.ToString());
@@ -106,19 +104,15 @@ public class UnityClient : MonoBehaviour {
 
 	IEnumerator SendHeartBeat() {
 		while (true) {
-			MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
-            ntf.msg_seq = msg_seq++;
-			if (0 == ntf.msg_seq % 10) {
-				// timeout example
-				Log ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ", timeout in 5 sec)");
-				session.SendMsg (ntf, true).SetTimeout (MsgSvrCli_HeartBeat_Ntf.MSG_ID, 5, () => {
-					session.Error (new Gamnet.Exception (TimeoutError, "msg_seq:" + ntf.msg_seq + " timeout"));			
-				});
-			} else {
-				Log ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
-				session.SendMsg (ntf, true);			
-			}
-			yield return new WaitForSeconds (1.0f);
+            if (Gamnet.Session.ConnectionState.Connected == session.state)
+            {
+                MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
+                ntf.msg_seq = msg_seq++;
+                Log ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
+                session.SendMsg (ntf, true);			
+            }
+
+            yield return new WaitForSeconds(1.0f);
 		}
 	}
 
@@ -154,5 +148,26 @@ public class UnityClient : MonoBehaviour {
             StopCoroutine(coroutine);
 		}
 		coroutine = StartCoroutine(SendHeartBeat());
+    }
+
+    private void OnApplicationFocus(bool focus)
+    {
+        Log("UnityClient.OnApplicationFocus(focus:" + focus.ToString() + ")");
+    }
+    private void OnApplicationPause(bool pause)
+    {
+        Log("UnityClient.OnApplicationPause(pause:" + pause.ToString() + ")");
+        if (true == pause)
+        {
+            session.Pause();
+        }
+        else
+        {
+            session.Resume();
+        }
+    }
+    private void OnApplicationQuit()
+    {
+        
     }
 }
