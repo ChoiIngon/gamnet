@@ -27,7 +27,6 @@ public class UnityClient : MonoBehaviour {
 
 	void Start () {
         connect.onClick.AddListener(() => {
-			//session.msg_seq = 0;
             if ("" == host.text)
             {
 				session.Connect(host_name, 20000, 60000);
@@ -65,8 +64,7 @@ public class UnityClient : MonoBehaviour {
 			Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ")");
             session.SendMsg(req);
 		};
-        session.onResume += () =>
-        {
+		session.onResume += () => {
             Log("UnityClient.onResume");
         };
 		session.onError += (Gamnet.Exception e) => {
@@ -82,12 +80,18 @@ public class UnityClient : MonoBehaviour {
 			coroutine = null;
 		};
 
-		session.RegisterHandler<MsgSvrCli_Login_Ans> (Recv_Login_Ans);
 		session.RegisterHandler<MsgSvrCli_Login_Ans> ((MsgSvrCli_Login_Ans ans) => {
-			Debug.Log(ans.user_data.user_id);
-			session.UnregisterHandler<MsgSvrCli_Login_Ans>();
+			user_data = ans.user_data;
+			Log("MsgSvrCli_Login_Ans(user_seq:" + user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
+			if(ErrorCode.Success != ans.error_code)	{
+				session.Close();
+				return;
+			}
+			if(null != coroutine) {
+				StopCoroutine(coroutine);
+			}
+			coroutine = StartCoroutine(SendHeartBeat());
 		});
-
 		session.RegisterHandler<MsgSvrCli_HeartBeat_Ntf>((MsgSvrCli_HeartBeat_Ntf ntf) => {
 			Log("MsgSvrCli_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq.ToString() + ")");
 		});
@@ -104,18 +108,17 @@ public class UnityClient : MonoBehaviour {
 
 	IEnumerator SendHeartBeat() {
 		while (true) {
-            if (Gamnet.Session.ConnectionState.Connected == session.state)
-            {
-                MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
-                ntf.msg_seq = msg_seq++;
-                Log ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
-                session.SendMsg (ntf, true);			
-            }
+			if (Gamnet.Session.ConnectionState.Connected == session.state)
+			{
+				MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
+				ntf.msg_seq = msg_seq++;
+				Log ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
+				session.SendMsg (ntf, true);			
+			}
 
-            yield return new WaitForSeconds(1.0f);
+			yield return new WaitForSeconds(1.0f);
 		}
 	}
-
 	// Update is called once per frame
 	void Update () {
 		session.Update ();
@@ -133,28 +136,7 @@ public class UnityClient : MonoBehaviour {
         scrollRect.verticalNormalizedPosition = 0.0f;
     }
 
-	void Recv_Login_Ans(MsgSvrCli_Login_Ans ans) {
-        Log("MsgSvrCli_Login_Ans(user_seq:" + ans.user_data.user_seq + ", error_code:" + ans.error_code.ToString() +")");
-
-		if(ErrorCode.Success != ans.error_code)	{
-			session.Close();
-			return;
-		}
-
-		user_data = ans.user_data;
-
-		if(null != coroutine) {
-
-            StopCoroutine(coroutine);
-		}
-		coroutine = StartCoroutine(SendHeartBeat());
-    }
-
-    private void OnApplicationFocus(bool focus)
-    {
-        Log("UnityClient.OnApplicationFocus(focus:" + focus.ToString() + ")");
-    }
-    private void OnApplicationPause(bool pause)
+	private void OnApplicationPause(bool pause)
     {
         Log("UnityClient.OnApplicationPause(pause:" + pause.ToString() + ")");
         if (true == pause)
@@ -168,6 +150,6 @@ public class UnityClient : MonoBehaviour {
     }
     private void OnApplicationQuit()
     {
-        
+		session.Close ();   
     }
 }

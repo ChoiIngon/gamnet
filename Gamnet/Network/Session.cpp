@@ -1,10 +1,3 @@
-/*
- * Session.cpp
- *
- *  Created on: 2017. 8. 20.
- *      Author: kukuta
- */
-
 #include "Session.h"
 #include "Link.h"
 #include "LinkManager.h"
