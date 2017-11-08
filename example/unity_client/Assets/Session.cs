@@ -132,7 +132,7 @@ namespace Gamnet
 				T msg = new T ();
 				System.Type type = msg.GetType();
 				if (false == (bool)type.GetMethod ("Load").Invoke (msg, new object[] { ms })) {
-					session.Error(new Gamnet.Exception(ErrorCode.ConnectFailError, "message load fail"));
+					session.Error(new Gamnet.Exception(ErrorCode.MessageFormatError, "message load fail"));
 				}
 				onReceive (msg);
 			}
