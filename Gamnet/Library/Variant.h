@@ -7,9 +7,11 @@
 namespace Gamnet {
 	class Variant {
 	private:
-		const std::string value;
+		std::string value;
 	public:
+		Variant();
 		Variant(const std::string& val);
+		Variant(const Variant& val);
 
 		operator bool() const;
 
@@ -25,6 +27,9 @@ namespace Gamnet {
 		operator int16_t() const;
 		operator int32_t() const;
 		operator int64_t() const;
+
+		const Variant& operator = (const Variant& rhs);
+		const Variant& operator = (const std::string& rhs);
 	};
 
 } /* namespace Gamnet */

@@ -1,68 +1,89 @@
 #include "Variant.h"
 
-Gamnet::Variant::Variant(const std::string& val) : value(val)
+namespace Gamnet {
+Variant::Variant()
 {
 }
 
-Gamnet::Variant::operator double() const
+Variant::Variant(const std::string& val) : value(val)
+{
+}
+
+Variant::Variant(const Variant& val) : value(val.value)
+{
+}
+
+Variant::operator double() const
 {
 	return boost::lexical_cast<double>(value);
 }
 
-Gamnet::Variant::operator float() const 
+Variant::operator float() const 
 { 
 	return boost::lexical_cast<float>(value); 
 }
 
-Gamnet::Variant::operator uint16_t() const 
+Variant::operator uint16_t() const 
 { 
 	return boost::lexical_cast<uint16_t>(value); 
 }
 
-Gamnet::Variant::operator uint32_t()	const 
+Variant::operator uint32_t()	const 
 { 
 	return boost::lexical_cast<uint32_t>(value); 
 }
 
-Gamnet::Variant::operator uint64_t()	const 
+Variant::operator uint64_t()	const 
 { 
 	return boost::lexical_cast<uint64_t>(value); 
 }
 
-Gamnet::Variant::operator int16_t() const 
+Variant::operator int16_t() const 
 {
 	return boost::lexical_cast<int16_t>(value); 
 }
 
-Gamnet::Variant::operator int32_t() const 
+Variant::operator int32_t() const 
 {
 	return boost::lexical_cast<int32_t>(value); 
 }
 
-Gamnet::Variant::operator int64_t() const 
+Variant::operator int64_t() const 
 { 
 	return boost::lexical_cast<int64_t>(value); 
 }
 
-Gamnet::Variant::operator bool() const
+Variant::operator bool() const
 { 
 	return boost::lexical_cast<bool>(value); 
 }
 
 /*
-Gamnet::Variant::operator const std::string () const
+Variant::operator const std::string () const
 {
 	return value;
 }
 */
 
-Gamnet::Variant::operator std::string()
+Variant::operator std::string()
 {
 	return value;
 }
 
-Gamnet::Variant::operator std::string() const
+Variant::operator std::string() const
 {
 	return value;
 }
 
+const Variant& Variant::operator = (const Variant& rhs)
+{
+	value = rhs.value;
+	return *this;
+}
+
+const Variant& Variant::operator = (const std::string& rhs)
+{
+	value = rhs;
+	return *this;
+}
+}
