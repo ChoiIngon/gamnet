@@ -220,14 +220,14 @@ public :
 				}
 
 				other->recv_packet = session->recv_packet;
-				other->session_token = Session::GenerateSessionToken(other->session_key);
+				//other->session_token = Session::GenerateSessionToken(other->session_key);
 				link->AttachSession(other);
 				link->session->OnAccept();
 
 				Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Remove(session->session_key);
-				ans["session_key"] = other->session_key;
-				ans["session_token"] = other->session_token;
-				ans["msg_seq"] = (uint32_t)(other->msg_seq);
+				//ans["session_key"] = other->session_key;
+				//ans["session_token"] = other->session_token;
+				//ans["msg_seq"] = (uint32_t)(other->msg_seq);
 			}
 			catch (const Exception& e)
 			{

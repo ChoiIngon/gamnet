@@ -351,7 +351,6 @@ namespace Gamnet
 				Receive();
 
 				_state = ConnectionState.Connected;
-				_disconnectState = DisconnectState.Invalid;
 
 				lock (_sync_obj) {
 					Send_Reconnect_Req();
@@ -738,9 +737,9 @@ namespace Gamnet
 		[System.Serializable] 
 		class Msg_Reconnect_Ans {
 			public int error_code = 0;
-			public uint session_key = 0;
-			public string session_token = "";
-			public uint msg_seq = 0;
+			//public uint session_key = 0;
+			//public string session_token = "";
+			//public uint msg_seq = 0;
 		}
 		public class ReconnectHandler : IMsgHandler {
 			private Session session;
@@ -757,8 +756,8 @@ namespace Gamnet
 					return;
 				}
 				Debug.Log("[Session.ReconnectHandler.OnRecvMsg] recv reconnect ans(session_key:" + session._session_key + ", session_token:" + session._session_token + ", disconnect_state:" + session._disconnectState.ToString() +")");
-				session._session_key = ans.session_key;
-				session._session_token = ans.session_token;
+				//session._session_key = ans.session_key;
+				//session._session_token = ans.session_token;
 
                 SessionEvent evt = null;
                 switch (session._disconnectState)
@@ -777,6 +776,7 @@ namespace Gamnet
                 {
                     session._event_queue.Add(evt); // already locked
                 }
+				session._disconnectState = DisconnectState.Invalid;
 			}
 		}
 		const uint MsgID_HeartBeat_Req                = 0003;
