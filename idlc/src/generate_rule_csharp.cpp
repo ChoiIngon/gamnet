@@ -325,7 +325,14 @@ bool GenerateRuleCSharp::CompileMessage(const Token::Message* pToken)
 	std::cout << " {" << std::endl;
 	if(pToken->m_nSeqNo > 0)
 	{
-		std::cout << "\t" << "public const int MSG_ID = " << pToken->m_nSeqNo << ";" << std::endl;
+		if("" != pToken->m_sParentName)
+		{
+			std::cout << "\t" << "public new const int MSG_ID = " << pToken->m_nSeqNo << ";" << std::endl;
+		}
+		else
+		{
+			std::cout << "\t" << "public const int MSG_ID = " << pToken->m_nSeqNo << ";" << std::endl;
+		}
 	}
 
 	// member list
