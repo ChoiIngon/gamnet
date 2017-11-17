@@ -9,6 +9,9 @@
 #define GAMNET_NETWORK_TCP_H_
 
 #include "LinkManager.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 namespace Gamnet { namespace Network { namespace Tcp {
 	template <class SESSION_T>
@@ -16,6 +19,18 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 		Singleton<LinkManager<SESSION_T>>::GetInstance().Listen(port, max_session, keep_alive);
 		LOG(GAMNET_INF, "Gamnet::Tcp listener start(port:", port, ", capacity:", max_session, ", keep alive time:", keep_alive, " sec)");
+	}
+
+	template <class SESSION_T>
+	void ReadXml(const char* xml_path)
+	{
+		boost::property_tree::ptree ptree_;
+		boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
+
+		int port = ptree_.get<int>("server.session.<xmlattr>.port");
+		int max_count = ptree_.get<int>("server.session.<xmlattr>.max_count");
+		int keep_alive = ptree_.get<int>("server.session.<xmlattr>.keep_alive");
+		Listen<SESSION_T>(port, max_count, keep_alive);
 	}
 
 	template <class SESSION_T, class FUNC, class FACTORY>
@@ -61,6 +76,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 		return Singleton<LinkManager<SESSION_T>>::GetInstance().State();
 	}
+
+	
 }}}
 
 #define GAMNET_BIND_TCP_HANDLER(session_type, message_type, class_type, func, policy) \
