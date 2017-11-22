@@ -6,7 +6,6 @@
  */
 
 #include <sys/types.h>
-
 #include "Tcp.h"
 #ifdef _WIN32
 #else
@@ -17,6 +16,7 @@
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
+	
 boost::asio::ip::address GetLocalAddress()
 {
 #ifdef _WIN32

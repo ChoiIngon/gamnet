@@ -149,7 +149,7 @@ public :
 	{
 		auto t1 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> fsec = t1 - t0_;
-		std::chrono::milliseconds diff = std::chrono::duration_cast<TIMEUNIT_T>(fsec);
+		TIMEUNIT_T diff = std::chrono::duration_cast<TIMEUNIT_T>(fsec);
 		return diff.count();
 	}
 };

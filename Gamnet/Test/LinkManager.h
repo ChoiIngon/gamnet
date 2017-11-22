@@ -20,6 +20,7 @@ namespace Gamnet { namespace Test {
 template <class SESSION_T>
 class LinkManager : public Network::Tcp::LinkManager<SESSION_T>
 {
+	GAMNET_WHERE(SESSION_T, Session);
 public :
 	typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 	typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;

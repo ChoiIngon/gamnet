@@ -11,6 +11,7 @@
 #include <memory>
 #include <stdint.h>
 #include "../Library/Pool.h"
+#include "../Library/Debugs.h"
 #include "HandlerContainer.h"
 namespace Gamnet { namespace Network {
 
@@ -32,6 +33,8 @@ struct IHandlerFactory
 template <class T>
 struct HandlerCreate : public IHandlerFactory
 {
+	GAMNET_WHERE(T, IHandler);
+
 	Pool<T, std::mutex> pool_;
 	HandlerCreate() : pool_(65535)
 	{
@@ -47,6 +50,8 @@ struct HandlerCreate : public IHandlerFactory
 template <class T>
 struct HandlerStatic : public IHandlerFactory
 {
+	GAMNET_WHERE(T, IHandler);
+
 	std::shared_ptr<T> _handler;
 	HandlerStatic() : _handler(std::shared_ptr<T>(new T()))
 	{
@@ -62,6 +67,8 @@ struct HandlerStatic : public IHandlerFactory
 template <class T>
 struct HandlerFind : public IHandlerFactory
 {
+	GAMNET_WHERE(T, IHandler);
+
 	HandlerFind() {};
 	virtual ~HandlerFind(){};
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_FIND; }

@@ -16,6 +16,7 @@
 #include "Library/Atomic.h"
 #include "Library/Base64.h"
 #include "Library/Buffer.h"
+#include "Library/Debugs.h"
 #include "Library/Exception.h"
 #include "Library/MD5.h"
 #include "Library/MultiLock.h"

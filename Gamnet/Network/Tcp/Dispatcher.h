@@ -26,6 +26,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 template <class SESSION_T>
 class Dispatcher
 {
+	GAMNET_WHERE(SESSION_T, Session);
+
 	typedef void(IHandler::*function_type)(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Packet>&);
 public :
 	struct HandlerFunction
