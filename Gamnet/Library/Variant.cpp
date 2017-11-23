@@ -57,33 +57,68 @@ Variant::operator bool() const
 { 
 	return boost::lexical_cast<bool>(value); 
 }
-
-/*
-Variant::operator const std::string () const
-{
-	return value;
-}
-*/
-
 Variant::operator std::string()
 {
 	return value;
 }
-
 Variant::operator std::string() const
 {
 	return value;
 }
-
 const Variant& Variant::operator = (const Variant& rhs)
 {
 	value = rhs.value;
 	return *this;
 }
-
 const Variant& Variant::operator = (const std::string& rhs)
 {
 	value = rhs;
 	return *this;
 }
+const Variant& Variant::operator = (bool rhs)
+{
+	value = boost::lexical_cast<std::string>(rhs);
+	return *this;
+}
+const Variant& Variant::operator = (double rhs)
+{
+	value = boost::lexical_cast<std::string>(rhs);
+	return *this;
+}
+const Variant& Variant::operator = (float rhs)
+{
+	value = boost::lexical_cast<std::string>(rhs);
+	return *this;
+}
+const Variant& Variant::operator = (uint16_t rhs)
+{
+	value = boost::lexical_cast<std::string>(rhs);
+	return *this;
+}
+const Variant& Variant::operator = (uint32_t rhs)
+{
+	value = boost::lexical_cast<std::string>(rhs);
+	return *this;
+}
+const Variant& Variant::operator = (uint64_t rhs)
+{
+	value = boost::lexical_cast<std::string>(rhs);
+	return *this;
+}
+const Variant& Variant::operator = (int16_t rhs)
+{
+	value = boost::lexical_cast<std::string>(rhs);
+	return *this;
+}
+const Variant& Variant::operator = (int32_t rhs)
+{
+	value = boost::lexical_cast<std::string>(rhs);
+	return *this;
+}
+const Variant& Variant::operator = (int64_t rhs)
+{
+	value = boost::lexical_cast<std::string>(rhs);
+	return *this;
+}
+
 }

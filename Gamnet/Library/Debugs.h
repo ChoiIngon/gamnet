@@ -3,18 +3,21 @@
 
 namespace Gamnet {
 
-	// derived 가 base 에서 상속된 클래스면 check_derived::assertion 이 true
-	template<typename derived, typename base> struct check_derived
+	template<class DERIVED_T, class BASE_T>
+	class CheckDerived
 	{
-		static struct No {} Check(...);
-		static struct Yes { int c; } Check(base*);
+		struct No {};
+		struct Yes { int c; };
+
+		static No Check(...) { return No(); }
+		static Yes Check(BASE_T*) { return Yes(); }
 
 	public:
-		enum { assertion = sizeof(Check(static_cast<derived*>(0))) == sizeof(Yes) };
+		enum { ASSERTION = sizeof(Check(static_cast<DERIVED_T*>(0))) == sizeof(Yes) };
 	};
-
-#define GAMNET_WHERE(derived, base) static_assert(Gamnet::check_derived<derived, base>::assertion, #derived " was not derived " #base " class")
-
 }
+
+#define GAMNET_WHERE(derived, base) static_assert(Gamnet::CheckDerived<derived, base>::ASSERTION, #derived " was not derived " #base " class")
+
 #endif 
 

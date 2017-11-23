@@ -30,6 +30,15 @@ namespace Gamnet {
 
 		const Variant& operator = (const Variant& rhs);
 		const Variant& operator = (const std::string& rhs);
+		const Variant& operator = (bool rhs);
+		const Variant& operator = (double rhs);
+		const Variant& operator = (float rhs);
+		const Variant& operator = (uint16_t rhs);
+		const Variant& operator = (uint32_t rhs);
+		const Variant& operator = (uint64_t rhs);
+		const Variant& operator = (int16_t rhs);
+		const Variant& operator = (int32_t rhs);
+		const Variant& operator = (int64_t rhs);
 	};
 
 } /* namespace Gamnet */
