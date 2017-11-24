@@ -68,7 +68,6 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create session instance");
 	}
 
-	session->session_key = ++Network::SessionManager::session_key;
 	session->recv_packet = Network::Tcp::Packet::Create();
 	if(nullptr == session->recv_packet)
 	{

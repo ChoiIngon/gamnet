@@ -110,7 +110,7 @@ public :
 					link->OnError(ErrorCode::InvalidSessionError);
 					return;
 				}
-				session->session_key = ++Network::SessionManager::session_key;
+				
 				session->recv_packet = Network::Tcp::Packet::Create();
 				if (nullptr == session->recv_packet)
 				{
@@ -122,7 +122,7 @@ public :
 				session->test_seq = 0;
 
 				link->AttachSession(session);
-
+				session->OnCreate();
 				thread_pool.PostTask([this, link]() {
 					link->Connect(this->host.c_str(), this->port, 5);
 				});
@@ -172,8 +172,10 @@ public :
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 	{
-		Send_Close_Ntf(std::static_pointer_cast<SESSION_T>(link->session));
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		Send_Close_Ntf(session);
 		Network::Tcp::LinkManager<SESSION_T>::OnClose(link, reason);
+		session->OnDestroy();
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)

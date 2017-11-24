@@ -47,7 +47,7 @@ public :
 			link->OnError(ErrorCode::CreateInstanceFailError);
 			return;
 		}
-		session->session_key = ++Network::SessionManager::session_key;
+		
 		session->recv_packet = Packet::Create();	
 		if (nullptr == session->recv_packet)
 		{
@@ -57,7 +57,7 @@ public :
 		}
 		session->msg_seq = 0;
 		link->AttachSession(session);
-		session_manager.Add(session->session_key, session);;
+		session_manager.Add(session->session_key, session);
 	}
 
 	virtual void OnClose(const std::shared_ptr<Link>& link, int reason)

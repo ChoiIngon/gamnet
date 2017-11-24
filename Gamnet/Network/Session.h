@@ -22,18 +22,19 @@ public :
 		template <class T>
 		T* operator() (T* session)
 		{
-			session->session_key = 0;
+			(uint32_t)(session->session_key) = ++Network::SessionManager::session_key;
 			session->session_token = "";
 			session->expire_time = 0;
 			session->link = NULL;
 			session->remote_address = NULL;
+			session->handler_container.Init();
 			return session;
 		}
 	};
 	Session();
 	virtual ~Session();
 
-	uint32_t					session_key;
+	const uint32_t				session_key;
 	std::string					session_token;
 	boost::asio::ip::address*	remote_address;
 	time_t						expire_time;
