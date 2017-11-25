@@ -1,11 +1,4 @@
-/*
- * Gamnet.h
- *
- *  Created on: Jun 5, 2014
- *      Author: kukuta
- */
-
-#define GAMNET_VERSION 1.0.1
+#define GAMNET_VERSION 1.0.2
 
 #ifndef GAMNET_GAMNET_H_
 #define GAMNET_GAMNET_H_
@@ -16,7 +9,6 @@
 #include "Library/Atomic.h"
 #include "Library/Base64.h"
 #include "Library/Buffer.h"
-#include "Library/Debugs.h"
 #include "Library/Exception.h"
 #include "Library/MD5.h"
 #include "Library/MultiLock.h"

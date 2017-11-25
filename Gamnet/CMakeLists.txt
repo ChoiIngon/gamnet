@@ -7,7 +7,7 @@ endif()
 	
 project(server)
 	
-set(GAMNET_VERSION 1.0.1)
+set(GAMNET_VERSION 1.0.2)
 configure_file(
 	${PROJECT_SOURCE_DIR}/Gamnet.h.in
 	${PROJECT_SOURCE_DIR}/Gamnet.h

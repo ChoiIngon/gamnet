@@ -14,6 +14,27 @@ namespace Gamnet { namespace Network {
 
 class Link;
 class LinkManager;
+class Session;
+
+class SessionManager
+{
+	Timer 	_timer;
+	uint32_t	_keepalive_time;
+	std::recursive_mutex _lock;
+	std::map<uint32_t, std::shared_ptr<Session>> _sessions;
+public :
+	static std::atomic<uint32_t> session_key;
+
+	SessionManager();
+	~SessionManager();
+	
+	bool Init(int keepAliveSeconds);
+	bool Add(uint32_t key, const std::shared_ptr<Session>& session);
+	void Remove(uint32_t key);
+	std::shared_ptr<Session> Find(uint32_t key);
+	size_t Size();
+};
+
 class Session : public std::enable_shared_from_this<Session>
 {
 public :
@@ -22,7 +43,7 @@ public :
 		template <class T>
 		T* operator() (T* session)
 		{
-			(uint32_t)(session->session_key) = ++Network::SessionManager::session_key;
+			session->session_key = ++Network::SessionManager::session_key;
 			session->session_token = "";
 			session->expire_time = 0;
 			session->link = NULL;
@@ -34,7 +55,7 @@ public :
 	Session();
 	virtual ~Session();
 
-	const uint32_t				session_key;
+	uint32_t					session_key;
 	std::string					session_token;
 	boost::asio::ip::address*	remote_address;
 	time_t						expire_time;
@@ -56,24 +77,6 @@ public :
 	static std::string GenerateSessionToken(uint32_t session_key);
 };
 
-class SessionManager
-{
-	Timer 	_timer;
-	uint32_t	_keepalive_time;
-	std::recursive_mutex _lock;
-	std::map<uint32_t, std::shared_ptr<Session>> _sessions;
-public :
-	static std::atomic<uint32_t> session_key;
-
-	SessionManager();
-	~SessionManager();
-	
-	bool Init(int keepAliveSeconds);
-	bool Add(uint32_t key, const std::shared_ptr<Session>& session);
-	void Remove(uint32_t key);
-	std::shared_ptr<Session> Find(uint32_t key);
-	size_t Size();
-};
 
 }} /* namespace Gamnet */
 
