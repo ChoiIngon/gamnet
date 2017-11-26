@@ -96,7 +96,7 @@ public :
 					break;
 				}
 				std::shared_ptr<Network::Link> link = this->Create();
-				if (NULL == link)
+				if (nullptr == link)
 				{
 					LOG(GAMNET_ERR, "can not create link(link_count:", this->Size(), ", avaiable:", this->Available(), ", capacity:", this->Capacity(), ")");
 					return;
@@ -104,7 +104,7 @@ public :
 				link->AttachManager(this);
 
 				std::shared_ptr<SESSION_T> session = this->session_pool.Create();
-				if (NULL == session)
+				if (nullptr == session)
 				{
 					LOG(GAMNET_ERR, "can not create session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
 					link->OnError(ErrorCode::InvalidSessionError);
@@ -181,7 +181,7 @@ public :
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if(NULL == session)
+		if(nullptr == session)
 		{
 			LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");
 			link->OnError(ErrorCode::InvalidSessionError);
@@ -223,31 +223,34 @@ public :
 			RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
 			handler(session, session->recv_packet);
 
-			session->test_seq += itr->second->increase_test_seq;
+			if(0 < itr->second->increase_test_seq)
+			{
+				session->test_seq += itr->second->increase_test_seq;
 			
-			if(session->test_seq >= (int)execute_order.size())
-			{
-				link->OnError(ErrorCode::Success);
-				return;
-			}
+				if(session->test_seq >= (int)execute_order.size())
+				{
+					link->OnError(ErrorCode::Success);
+					return;
+				}
 
-			const std::shared_ptr<TestExecuteInfo>& execute_info = execute_order[session->test_seq];
-			try
-			{
-				execute_info->send_handler(session);
+				const std::shared_ptr<TestExecuteInfo>& execute_info = execute_order[session->test_seq];
+				try
+				{
+					execute_info->send_handler(session);
+				}
+				catch(const Gamnet::Exception& e)
+				{
+					LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
+					link->OnError(ErrorCode::UndefinedError);
+					return;
+				}
+				execute_info->execute_count++;
 			}
-			catch(const Gamnet::Exception& e)
-			{
-				LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-				link->OnError(ErrorCode::UndefinedError);
-				return;
-			}
-			execute_info->execute_count++;
 			uint16_t length = session->recv_packet->GetLength();
 			session->recv_packet->Remove(length);
 
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
-			if(NULL == packet)
+			if(nullptr == packet)
 			{
 				LOG(GAMNET_ERR, "can not create packet(link_key:", link->link_key, ")");
 				link->OnError(ErrorCode::NullPacketError);
@@ -307,7 +310,7 @@ public :
 		{
 			throw Exception(GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create packet");
 		}
-		req_packet->Write(header, NULL, 0);
+		req_packet->Write(header, nullptr, 0);
 
 		session->Send(req_packet);
 	}
@@ -346,7 +349,7 @@ public :
 			LOG(GAMNET_ERR, "can not create packet");
 			return;
 		}
-		req_packet->Write(header, NULL, 0);
+		req_packet->Write(header, nullptr, 0);
 		session->Send(req_packet);
 	}
 };
