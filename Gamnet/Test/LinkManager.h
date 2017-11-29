@@ -1,10 +1,3 @@
-/*
- * Test.h
- *
- *  Created on: Jun 7, 2014
- *      Author: kukuta
- */
-
 #ifndef GAMNET_TEST_TESTER_H_
 #define GAMNET_TEST_TESTER_H_
 
@@ -24,26 +17,30 @@ class LinkManager : public Network::Tcp::LinkManager<SESSION_T>
 public :
 	typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 	typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
+	
 private:
+	struct RecvHandlerInfo
+	{
+		uint32_t msg_id;		
+		int increase_test_seq; // 1
+		RECV_HANDLER_TYPE recv_handler;
+	};
+	
 	struct TestExecuteInfo
 	{
 		std::string name;
 		std::atomic_int execute_count;
-
+	
 		int send_id;
 		int recv_id;
 		SEND_HANDLER_TYPE send_handler;
+		std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> recv_handlers;
 	};
 
-	struct RecvHandlerInfo
-	{
-		int increase_test_seq; // 1
-		RECV_HANDLER_TYPE recv_handler;
-	};
 	std::mutex lock_;
 	std::map<std::string, std::shared_ptr<TestExecuteInfo>>	execute_infos;
+	std::map<std::string, std::list<std::shared_ptr<RecvHandlerInfo>>> 	recv_handlers;
 	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
-	std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> 	recv_handlers;
 
 	Log::Logger	log;
 	Timer 		log_timer;
@@ -63,9 +60,11 @@ public :
 		execute_infos[executeInfo->name] = executeInfo;
 
 		std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
+		recvHandlerInfo->msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgHandler::MsgID_Connect_Ans;
 		recvHandlerInfo->increase_test_seq = 1;
 		recvHandlerInfo->recv_handler = std::bind(&LinkManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2);
-		recv_handlers[Network::Tcp::LinkManager<SESSION_T>::MsgHandler::MsgID_Connect_Ans] = recvHandlerInfo;
+		std::list<std::shared_ptr<RecvHandlerInfo>>& lstRecvHandlerInfos = recv_handlers[executeInfo->name];
+		lstRecvHandlerInfos.push_back(recvHandlerInfo);
 	}
 
 	virtual ~LinkManager()
@@ -165,8 +164,9 @@ public :
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if(session->test_seq < (int)execute_order.size())
 		{
-			execute_order[session->test_seq]->send_handler(session);
-			execute_order[session->test_seq]->execute_count++;
+			const std::shared_ptr<TestExecuteInfo>& info = execute_order[session->test_seq];
+			info->send_handler(session);
+			info->execute_count++;
 		}
 	}
 
@@ -212,40 +212,46 @@ public :
 				break;
 			}
 
-			uint32_t msg_id = session->recv_packet->GetID();
-			auto itr = recv_handlers.find(msg_id);
-			if(itr == recv_handlers.end())
+			if(session->test_seq < (int)execute_order.size())
 			{
-				LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
-				link->OnError(ErrorCode::InvalidHandlerError);
-				return ;
-			}
-			RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
-			handler(session, session->recv_packet);
-
-			if(0 < itr->second->increase_test_seq)
-			{
-				session->test_seq += itr->second->increase_test_seq;
-			
-				if(session->test_seq >= (int)execute_order.size())
-				{
-					link->OnError(ErrorCode::Success);
-					return;
-				}
-
+				uint32_t msg_id = session->recv_packet->GetID();
+				
 				const std::shared_ptr<TestExecuteInfo>& execute_info = execute_order[session->test_seq];
-				try
+				auto itr = execute_info->recv_handlers.find(msg_id);
+				if(execute_info->recv_handlers.end() == itr)
 				{
-					execute_info->send_handler(session);
+					LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
+					link->OnError(ErrorCode::InvalidHandlerError);
+					return ;
 				}
-				catch(const Gamnet::Exception& e)
+				RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
+				handler(session, session->recv_packet);
+
+				if(0 < itr->second->increase_test_seq) 
 				{
-					LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-					link->OnError(ErrorCode::UndefinedError);
-					return;
+					session->test_seq += itr->second->increase_test_seq;
+			
+					if(session->test_seq >= (int)execute_order.size())
+					{
+						link->OnError(ErrorCode::Success);
+						return;
+					}
+
+					const std::shared_ptr<TestExecuteInfo>& next_execute_info = execute_order[session->test_seq];
+					try
+					{ 
+						next_execute_info->send_handler(session);
+					}
+					catch(const Gamnet::Exception& e)
+					{
+						LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
+						link->OnError(ErrorCode::UndefinedError);
+						return;
+					}
+					next_execute_info->execute_count++;
 				}
-				execute_info->execute_count++;
 			}
+
 			uint16_t length = session->recv_packet->GetLength();
 			session->recv_packet->Remove(length);
 
@@ -267,12 +273,14 @@ public :
 	}
 
 	template<class NTF_T>
-	void RegisterHandler(RECV_HANDLER_TYPE recv)
+	void RegisterHandler(const std::string& test_name, RECV_HANDLER_TYPE recv)
 	{
 		std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
+		recvHandlerInfo->msg_id = NTF_T::MSG_ID;
 		recvHandlerInfo->increase_test_seq = 0;
 		recvHandlerInfo->recv_handler = recv;
-		recv_handlers[NTF_T::MSG_ID] = recvHandlerInfo;
+		std::list<std::shared_ptr<RecvHandlerInfo>>& lstRecvHandlerInfos = recv_handlers[test_name];
+		lstRecvHandlerInfos.push_back(recvHandlerInfo);
 	}
 	template<class REQ_T, class ANS_T>
 	void RegisterHandler(const std::string& test_name, SEND_HANDLER_TYPE send, RECV_HANDLER_TYPE recv)
@@ -283,18 +291,31 @@ public :
 		execute_infos[test_name] = executeInfo;
 
 		std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
+		recvHandlerInfo->msg_id = ANS_T::MSG_ID;
 		recvHandlerInfo->increase_test_seq = 1;
 		recvHandlerInfo->recv_handler = recv;
-		recv_handlers[ANS_T::MSG_ID] = recvHandlerInfo;
+		std::list<std::shared_ptr<RecvHandlerInfo>>& lstRecvHandlerInfos = recv_handlers[test_name];
+		lstRecvHandlerInfos.push_back(recvHandlerInfo);
 	}
 	void SetTestSequence(const std::string& test_name)
 	{
-		auto itr = execute_infos.find(test_name);
-		if(execute_infos.end() == itr)
+		auto itr_execute_info = execute_infos.find(test_name);
+		if(execute_infos.end() == itr_execute_info)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError),"can't find registered test case(test_name:", test_name, ")");
+			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError),"can't find registered test case execute info(test_name:", test_name, ")");
 		}
-		const std::shared_ptr<TestExecuteInfo>& info = itr->second;
+		const std::shared_ptr<TestExecuteInfo>& info = itr_execute_info->second;
+
+		auto itr_recv_handlers = recv_handlers.find(test_name);
+		if(recv_handlers.end() == itr_recv_handlers)
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError),"can't find registered test case recv handler(test_name:", test_name, ")");
+		}
+		
+		for(const std::shared_ptr<RecvHandlerInfo> recv_handler : itr_recv_handlers->second)
+		{
+			info->recv_handlers[recv_handler->msg_id]  = recv_handler;
+		}
 		execute_order.push_back(info);
 	}
 

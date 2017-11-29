@@ -1,10 +1,3 @@
-/*
- * Test.h
- *
- *  Created on: Jun 9, 2014
- *      Author: kukuta
- */
-
 #ifndef GAMNET_TEST_TEST_H_
 #define GAMNET_TEST_TEST_H_
 
@@ -24,9 +17,9 @@ namespace Gamnet { namespace Test {
 	}
 
 	template<class SESSION_T, class NTF_T>
-	bool RegisterHandler(typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	bool RegisterHandler(const std::string& test_name, typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
-		Singleton<LinkManager<SESSION_T>>::GetInstance().template RegisterHandler<NTF_T>(recv);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().template RegisterHandler<NTF_T>(test_name, recv);
 		return true;
 	}
 
@@ -87,6 +80,6 @@ namespace Gamnet { namespace Test {
 			&send_func, &recv_func \
 	)
 
-#define GAMNET_BIND_TEST_NTF_HANDLER(session_type, msg_type, func) \
-	static bool Test_##msg_type##_##func = Gamnet::Test::RegisterHandler<session_type, msg_type>(func)
+#define GAMNET_BIND_TEST_NTF_HANDLER(session_type, test_name, msg_type, recv_func) \
+	static bool Test_##msg_type##_##func = Gamnet::Test::RegisterHandler<session_type, msg_type>(test_name, &recv_func)
 #endif /* TEST_H_ */

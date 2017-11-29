@@ -1,13 +1,5 @@
-/*
- * TestSession.cpp
- *
- *  Created on: Jun 7, 2014
- *      Author: kukuta
- */
-
 #include "Session.h"
 
-#include "LinkManager.h"
 namespace Gamnet { namespace Test {
 
 Session::Session() : test_seq(-1) {
