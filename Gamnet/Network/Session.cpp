@@ -139,7 +139,6 @@ void SessionManager::Remove(uint32_t key)
 		auto itr = _sessions.find(key);
 		if(_sessions.end() == itr)
 		{
-			LOG(GAMNET_ERR, "[link_key:", nullptr == session->link ? 0 : session->link->link_key, ", session_key:", session_key, "] can't find session");
 			return;
 		}
 		session = itr->second;

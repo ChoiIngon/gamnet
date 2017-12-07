@@ -7,6 +7,7 @@
 #include "LinkManager.h"
 
 namespace Gamnet { namespace Network { namespace Router {
+	const Address& GetRouterAddress();
 
 	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept = [](const Address&){}, const std::function<void(const Address& addr)>& onClose = [](const Address&) {});
 	void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect = [](const Address&) {}, const std::function<void(const Address& addr)>& onClose = [](const Address&) {});

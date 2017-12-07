@@ -220,8 +220,8 @@ public :
 				auto itr = execute_info->recv_handlers.find(msg_id);
 				if(execute_info->recv_handlers.end() == itr)
 				{
-					LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
-					link->OnError(ErrorCode::InvalidHandlerError);
+					LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
+					//link->OnError(ErrorCode::InvalidHandlerError);
 					return ;
 				}
 				RECV_HANDLER_TYPE& handler = itr->second->recv_handler;

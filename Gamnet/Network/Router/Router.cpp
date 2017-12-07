@@ -4,6 +4,11 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
+const Address& GetRouterAddress()
+{
+	return Singleton<LinkManager>::GetInstance().local_address;
+}
+
 void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose)
 {
 	Singleton<LinkManager>::GetInstance().Listen(service_name, port, onAccept, onClose);
