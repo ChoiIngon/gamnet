@@ -6,6 +6,7 @@ namespace Gamnet { namespace Network {
 std::atomic_ullong LinkManager::link_key;
 
 LinkManager::LinkManager() :
+		name("Gamnet::Network::LinkManager"),
 		_keepalive_time(0),
 		_is_acceptable(true),
 		_acceptor(Singleton<boost::asio::io_service>::GetInstance())

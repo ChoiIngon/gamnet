@@ -9,6 +9,7 @@
 #define GAMNET_NETWORK_TCP_H_
 
 #include "LinkManager.h"
+#include "CastGroup.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/exception/diagnostic_information.hpp>
@@ -72,16 +73,20 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	template <class SESSION_T>
+	void DestroySession(uint32_t session_key)
+	{
+		Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(session_key);
+	}
+
+	template <class SESSION_T>
 	Json::Value  ServerState()
 	{
 		return Singleton<LinkManager<SESSION_T>>::GetInstance().State();
 	}
-
-	
 }}}
 
 #define GAMNET_BIND_TCP_HANDLER(session_type, message_type, class_type, func, policy) \
-	static bool Network_##message_type##_##class_type##_##func = Gamnet::Network::Tcp::RegisterHandler<session_type>( \
+	static bool Network_##message_type##_##func = Gamnet::Network::Tcp::RegisterHandler<session_type>( \
 			message_type::MSG_ID, \
 			&class_type::func, \
 			new Gamnet::Network::policy<class_type>() \

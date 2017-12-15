@@ -16,13 +16,14 @@ namespace Gamnet { namespace Network { namespace Tcp {
 template <class SESSION_T>
 class LinkManager : public Network::LinkManager
 {
-protected :
-	std::string _name;
 public :
 	Pool<SESSION_T, std::mutex, Session::Init> session_pool;
 	SessionManager session_manager;
 
-	LinkManager() : _name("TcpLinkManager"), session_pool()	{}
+	LinkManager() : session_pool()	
+	{
+		name = "Gamnet::Network::Tcp::LinkManager";
+	}
 	virtual ~LinkManager()	{}
 
 	void Listen(int port, int max_session, int keepAliveTime)
@@ -148,6 +149,23 @@ public :
 		return std::static_pointer_cast<SESSION_T>(session_manager.Find(session_key));
 	}
 	
+	void DestroySession(uint32_t session_key)
+	{
+		std::shared_ptr<Gamnet::Network::Session> session = session_manager.Find(session_key);
+		if(nullptr == session)
+		{
+			LOG(WRN, "can not find session(session_key:", session_key, ")");
+			return;
+		}
+		std::shared_ptr<Link> link = session->link;
+		if(nullptr != link)
+		{
+			link->AttachSession(nullptr);
+		}
+
+		session_manager.Remove(session->session_key);
+	}
+
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{
@@ -275,7 +293,7 @@ public :
 	Json::Value State()
 	{
 		Json::Value root = Network::LinkManager::State();
-		root["name"] = _name;
+		root["name"] = name;
 
 		Json::Value session;
 		session["capacity"] = (unsigned int)session_pool.Capacity();

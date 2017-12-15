@@ -10,7 +10,7 @@ std::mutex LinkManager::lock;
 
 LinkManager::LinkManager()
 {
-	_name = "RouterLinkManager";
+	name = "Gamnet::Network::Router::LinkManager";
 }
 
 LinkManager::~LinkManager() {

@@ -53,7 +53,7 @@ namespace Gamnet { namespace Network { namespace Router {
 }}}
 
 #define GAMNET_BIND_ROUTER_HANDLER(message_type, class_type, func, policy) \
-	static bool Router_##class_type##_##func = Gamnet::Network::Router::RegisterHandler( \
+	static bool Router_##message_type##_##func = Gamnet::Network::Router::RegisterHandler( \
 		message_type::MSG_ID, \
 		&class_type::func, \
 		new Gamnet::Network::policy<class_type>() \

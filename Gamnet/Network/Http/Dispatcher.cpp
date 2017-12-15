@@ -40,7 +40,6 @@ void Dispatcher::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std
 	{
 		Log::Write(Log::Logger::LOG_LEVEL_ERR, "[link_key:", link->link_key,"] unhandled exception occurred(reason:", e.what(), ")");
 	}
-	
 }
 
 }}}

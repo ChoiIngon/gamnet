@@ -53,7 +53,7 @@ private:
 public :
 	LinkManager() : thread_pool(30), execute_count(0), host(""), port(0)
 	{
-		Network::Tcp::LinkManager<SESSION_T>::_name = "TestLinkManager";
+		Network::Tcp::LinkManager<SESSION_T>::name = "Gamnet::Test::LinkManager";
 		std::shared_ptr<TestExecuteInfo> executeInfo = std::shared_ptr<TestExecuteInfo>(new TestExecuteInfo());
 		executeInfo->name = "__connect__";
 		executeInfo->send_handler = std::bind(&LinkManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1);
@@ -161,13 +161,15 @@ public :
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
-		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if(session->test_seq < (int)execute_order.size())
-		{
-			const std::shared_ptr<TestExecuteInfo>& info = execute_order[session->test_seq];
-			info->send_handler(session);
-			info->execute_count++;
-		}
+		thread_pool.PostTask([this, link]() {
+			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+			if(session->test_seq < (int)this->execute_order.size())
+			{
+				const std::shared_ptr<TestExecuteInfo>& info = execute_order[session->test_seq];
+				info->send_handler(session);
+				info->execute_count++;
+			}
+		});
 	}
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
@@ -181,14 +183,15 @@ public :
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if(nullptr == session)
+		if (nullptr == session)
 		{
 			LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");
 			link->OnError(ErrorCode::InvalidSessionError);
 			return;
 		}
-
+		
 		session->recv_packet->Append(buffer->ReadPtr(), buffer->Size());
+			
 		while(Network::Tcp::Packet::HEADER_SIZE <= (int)session->recv_packet->Size())
 		{
 			uint16_t totalLength = session->recv_packet->GetLength();
@@ -212,11 +215,11 @@ public :
 				break;
 			}
 
-			if(session->test_seq < (int)execute_order.size())
+			if(session->test_seq < (int)this->execute_order.size())
 			{
 				uint32_t msg_id = session->recv_packet->GetID();
 				
-				const std::shared_ptr<TestExecuteInfo>& execute_info = execute_order[session->test_seq];
+				const std::shared_ptr<TestExecuteInfo>& execute_info = this->execute_order[session->test_seq];
 				auto itr = execute_info->recv_handlers.find(msg_id);
 				if(execute_info->recv_handlers.end() == itr)
 				{
@@ -224,23 +227,25 @@ public :
 					//link->OnError(ErrorCode::InvalidHandlerError);
 					return ;
 				}
+				
 				RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
 				handler(session, session->recv_packet);
-
+				
 				if(0 < itr->second->increase_test_seq) 
 				{
 					session->test_seq += itr->second->increase_test_seq;
-			
-					if(session->test_seq >= (int)execute_order.size())
+					if(session->test_seq >= (int)this->execute_order.size())
 					{
 						link->OnError(ErrorCode::Success);
 						return;
 					}
 
-					const std::shared_ptr<TestExecuteInfo>& next_execute_info = execute_order[session->test_seq];
+					const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
 					try
 					{ 
-						next_execute_info->send_handler(session);
+						thread_pool.PostTask([next_execute_info, session]() {
+							next_execute_info->send_handler(session);
+						});
 					}
 					catch(const Gamnet::Exception& e)
 					{

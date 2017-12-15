@@ -64,7 +64,7 @@ namespace Gamnet {
 			valWeight_.push_back(std::make_pair(totalWeight_, value));
 		}
 
-		const T& Random()
+		const T& Random() const
 		{
 			if (0 == valWeight_.size())
 			{

@@ -13,7 +13,7 @@ namespace Gamnet { namespace Network {
 
 class LinkManager
 {
-protected :
+protected:
 	Timer 		_timer;
 	uint32_t	_keepalive_time;
 	std::recursive_mutex _lock;
@@ -24,6 +24,7 @@ protected :
 	boost::asio::ip::tcp::acceptor _acceptor;
 	boost::asio::ip::tcp::endpoint _endpoint;
 public :
+	std::string name;
 	static std::atomic_ullong link_key;
 
 	LinkManager();
