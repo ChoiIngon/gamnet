@@ -37,7 +37,7 @@ namespace Gamnet { namespace Network { namespace Router {
 			return false;
 		}
 
-		if(false == Singleton<RouterCaster>::GetInstance().SendMsg(session, addr, packet->ReadPtr(), packet->Size()))
+		if(false == Singleton<RouterCaster>::GetInstance().SendMsg(session, addr, packet->ReadPtr(), (int)packet->Size()))
 		{
 			return false;
 		}

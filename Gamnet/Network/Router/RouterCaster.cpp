@@ -54,8 +54,8 @@ std::shared_ptr<Session> RouterCasterImpl_Uni::FindSession(const Address& addr)
 	auto itr = mapRouteTable.find(addr);
 	if(mapRouteTable.end() == itr)
 	{
-		LOG(GAMNET_WRN, "Can't find route info(service_name:", addr.service_name.c_str(), ")");
-		return NULL;
+		LOG(GAMNET_WRN, "Can't find route info(service_name:", addr.service_name.c_str(), ", cast_type:UNI_CAST, server_id:", addr.id, ")");
+		return nullptr;
 	}
 	return itr->second;
 }
@@ -81,7 +81,7 @@ bool RouterCasterImpl_Multi::SendMsg(uint64_t msg_seq, const std::shared_ptr<Net
 	auto itr = mapRouteTable.find(addr.service_name);
 	if(mapRouteTable.end() == itr)
 	{
-		LOG(GAMNET_ERR, "Cant find route info(service_name:", addr.service_name.c_str(), ")");
+		LOG(GAMNET_WRN, "Can't find route info(service_name:", addr.service_name.c_str(), ", cast_type:MULTI_CAST, server_id:", addr.id, ")");
 		return false;
 	}
 
@@ -168,7 +168,7 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 	auto itr = mapRouteTable.find(addr.service_name);
 	if(mapRouteTable.end() == itr)
 	{
-		LOG(GAMNET_ERR, "Cant find route info(service_name:", addr.service_name.c_str(), ")");
+		LOG(GAMNET_WRN, "Can't find route info(service_name:", addr.service_name.c_str(), ", cast_type:ANY_CAST, server_id:", addr.id, ")");
 		return false;
 	}
 
