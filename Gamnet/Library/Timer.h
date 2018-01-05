@@ -134,6 +134,13 @@ public :
 		deadline_timer_.cancel();
 		entry_ = nullptr;
 	}
+
+	template<class TIMEUNIT_T = std::chrono::milliseconds>
+	static uint64_t Now()
+	{
+		auto now = std::chrono::high_resolution_clock::now();
+		return std::chrono::duration_cast<TIMEUNIT_T>(now.time_since_epoch()).count();
+	}
 };
 
 class ElapseTimer
@@ -153,6 +160,7 @@ public :
 		return diff.count();
 	}
 };
+
 }
 
 #endif /* TIMER_H_ */
