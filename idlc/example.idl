@@ -70,6 +70,7 @@ struct DefaultData
 	double double_; // 8byte point number
 	float float_; // 4byte point number
 	string string_; 
+	map<int32, int32> map_;
 };
 
 struct ContainerData 

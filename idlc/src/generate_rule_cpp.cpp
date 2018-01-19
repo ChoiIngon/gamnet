@@ -271,7 +271,13 @@ void GenerateRuleCpp::GenerateVariableSize(const Token::Base* typeInfo, const st
 				std::cout << sIndent << "\tconst " << TranslateVariableType(static_cast<const Token::MapType*>(typeInfo)->m_pKeyType) << "& " << sVarName << "_key = " << sVarName << "_itr->first;" << std::endl;
 			}
 		}
-		std::cout << sIndent << "\tconst " << TranslateVariableType(static_cast<const Token::MapType*>(typeInfo)->m_pElmtType) << "& " << sVarName << "_elmt = " << sVarName << "_itr->second;" << std::endl;
+		{
+			auto itr = m_mapSymbolTable.find(static_cast<const Token::MapType*>(typeInfo)->m_pElmtType->GetName());
+			if ((m_mapSymbolTable.end() != itr && Token::TYPE_PRIMITIVE != itr->second.m_eType) || m_mapSymbolTable.end() == itr)
+			{
+				std::cout << sIndent << "\tconst " << TranslateVariableType(static_cast<const Token::MapType*>(typeInfo)->m_pElmtType) << "& " << sVarName << "_elmt = " << sVarName << "_itr->second;" << std::endl;
+			}
+		}
 		GenerateVariableSize(static_cast<const Token::MapType*>(typeInfo)->m_pKeyType, sVarName+"_key", sIndent + "\t");
 		GenerateVariableSize(static_cast<const Token::MapType*>(typeInfo)->m_pElmtType, sVarName+"_elmt", sIndent + "\t");
 		std::cout << sIndent << "}" << std::endl;
