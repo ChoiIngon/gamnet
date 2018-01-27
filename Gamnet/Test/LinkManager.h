@@ -338,7 +338,7 @@ public :
 		}
 		req_packet->Write(header, nullptr, 0);
 
-		session->Send(req_packet);
+		session->AsyncSend(req_packet);
 	}
 
 	void Recv_Connect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
@@ -376,7 +376,7 @@ public :
 			return;
 		}
 		req_packet->Write(header, nullptr, 0);
-		session->Send(req_packet);
+		session->AsyncSend(req_packet);
 	}
 };
 

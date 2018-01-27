@@ -32,7 +32,7 @@ bool RouterCasterImpl_Uni::SendMsg(uint64_t msg_seq, const std::shared_ptr<Netwo
 	{
 		router_session->watingSessionManager_.AddSession(msg_seq, network_session);
 	}
-	router_session->Send(buf, len);
+	router_session->AsyncSend(buf, len);
 	return true;
 }
 
@@ -91,7 +91,7 @@ bool RouterCasterImpl_Multi::SendMsg(uint64_t msg_seq, const std::shared_ptr<Net
 		{
 			s->watingSessionManager_.AddSession(msg_seq, network_session);
 		}
-		s->Send(buf, len);
+		s->AsyncSend(buf, len);
 	}
 	return true;
 }
@@ -159,7 +159,7 @@ bool RouterCasterImpl_Any::SendMsg(uint64_t msg_seq, const std::shared_ptr<Netwo
 		router_session->watingSessionManager_.AddSession(msg_seq, network_session);
 	}
 
-	router_session->Send(buf, len);
+	router_session->AsyncSend(buf, len);
 	return true;
 }
 

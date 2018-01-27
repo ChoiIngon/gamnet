@@ -15,10 +15,6 @@ public :
 
 	Session();
 	virtual ~Session();
-
-	void Send(const std::shared_ptr<Packet>& packet);
-	void Send(const char* buf, int len);
-	void Send(uint32_t msg_id, const Json::Value& json);
 };
 }}}
 #endif /* NETWORK_SESSION_H_ */

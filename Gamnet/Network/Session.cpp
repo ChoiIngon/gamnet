@@ -42,7 +42,7 @@ void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 	}
 	_link->AsyncSend(buffer);
 }
-void Session::AsyncSend(const char* data, size_t length)
+void Session::AsyncSend(const char* data, int length)
 {
 	std::shared_ptr<Link> _link = link;
 	if (NULL == _link)
@@ -60,7 +60,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 	}
 	return _link->SyncSend(buffer);
 }
-int Session::SyncSend(const char* data, size_t length)
+int Session::SyncSend(const char* data, int length)
 {
 	std::shared_ptr<Link> _link = link;
 	if (NULL == _link)

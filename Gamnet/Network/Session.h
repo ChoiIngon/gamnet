@@ -70,9 +70,9 @@ public :
 	virtual void OnDestroy() = 0;
 
 	void AsyncSend(const std::shared_ptr<Buffer>& buffer);
-	void AsyncSend(const char* data, size_t length);
+	void AsyncSend(const char* data, int length);
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);
-	int SyncSend(const char* data, size_t length);
+	int SyncSend(const char* data, int length);
 
 	static std::string GenerateSessionToken(uint32_t session_key);
 };

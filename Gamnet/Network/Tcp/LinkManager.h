@@ -198,14 +198,27 @@ public :
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
 			
-			session->Send(MsgID_Connect_Ans, ans);
+			Json::StyledWriter writer;
+			std::string str = writer.write(ans);
+
+			Packet::Header header;
+			header.msg_id = MsgID_Connect_Ans;
+			header.msg_seq = session->msg_seq;
+			header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
+
+			std::shared_ptr<Packet> ans_packet = Packet::Create();
+			if(NULL == ans_packet)
+			{
+				return;
+			}
+			ans_packet->Write(header, str.c_str(), str.length()+1);
+			session->AsyncSend(ans_packet);
 			//LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] send connect answer(session_key:", session->session_key, ", session_token:", session->session_token, ")");
 			session->OnAccept();
 		}
 		void Recv_Reconnect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
 			std::shared_ptr<Link> link = session->link;
-
 			Json::Value ans;
 			ans["error_code"] = 0;
 			try {
@@ -237,15 +250,11 @@ public :
 					_link->AttachSession(NULL);
 				}
 
-				other->recv_packet = session->recv_packet;
-				//other->session_token = Session::GenerateSessionToken(other->session_key);
 				link->AttachSession(other);
-				link->session->OnAccept();
-
+				other->recv_packet = session->recv_packet;
+				other->OnAccept();
+				
 				Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Remove(session->session_key);
-				//ans["session_key"] = other->session_key;
-				//ans["session_token"] = other->session_token;
-				//ans["msg_seq"] = (uint32_t)(other->msg_seq);
 			}
 			catch (const Exception& e)
 			{
@@ -270,14 +279,28 @@ public :
 				return;
 			}
 			ans_packet->Write(header, str.c_str(), str.length()+1);
-			link->AsyncSend(ans_packet);
+			session->AsyncSend(ans_packet);
 		}
 		void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
 			Json::Value ans;
 			ans["error_code"] = 0;
 			ans["msg_seq"] = (uint32_t)session->msg_seq;
-			session->Send(MsgID_HeartBeat_Ans, ans);
+			Json::StyledWriter writer;
+			std::string str = writer.write(ans);
+
+			Packet::Header header;
+			header.msg_id = MsgID_HeartBeat_Ans;
+			header.msg_seq = session->msg_seq;
+			header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
+
+			std::shared_ptr<Packet> ans_packet = Packet::Create();
+			if(NULL == ans_packet)
+			{
+				return;
+			}
+			ans_packet->Write(header, str.c_str(), str.length()+1);
+			session->AsyncSend(ans_packet);
 		}
 		void Recv_Close_Ntf(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
