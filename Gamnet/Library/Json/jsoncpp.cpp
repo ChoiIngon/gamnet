@@ -460,6 +460,7 @@ bool Reader::readToken(Token& token) {
     token.type_ = tokenArrayEnd;
     break;
   case '"':
+  case '\'' :
     token.type_ = tokenString;
     ok = readString();
     break;
@@ -640,10 +641,10 @@ bool Reader::readString() {
     c = getNextChar();
     if (c == '\\')
       getNextChar();
-    else if (c == '"')
+    else if (c == '"' || c == '\'')
       break;
   }
-  return c == '"';
+  return c == '"' || c == '\'';
 }
 
 bool Reader::readObject(Token& tokenStart) {

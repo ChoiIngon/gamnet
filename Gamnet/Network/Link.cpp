@@ -123,7 +123,15 @@ void Link::AsyncRead()
 				self->OnError(ErrorCode::InvalidLinkManagerError);
 				return;
 			}
-			self->manager->OnRecvMsg(self, self->read_buffer);
+			try {
+				self->manager->OnRecvMsg(self, self->read_buffer);
+			}
+			catch(const Exception& e)
+			{
+				LOG(ERR, "link key:", self->link_key, ", session_key:", (nullptr != self->session ? self->session->session_key : 0), ", error_code:", e.error_code(), ", error_msg:", e.what());
+				self->OnError(e.error_code());
+				return;
+			}
 			if(nullptr != self->read_buffer)
 			{
 				self->read_buffer->Clear();
