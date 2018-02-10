@@ -146,9 +146,20 @@ public :
 class ElapseTimer
 {
 	std::chrono::time_point<std::chrono::high_resolution_clock> t0_;
+	bool auto_reset_;
 public :
-	ElapseTimer() : t0_(std::chrono::high_resolution_clock::now())
+	ElapseTimer() : t0_(std::chrono::high_resolution_clock::now()), auto_reset_(false)
 	{
+	}
+
+	void AutoReset(bool flag)
+	{
+		auto_reset_ = flag;
+	}
+
+	void Reset()
+	{
+		t0_ = std::chrono::high_resolution_clock::now();
 	}
 
 	template<class TIMEUNIT_T = std::chrono::milliseconds>
@@ -157,6 +168,10 @@ public :
 		auto t1 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> fsec = t1 - t0_;
 		TIMEUNIT_T diff = std::chrono::duration_cast<TIMEUNIT_T>(fsec);
+		if(true == auto_reset_)
+		{
+			t0_ = t1;
+		}
 		return diff.count();
 	}
 };

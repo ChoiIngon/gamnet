@@ -47,13 +47,13 @@
     <ClCompile Include="Library\Variant.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Database\Redis\Connection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Database\Redis\ResultSet.cpp">
+    <ClCompile Include="Library\Random.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Database\MySQL\Connection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\MySQL\MySQL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Database\MySQL\ResultSet.cpp">
@@ -62,16 +62,46 @@
     <ClCompile Include="Database\MySQL\Transaction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Database\Redis\Connection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Database\Redis\Redis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Database\MySQL\MySQL.cpp">
+    <ClCompile Include="Database\Redis\ResultSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Database\Database.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Library\Random.cpp">
+    <ClCompile Include="Network\Link.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\LinkManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Tcp\Packet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Tcp\Session.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Tcp\Tcp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Router\LinkManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Router\Router.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Router\RouterCaster.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Router\RouterHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Router\Session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Network\Http\Dispatcher.cpp">
@@ -92,43 +122,16 @@
     <ClCompile Include="Network\Http\Session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network\Router\LinkManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\Router\Router.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\Router\RouterCaster.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\Router\RouterHandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\Router\Session.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\Tcp\Packet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\Tcp\Session.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\Tcp\Tcp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\Link.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Library\Json\jsoncpp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\LinkManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Network\Http\Request.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Database\Redis\Transaction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Tcp\CastGroup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -202,13 +205,19 @@
     <ClInclude Include="Library\Variant.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Database\Redis\Connection.h">
+    <ClInclude Include="Library\Random.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Database\Redis\ResultSet.h">
+    <ClInclude Include="Database\ConnectionPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\Database.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Database\MySQL\Connection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\MySQL\MySQL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Database\MySQL\ResultSet.h">
@@ -217,37 +226,40 @@
     <ClInclude Include="Database\MySQL\Transaction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Database\ConnectionPool.h">
+    <ClInclude Include="Database\Redis\Connection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Database\Redis\Redis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Database\MySQL\MySQL.h">
+    <ClInclude Include="Database\Redis\ResultSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Database\Database.h">
+    <ClInclude Include="Library\DataCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Library\Random.h">
+    <ClInclude Include="Test\LinkManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Http\Dispatcher.h">
+    <ClInclude Include="Network\Link.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Http\HttpClient.h">
+    <ClInclude Include="Network\LinkManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Http\HttpServer.h">
+    <ClInclude Include="Network\Tcp\Dispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Http\LinkManager.h">
+    <ClInclude Include="Network\Tcp\LinkManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Http\Response.h">
+    <ClInclude Include="Network\Tcp\Packet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Http\Session.h">
+    <ClInclude Include="Network\Tcp\Session.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Tcp\Tcp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Network\Router\Dispatcher.h">
@@ -271,28 +283,22 @@
     <ClInclude Include="Network\Router\Session.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Tcp\Dispatcher.h">
+    <ClInclude Include="Network\Http\Dispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Tcp\LinkManager.h">
+    <ClInclude Include="Network\Http\HttpClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Tcp\MsgNetwork.h">
+    <ClInclude Include="Network\Http\HttpServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Tcp\Packet.h">
+    <ClInclude Include="Network\Http\LinkManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Tcp\Session.h">
+    <ClInclude Include="Network\Http\Response.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Tcp\Tcp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Network\Link.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Network\LinkManager.h">
+    <ClInclude Include="Network\Http\Session.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Library\Json\json.h">
@@ -301,19 +307,17 @@
     <ClInclude Include="Library\Json\json-forwards.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Test\LinkManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Network\Http\Request.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Database\Redis\Transaction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="Network\Router\MsgRouter.idl">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
+    <ClInclude Include="Library\Debugs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Tcp\CastGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

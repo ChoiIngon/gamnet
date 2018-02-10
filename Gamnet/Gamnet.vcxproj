@@ -30,6 +30,7 @@
     <ProjectGuid>{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <ProjectName>Gamnet</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -94,12 +95,13 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\curl-7.43.0-win64\include;C:\local\boost_1_61_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\curl-7.43.0-win64\include;C:\local\boost_1_64_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ObjectFileName>$(IntDir)/%(Relativedir)/</ObjectFileName>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -126,26 +128,24 @@
     <ClCompile>
       <AdditionalIncludeDirectories>C:\local\boost_1_64_0;C:\local\OpenSSL-Win64\include;C:\local\curl-7.43.0-win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
-      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501</PreprocessorDefinitions>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
-      <UndefinePreprocessorDefinitions>
-      </UndefinePreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\curl-7.43.0-win64\include;C:\local\boost_1_61_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\curl-7.43.0-win64\include;C:\local\boost_1_64_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Database\Database.cpp" />
     <ClCompile Include="Database\MySQL\Connection.cpp" />
     <ClCompile Include="Database\MySQL\MySQL.cpp" />
+    <ClCompile Include="Database\MySQL\ResultSet.cpp" />
+    <ClCompile Include="Database\MySQL\Transaction.cpp" />
     <ClCompile Include="Database\Redis\Connection.cpp" />
     <ClCompile Include="Database\Redis\Redis.cpp" />
     <ClCompile Include="Database\Redis\ResultSet.cpp" />
-    <ClCompile Include="Database\MySQL\ResultSet.cpp" />
-    <ClCompile Include="Database\MySQL\Transaction.cpp" />
     <ClCompile Include="Database\Redis\Transaction.cpp" />
     <ClCompile Include="Gamnet.cpp" />
     <ClCompile Include="library\Base64.cpp" />
@@ -174,6 +174,7 @@
     <ClCompile Include="Network\Router\RouterHandler.cpp" />
     <ClCompile Include="Network\Router\Session.cpp" />
     <ClCompile Include="network\Session.cpp" />
+    <ClCompile Include="Network\Tcp\CastGroup.cpp" />
     <ClCompile Include="Network\Tcp\Packet.cpp" />
     <ClCompile Include="Network\Tcp\Session.cpp" />
     <ClCompile Include="Network\Tcp\Tcp.cpp" />
@@ -184,16 +185,18 @@
     <ClInclude Include="Database\Database.h" />
     <ClInclude Include="Database\MySQL\Connection.h" />
     <ClInclude Include="Database\MySQL\MySQL.h" />
+    <ClInclude Include="Database\MySQL\ResultSet.h" />
+    <ClInclude Include="Database\MySQL\Transaction.h" />
     <ClInclude Include="Database\Redis\Connection.h" />
     <ClInclude Include="Database\Redis\Redis.h" />
     <ClInclude Include="Database\Redis\ResultSet.h" />
-    <ClInclude Include="Database\MySQL\ResultSet.h" />
-    <ClInclude Include="Database\MySQL\Transaction.h" />
     <ClInclude Include="Database\Redis\Transaction.h" />
     <ClInclude Include="Gamnet.h" />
     <ClInclude Include="library\Atomic.h" />
     <ClInclude Include="library\Base64.h" />
     <ClInclude Include="library\Buffer.h" />
+    <ClInclude Include="Library\DataCache.h" />
+    <ClInclude Include="Library\Debugs.h" />
     <ClInclude Include="library\Exception.h" />
     <ClInclude Include="Library\Json\json-forwards.h" />
     <ClInclude Include="Library\Json\json.h" />
@@ -230,22 +233,15 @@
     <ClInclude Include="Network\Router\RouterHandler.h" />
     <ClInclude Include="Network\Router\Session.h" />
     <ClInclude Include="network\Session.h" />
+    <ClInclude Include="Network\Tcp\CastGroup.h" />
     <ClInclude Include="Network\Tcp\Dispatcher.h" />
     <ClInclude Include="Network\Tcp\LinkManager.h" />
-    <ClInclude Include="Network\Tcp\MsgNetwork.h" />
     <ClInclude Include="Network\Tcp\Packet.h" />
     <ClInclude Include="Network\Tcp\Session.h" />
     <ClInclude Include="Network\Tcp\Tcp.h" />
     <ClInclude Include="Test\LinkManager.h" />
     <ClInclude Include="test\Session.h" />
     <ClInclude Include="test\Test.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="Network\Router\MsgRouter.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idlc\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Router\%(Filename).h</Outputs>
-    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
