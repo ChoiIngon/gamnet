@@ -355,11 +355,10 @@ namespace Gamnet
                 };
                 _timer.Start();
             }
-            catch (System.Exception e)
+            catch (Gamnet.Exception e)
             {
-                Debug.LogError("[Session.Callback_Connect] exception:" + e.ToString());
-                Error(new Gamnet.Exception(ErrorCode.ConnectFailError, e.ToString()));
-                Disconnect();
+                Debug.LogError("[Session.OnReceive] exception:" + e.ToString());
+                Error(e);
             }
         }
 
@@ -517,10 +516,10 @@ namespace Gamnet
                     IMsgHandler handler = _handlers[msgID];
                     handler.OnRecvMsg(_recv_buff);
                 }
-                catch (System.Exception e)
+                catch (Gamnet.Exception e)
                 {
                     Debug.LogError("[Session.OnReceive] exception:" + e.ToString());
-                    Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.ToString()));
+                    Error(e);
                 }
                 _recv_buff.read_index += packetLength - Packet.HEADER_SIZE;
             }
