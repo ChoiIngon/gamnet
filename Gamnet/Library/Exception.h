@@ -15,13 +15,16 @@ namespace Gamnet {
 class ErrorCode { 
 public :
 	enum {
-		Success						= 0,
+		Success = 0,
 		ConnectFailError			= 1,
 		AcceptFailError				= 2,
+		HeartbeatFailError			= 3,
+		SendMsgFailError			= 4,
 		ConnectTimeoutError			= 10,
 		InvalidArgumentError		= 20,
 		InvalidSessionTokenError	= 21,
 		InvalidSessionError			= 22,
+		InvalidSessionKeyError		= 23,
 		InvalidArrayRangeError		= 30,
 		InvalidKeyError				= 40,
 		InvalidAddressError			= 41,

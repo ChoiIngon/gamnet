@@ -232,16 +232,16 @@ public :
 
 				uint32_t session_key = req["session_key"].asUInt();
 				const std::string session_token = req["session_token"].asString();
-				//LOG(DEV, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] receive re-connect request");
+				
 				const std::shared_ptr<SESSION_T> other = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
 				if (NULL == other)
 				{
-					throw Exception(GAMNET_ERRNO(ErrorCode::ConnectTimeoutError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] no cached data for session(session_key:", session_key, ")");
+					throw Exception(GAMNET_ERRNO(ErrorCode::InvalidSessionKeyError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] can not find session data for reconnect(session_key:", session_key, ")");
 				}
 
 				if(session_token != other->session_token)
 				{
-					throw Exception(GAMNET_ERRNO(ErrorCode::InvalidSessionTokenError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] invald session token(expect:", other->session_token, ", receive:", session_token, ")");
+					throw Exception(GAMNET_ERRNO(ErrorCode::InvalidSessionTokenError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] invalid session token(expect:", other->session_token, ", receive:", session_token, ")");
 				}
 				
 				std::shared_ptr<Link> _link = other->link;
@@ -262,8 +262,6 @@ public :
 				ans["error_code"] = e.error_code();
 				LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 			}
-
-			//LOG(DEV, "[link_key:", link->link_key, ", session_key:", NULL == link->session ? 0 : link->session->session_key, "] send re-connect answer(error_code:", ans["error_code"].asInt(), ", session_token:", NULL == link->session ? "<null>" : link->session->session_token, ")");
 
 			Json::StyledWriter writer;
 			std::string str = writer.write(ans);
