@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Gamnet {
 public class Buffer	{
-	public const int BUFFER_SIZE = 8192;
+	public const int BUFFER_SIZE = 65535;
 	public static void BlockCopy(Buffer src, Buffer dest) {
 		System.Buffer.BlockCopy(src.data, src.read_index, dest.data, 0, src.Size());
 		dest.read_index = 0;
