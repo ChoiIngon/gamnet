@@ -68,6 +68,7 @@ struct SingletonInitHelper
 			return;
 		}
 		info.func();
+		LOG(GAMNET_INF, "init complete singleton..", name);
 	}
 };
 
@@ -93,7 +94,7 @@ public :
 }
 
 #define GAMNET_BIND_INIT_HANDLER(class_type, func_type) \
-	static bool Init_##class_type##_##func_type = Gamnet::SingletonInitHelper::GetInstance().RegisterInitFunction(#class_type, std::bind(&class_type::func_type, &Gamnet::Singleton<class_type>::GetInstance()))
+	static bool Init_##__LINE__##_##func_type = Gamnet::SingletonInitHelper::GetInstance().RegisterInitFunction(#class_type, std::bind(&class_type::func_type, &Gamnet::Singleton<class_type>::GetInstance()))
 
 #define GAMNET_CALL_INIT_HANDLER(class_type) \
 	SingletonInitHelper::GetInstance().CallInitFunc(#class_type);

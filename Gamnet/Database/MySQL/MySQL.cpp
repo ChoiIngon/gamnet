@@ -41,19 +41,18 @@ bool Connect(int db_type, const char* host, int port, const char* id, const char
 	connInfo.passwd_ = passwd;
 	connInfo.port_ = port;
 	connInfo.uri_ = host;
-	return Singleton<ConnectionPool<Connection, ResultSet>>::GetInstance().Connect(db_type, connInfo);
+	return Singleton<ConnectionPool<Connection>>::GetInstance().Connect(db_type, connInfo);
 }
 
 ResultSet Execute(int db_type, const std::string& query)
 {
-	return Singleton<ConnectionPool<Connection, ResultSet>>::GetInstance().Execute(db_type, query);
+	std::shared_ptr<Connection> conn = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
+	ResultSet res;
+	res.impl_ = conn->Execute(query);
+	res.impl_->conn_ = conn;
+	return res;
 }
-/*
-void AExecute(int db_type, const std::string& query, std::function<void(ResultSet)> callback)
-{
-	threadPool_.PostTask(std::bind(&DatabaseImpl::Execute, &Singleton<DatabaseImpl>::GetInstance(), db_type, query, callback));
-}
-*/
+
 }}}
 
 

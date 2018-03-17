@@ -35,11 +35,15 @@ namespace Gamnet { namespace Database { namespace Redis {
 		Connection::ConnectionInfo connInfo;
 		connInfo.host = host;
 		connInfo.port = port;
-		return Singleton<ConnectionPool<Connection, ResultSet>>::GetInstance().Connect(db_type, connInfo);
+		return Singleton<ConnectionPool<Connection>>::GetInstance().Connect(db_type, connInfo);
 	}
 
 	ResultSet Execute(int db_type, const std::string& query)
 	{
-		return Singleton<ConnectionPool<Connection, ResultSet>>::GetInstance().Execute(db_type, query);
+		std::shared_ptr<Connection> conn = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
+		ResultSet res;
+		res.impl_ = conn->Execute(query);
+		res.impl_->conn_ = conn;
+		return res;
 	}
 } } }

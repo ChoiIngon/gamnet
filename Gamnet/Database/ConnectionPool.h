@@ -6,7 +6,7 @@
 
 namespace Gamnet {	namespace Database {
 
-template <class CONNECTION_T, class RESULTSET_T>
+template <class CONNECTION_T>
 class ConnectionPool {
 	typedef Pool<CONNECTION_T, std::mutex> CONNECTION_POOL_T;
 	std::map<int, std::shared_ptr<CONNECTION_POOL_T>> mapConnectionPool_;
@@ -38,7 +38,7 @@ public :
 			LOG(GAMNET_ERR, "duplicate connection info(db_type:", db_type, ")");
 			return false;
 		}
-		if (false == mapConnectionPool_.insert(std::make_pair(db_type, std::shared_ptr<CONNECTION_POOL_T>(new CONNECTION_POOL_T(64, std::bind(&ConnectionPool<CONNECTION_T, RESULTSET_T>::ConnectionFactory, this, db_type))))).second)
+		if (false == mapConnectionPool_.insert(std::make_pair(db_type, std::shared_ptr<CONNECTION_POOL_T>(new CONNECTION_POOL_T(64, std::bind(&ConnectionPool<CONNECTION_T>::ConnectionFactory, this, db_type))))).second)
 		{
 			LOG(GAMNET_ERR, "duplicate connection info(db_type:", db_type, ")");
 			return false;
@@ -52,15 +52,6 @@ public :
 			return false;
 		}
 		return true;
-	}
-
-	RESULTSET_T Execute(int db_type, const std::string& query)
-	{
-		std::shared_ptr<CONNECTION_T> conn = GetConnection(db_type);
-		RESULTSET_T res;
-		res.impl_ = conn->Execute(query);
-		res.impl_->conn_ = conn;
-		return res;
 	}
 
 	std::shared_ptr<CONNECTION_T> GetConnection(int db_type)

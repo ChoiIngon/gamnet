@@ -7,7 +7,7 @@ namespace Gamnet { namespace Database { namespace MySQL {
 
 Transaction::Transaction(int db_type) : commit(false)
 {
-	connection = Singleton<ConnectionPool<Connection, ResultSet>>::GetInstance().GetConnection(db_type);
+	connection = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
 	connection->Execute("start transaction");
 }
 /*
