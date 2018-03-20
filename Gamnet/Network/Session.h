@@ -46,8 +46,8 @@ public :
 			session->session_key = ++Network::SessionManager::session_key;
 			session->session_token = "";
 			session->expire_time = 0;
-			session->link = NULL;
-			session->remote_address = NULL;
+			session->link = nullptr;
+			session->remote_address = nullptr;
 			session->handler_container.Init();
 			return session;
 		}
@@ -61,7 +61,7 @@ public :
 	time_t						expire_time;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;
-	LinkManager*				manager;
+	//LinkManager*				manager;
 
 public :
 	virtual void OnCreate() = 0;
@@ -74,7 +74,6 @@ public :
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);
 	int SyncSend(const char* data, int length);
 
-	void OnRecv(const std::shared_ptr<Buffer>& buffer);
 	static std::string GenerateSessionToken(uint32_t session_key);
 };
 

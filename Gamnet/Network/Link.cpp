@@ -264,7 +264,7 @@ void Link::AttachSession(const std::shared_ptr<Session> session)
 		if(NULL != self->session) {
 			self->session->remote_address = &(self->remote_address);
 			self->session->link = self;
-			self->session->manager = self->manager;
+			//self->session->manager = self->manager;
 			//LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] attach session");
 		}
 	})(session);

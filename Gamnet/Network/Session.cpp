@@ -16,16 +16,16 @@ namespace Gamnet { namespace Network {
 
 std::string Session::GenerateSessionToken(uint32_t session_key)
 {
-	return md5(Format(session_key, time(NULL), Random::Range(1, 99999999)));
+	return md5(Format(session_key, time(nullptr), Random::Range(1, 99999999)));
 }
 
 Session::Session() :
 		session_key(0),
 		session_token(""),
-		remote_address(NULL),
+		remote_address(nullptr),
 		expire_time(0),
-		link(NULL),
-		manager(NULL)
+		link(nullptr)//,
+		//manager(NULL)
 {
 }
 
