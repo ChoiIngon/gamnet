@@ -8,9 +8,6 @@ namespace Gamnet { namespace Log {
 	/// \param log_dir the directory that log file will be created(relative directory path would be recommened)
 	void Init(const char* log_dir = "log", const char* prefix = "log", int max_file_size = 5);
 	void ReadXml(const char* xml_path);
-	/// \brief 로그 레벨 별 출력 여부와 out direction 설정 함수
-	/// \param level property 셋팅 할 로그 레벨
-	/// \param flag stdout, file, syslog 등 로그 출력 방향. 0일 경우 해당 레벨은 로깅하지 않음
 	void SetLevelProperty(Logger::LOG_LEVEL_TYPE level, int flag);
 	template <typename... Args>
 	void Write(Logger::LOG_LEVEL_TYPE level, const Args&... args)

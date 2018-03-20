@@ -9,27 +9,18 @@
 namespace Gamnet
 {
 /*!
- * \brief 이벤트 타이머
-
-		    클래스 생성 혹은 초기화 함수를 이용하여 지정된 시간이 경과하면, < br>
-		    등록된 콜백 함수를 이용하여 어플리케이션에게 이벤트를 알린다.
-
- * 		 Usage :
- * 		 <ol>
- * 		  <li> 타이머(Timer) 객체 생성. <br>
- * 		  	      환경에 따라 single thread or multi thread 용으로 선언한다.
- *     	  <li> SetTimer 함수를 이용하여 expire 이벤트가 발생할 시간을 지정한다.
- *         <li> 반복 적인 이벤트 발생이 필요하면 Resume() 함수를 호출 한다.
- * 		 </ol>
- * 		 Sample code :<br>
- * 	<pre>
-	Toolkit::ThreadPool threadPool(10);
-	Toolkit::Timer timer;
-	timer.SetTimer(&threadPool, 500, [&timer](){
- *		// Do Something
- *		timer.Resume();
-	});
- * 	</pre>
+ * \brief event timer
+ 
+		timer will call registered callback function if time expired
+		
+		Sample code :<br>
+  	<pre>
+		Gamnet::Timer timer;
+		timer.SetTimer(500, [&timer](){
+			// Do Something
+			timer.Resume();
+		});
+  	</pre>
  */
 class Timer
 {
@@ -83,9 +74,8 @@ public :
 		entry_ = nullptr;
 	}
 	/*!
-		\param threadPool 타이머 이벤트 발생 시 지정된 함수자를 실행하기 위한 thread pool
-		\param interval ms단위(1/1000초) 단위. 함수 호출 이후 interval 만큼 시간이 흐르면 등록된 함수자가 호출 된다.(100ms 정밀도를 가진다)
-		\param functor 타이머 이벤트 발생 시 수행될 함수자. std::bind를 이용하여 어떠한 함수라도 전달 가능하다.
+		\param interval ms(1/1000 sec)
+		\param functor call back funcion
 	*/
 	template <class FUNCTOR>
 	Timer(long interval, FUNCTOR functor) :
@@ -95,10 +85,9 @@ public :
 	}
 
 	/*!
-	  \param threadPool 타이머 이벤트 발생 시 지정된 함수자를 실행하기 위한 thread pool
-	  \param interval ms단위(1/1000초) 단위. 함수 호출 이후 interval 만큼 시간이 흐르면 등록된 함수자가 호출 된다.(100ms 정밀도를 가진다)
-	  \param functor 타이머 이벤트 발생 시 수행될 함수자. std::bind를 이용하여 어떠한 함수라도 전달 가능하다.
-	 */
+		\param interval ms(1/1000 sec)
+		\param functor call back funcion
+	*/
 	template <class FUNCTOR>
 	bool SetTimer(int interval, FUNCTOR functor)
 	{
@@ -111,7 +100,7 @@ public :
 	}
 
     /*!
-     * \brief 타이머 이벤트는 1회성이다. 지속적으로 발생 시키기 위해서는 필요할때 마다 Resume() 함수를 호출 해야 한다.
+     * \brief timer event will expire just onetime. if reset timer event call 'Resume'
      */
 	bool Resume()
 	{

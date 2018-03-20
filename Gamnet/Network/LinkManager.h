@@ -25,7 +25,7 @@ protected:
 	boost::asio::ip::tcp::endpoint _endpoint;
 public :
 	std::string name;
-	static std::atomic_ullong link_key;
+	static std::atomic_ulong link_key;
 
 	LinkManager();
 	virtual ~LinkManager();

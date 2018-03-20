@@ -62,7 +62,7 @@ unsigned int ResultSet::GetRowCount()
 	{
 		return 0;
 	}
-	return mysql_num_rows(impl_->res_);
+	return (unsigned int)mysql_num_rows(impl_->res_);
 }
 
 unsigned int ResultSet::GetLastInsertID() const
@@ -175,7 +175,7 @@ uint32_t ResultSet::iterator::getUInt(const std::string& column_name)
 	{
 		return boost::lexical_cast<uint32_t>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -186,7 +186,7 @@ uint16_t ResultSet::iterator::getUInt16(const std::string& column_name)
 	{
 		return boost::lexical_cast<uint16_t>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -197,7 +197,7 @@ uint32_t ResultSet::iterator::getUInt32(const std::string& column_name)
 	{
 		return boost::lexical_cast<uint32_t>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -208,7 +208,7 @@ uint64_t ResultSet::iterator::getUInt64(const std::string& column_name)
 	{
 		return boost::lexical_cast<uint64_t>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -219,7 +219,7 @@ int32_t ResultSet::iterator::getInt(const std::string& column_name)
 	{
 		return boost::lexical_cast<int32_t>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -230,7 +230,7 @@ int16_t ResultSet::iterator::getInt16(const std::string& column_name)
 	{
 		return boost::lexical_cast<int16_t>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -241,7 +241,7 @@ int32_t ResultSet::iterator::getInt32(const std::string& column_name)
 	{
 		return boost::lexical_cast<int32_t>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -252,7 +252,7 @@ int64_t ResultSet::iterator::getInt64(const std::string& column_name)
 	{
 		return boost::lexical_cast<int64_t>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -263,7 +263,7 @@ bool ResultSet::iterator::getBool(const std::string& column_name)
 	{
 		return boost::lexical_cast<bool>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -274,7 +274,7 @@ float ResultSet::iterator::getFloat(const std::string& column_name)
 	{
 		return boost::lexical_cast<float>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}
@@ -285,7 +285,7 @@ double ResultSet::iterator::getDouble(const std::string& column_name)
 	{
 		return boost::lexical_cast<double>(getString(column_name));
 	}
-	catch (const boost::bad_lexical_cast& e)
+	catch (const boost::bad_lexical_cast& /* e */)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
 	}

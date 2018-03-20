@@ -209,7 +209,7 @@ public :
 				return;
 			}
 
-			// 데이터가 부족한 경우
+			// not enough received data
 			if(totalLength > (uint16_t)session->recv_packet->Size())
 			{
 				break;

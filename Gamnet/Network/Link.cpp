@@ -211,19 +211,19 @@ int Link::SyncSend(const char* buf, int len)
 			int sentBytes = boost::asio::write(socket, boost::asio::buffer(buf+totalSentBytes, len-totalSentBytes), ec);
 			if(0 > sentBytes || 0 != ec)
 			{
-				LOG(ERR, "[link_key:", link_key, "] send fail(errno:", errno, ", errstr:", strerror(errno), ", ec:", ec, ")");
+				LOG(ERR, "[link_key:", link_key, "] send fail(errno:", errno, ", ec:", ec, ")");
 				return -1;
 			}
 			if(0 == sentBytes)
 			{
-				LOG(ERR, "[link_key:", link_key, "] send '0' byte(errno:", errno, ", errstr:", strerror(errno), ", ec:", ec, ")");
+				LOG(ERR, "[link_key:", link_key, "] send '0' byte(errno:", errno, ", ec:", ec, ")");
 				return -1;
 			}
 			totalSentBytes += sentBytes;
 		}
 		catch(const boost::system::system_error& e)
 		{
-			LOG(ERR, "[link_key:", link_key, "] send exception(errno:", errno, ", errstr:", strerror(errno), ")");
+			LOG(ERR, "[link_key:", link_key, "] send exception(errno:", errno, ", errstr:", e.what(), ")");
 			return -1;
 		}
 	}

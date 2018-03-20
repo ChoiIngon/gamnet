@@ -21,7 +21,7 @@ std::ofstream& File::open(const tm& now)
 		ofstream_.close();
 		char datebuf[10] = {0};
 #ifdef _WIN32
-		_snprintf(datebuf, 10, "%04d%02d%02d", now.tm_year+1900, now.tm_mon+1, now.tm_mday);
+		_snprintf_s(datebuf, 10, "%04d%02d%02d", now.tm_year+1900, now.tm_mon+1, now.tm_mday);
 #else
 		snprintf(datebuf, 10, "%04d%02d%02d", now.tm_year+1900, now.tm_mon+1, now.tm_mday);
 #endif
@@ -35,16 +35,16 @@ std::ofstream& File::open(const tm& now)
 	{
 		filesize = boost::filesystem::file_size(filename_.c_str());
 	}
-	catch(boost::filesystem::filesystem_error& e)
+	catch(boost::filesystem::filesystem_error& /* e */)
 	{
-		filesize = std::numeric_limits<int>::max();;
+		filesize = std::numeric_limits<int>::max();
 	}
 	if(filesize_ < filesize)
 	{
 		ofstream_.close();
 		char datebuf[20] = {0};
 #ifdef _WIN32
-		_snprintf(datebuf, 20, "%04d%02d%02d_%02d%02d%02d", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
+		_snprintf_s(datebuf, 20, "%04d%02d%02d_%02d%02d%02d", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
 #else
 		snprintf(datebuf, 20, "%04d%02d%02d_%02d%02d%02d", now.tm_year+1900, now.tm_mon+1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
 #endif

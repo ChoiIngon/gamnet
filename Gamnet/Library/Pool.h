@@ -10,10 +10,9 @@
 namespace Gamnet {
 	namespace Policy {
 		/*!
-		 * \brief policy for loking.
+		 * \brief policy for locking.
 		 *
-		 * 		  if use just one thread, use single_thread policy, or use multi_thread<br>
-		 * 		  single_thread is a dummy lock implementing only interface
+		 *		if need thread safe, use 'std::mutex' or 'std::recursive_mutex'
 		 */
 
 		struct nolock
@@ -32,7 +31,8 @@ namespace Gamnet {
 					return t;
 				}
 			};
-		}; // Alloc
+		}; 
+
 		namespace Factory
 		{
 			template <class T>
@@ -50,19 +50,13 @@ namespace Gamnet {
  * \brief Object Pool
  *
  * 		<ul>
- * 		<li>템플릿 인자로 지정된 타입의 객체를 내부적으로 생성하고 Create()함수로 그 포인터를 리턴한다.<br>
- * 		<li>reference counter를 사용하기 위해 std::shared_ptr를 기반으로 작성되어<br>
- * 			객체를 풀로 돌려주는 인터페이스는 따로 존재하지 않는다.
- * 		<li>객체는 필요시 마다 생성되어 삭제되지 않고 Pool에 저장되며<br>
- * 			생성자인자로 지정된 max 갯수만큼 이상을 생성하지는 못한다.
+ * 		<li>create 'object' type internally and returns std::shared_ptr of 'object' type<br>
+ * 		<li>all created objects are managed by reference counter so no interface return the object to pool
  *      </ul>
  *
- * \param object 풀이 생성/저장 할 객체 타입
- * \param lock_policy Toolkit::Policy::Lock 참조
- * \param init_policy 객체 초기화 정책<br>
- * 					    객체가 처음 생성되거나, 풀에 저장되어 있다 리턴되는 경우<br>
- * 					    멤버 변수 초기화 등을 어떻게 할 것인지 기술한다.<br>
- * 					  operator ()를 구현한 functor를 인자로 사용한다.<br>
+ * \param object pool will create this 'object' type instance
+ * \param lock_policy Gamnet::Policy::lock, std::mutex or std::recursive_mutex
+ * \param init_policy initialize policy for created object. <br>It will be called whenerver pool return object. It should implement 'operator ()'
  * <pre>
 	struct sample_init_policy {
 		template <class T>
@@ -91,8 +85,8 @@ class Pool
 	};
 public:
 	/*!
-	 * \param nSize 풀이 생성 할수 있는 최대 오브젝트 갯수
-	 * \param object_factory 객체 생성시 외부 인자를 참조하거나 할때 사용한다.
+	 * \param nSize max object count that this pool can create
+	 * \param object_factory if you need custom create policy. you can use this
 	 */
 	Pool(int nSize = 65535, object_factory factory = Policy::Factory::create<object>()) : cur_size_(0), max_size_(nSize), factory_(factory)
 	{
@@ -108,18 +102,18 @@ public:
 	}
 
 	/*!
-	 * \brief 객체 리턴
-	 * \return std::shared_ptr<object> 형태 리턴
+	 * \brief return newly created or exist object
+	 * \return std::shared_ptr<object>
 	 */
 	std::shared_ptr<object> Create()
 	{
 		std::lock_guard<lock_policy> lo(lock_);
-		if(0 >= lstObjectPtr_.size() && cur_size_ >= max_size_)
+		if(0 == lstObjectPtr_.size() && cur_size_ >= max_size_)
 		{
 			return std::shared_ptr<object>(NULL);
 		}
 
-		if(0 >= lstObjectPtr_.size())
+		if(0 == lstObjectPtr_.size())
 		{
 			cur_size_++;
 			return std::shared_ptr<object>(init_(factory_()), Deleter(*this));
@@ -131,7 +125,7 @@ public:
 	}
 
 	/*!
-	 * \brief 현재 사용되지 않고 풀에 대기 중인 객체 카운터 리턴
+	 * \brief return count that pool can create
 	 */
 	size_t Available() 
 	{
@@ -139,6 +133,9 @@ public:
 		return lstObjectPtr_.size() + (max_size_ - cur_size_);
 	}
 
+	/*!
+	 * \brif return count that created or being used object
+	 */
 	size_t Size()
 	{
 		std::lock_guard<lock_policy> lo(lock_);
@@ -173,6 +170,6 @@ private :
 	object_factory factory_;
 };
 
-} /*Toolkit*/
+} 
 
-#endif /* TOOLKIT_LOCKPOOL_H_ */
+#endif 

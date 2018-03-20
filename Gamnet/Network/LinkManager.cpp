@@ -3,7 +3,7 @@
 
 namespace Gamnet { namespace Network {
 
-std::atomic_ullong LinkManager::link_key;
+std::atomic_ulong LinkManager::link_key;
 
 LinkManager::LinkManager() :
 		name("Gamnet::Network::LinkManager"),

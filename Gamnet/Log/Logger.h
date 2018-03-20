@@ -13,21 +13,21 @@ namespace Gamnet { namespace Log {
 
 class Logger {
 public :
-	/// \brief 로그 레벨
+	/// \brief log level
 	enum LOG_LEVEL_TYPE {
 		LOG_LEVEL_MIN = 0,
-		LOG_LEVEL_DEV, /**< 디버깅 로그 */
-		LOG_LEVEL_INF, /**< 일반 로그 */
-		LOG_LEVEL_WRN,
-		LOG_LEVEL_ERR, /**<  에러 로그 */
+		LOG_LEVEL_DEV, /**< debug log */
+		LOG_LEVEL_INF, /**< information log */
+		LOG_LEVEL_WRN, /**< warning log */
+		LOG_LEVEL_ERR, /**< error log */
 		LOG_LEVEL_MAX
 	};
 
 	enum LOG_TYPE
 	{
-		LOG_STDERR = 	0x00000001, /**< 표준 출력 */
-		LOG_FILE   =	0x00000010, /**< 파일 출력 */
-		LOG_SYSLOG = 	0x00000100 /**< syslog 출력 */
+		LOG_STDERR = 	0x00000001, /**< print to console */
+		LOG_FILE   =	0x00000010, /**< print to file */
+		LOG_SYSLOG = 	0x00000100	/**< print to sytem file */
 	};
 private :
 	int  Property_[LOG_LEVEL_MAX];
@@ -90,12 +90,9 @@ public :
 	}
 
 	/// \brief Initialize function for Logger lib
-	/// \param logPath 로그 파일이 생성될 디렉토리(상대 경로 사용할 것을 권고)
-	/// \return  성공시 true 리턴, 실패 false. 세부 에러 내용은 errno 체크
+	/// \param logPath directory path log file will be create(recommend relative path)
+	/// \return  return if true or false
 	void Init(const char* logPath, const char* prefix, int max_file_size);
-	/// \brief 로그 레벨 별 출력 여부와 out direction 설정 함수
-	/// \param level property 셋팅 할 로그 레벨
-	/// \param flag stdout, file, syslog 등 로그 출력 방향. 0일 경우 해당 레벨은 로깅하지 않음
 	void SetLevelProperty(LOG_LEVEL_TYPE level, int flag);
 };
 
