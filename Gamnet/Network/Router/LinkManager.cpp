@@ -10,7 +10,7 @@ std::mutex LinkManager::lock;
 
 LinkManager::LinkManager()
 {
-	name = "Gamnet::Network::Router::LinkManager";
+	_name = "Gamnet::Network::Router::LinkManager";
 }
 
 LinkManager::~LinkManager() {
@@ -55,11 +55,12 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
 {
-	const std::shared_ptr<Network::Link> link = Create();
-	if(NULL == link)
+	const std::shared_ptr<Link> link = Create();
+	if(nullptr == link)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create link instance");
 	}
+
 	link->AttachManager(this);
 
 	const std::shared_ptr<Session> session = session_pool.Create();
@@ -68,11 +69,7 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create session instance");
 	}
 
-	session->recv_packet = Network::Tcp::Packet::Create();
-	if(nullptr == session->recv_packet)
-	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "cannot create packet");
-	}
+	
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
 
@@ -116,6 +113,7 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	Network::LinkManager::OnClose(link, reason);
 }
 
+/*
 void LinkManager::OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer)
 {
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
@@ -126,7 +124,7 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared
 		return;
 	}
 
-	session->recv_packet->Append(buffer->ReadPtr(), buffer->Size());
+	link->recv_packet->Append(buffer->ReadPtr(), buffer->Size());
 	while (Tcp::Packet::HEADER_SIZE <= (int)session->recv_packet->Size())
 	{
 		uint16_t totalLength = session->recv_packet->GetLength();
@@ -172,4 +170,5 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared
 		}
 	}
 }
+*/
 }}}

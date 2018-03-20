@@ -166,6 +166,7 @@
     <ClCompile Include="Network\Http\Dispatcher.cpp" />
     <ClCompile Include="Network\Http\HttpClient.cpp" />
     <ClCompile Include="Network\Http\HttpServer.cpp" />
+    <ClCompile Include="Network\Http\Link.cpp" />
     <ClCompile Include="Network\Http\LinkManager.cpp" />
     <ClCompile Include="Network\Http\Request.cpp" />
     <ClCompile Include="Network\Http\Response.cpp" />
@@ -179,6 +180,7 @@
     <ClCompile Include="Network\Router\Session.cpp" />
     <ClCompile Include="network\Session.cpp" />
     <ClCompile Include="Network\Tcp\CastGroup.cpp" />
+    <ClCompile Include="Network\Tcp\Link.cpp" />
     <ClCompile Include="Network\Tcp\Packet.cpp" />
     <ClCompile Include="Network\Tcp\Session.cpp" />
     <ClCompile Include="Network\Tcp\Tcp.cpp" />
@@ -227,6 +229,7 @@
     <ClInclude Include="Network\Http\Dispatcher.h" />
     <ClInclude Include="Network\Http\HttpClient.h" />
     <ClInclude Include="Network\Http\HttpServer.h" />
+    <ClInclude Include="Network\Http\Link.h" />
     <ClInclude Include="Network\Http\LinkManager.h" />
     <ClInclude Include="Network\Http\Request.h" />
     <ClInclude Include="Network\Http\Response.h" />
@@ -244,6 +247,7 @@
     <ClInclude Include="network\Session.h" />
     <ClInclude Include="Network\Tcp\CastGroup.h" />
     <ClInclude Include="Network\Tcp\Dispatcher.h" />
+    <ClInclude Include="Network\Tcp\Link.h" />
     <ClInclude Include="Network\Tcp\LinkManager.h" />
     <ClInclude Include="Network\Tcp\Packet.h" />
     <ClInclude Include="Network\Tcp\Session.h" />

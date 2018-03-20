@@ -9,14 +9,40 @@ namespace Gamnet { namespace Network { namespace Http {
 
 LinkManager::LinkManager()
 {
-	name = "Gamnet::Network::Http::LinkManager";
+	_name = "Gamnet::Network::Http::LinkManager";
 }
 
 LinkManager::~LinkManager() 
 {
 }
 
-void LinkManager::OnAccept(const std::shared_ptr<Link>& link)
+std::shared_ptr<Network::Link> LinkManager::Create() 
+{
+	std::shared_ptr<Link> link = link_pool.Create();
+	if(nullptr == link)
+	{
+		LOG(GAMNET_ERR, "can not create 'Tcp::Link' instance");
+		return nullptr;
+	}
+
+	link->link_key = ++LinkManager::link_key;
+
+	if (nullptr == link->read_buffer)
+	{
+		LOG(GAMNET_ERR, "can not create read buffer");
+		return nullptr;
+	}
+
+	if (nullptr == link->recv_buffer)
+	{
+		LOG(GAMNET_ERR, "can not create recv packet");
+		return nullptr;
+	}
+
+	return link;
+}
+
+void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 {
 	const std::shared_ptr<Session> session = std::shared_ptr<Session>(new Session());
 	if (nullptr == session)
@@ -38,7 +64,7 @@ void LinkManager::OnAccept(const std::shared_ptr<Link>& link)
 	session->OnAccept();
 }
 
-void LinkManager::OnClose(const std::shared_ptr<Link>& link, int reason)
+void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 {
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	if (nullptr != session)
@@ -52,6 +78,7 @@ void LinkManager::OnClose(const std::shared_ptr<Link>& link, int reason)
 
 void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 {
+	/*
 	std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	if (NULL == session)
 	{
@@ -93,6 +120,7 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const st
 	Request req(param);
 	Singleton<Dispatcher>::GetInstance().OnRecvMsg(link, uri, req);
 	link->OnError(ErrorCode::Success);
+	*/
 }
 
 }}}

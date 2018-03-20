@@ -6,7 +6,7 @@ namespace Gamnet { namespace Network {
 std::atomic_ulong LinkManager::link_key;
 
 LinkManager::LinkManager() :
-		name("Gamnet::Network::LinkManager"),
+		_name("Gamnet::Network::LinkManager"),
 		_keepalive_time(0),
 		_is_acceptable(true),
 		_acceptor(Singleton<boost::asio::io_service>::GetInstance())
@@ -43,7 +43,6 @@ void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 			throw Exception(GAMNET_ERRNO(ErrorCode::UndefinedError), "session time out timer init fail");
 		}
 	}
-	_link_pool.Capacity(max_session);
 	_endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port);
 	_acceptor.open(_endpoint.protocol());
 	_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -107,7 +106,7 @@ void LinkManager::OnClose(const std::shared_ptr<Link>& link, int reason)
 		if(false == _is_acceptable)
 		{
 			LOG(GAMNET_INF, "new connection is available");
-			if(0 < _link_pool.Available())
+			if(0 < Available())
 			{
 				_is_acceptable = true;
 				Accept();
@@ -154,38 +153,19 @@ size_t LinkManager::Size()
 	return _links.size();
 }
 
-std::shared_ptr<Link> LinkManager::Create()
-{
-	std::shared_ptr<Link> link = _link_pool.Create();
-	if(nullptr == link)
-	{
-		return nullptr;
-	}
-
-	if (nullptr == link->read_buffer)
-	{
-		LOG(GAMNET_ERR, "can not create packet");
-		return nullptr;
-	}
-
-	link->link_key = ++LinkManager::link_key;
-	//LOG(DEV, "[link_key:", link->link_key,"] create link");
-	return link;
-}
-
 size_t LinkManager::Available()
 {
-	return _link_pool.Available();
+	return 0; // _link_pool.Available();
 }
 
 size_t LinkManager::Capacity() const
 {
-	return _link_pool.Capacity();
+	return 0; // _link_pool.Capacity();
 }
 
 void LinkManager::Capacity(size_t count)
 {
-	_link_pool.Capacity(count);
+	// _link_pool.Capacity(count);
 }
 
 Json::Value LinkManager::State()

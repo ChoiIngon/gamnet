@@ -11,7 +11,7 @@ class Session : public Network::Session
 {
 public :
 	std::atomic<uint32_t> msg_seq;
-	std::shared_ptr<Packet> recv_packet;
+	//std::shared_ptr<Packet> recv_packet;
 
 	Session();
 	virtual ~Session();

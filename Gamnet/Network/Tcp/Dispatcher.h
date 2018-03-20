@@ -84,7 +84,7 @@ public:
 		if(itr == mapHandlerFunction_.end())
 		{
 			LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
-			std::shared_ptr<Link> link = session->link;
+			std::shared_ptr<Network::Link> link = session->link;
 			link->OnError(ErrorCode::NullPointerError);
 			return ;
 		}
@@ -94,7 +94,7 @@ public:
 		if(NULL == handler)
 		{
 			LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
-			std::shared_ptr<Link> link = session->link;
+			std::shared_ptr<Network::Link> link = session->link;
 			link->OnError(ErrorCode::NullPointerError);
 			return;
 		}

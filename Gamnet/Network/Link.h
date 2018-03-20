@@ -7,13 +7,13 @@
 namespace Gamnet { namespace Network {
 
 class LinkManager;
-class Link final : public std::enable_shared_from_this<Link> {
+class Link : public std::enable_shared_from_this<Link> {
 public:
 	struct Init
 	{
 		Link* operator() (Link* link)
 		{
-			link->link_key = 0;
+			link->link_key = 0; 
 			link->expire_time = time(NULL);
 			link->manager = NULL;
 			link->read_buffer = Buffer::Create();
@@ -32,7 +32,7 @@ public:
 	std::shared_ptr<Buffer> 			read_buffer;
 	std::deque<std::shared_ptr<Buffer>>	send_buffers;
 	std::shared_ptr<Session> session;
-private :
+//private :
 	LinkManager* 	manager;
 
 public :
@@ -41,7 +41,9 @@ public :
 
 	void Connect(const char* host, int port, int timeout);
 	void OnError(int reason);
+	
 	void AsyncRead();
+	virtual void OnRecvMsg();
 
 	void AsyncSend(const std::shared_ptr<Buffer>& buffer);
 	void AsyncSend(const char* buf, int len);

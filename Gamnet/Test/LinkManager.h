@@ -53,7 +53,7 @@ private:
 public :
 	LinkManager() : thread_pool(30), execute_count(0), host(""), port(0)
 	{
-		Network::Tcp::LinkManager<SESSION_T>::name = "Gamnet::Test::LinkManager";
+		Network::Tcp::LinkManager<SESSION_T>::_name = "Gamnet::Test::LinkManager";
 		std::shared_ptr<TestExecuteInfo> executeInfo = std::shared_ptr<TestExecuteInfo>(new TestExecuteInfo());
 		executeInfo->name = "__connect__";
 		executeInfo->send_handler = std::bind(&LinkManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1);
@@ -110,13 +110,6 @@ public :
 					return;
 				}
 				
-				session->recv_packet = Network::Tcp::Packet::Create();
-				if (nullptr == session->recv_packet)
-				{
-					LOG(GAMNET_ERR, "can not create packet");
-					link->OnError(ErrorCode::NullPacketError);
-					return;
-				}
 				session->msg_seq = 0;
 				session->test_seq = 0;
 
@@ -185,95 +178,49 @@ public :
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr == session)
 		{
-			LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");
-			link->OnError(ErrorCode::InvalidSessionError);
 			return;
 		}
 		
-		session->recv_packet->Append(buffer->ReadPtr(), buffer->Size());
-			
-		while(Network::Tcp::Packet::HEADER_SIZE <= (int)session->recv_packet->Size())
+		if(session->test_seq < (int)this->execute_order.size())
 		{
-			uint16_t totalLength = session->recv_packet->GetLength();
-			if(Network::Tcp::Packet::HEADER_SIZE > totalLength )
-			{
-				LOG(GAMNET_ERR, "buffer underflow(read size:", totalLength, ")");
-				link->OnError(ErrorCode::BufferUnderflowError);
-				return;
-			}
-
-			if(totalLength >= session->recv_packet->Capacity())
-			{
-				LOG(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
-				link->OnError(ErrorCode::BufferOverflowError);
-				return;
-			}
-
-			// not enough received data
-			if(totalLength > (uint16_t)session->recv_packet->Size())
-			{
-				break;
-			}
-
-			if(session->test_seq < (int)this->execute_order.size())
-			{
-				uint32_t msg_id = session->recv_packet->GetID();
+			uint32_t msg_id = std::static_pointer_cast<Network::Tcp::Link>(link)->recv_packet->GetID();
 				
-				const std::shared_ptr<TestExecuteInfo>& execute_info = this->execute_order[session->test_seq];
-				auto itr = execute_info->recv_handlers.find(msg_id);
-				if(execute_info->recv_handlers.end() == itr)
+			const std::shared_ptr<TestExecuteInfo>& execute_info = this->execute_order[session->test_seq];
+			auto itr = execute_info->recv_handlers.find(msg_id);
+			if(execute_info->recv_handlers.end() == itr)
+			{
+				LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
+				//link->OnError(ErrorCode::InvalidHandlerError);
+				return ;
+			}
+				
+			RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
+			handler(session, std::static_pointer_cast<Network::Tcp::Link>(link)->recv_packet);
+				
+			if(0 < itr->second->increase_test_seq) 
+			{
+				session->test_seq += itr->second->increase_test_seq;
+				if(session->test_seq >= (int)this->execute_order.size())
 				{
-					LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
-					//link->OnError(ErrorCode::InvalidHandlerError);
-					return ;
+					link->OnError(ErrorCode::Success);
+					return;
 				}
-				
-				RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
-				handler(session, session->recv_packet);
-				
-				if(0 < itr->second->increase_test_seq) 
+
+				const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
+				try
+				{ 
+					thread_pool.PostTask([next_execute_info, session]() {
+						next_execute_info->send_handler(session);
+					});
+				}
+				catch(const Gamnet::Exception& e)
 				{
-					session->test_seq += itr->second->increase_test_seq;
-					if(session->test_seq >= (int)this->execute_order.size())
-					{
-						link->OnError(ErrorCode::Success);
-						return;
-					}
-
-					const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
-					try
-					{ 
-						thread_pool.PostTask([next_execute_info, session]() {
-							next_execute_info->send_handler(session);
-						});
-					}
-					catch(const Gamnet::Exception& e)
-					{
-						LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-						link->OnError(ErrorCode::UndefinedError);
-						return;
-					}
-					next_execute_info->execute_count++;
+					LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
+					link->OnError(ErrorCode::UndefinedError);
+					return;
 				}
+				next_execute_info->execute_count++;
 			}
-
-			uint16_t length = session->recv_packet->GetLength();
-			session->recv_packet->Remove(length);
-
-			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
-			if(nullptr == packet)
-			{
-				LOG(GAMNET_ERR, "can not create packet(link_key:", link->link_key, ")");
-				link->OnError(ErrorCode::NullPacketError);
-				return;
-			}
-
-			if(0 < session->recv_packet->Size())
-			{
-				packet->Append(session->recv_packet->ReadPtr(), session->recv_packet->Size());
-			}
-
-			session->recv_packet = packet;
 		}
 	}
 

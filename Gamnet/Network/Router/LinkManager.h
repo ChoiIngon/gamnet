@@ -27,7 +27,7 @@ public :
 	void OnAccept(const std::shared_ptr<Link>& link);
 	void OnConnect(const std::shared_ptr<Link>& link);
 	void OnClose(const std::shared_ptr<Link>& link, int reason);
-	void OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer);
+	//void OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer);
 };
 
 }}}

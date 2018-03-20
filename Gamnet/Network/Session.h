@@ -74,6 +74,7 @@ public :
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);
 	int SyncSend(const char* data, int length);
 
+	void OnRecv(const std::shared_ptr<Buffer>& buffer);
 	static std::string GenerateSessionToken(uint32_t session_key);
 };
 

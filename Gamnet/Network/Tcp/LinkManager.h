@@ -3,6 +3,7 @@
 
 #include "Dispatcher.h"
 #include "Packet.h"
+#include "Link.h"
 #include "../LinkManager.h"
 #include "../../Library/Json/json.h"
 
@@ -18,16 +19,19 @@ class LinkManager : public Network::LinkManager
 {
 public :
 	Pool<SESSION_T, std::mutex, Session::Init> session_pool;
+	Pool<Link, std::mutex, Link::Init> link_pool;
 	SessionManager session_manager;
 
 	LinkManager() : session_pool()	
 	{
-		name = "Gamnet::Network::Tcp::LinkManager";
+		_name = "Gamnet::Network::Tcp::LinkManager";
 	}
 	virtual ~LinkManager()	{}
 
 	void Listen(int port, int max_session, int keepAliveTime)
 	{
+		link_pool.Capacity(max_session * 3);
+
 		session_pool.Capacity(max_session);
 		session_manager.Init(keepAliveTime);
 
@@ -38,9 +42,47 @@ public :
 		Network::LinkManager::Listen(port, max_session, keepAliveTime);
 	}
 
-	virtual void OnAccept(const std::shared_ptr<Link>& link)
+	virtual std::shared_ptr<Network::Link> Create() override
 	{
-		//LOG(DEV, "[link_key:", link->link_key, "] accept link");
+		std::shared_ptr<Link> link = link_pool.Create();
+		if(nullptr == link)
+		{
+			LOG(GAMNET_ERR, "can not create 'Tcp::Link' instance");
+			return nullptr;
+		}
+
+		link->link_key = ++LinkManager::link_key;
+
+		if(nullptr == link->read_buffer)
+		{
+			LOG(GAMNET_ERR, "can not create read buffer");
+			return nullptr;
+		}
+		
+		if(nullptr == link->recv_packet)
+		{
+			LOG(GAMNET_ERR, "can not create recv packet");
+			return nullptr;
+		}
+		
+		return link;
+	}
+	virtual size_t Available()
+	{
+		return link_pool.Available();
+	}
+	
+	virtual size_t Capacity() const
+	{
+		return link_pool.Capacity();
+	}
+	virtual void Capacity(size_t count)
+	{
+		link_pool.Capacity(count);
+	}
+
+	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
+	{
 		const std::shared_ptr<SESSION_T> session = session_pool.Create();
 		if(nullptr == session)
 		{
@@ -49,100 +91,43 @@ public :
 			return;
 		}
 		
-		session->recv_packet = Packet::Create();	
-		if (nullptr == session->recv_packet)
-		{
-			LOG(GAMNET_ERR, "can not create packet");
-			link->OnError(ErrorCode::CreateInstanceFailError);
-			return;
-		}
 		session->msg_seq = 0;
 		link->AttachSession(session);
 		session_manager.Add(session->session_key, session);
 	}
 
-	virtual void OnClose(const std::shared_ptr<Link>& link, int reason)
+	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 	{
-		//LOG(DEV, "[link_key:", link->link_key, "] close link");
-		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if(nullptr != session)
+		if(nullptr != link->session)
 		{
-			session->OnClose(reason);
-			session->recv_packet = nullptr;
+			link->session->OnClose(reason);
 		}
 		link->AttachSession(nullptr);
 		Network::LinkManager::OnClose(link, reason);
 	}
 
-	virtual void OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer)
+	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if(NULL == session)
 		{
-			LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");
-			link->OnError(ErrorCode::InvalidSessionError);
 			return;
 		}
 
-		session->expire_time = ::time(NULL);
-		session->recv_packet->Append(buffer->ReadPtr(), buffer->Size());
-		while(Packet::HEADER_SIZE <= (int)session->recv_packet->Size())
+		const std::shared_ptr<Packet>& packet = std::static_pointer_cast<Packet>(buffer);
+		
+		uint32_t msg_seq = packet->GetSEQ();
+		if(msg_seq > session->msg_seq)
 		{
-			uint16_t totalLength = session->recv_packet->GetLength();
-			if(Packet::HEADER_SIZE > totalLength )
-			{
-				LOG(GAMNET_ERR, "buffer underflow(read size:", totalLength, ")");
-				link->OnError(ErrorCode::BufferUnderflowError);
-				return;
-			}
-
-			if(totalLength >= session->recv_packet->Capacity())
-			{
-				LOG(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
-				link->OnError(ErrorCode::BufferOverflowError);
-				return;
-			}
-
-			// if received bytes are not enough
-			if(totalLength > (uint16_t)session->recv_packet->Size())
-			{
-				break;
-			}
-
-			uint32_t msg_seq = session->recv_packet->GetSEQ();
-			if(msg_seq > session->msg_seq)
-			{
-				//LOG(DEV, "[link_key:", link->link_key, ", session_key:", session->session_key, "] receive message(msg_seq:", msg_seq, ", msg_id:", session->recv_packet->GetID(), ")");
-				session->msg_seq = msg_seq;
-				Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, session->recv_packet);
-				session = std::static_pointer_cast<SESSION_T>(link->session);
-				if(nullptr == session)
-				{
-					link->OnError(ErrorCode::InvalidSessionError);
-					return;
-				}				
-			}
-#ifdef _DEBUG
-			else
-			{
-				LOG(WRN, "[link_key:", link->link_key, ", session_key:", session->session_key, "] discard message(msg_seq:", msg_seq, ", expect:", session->msg_seq+1, ")");
-			}
-#endif
-			session->recv_packet->Remove(totalLength);
-
-			if(0 < session->recv_packet->Size())
-			{
-				std::shared_ptr<Packet> packet = Packet::Create();
-				if (NULL == packet)
-				{
-					LOG(ERR, "can not create buffer(link_key:", link->link_key, ")");
-					link->OnError(ErrorCode::NullPacketError);
-					return;
-				}
-				packet->Append(session->recv_packet->ReadPtr(), session->recv_packet->Size());
-				session->recv_packet = packet;
-			}
+			session->msg_seq = msg_seq;
+			Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, packet);
 		}
+#ifdef _DEBUG
+		else
+		{
+			LOG(WRN, "[link_key:", link->link_key, ", session_key:", session->session_key, "] discard message(msg_seq:", msg_seq, ", expect:", session->msg_seq + 1, ")");
+		}
+#endif
 	}
 
 	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key) {
@@ -157,7 +142,7 @@ public :
 			LOG(WRN, "can not find session(session_key:", session_key, ")");
 			return;
 		}
-		std::shared_ptr<Link> link = session->link;
+		std::shared_ptr<Network::Link> link = session->link;
 		if(nullptr != link)
 		{
 			link->AttachSession(nullptr);
@@ -218,7 +203,7 @@ public :
 		}
 		void Recv_Reconnect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
-			std::shared_ptr<Link> link = session->link;
+			std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
 			Json::Value ans;
 			ans["error_code"] = 0;
 			try {
@@ -244,14 +229,15 @@ public :
 					throw Exception(GAMNET_ERRNO(ErrorCode::InvalidSessionTokenError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] invalid session token(expect:", other->session_token, ", receive:", session_token, ")");
 				}
 				
-				std::shared_ptr<Link> _link = other->link;
+				std::shared_ptr<Network::Tcp::Link> _link = std::static_pointer_cast<Network::Tcp::Link>(other->link);
 				if (NULL != _link)
 				{
+					link->recv_packet = _link->recv_packet;
 					_link->AttachSession(NULL);
 				}
 
 				link->AttachSession(other);
-				other->recv_packet = session->recv_packet;
+//				other->recv_packet = session->recv_packet;
 				other->OnAccept();
 				
 				Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Remove(session->session_key);
@@ -302,7 +288,7 @@ public :
 		}
 		void Recv_Close_Ntf(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 		{
-			std::shared_ptr<Link> link = session->link;
+			std::shared_ptr<Network::Link> link = session->link;
 			if(nullptr != link)
 			{
 				link->OnError(ErrorCode::Success);
@@ -314,7 +300,7 @@ public :
 	Json::Value State()
 	{
 		Json::Value root = Network::LinkManager::State();
-		root["name"] = name;
+		root["name"] = _name;
 
 		Json::Value session;
 		session["capacity"] = (unsigned int)session_pool.Capacity();

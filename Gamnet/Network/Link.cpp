@@ -9,7 +9,6 @@ Link::Link()
 	: socket(io_service_),
 	strand(io_service_),
 	link_key(0),
-	//msg_seq(0),
 	expire_time(0),
 	read_buffer(NULL),
 	session(NULL),
@@ -124,7 +123,8 @@ void Link::AsyncRead()
 				return;
 			}
 			try {
-				self->manager->OnRecvMsg(self, self->read_buffer);
+				self->OnRecvMsg();
+				//self->manager->OnRecvMsg(self, self->read_buffer);
 			}
 			catch(const Exception& e)
 			{
@@ -139,6 +139,11 @@ void Link::AsyncRead()
 			}
 		})
 	);
+}
+
+void Link::OnRecvMsg()
+{
+	manager->OnRecvMsg(shared_from_this(), read_buffer);
 }
 
 void Link::AsyncSend(const char* buf, int len)
