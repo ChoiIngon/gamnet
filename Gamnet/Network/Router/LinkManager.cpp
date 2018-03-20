@@ -42,7 +42,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 			std::lock_guard<std::recursive_mutex> lo(_lock);
 			//LOG(DEV, "[Router] send heartbeat message(link count:", _links.size(), ")");
 			for(auto itr : _links) {
-				std::shared_ptr<Link> link = itr.second;
+				std::shared_ptr<Network::Link> link = itr.second;
 				link->AsyncSend(packet);
 			}
 		}
@@ -55,7 +55,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
 {
-	const std::shared_ptr<Link> link = Create();
+	const std::shared_ptr<Network::Link> link = Create();
 	if(nullptr == link)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create link instance");
@@ -113,62 +113,4 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	Network::LinkManager::OnClose(link, reason);
 }
 
-/*
-void LinkManager::OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer)
-{
-	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
-	if (NULL == session)
-	{
-		LOG(GAMNET_ERR, "[link_key:", link->link_key, "] invalid session");
-		link->OnError(ErrorCode::InvalidSessionError);
-		return;
-	}
-
-	link->recv_packet->Append(buffer->ReadPtr(), buffer->Size());
-	while (Tcp::Packet::HEADER_SIZE <= (int)session->recv_packet->Size())
-	{
-		uint16_t totalLength = session->recv_packet->GetLength();
-		if (Tcp::Packet::HEADER_SIZE > totalLength)
-		{
-			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] buffer underflow(read size:", totalLength, ")");
-			link->OnError(ErrorCode::BufferUnderflowError);
-			return;
-		}
-
-		if (totalLength >= session->recv_packet->Capacity())
-		{
-			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] buffer overflow(read size:", totalLength, ")");
-			link->OnError(ErrorCode::BufferOverflowError);
-			return;
-		}
-
-		// if received bytes are not enough
-		if (totalLength > (uint16_t)session->recv_packet->Size())
-		{
-			break;
-		}
-
-		Singleton<Tcp::Dispatcher<Session>>::GetInstance().OnRecvMsg(session, session->recv_packet);
-		
-		session->recv_packet->Remove(totalLength);
-
-		if (0 < session->recv_packet->Size())
-		{
-			std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
-			if (NULL == packet)
-			{
-				LOG(GAMNET_ERR, "[link_key:", link->link_key, "] can not create packet");
-				link->OnError(ErrorCode::NullPacketError);
-				return;
-			}
-			packet->Append(session->recv_packet->ReadPtr(), session->recv_packet->Size());
-			session->recv_packet = packet;
-		}
-		else
-		{
-			session->recv_packet->Clear();
-		}
-	}
-}
-*/
 }}}

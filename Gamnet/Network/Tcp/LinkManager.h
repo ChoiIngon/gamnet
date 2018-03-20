@@ -67,16 +67,17 @@ public :
 		
 		return link;
 	}
-	virtual size_t Available()
+	virtual size_t Available() override
 	{
 		return link_pool.Available();
 	}
 	
-	virtual size_t Capacity() const
+	virtual size_t Capacity() const override
 	{
 		return link_pool.Capacity();
 	}
-	virtual void Capacity(size_t count)
+
+	virtual void Capacity(size_t count) override
 	{
 		link_pool.Capacity(count);
 	}
