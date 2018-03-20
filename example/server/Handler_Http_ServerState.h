@@ -7,7 +7,7 @@ class Handler_Http_ServerState : public Gamnet::Network::IHandler
 {
 public:
 	Handler_Http_ServerState();
-	~Handler_Http_ServerState();
+	virtual ~Handler_Http_ServerState();
 
 	void Recv_Req(const std::shared_ptr<Gamnet::Network::Http::Session>& session, const Gamnet::Network::Http::Request& param);
 };

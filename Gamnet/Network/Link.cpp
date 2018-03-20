@@ -5,6 +5,17 @@ namespace Gamnet { namespace Network {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
+Link* Link::Init::operator() (Link* link)
+{
+	link->link_key = ++LinkManager::link_key; 
+	link->expire_time = time(NULL);
+	link->manager = NULL;
+	link->read_buffer = Buffer::Create();
+	link->send_buffers.clear();
+	link->session = NULL;
+	return link;
+}
+
 Link::Link()
 	: socket(io_service_),
 	strand(io_service_),

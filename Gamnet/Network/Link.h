@@ -11,16 +11,7 @@ class Link : public std::enable_shared_from_this<Link> {
 public:
 	struct Init
 	{
-		Link* operator() (Link* link)
-		{
-			link->link_key = 0; 
-			link->expire_time = time(NULL);
-			link->manager = NULL;
-			link->read_buffer = Buffer::Create();
-			link->send_buffers.clear();
-			link->session = NULL;
-			return link;
-		}
+		Link* operator() (Link* link);
 	};
 	boost::asio::ip::tcp::socket socket;
 	boost::asio::strand strand;
@@ -37,7 +28,7 @@ public:
 
 public :
 	Link();
-	~Link();
+	virtual ~Link();
 
 	void Connect(const char* host, int port, int timeout);
 	void OnError(int reason);

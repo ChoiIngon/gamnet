@@ -25,7 +25,7 @@ std::shared_ptr<Network::Link> LinkManager::Create()
 		return nullptr;
 	}
 
-	link->link_key = ++LinkManager::link_key;
+//	link->link_key = ++LinkManager::link_key;
 
 	if (nullptr == link->read_buffer)
 	{
