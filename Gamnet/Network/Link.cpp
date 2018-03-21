@@ -258,10 +258,11 @@ void Link::AttachSession(const std::shared_ptr<Session> session)
 	auto self(shared_from_this());
 	if(nullptr != this->session)
 	{
-		this->session->strand.wrap([self]() {
-			self->session->remote_address = nullptr;
+		this->session->strand.wrap([self](const std::shared_ptr<Session> session) {
+			session->link = nullptr;
+			session->remote_address = nullptr;
 			self->session = nullptr;
-		})();
+		})(this->session);
 	}
 
 	if(nullptr != session)
