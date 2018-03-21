@@ -11,7 +11,23 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 	}
 
-	void Link::OnRead()
+	bool Link::Init()
+	{
+		if(false == Network::Link::Init())
+		{
+			return false;
+		}
+
+		recv_packet = Packet::Create();
+		if (nullptr == recv_packet)
+		{
+			LOG(GAMNET_ERR, "[link_key:", link_key, "] can not create recv packet");
+			return false;
+		}
+		return true;
+	}
+
+	void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 	{
 		if (nullptr == session)
 		{
@@ -21,7 +37,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 
 		session->expire_time = ::time(nullptr);
-		recv_packet->Append(read_buffer->ReadPtr(), read_buffer->Size());
+		recv_packet->Append(buffer->ReadPtr(), buffer->Size());
 		while (Packet::HEADER_SIZE <= (int)recv_packet->Size())
 		{
 			uint16_t totalLength = recv_packet->GetLength();

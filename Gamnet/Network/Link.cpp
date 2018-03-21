@@ -5,22 +5,10 @@ namespace Gamnet { namespace Network {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
-Link* Link::Init::operator() (Link* link)
-{
-	link->link_key = ++LinkManager::link_key; 
-	link->expire_time = time(nullptr);
-	link->read_buffer = Buffer::Create();
-	link->send_buffers.clear();
-	link->session = nullptr;
-	return link;
-}
-
 Link::Link(LinkManager* linkManager) : 
 	socket(io_service_),
-	//strand(io_service_),
 	link_manager(linkManager),
 	link_key(0),
-	expire_time(0),
 	read_buffer(nullptr),
 	session(nullptr)	
 {
@@ -28,6 +16,21 @@ Link::Link(LinkManager* linkManager) :
 
 Link::~Link()
 {
+}
+
+bool Link::Init()
+{
+	link_key = ++LinkManager::link_key;
+	read_buffer = Buffer::Create();
+	send_buffers.clear();
+	session = nullptr;
+
+	if (nullptr == read_buffer)
+	{
+		LOG(GAMNET_ERR, "[link_key:", link_key, "] can not create read buffer");
+		return false;
+	}
+	return true;
 }
 
 void Link::Connect(const char* host, int port, int timeout)
@@ -102,8 +105,8 @@ void Link::Close(int reason)
 		try {
 			if (nullptr != link_manager)
 			{
+				link_manager->Close();
 				link_manager->OnClose(shared_from_this(), reason);
-				//link_manager->Remove(link_key);
 			}
 		}
 		catch (const Exception& e)
@@ -137,11 +140,10 @@ void Link::AsyncRead()
 				return;
 			}
 
-			self->expire_time = ::time(NULL);
 			self->read_buffer->writeCursor_ += readbytes;
 
 			try {
-				self->OnRead();
+				self->OnRead(self->read_buffer);
 			}
 			catch(const Exception& e)
 			{
@@ -172,6 +174,10 @@ void Link::AsyncSend(const char* buf, int len)
 
 void Link::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
+	if (nullptr == session)
+	{
+		return;
+	}
 	auto self(shared_from_this());
 	session->strand.wrap([self](const std::shared_ptr<Buffer>& buffer) {
 		bool needFlush = self->send_buffers.empty();
@@ -245,11 +251,6 @@ int Link::SyncSend(const char* buf, int len)
 		}
 	}
 	return totalSentBytes;
-}
-
-void Link::OnRead()
-{
-	link_manager->OnRecvMsg(shared_from_this(), read_buffer);
 }
 
 void Link::AttachSession(const std::shared_ptr<Session> session)

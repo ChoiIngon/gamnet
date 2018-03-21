@@ -27,14 +27,15 @@ class LinkManager : public Network::LinkManager
 		}
 	};
 public :
-	SessionManager								session_manager;
-	Pool<SESSION_T, std::mutex, Session::Init>	session_pool;
-	Pool<Link, std::mutex, Link::Init>			link_pool;
+	SessionManager session_manager;
+	Pool<SESSION_T, std::mutex, Session::Init> session_pool;
+	Pool<Link, std::mutex, Network::Link::InitFunctor> link_pool;
 
 	LinkManager() : session_pool(), link_pool(65535, LinkFactory(this))
 	{
 		_name = "Gamnet::Network::Tcp::LinkManager";
 	}
+
 	virtual ~LinkManager()	
 	{
 	}
@@ -44,14 +45,14 @@ public :
 		session_pool.Capacity(max_session);
 		session_manager.Init(keepAliveTime);
 
-		link_pool.Capacity(max_session * 3);
+		link_pool.Capacity(max_session);
 
 		RegisterHandler(MsgHandler::MsgID_Connect_Req, &MsgHandler::Recv_Connect_Req, new Network::HandlerStatic<MsgHandler>());
 		RegisterHandler(MsgHandler::MsgID_Reconnect_Req, &MsgHandler::Recv_Reconnect_Req, new Network::HandlerStatic<MsgHandler>());
 		RegisterHandler(MsgHandler::MsgID_HeartBeat_Req, &MsgHandler::Recv_HeartBeat_Req, new Network::HandlerStatic<MsgHandler>());
 		RegisterHandler(MsgHandler::MsgID_Close_Ntf, &MsgHandler::Recv_Close_Ntf, new Network::HandlerStatic<MsgHandler>());
 
-		Network::LinkManager::Listen(port, max_session, keepAliveTime);
+		Network::LinkManager::Listen(port);
 	}
 
 	virtual std::shared_ptr<Network::Link> Create() override
@@ -63,18 +64,6 @@ public :
 			return nullptr;
 		}
 
-		if(nullptr == link->read_buffer)
-		{
-			LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create read buffer");
-			return nullptr;
-		}
-		
-		if(nullptr == link->recv_packet)
-		{
-			LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create recv packet");
-			return nullptr;
-		}
-		
 		std::shared_ptr<SESSION_T> session = session_pool.Create();
 		if (nullptr == session)
 		{
@@ -86,6 +75,7 @@ public :
 		session->link = link;
 		session->remote_address = &(link->remote_address);
 
+		session_manager.Add(session->session_key, session);
 		return link;
 	}
 
@@ -94,7 +84,7 @@ public :
 		return link_pool.Available();
 	}
 	
-	virtual size_t Capacity() const override
+	virtual size_t Capacity() override
 	{
 		return link_pool.Capacity();
 	}
@@ -107,25 +97,42 @@ public :
 	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
 	{
 		std::shared_ptr<Network::Session> session = link->session;
-		session_manager.Add(session->session_key, session);
+		if(nullptr == session)
+		{
+			LOG(ERR, "[link_key:", link->link_key, "] link refers invalid session");
+			return;
+		}
+		
+		session->OnCreate();
+	}
+
+	void DestroySession(uint32_t session_key)
+	{
+		std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
+		if (nullptr == session)
+		{
+			LOG(WRN, "can not find session(session_key:", session_key, ")");
+			return;
+		}
+		session->OnDestroy();
+		session_manager.Remove(session->session_key);
 	}
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 	{
 		std::shared_ptr<Network::Session> session = link->session;
-		if(nullptr != link->session)
+		if(nullptr == session)
 		{
-			link->session->OnClose(reason);
+			LOG(ERR, "[link_key:", link->link_key, "] link refers invalid session");
+			return;
 		}
-
-		// do not remove session here. session should be remove when expire
-		Network::LinkManager::OnClose(link, reason);
+		session->OnClose(reason);
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if(NULL == session)
+		if(nullptr == session)
 		{
 			return;
 		}
@@ -151,18 +158,6 @@ public :
 		return std::static_pointer_cast<SESSION_T>(session_manager.Find(session_key));
 	}
 	
-	void DestroySession(uint32_t session_key)
-	{
-		std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
-		if(nullptr == session)
-		{
-			LOG(WRN, "can not find session(session_key:", session_key, ")");
-			return;
-		}
-		
-		session_manager.Remove(session->session_key);
-	}
-
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{
@@ -249,7 +244,7 @@ public :
 				link->AttachSession(other);
 				other->OnAccept();
 				
-				Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Remove(session->session_key);
+				Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(session->session_key);
 			}
 			catch (const Exception& e)
 			{
@@ -302,7 +297,7 @@ public :
 			{
 				link->Close(ErrorCode::Success);
 			}
-			Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Remove(session->session_key);
+			Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(session->session_key);
 		}
 	};
 
@@ -310,11 +305,12 @@ public :
 	{
 		Json::Value root = Network::LinkManager::State();
 		root["name"] = _name;
-
+		
 		Json::Value session;
 		session["capacity"] = (unsigned int)session_pool.Capacity();
 		session["available"] = (unsigned int)session_pool.Available();
 		session["running_count"] = (unsigned int)session_manager.Size();
+		session["keepalive_time"] = session_manager.keepalive_time;
 		root["session"] = session;
 
 #ifdef _DEBUG

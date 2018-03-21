@@ -13,7 +13,23 @@ Link::~Link()
 {
 }
 
-void Link::OnRead()
+bool Link::Init()
+{
+	if (false == Network::Link::Init())
+	{
+		return false;
+	}
+
+	recv_buffer = Buffer::Create();
+	if (nullptr == recv_buffer)
+	{
+		LOG(GAMNET_ERR, "[link_key:", link_key, "] can not create recv packet");
+		return false;
+	}
+	return true;
+}
+
+void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 {
 	if (NULL == session)
 	{
@@ -22,7 +38,7 @@ void Link::OnRead()
 		return;
 	}
 
-	recv_buffer->Append(read_buffer->ReadPtr(), read_buffer->Size());
+	recv_buffer->Append(buffer->ReadPtr(), buffer->Size());
 	const std::string request = std::string(recv_buffer->ReadPtr(), recv_buffer->Size());
 
 	size_t request_end = request.find("\r\n");

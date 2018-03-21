@@ -14,7 +14,7 @@
 #include "Request.h"
 
 namespace Gamnet { namespace Network { namespace Http {
-	void Listen(int port, int max_session, int keep_alive);
+	void Listen(int port);
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(const char* uri, FUNC func, FACTORY factory)
 	{

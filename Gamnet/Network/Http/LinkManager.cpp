@@ -25,18 +25,6 @@ std::shared_ptr<Network::Link> LinkManager::Create()
 		return nullptr;
 	}
 
-	if (nullptr == link->read_buffer)
-	{
-		LOG(GAMNET_ERR, "can not create read buffer");
-		return nullptr;
-	}
-
-	if (nullptr == link->recv_buffer)
-	{
-		LOG(GAMNET_ERR, "can not create recv packet");
-		return nullptr;
-	}
-
 	const std::shared_ptr<Session> session = std::shared_ptr<Session>(new Session());
 	if (nullptr == session)
 	{
@@ -47,7 +35,7 @@ std::shared_ptr<Network::Link> LinkManager::Create()
 	link->session = session;
 	session->link = link;
 	session->remote_address = &(link->remote_address);
-
+	session->OnCreate();
 	return link;
 }
 
@@ -59,15 +47,15 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 {
-	if (nullptr != link->session)
+	std::shared_ptr<Network::Session> session = link->session;
+	if (nullptr == session)
 	{
-		link->session->OnClose(reason);
+		LOG(ERR, "[link_key:", link->link_key, "] link refers invalid session");
+		return;
 	}
-	Network::LinkManager::OnClose(link, reason);
-}
 
-void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
-{
+	session->OnClose(reason);
+	session->OnDestroy();
 }
 
 }}}

@@ -19,12 +19,13 @@ class Session;
 class SessionManager
 {
 	Timer 		_timer;
-	uint32_t	_keepalive_time;
-	std::recursive_mutex _lock;
+	std::mutex _lock;
 	std::map<uint32_t, std::shared_ptr<Session>> _sessions;
 public :
 	static std::atomic<uint32_t> session_key;
 
+	uint32_t	keepalive_time;
+	
 	SessionManager();
 	~SessionManager();
 	

@@ -9,23 +9,13 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	class Network::LinkManager;
 	class Link : public Network::Link {
 	public :
-		struct Init
-		{
-			Link* operator() (Link* link)
-			{
-				Network::Link::Init init;
-				init(link);
-				link->recv_packet = Packet::Create();
-				return link;
-			}
-		};
-
 		Link(Network::LinkManager* linkManager);
 		virtual ~Link();
 
+		virtual bool Init() override;
 		std::shared_ptr<Packet> recv_packet;
 
-		virtual void OnRead() override;
+		virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 	};
 
 }}}

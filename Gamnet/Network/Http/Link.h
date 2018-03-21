@@ -7,23 +7,13 @@ namespace Gamnet { namespace Network { namespace Http {
 	class Network::LinkManager;
 	class Link : public Network::Link {
 	public :
-		struct Init
-		{
-			Link* operator() (Link* link)
-			{
-				Network::Link::Init init;
-				init(link);
-				link->recv_buffer = Buffer::Create();
-				return link;
-			}
-		};
-
 		Link(Network::LinkManager* linkManager);
 		virtual ~Link();
 
+		virtual bool Init();
 		std::shared_ptr<Buffer> recv_buffer;
 		
-		virtual void OnRead() override;
+		virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 	};
 }}}
 #endif

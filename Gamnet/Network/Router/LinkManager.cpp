@@ -34,25 +34,19 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidAddressError), "unique router id is not set");
 	}
 
-	heartbeat_timer.AutoReset(true);
-	heartbeat_timer.SetTimer(60000, [this] () {
+	_cast_group = Tcp::CastGroup::Create();
+	_heartbeat_timer.AutoReset(true);
+	_heartbeat_timer.SetTimer(60000, [this] () {
 		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
 		if(NULL != packet) {
 			MsgRouter_HeartBeat_Ntf ntf;
-			packet->Write(0, ntf);
-			std::lock_guard<std::recursive_mutex> lo(_lock);
-			//LOG(DEV, "[Router] send heartbeat message(link count:", _links.size(), ")");
-			/* ToDo:
-			for(auto itr : _links) {
-				std::shared_ptr<Network::Link> link = itr.second;
-				link->AsyncSend(packet);
-			}
-			*/
+			_cast_group->SendMsg(ntf);
+			LOG(DEV, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
 		}
 	});
 
 	session_manager.Init(0);
-	Network::LinkManager::Listen(port, 4096, 0);
+	Network::LinkManager::Listen(port);
 }
 
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
@@ -73,17 +67,19 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 {
 	Tcp::LinkManager<Session>::OnAccept(link);
-	const std::shared_ptr<Network::Session> session = link->session;
+	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	if(NULL == session)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link->link_key,"] invalid session");
 	}
+
 	session->OnAccept();
+	_cast_group->AddSession(session);
 }
 
 void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 {	
-	const std::shared_ptr<Session>& session = std::static_pointer_cast<Session>(link->session);
+	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	if(nullptr == link->session)
 	{
 		link->Close(ErrorCode::InvalidSessionError);
@@ -91,18 +87,35 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 	}
 	session->session_token = Network::Session::GenerateSessionToken(session->session_key);
 	session_manager.Add(session->session_key, session);
+	session->OnCreate();
 	session->OnConnect();
+
+	_cast_group->AddSession(session);
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 {
-	const std::shared_ptr<Network::Session> session = link->session;
+	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	if (nullptr != session)
 	{
 		session->OnClose(reason);
+		session->OnDestroy();
 		session_manager.Remove(session->session_key);
+		_cast_group->DelSession(session);
 	}
 	Network::LinkManager::OnClose(link, reason);
+}
+
+void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) 
+{
+	std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
+	if (nullptr == session)
+	{
+		return;
+	}
+
+	const std::shared_ptr<Tcp::Packet>& packet = std::static_pointer_cast<Tcp::Packet>(buffer);
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().OnRecvMsg(session, packet);
 }
 
 }}}

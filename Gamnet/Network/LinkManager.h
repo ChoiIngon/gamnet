@@ -14,13 +14,8 @@ namespace Gamnet { namespace Network {
 class LinkManager
 {
 protected:
-	std::string _name;
-	//Timer 		_timer;
-	uint32_t	_keepalive_time;
-
-	std::recursive_mutex _lock;
-	//std::map<uint64_t, std::shared_ptr<Link>> _links;
-
+	std::string	_name;
+	std::mutex	_lock;
 	volatile bool _is_acceptable;
 	boost::asio::ip::tcp::acceptor _acceptor;
 	boost::asio::ip::tcp::endpoint _endpoint;
@@ -30,24 +25,19 @@ public :
 	LinkManager();
 	virtual ~LinkManager();
 
-	void Listen(int port, int max_session, int keep_time);
+	void Listen(int port);
+	void Close();
 
-	virtual void OnAccept(const std::shared_ptr<Link>& link);
-	virtual void OnConnect(const std::shared_ptr<Link>& link);
-
-	virtual void OnClose(const std::shared_ptr<Link>& link, int reason);
-	virtual void OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer) = 0;
+	virtual void OnAccept(const std::shared_ptr<Link>& link) {}
+	virtual void OnConnect(const std::shared_ptr<Link>& link) {}
+	virtual void OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer) {};
+	virtual void OnClose(const std::shared_ptr<Link>& link, int reason) {}	
 
 	virtual std::shared_ptr<Link> Create() = 0;
 	virtual size_t	Available();
 	virtual size_t	Size();
-	virtual size_t	Capacity() const;
-	//virtual void	Capacity(size_t count);
-
-	//bool Add(uint64_t key, const std::shared_ptr<Link>& link);
-	//void Remove(uint64_t key);
-	//std::shared_ptr<Link> Find(uint64_t key);
-
+	virtual size_t	Capacity();
+	
 	Json::Value State();
 private :
 	void Accept();
