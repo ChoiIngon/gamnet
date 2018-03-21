@@ -32,6 +32,8 @@ std::shared_ptr<Network::Link> LinkManager::Create()
 		return nullptr;
 	}
 
+	session->session_key = ++Network::SessionManager::session_key;
+		
 	link->session = session;
 	session->link = link;
 	session->remote_address = &(link->remote_address);
