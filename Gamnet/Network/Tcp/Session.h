@@ -10,22 +10,12 @@ namespace Gamnet { namespace Network { namespace Tcp {
 class Session : public Network::Session
 {
 public :
-	struct Init
-	{
-		template <class T>
-		T* operator() (T* session)
-		{
-			Network::Session::Init init;
-			init(session);
-			session->msg_seq = 0;
-			return session;
-		};
-	};
-	
 	std::atomic<uint32_t> msg_seq;
 
 	Session();
 	virtual ~Session();
+
+	virtual bool Init() override;
 };
 }}}
 #endif /* NETWORK_SESSION_H_ */

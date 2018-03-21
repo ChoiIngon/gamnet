@@ -4,9 +4,7 @@
 #include "Packet.h"
 #include "../Link.h"
 
-
 namespace Gamnet { namespace Network { namespace Tcp {
-	class Network::LinkManager;
 	class Link : public Network::Link {
 	public :
 		Link(Network::LinkManager* linkManager);
@@ -17,7 +15,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 		virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 	};
-
 }}}
 
 #endif

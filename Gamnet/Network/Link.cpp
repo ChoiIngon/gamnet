@@ -256,27 +256,20 @@ int Link::SyncSend(const char* buf, int len)
 void Link::AttachSession(const std::shared_ptr<Session> session)
 {
 	auto self(shared_from_this());
-	if(nullptr != session)
+	if(nullptr != this->session)
 	{
-		this->session->strand.wrap([self](const std::shared_ptr<Session> session) {
+		this->session->strand.wrap([self]() {
 			self->session->remote_address = nullptr;
 			self->session = nullptr;
-		})(session);
+		})();
 	}
 
-	if(nullptr == session)
+	if(nullptr != session)
 	{
-		this->session = nullptr;
-	}
-	else
-	{
-		auto self(shared_from_this());
 		session->strand.wrap([self](const std::shared_ptr<Session> session) {
+			session->link = self;
+			session->remote_address = &(self->remote_address);
 			self->session = session;
-			if (nullptr != self->session) {
-				self->session->remote_address = &(self->remote_address);
-				self->session->link = self;
-			}
 		})(session);
 	}
 }

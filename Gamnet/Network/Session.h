@@ -39,17 +39,15 @@ public :
 class Session : public std::enable_shared_from_this<Session>
 {
 public :
-	struct Init
+	struct InitFunctor
 	{
 		template <class T>
 		T* operator() (T* session)
 		{
-			session->session_key = ++Network::SessionManager::session_key;
-			session->session_token = "";
-			session->expire_time = ::time(nullptr);
-			session->link = nullptr;
-			session->remote_address = nullptr;
-			session->handler_container.Init();
+			if(false == session->Init())
+			{
+				return nullptr;
+			}	
 			return session;
 		}
 	};
@@ -70,6 +68,7 @@ public :
 	virtual void OnClose(int reason) = 0;
 	virtual void OnDestroy() = 0;
 
+	virtual bool Init();
 	void AsyncSend(const std::shared_ptr<Buffer>& buffer);
 	void AsyncSend(const char* data, int length);
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);

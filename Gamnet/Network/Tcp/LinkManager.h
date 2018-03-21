@@ -28,7 +28,7 @@ class LinkManager : public Network::LinkManager
 	};
 public :
 	SessionManager session_manager;
-	Pool<SESSION_T, std::mutex, Session::Init> session_pool;
+	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor> session_pool;
 	Pool<Link, std::mutex, Network::Link::InitFunctor> link_pool;
 
 	LinkManager() : session_pool(), link_pool(65535, LinkFactory(this))

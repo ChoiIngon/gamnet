@@ -28,6 +28,17 @@ Session::~Session()
 {
 }
 
+bool Session::Init()
+{
+	session_key = ++Network::SessionManager::session_key;
+	session_token = "";
+	expire_time = ::time(nullptr);
+	link = nullptr;
+	remote_address = nullptr;
+	handler_container.Init();
+	return true;
+}
+
 void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	std::shared_ptr<Link> _link = link;

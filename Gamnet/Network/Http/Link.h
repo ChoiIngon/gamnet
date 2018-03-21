@@ -4,7 +4,6 @@
 #include "../Link.h"
 
 namespace Gamnet { namespace Network { namespace Http {
-	class Network::LinkManager;
 	class Link : public Network::Link {
 	public :
 		Link(Network::LinkManager* linkManager);
