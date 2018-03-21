@@ -59,17 +59,11 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	boost::asio::ip::address GetLocalAddress();
-
-	template <class SESSION_T>
-	std::shared_ptr<Link> FindLink(uint32_t link_key)
-	{
-		return Singleton<LinkManager<SESSION_T >>::GetInstance().Find(link_key);
-	}
-
+	
 	template <class SESSION_T>
 	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key)
 	{
-		return std::static_pointer_cast<SESSION_T>(Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Find(session_key));
+		return Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
 	}
 
 	template <class SESSION_T>

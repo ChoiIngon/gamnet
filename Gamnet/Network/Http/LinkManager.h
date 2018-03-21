@@ -9,6 +9,17 @@ namespace Gamnet { namespace Network { namespace Http {
 
 class LinkManager : public Network::LinkManager
 {
+	struct LinkFactory {
+		LinkManager* const link_manager;
+		LinkFactory(LinkManager* linkManager) : link_manager(linkManager)
+		{
+		}
+
+		Link* operator() ()
+		{
+			return new Link(link_manager);
+		}
+	};
 	Pool<Link, std::mutex, Link::Init> link_pool;
 public :
 	LinkManager();

@@ -85,7 +85,7 @@ public:
 		{
 			LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
 			std::shared_ptr<Network::Link> link = session->link;
-			link->OnError(ErrorCode::NullPointerError);
+			link->Close(ErrorCode::NullPointerError);
 			return ;
 		}
 
@@ -95,7 +95,7 @@ public:
 		{
 			LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
 			std::shared_ptr<Network::Link> link = session->link;
-			link->OnError(ErrorCode::NullPointerError);
+			link->Close(ErrorCode::NullPointerError);
 			return;
 		}
 #ifdef _DEBUG

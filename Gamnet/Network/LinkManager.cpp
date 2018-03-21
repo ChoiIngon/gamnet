@@ -19,30 +19,32 @@ LinkManager::~LinkManager()
 
 void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 {
+	/*
 	if(0 < keep_alive_sec)
 	{
 		_keepalive_time = keep_alive_sec;
+		_timer.AutoReset(true);
 		if (false == _timer.SetTimer(5000, [this](){
 			std::lock_guard<std::recursive_mutex> lo(_lock);
-			time_t now_ = time(NULL);
+			time_t now_ = time(nullptr);
 			for(auto itr = _links.begin(); itr != _links.end();) {
 				std::shared_ptr<Link> link = itr->second;
 				if(link->expire_time + _keepalive_time < now_)
 				{
 					LOG(GAMNET_ERR, "[link_key:", link->link_key, "] idle link timeout(ip:", link->remote_address.to_string(), ")");
 			        _links.erase(itr++);
-			        link->strand.wrap(std::bind(&Link::OnError, link, ErrorCode::IdleTimeoutError))();
+			        link->strand.wrap(std::bind(&Link::Close, link, ErrorCode::IdleTimeoutError))();
 			    }
 			    else {
 			        ++itr;
 			    }
 			}
-			_timer.Resume();
 		}))
 		{
 			throw Exception(GAMNET_ERRNO(ErrorCode::UndefinedError), "session time out timer init fail");
 		}
 	}
+	*/
 	_endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port);
 	_acceptor.open(_endpoint.protocol());
 	_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -54,15 +56,21 @@ void LinkManager::Listen(int port, int max_session, int keep_alive_sec)
 void LinkManager::Accept()
 {
 	std::shared_ptr<Link> link = Create();
-	if(NULL == link)
+	if(nullptr == link)
 	{
-		LOG(GAMNET_INF, "can not create link(pool_size:", Available(), "), link manager will deny addtional conntion");
+		LOG(GAMNET_INF, "[link_manager:", _name, ", link_key:", link->link_key, "] can not create link(pool_size:", Available(), "), link manager(name:", _name, ") will deny addtional conntion");
 		std::lock_guard<std::recursive_mutex> lo(_lock);
 		_is_acceptable = false;
 		return;
 	}
 
-	_acceptor.async_accept(link->socket, link->strand.wrap(
+	if(nullptr == link->session)
+	{
+		LOG(GAMNET_ERR, "[link_manager:", _name, ", link_key:", link->link_key, "] link refers null session pointer");
+		assert(link->session);
+	}
+
+	_acceptor.async_accept(link->socket, link->session->strand.wrap(
 		boost::bind(&LinkManager::Callback_Accept, this, link, boost::asio::placeholders::error)
 	));
 }
@@ -77,16 +85,22 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 			link->socket.set_option(option);
 			link->remote_address = link->socket.remote_endpoint().address();
-			link->expire_time = ::time(NULL);
-			link->AttachManager(this);
-			OnAccept(link);
+			link->expire_time = ::time(nullptr);
 			link->AsyncRead();
+
+			//Add(link->link_key, link);
+			OnAccept(link);
 		}
 		catch(const boost::system::system_error& e)
 		{
-			link->OnError(ErrorCode::AcceptFailError);
 			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
+			link->Close(ErrorCode::AcceptFailError);
 		}
+	}
+	else
+	{
+		LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", error, ")");
+		link->Close(ErrorCode::AcceptFailError);
 	}
 }
 
@@ -115,6 +129,7 @@ void LinkManager::OnClose(const std::shared_ptr<Link>& link, int reason)
 	}
 }
 
+/*
 bool LinkManager::Add(uint64_t key, const std::shared_ptr<Link>& link)
 {
 	std::lock_guard<std::recursive_mutex> lo(_lock);
@@ -146,11 +161,11 @@ std::shared_ptr<Link> LinkManager::Find(uint64_t key)
 	}
 	return itr->second;
 }
-
+*/
 size_t LinkManager::Size()
 {
-	std::lock_guard<std::recursive_mutex> lo(_lock);
-	return _links.size();
+	//std::lock_guard<std::recursive_mutex> lo(_lock);
+	return 0; // _links.size();
 }
 
 size_t LinkManager::Available()
@@ -162,12 +177,12 @@ size_t LinkManager::Capacity() const
 {
 	return 0; // _link_pool.Capacity();
 }
-
+/*
 void LinkManager::Capacity(size_t count)
 {
 	// _link_pool.Capacity(count);
 }
-
+*/
 Json::Value LinkManager::State()
 {
 	Json::Value root;
@@ -194,4 +209,5 @@ Json::Value LinkManager::State()
 	root["link"] = link;
 	return root;
 }
-}} /* namespace Gamnet */
+
+}} 

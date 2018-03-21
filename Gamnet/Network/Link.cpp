@@ -8,22 +8,21 @@ static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>
 Link* Link::Init::operator() (Link* link)
 {
 	link->link_key = ++LinkManager::link_key; 
-	link->expire_time = time(NULL);
-	link->manager = NULL;
+	link->expire_time = time(nullptr);
 	link->read_buffer = Buffer::Create();
 	link->send_buffers.clear();
-	link->session = NULL;
+	link->session = nullptr;
 	return link;
 }
 
-Link::Link()
-	: socket(io_service_),
-	strand(io_service_),
+Link::Link(LinkManager* linkManager) : 
+	socket(io_service_),
+	//strand(io_service_),
+	link_manager(linkManager),
 	link_key(0),
 	expire_time(0),
-	read_buffer(NULL),
-	session(NULL),
-	manager(NULL)
+	read_buffer(nullptr),
+	session(nullptr)	
 {
 }
 
@@ -33,43 +32,50 @@ Link::~Link()
 
 void Link::Connect(const char* host, int port, int timeout)
 {
-	if(NULL == host)
+	if(nullptr == host)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid host name");
+	}
+
+	if(nullptr == session)
+	{
+		throw Exception(GAMNET_ERRNO(ErrorCode::NullPacketError), "[link_key:", link_key, "] link refers null session pointer");
 	}
 
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
 	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
 
 	auto self = shared_from_this();
-	socket.async_connect(endpoint_, strand.wrap([self](const boost::system::error_code& ec){
+	socket.async_connect(endpoint_, session->strand.wrap([self](const boost::system::error_code& ec){
 		self->timer.Cancel();
 		if(ec)
 		{
-			self->OnError(ErrorCode::ConnectFailError);
+			self->Close(ErrorCode::ConnectFailError);
 			return;
 		}
 		else
 		{
-			if(nullptr == self->manager)
+			if(nullptr == self->link_manager)
 			{
-				self->OnError(ErrorCode::InvalidLinkManagerError);
+				self->Close(ErrorCode::InvalidLinkManagerError);
 				return;
 			}
 			if(nullptr == self->session)
 			{
-				self->OnError(ErrorCode::InvalidSessionError);
+				self->Close(ErrorCode::InvalidSessionError);
 				return;
 			}
 			try {
-				boost::asio::socket_base::linger linger_option(true, 0);
-				self->socket.set_option(linger_option);
-				boost::asio::socket_base::send_buffer_size send_buffer_size_option(Buffer::MAX_SIZE);
-				self->socket.set_option(send_buffer_size_option);
+				{
+					boost::asio::socket_base::linger option(true, 0);
+					self->socket.set_option(option);
+				}
+				{
+					boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+					self->socket.set_option(option);
+				}
 				self->remote_address = self->socket.remote_endpoint().address();
-				self->expire_time = 0;
-				self->manager->OnConnect(self);
-				//LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key,"] connect success(remote_address:", self->remote_address.to_string(), ")");
+				self->link_manager->OnConnect(self);
 				self->AsyncRead();
 			}
 			catch(const boost::system::system_error& e)
@@ -81,66 +87,66 @@ void Link::Connect(const char* host, int port, int timeout)
 
 	if(0 < timeout)
 	{
-		timer.SetTimer(timeout*1000, strand.wrap([this]() {
+		timer.AutoReset(false);
+		timer.SetTimer(timeout*1000, session->strand.wrap([this]() {
 			Log::Write(GAMNET_WRN, "[link_key:", this->link_key, ", session_key:", NULL == this->session ? 0 : this->session->session_key, "] connect timeout(ip:", this->remote_address.to_string(), ")");
-			this->OnError(ErrorCode::ConnectTimeoutError);
+			this->Close(ErrorCode::ConnectTimeoutError);
 		}));
 	}
 }
 
-void Link::OnError(int reason)
+void Link::Close(int reason)
 {
-	if(false == socket.is_open())
+	if(true == socket.is_open())
 	{
-		return;
-	}
-	try {
-		if(NULL != manager)
-		{
-			manager->OnClose(shared_from_this(), reason);
+		try {
+			if (nullptr != link_manager)
+			{
+				link_manager->OnClose(shared_from_this(), reason);
+				//link_manager->Remove(link_key);
+			}
 		}
-		AttachManager(nullptr);
-	}
-	catch(const Exception& e)
-	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-	}
+		catch (const Exception& e)
+		{
+			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
 
-	socket.close();
+		socket.close();
+	}
+	session = nullptr;
 }
 
 void Link::AsyncRead()
 {
+	if(nullptr == session)
+	{
+		return;
+	}
 	auto self(shared_from_this());
 	socket.async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
-		strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
+		session->strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
-				self->OnError(ErrorCode::Success); // no error, just closed socket
+				self->Close(ErrorCode::Success); // no error, just closed socket
 				return;
 			}
 
 			if(0 == readbytes)
 			{
-				self->OnError(ErrorCode::Success);
+				self->Close(ErrorCode::Success);
 				return;
 			}
 
 			self->expire_time = ::time(NULL);
 			self->read_buffer->writeCursor_ += readbytes;
-			if(nullptr == self->manager)
-			{
-				self->OnError(ErrorCode::InvalidLinkManagerError);
-				return;
-			}
+
 			try {
-				self->OnRecvMsg();
-				//self->manager->OnRecvMsg(self, self->read_buffer);
+				self->OnRead();
 			}
 			catch(const Exception& e)
 			{
 				LOG(ERR, "link key:", self->link_key, ", session_key:", (nullptr != self->session ? self->session->session_key : 0), ", error_code:", e.error_code(), ", error_msg:", e.what());
-				self->OnError(e.error_code());
+				self->Close(e.error_code());
 				return;
 			}
 			if(nullptr != self->read_buffer)
@@ -150,11 +156,6 @@ void Link::AsyncRead()
 			}
 		})
 	);
-}
-
-void Link::OnRecvMsg()
-{
-	manager->OnRecvMsg(shared_from_this(), read_buffer);
 }
 
 void Link::AsyncSend(const char* buf, int len)
@@ -172,7 +173,7 @@ void Link::AsyncSend(const char* buf, int len)
 void Link::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	auto self(shared_from_this());
-	strand.wrap([self](const std::shared_ptr<Buffer>& buffer) {
+	session->strand.wrap([self](const std::shared_ptr<Buffer>& buffer) {
 		bool needFlush = self->send_buffers.empty();
 		self->send_buffers.push_back(buffer);
 		if(true == needFlush)
@@ -189,10 +190,10 @@ void Link::FlushSend()
 		auto self(shared_from_this());
 		const std::shared_ptr<Buffer> buffer = send_buffers.front();
 		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()),
-			strand.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
+			session->strand.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
 				if (0 != ec)
 				{
-					self->OnError(ErrorCode::Success); // no error, just closed socket
+					self->Close(ErrorCode::Success); // no error, just closed socket
 					return;
 				}
 
@@ -246,39 +247,28 @@ int Link::SyncSend(const char* buf, int len)
 	return totalSentBytes;
 }
 
-void Link::AttachManager(LinkManager* manager)
+void Link::OnRead()
 {
-	auto self(shared_from_this());
-	strand.wrap([self](LinkManager* manager) {
-		if(NULL != self->manager)
-		{
-			self->manager->Remove(self->link_key);
-		}
-		self->manager = manager;
-		if(NULL != self->manager)
-		{
-			self->manager->Add(self->link_key, self);
-		}
-	})(manager);
+	link_manager->OnRecvMsg(shared_from_this(), read_buffer);
 }
 
 void Link::AttachSession(const std::shared_ptr<Session> session)
 {
-	auto self(shared_from_this());
-	strand.wrap([self](const std::shared_ptr<Session> session) {
-		if (NULL != self->session) {
-			//LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] detach session");
-			self->session->link = NULL;
-			self->session = NULL;
-		}
-		self->session = session;
-		if(NULL != self->session) {
-			self->session->remote_address = &(self->remote_address);
-			self->session->link = self;
-			//self->session->manager = self->manager;
-			//LOG(DEV, "[link_key:", self->link_key, ", session_key:", self->session->session_key, "] attach session");
-		}
-	})(session);
+	if(nullptr == session)
+	{
+		this->session = nullptr;
+	}
+	else
+	{
+		auto self(shared_from_this());
+		session->strand.wrap([self](const std::shared_ptr<Session> session) {
+			self->session = session;
+			if (nullptr != self->session) {
+				self->session->remote_address = &(self->remote_address);
+				self->session->link = self;
+			}
+		})(session);
+	}
 }
 
 }}

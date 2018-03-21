@@ -62,6 +62,11 @@ private :
 		}
 	};
 public:
+	/*
+	struct Init {
+		Session* operator() (Session* session);
+	};
+	*/
 	AnswerWatingSessionManager watingSessionManager_;
 
 	Session();

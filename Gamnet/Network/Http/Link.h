@@ -4,6 +4,7 @@
 #include "../Link.h"
 
 namespace Gamnet { namespace Network { namespace Http {
+	class Network::LinkManager;
 	class Link : public Network::Link {
 	public :
 		struct Init
@@ -17,9 +18,12 @@ namespace Gamnet { namespace Network { namespace Http {
 			}
 		};
 
-		std::shared_ptr<Buffer> recv_buffer;
+		Link(Network::LinkManager* linkManager);
+		virtual ~Link();
 
-		virtual void OnRecvMsg() override;
+		std::shared_ptr<Buffer> recv_buffer;
+		
+		virtual void OnRead() override;
 	};
 }}}
 #endif

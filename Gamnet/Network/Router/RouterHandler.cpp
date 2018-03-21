@@ -76,7 +76,7 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 		if(ErrorCode::Success != ans.error_code)
 		{
 			std::shared_ptr<Link> _link = session->link;
-			_link->OnError(ans.error_code);
+			_link->Close(ans.error_code);
 #ifdef _WIN32
 			throw Gamnet::Exception(ans.error_code, "ERR [", __FILE__, ":", __FUNCTION__, "@", __LINE__, "] Recv_SetAddress_Ans fail");
 #else

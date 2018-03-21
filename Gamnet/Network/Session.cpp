@@ -1,10 +1,3 @@
-/*
- * Session.cpp
- *
- *  Created on: 2017. 8. 20.
- *      Author: kukuta
- */
-
 #include "Session.h"
 #include "Link.h"
 #include "LinkManager.h"
@@ -14,18 +7,20 @@
 
 namespace Gamnet { namespace Network {
 
+static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
+
 std::string Session::GenerateSessionToken(uint32_t session_key)
 {
 	return md5(Format(session_key, time(nullptr), Random::Range(1, 99999999)));
 }
 
 Session::Session() :
-		session_key(0),
-		session_token(""),
-		remote_address(nullptr),
-		expire_time(0),
-		link(nullptr)//,
-		//manager(NULL)
+	strand(io_service_),
+	session_key(0),
+	session_token(""),
+	expire_time(0),
+	remote_address(nullptr),
+	link(nullptr)
 {
 }
 
@@ -87,15 +82,17 @@ bool SessionManager::Init(int keepAliveSeconds)
 		return true;
 	}
 	_keepalive_time = keepAliveSeconds;
+	_timer.AutoReset(true);
 	if (false == _timer.SetTimer(5000, [this](){
 		std::list<std::shared_ptr<Session>> sessions;
-		time_t now_ = time(NULL);
+		time_t now_ = time(nullptr);
+
 		std::lock_guard<std::recursive_mutex> lo(_lock);
+
 		for(auto itr = _sessions.begin(); itr != _sessions.end();) {
 			std::shared_ptr<Session> session = itr->second;
-			if(NULL == session->link && session->expire_time + _keepalive_time < now_)
+			if(session->expire_time + _keepalive_time < now_)
 			{
-				LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
 				sessions.push_back(session);
 				_sessions.erase(itr++);
 			}
@@ -103,9 +100,15 @@ bool SessionManager::Init(int keepAliveSeconds)
 				++itr; 
 			}
 		}
-		_timer.Resume();
+		
 		for(auto session : sessions)
 		{
+			LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
+			std::shared_ptr<Link> link = session->link;
+			if(nullptr != link)
+			{
+				link->Close(ErrorCode::IdleTimeoutError);
+			}
 			session->OnDestroy();	
 		}
 	}))
@@ -127,7 +130,6 @@ bool SessionManager::Add(uint32_t key, const std::shared_ptr<Session>& session)
 		}
 	}
 	session->OnCreate();
-	session->expire_time = time(NULL);
 	return true;
 }
 

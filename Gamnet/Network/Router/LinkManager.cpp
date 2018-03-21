@@ -34,6 +34,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidAddressError), "unique router id is not set");
 	}
 
+	heartbeat_timer.AutoReset(true);
 	heartbeat_timer.SetTimer(60000, [this] () {
 		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
 		if(NULL != packet) {
@@ -41,12 +42,13 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 			packet->Write(0, ntf);
 			std::lock_guard<std::recursive_mutex> lo(_lock);
 			//LOG(DEV, "[Router] send heartbeat message(link count:", _links.size(), ")");
+			/* ToDo:
 			for(auto itr : _links) {
 				std::shared_ptr<Network::Link> link = itr.second;
 				link->AsyncSend(packet);
 			}
+			*/
 		}
-		this->heartbeat_timer.Resume();
 	});
 
 	session_manager.Init(0);
@@ -61,19 +63,10 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create link instance");
 	}
 
-	link->AttachManager(this);
-
-	const std::shared_ptr<Session> session = session_pool.Create();
-	if(NULL == session)
-	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create session instance");
-	}
-
-	
+	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
 
-	link->AttachSession(session);
 	link->Connect(host, port, timeout);
 }
 
@@ -93,7 +86,7 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 	const std::shared_ptr<Session>& session = std::static_pointer_cast<Session>(link->session);
 	if(nullptr == link->session)
 	{
-		link->OnError(ErrorCode::InvalidSessionError);
+		link->Close(ErrorCode::InvalidSessionError);
 		return;
 	}
 	session->session_token = Network::Session::GenerateSessionToken(session->session_key);
@@ -108,7 +101,6 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	{
 		session->OnClose(reason);
 		session_manager.Remove(session->session_key);
-		link->AttachSession(nullptr);
 	}
 	Network::LinkManager::OnClose(link, reason);
 }

@@ -9,6 +9,13 @@ namespace Gamnet { namespace Network { namespace Router {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
+/*
+Session* Session::Init::operator() (Session* session)
+{
+	return session;
+}
+*/
+
 Session::Session() : Network::Tcp::Session() {
 	onRouterConnect = [](const Address&) {};
 	onRouterClose = [](const Address&) {};

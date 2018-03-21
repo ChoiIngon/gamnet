@@ -18,7 +18,7 @@ class Session;
 
 class SessionManager
 {
-	Timer 	_timer;
+	Timer 		_timer;
 	uint32_t	_keepalive_time;
 	std::recursive_mutex _lock;
 	std::map<uint32_t, std::shared_ptr<Session>> _sessions;
@@ -45,24 +45,24 @@ public :
 		{
 			session->session_key = ++Network::SessionManager::session_key;
 			session->session_token = "";
-			session->expire_time = 0;
+			session->expire_time = ::time(nullptr);
 			session->link = nullptr;
 			session->remote_address = nullptr;
 			session->handler_container.Init();
 			return session;
 		}
 	};
+
 	Session();
 	virtual ~Session();
 
+	boost::asio::strand			strand;
 	uint32_t					session_key;
 	std::string					session_token;
 	boost::asio::ip::address*	remote_address;
 	time_t						expire_time;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;
-	//LinkManager*				manager;
-
 public :
 	virtual void OnCreate() = 0;
 	virtual void OnAccept() = 0;
@@ -73,7 +73,7 @@ public :
 	void AsyncSend(const char* data, int length);
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);
 	int SyncSend(const char* data, int length);
-
+		
 	static std::string GenerateSessionToken(uint32_t session_key);
 };
 

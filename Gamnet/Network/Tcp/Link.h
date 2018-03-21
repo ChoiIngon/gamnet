@@ -6,7 +6,7 @@
 
 
 namespace Gamnet { namespace Network { namespace Tcp {
-
+	class Network::LinkManager;
 	class Link : public Network::Link {
 	public :
 		struct Init
@@ -20,8 +20,12 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			}
 		};
 
+		Link(Network::LinkManager* linkManager);
+		virtual ~Link();
+
 		std::shared_ptr<Packet> recv_packet;
-		virtual void OnRecvMsg() override;
+
+		virtual void OnRead() override;
 	};
 
 }}}

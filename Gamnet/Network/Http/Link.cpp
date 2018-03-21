@@ -5,12 +5,20 @@
 
 namespace Gamnet { namespace Network { namespace Http {
 
-void Link::OnRecvMsg()
+Link::Link(Network::LinkManager* linkManager) : Network::Link(linkManager)
+{
+}
+
+Link::~Link()
+{
+}
+
+void Link::OnRead()
 {
 	if (NULL == session)
 	{
 		LOG(GAMNET_ERR, "invalid session(link_key:", link_key, ")");
-		OnError(ErrorCode::InvalidSessionError);
+		Close(ErrorCode::InvalidSessionError);
 		return;
 	}
 
@@ -51,6 +59,6 @@ void Link::OnRecvMsg()
 	uri = uri.substr(0, uri_end);
 	Request req(param);
 	Singleton<Dispatcher>::GetInstance().OnRecvMsg(shared_from_this(), uri, req);
-	OnError(ErrorCode::Success);
+	Close(ErrorCode::Success);
 }
 }}}

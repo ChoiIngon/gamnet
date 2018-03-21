@@ -12,7 +12,7 @@ class Session : public Network::Session {
 public:
 	Session();
 	virtual ~Session();
-	std::shared_ptr<Buffer> read_buffer;
+	
 	void Send(const Response& res);
 
 	virtual void OnCreate() {}

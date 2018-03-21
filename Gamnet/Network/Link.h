@@ -13,8 +13,8 @@ public:
 	{
 		Link* operator() (Link* link);
 	};
+
 	boost::asio::ip::tcp::socket socket;
-	boost::asio::strand strand;
 	boost::asio::ip::address remote_address;
 	Timer 		timer;
 	uint32_t 	link_key;
@@ -23,31 +23,28 @@ public:
 	std::shared_ptr<Buffer> 			read_buffer;
 	std::deque<std::shared_ptr<Buffer>>	send_buffers;
 	std::shared_ptr<Session> session;
-//private :
-	LinkManager* 	manager;
+protected :
+	LinkManager* const link_manager;
 
 public :
-	Link();
+	Link(LinkManager* linkManager);
 	virtual ~Link();
 
 	void Connect(const char* host, int port, int timeout);
-	void OnError(int reason);
-	
 	void AsyncRead();
-	virtual void OnRecvMsg();
-
 	void AsyncSend(const std::shared_ptr<Buffer>& buffer);
 	void AsyncSend(const char* buf, int len);
-	int SyncSend(const std::shared_ptr<Buffer>& buffer);
-	int SyncSend(const char* buf, int len);
-
-	void AttachManager(LinkManager* manager);
+	int  SyncSend(const std::shared_ptr<Buffer>& buffer);
+	int  SyncSend(const char* buf, int len);
+	void Close(int reason);
+		
 	void AttachSession(const std::shared_ptr<Session> session);
+
+	virtual void OnRead();
 private :
 	void FlushSend();
 };
 
-}
-} /* namespace Gamnet */
+}}
 
-#endif /* NETWORK_Link_H_ */
+#endif 

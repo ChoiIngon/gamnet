@@ -37,7 +37,7 @@ private:
 		std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> recv_handlers;
 	};
 
-	std::mutex lock_;
+	//std::mutex lock_;
 	std::map<std::string, std::shared_ptr<TestExecuteInfo>>	execute_infos;
 	std::map<std::string, std::list<std::shared_ptr<RecvHandlerInfo>>> 	recv_handlers;
 	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
@@ -100,21 +100,7 @@ public :
 					LOG(GAMNET_ERR, "can not create link(link_count:", this->Size(), ", avaiable:", this->Available(), ", capacity:", this->Capacity(), ")");
 					return;
 				}
-				link->AttachManager(this);
-
-				std::shared_ptr<SESSION_T> session = this->session_pool.Create();
-				if (nullptr == session)
-				{
-					LOG(GAMNET_ERR, "can not create session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
-					link->OnError(ErrorCode::InvalidSessionError);
-					return;
-				}
 				
-				session->msg_seq = 0;
-				session->test_seq = 0;
-
-				link->AttachSession(session);
-				session->OnCreate();
 				thread_pool.PostTask([this, link]() {
 					link->Connect(this->host.c_str(), this->port, 5);
 				});
@@ -152,7 +138,13 @@ public :
 		});
 	}
 
-	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
+	virtual std::shared_ptr<Network::Link> Create() override
+	{
+		std::shared_ptr<Network::Link> link = Network::Tcp::LinkManager<SESSION_T>::Create();
+		std::static_pointer_cast<Session>(link->session)->test_seq = 0;
+		return link;
+	}
+	virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override
 	{
 		thread_pool.PostTask([this, link]() {
 			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
@@ -165,7 +157,7 @@ public :
 		});
 	}
 
-	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
+	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 	{
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		Send_Close_Ntf(session);
@@ -173,7 +165,7 @@ public :
 		session->OnDestroy();
 	}
 
-	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
+	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr == session)
@@ -190,7 +182,6 @@ public :
 			if(execute_info->recv_handlers.end() == itr)
 			{
 				LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
-				//link->OnError(ErrorCode::InvalidHandlerError);
 				return ;
 			}
 				
@@ -202,7 +193,7 @@ public :
 				session->test_seq += itr->second->increase_test_seq;
 				if(session->test_seq >= (int)this->execute_order.size())
 				{
-					link->OnError(ErrorCode::Success);
+					link->Close(ErrorCode::Success);
 					return;
 				}
 
@@ -216,7 +207,7 @@ public :
 				catch(const Gamnet::Exception& e)
 				{
 					LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-					link->OnError(ErrorCode::UndefinedError);
+					link->Close(ErrorCode::UndefinedError);
 					return;
 				}
 				next_execute_info->execute_count++;
