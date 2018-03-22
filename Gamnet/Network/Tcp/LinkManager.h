@@ -75,7 +75,6 @@ public :
 		session->link = link;
 		session->remote_address = &(link->remote_address);
 
-		session_manager.Add(session->session_key, session);
 		return link;
 	}
 
@@ -96,7 +95,6 @@ public :
 
 	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
 	{
-		/*
 		std::shared_ptr<Network::Session> session = link->session;
 		if(nullptr == session)
 		{
@@ -104,20 +102,7 @@ public :
 			return;
 		}
 		
-		session->OnCreate();
-		*/
-	}
-
-	void DestroySession(uint32_t session_key)
-	{
-		std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
-		if (nullptr == session)
-		{
-			LOG(WRN, "can not find session(session_key:", session_key, ")");
-			return;
-		}
-		session->OnDestroy();
-		session_manager.Remove(session->session_key);
+		session_manager.Add(session->session_key, session);
 	}
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
@@ -160,6 +145,18 @@ public :
 		return std::static_pointer_cast<SESSION_T>(session_manager.Find(session_key));
 	}
 	
+	void DestroySession(uint32_t session_key)
+	{
+		std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
+		if (nullptr == session)
+		{
+			LOG(WRN, "can not find session(session_key:", session_key, ")");
+			return;
+		}
+		session->OnDestroy();
+		session_manager.Remove(session->session_key);
+	}
+
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{
