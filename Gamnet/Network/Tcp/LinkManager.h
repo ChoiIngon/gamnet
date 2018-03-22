@@ -96,6 +96,7 @@ public :
 
 	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
 	{
+		/*
 		std::shared_ptr<Network::Session> session = link->session;
 		if(nullptr == session)
 		{
@@ -104,6 +105,7 @@ public :
 		}
 		
 		session->OnCreate();
+		*/
 	}
 
 	void DestroySession(uint32_t session_key)
@@ -203,7 +205,9 @@ public :
 				return;
 			}
 			ans_packet->Write(header, str.c_str(), str.length()+1);
-			session->AsyncSend(ans_packet);
+
+			session->OnCreate();
+			session->AsyncSend(ans_packet);			
 			session->OnAccept();
 		}
 		void Recv_Reconnect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
@@ -244,7 +248,7 @@ public :
 				link->AttachSession(other);
 				other->OnAccept();
 				
-				Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(session->session_key);
+				Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Remove(session->session_key);
 			}
 			catch (const Exception& e)
 			{

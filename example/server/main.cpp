@@ -8,7 +8,7 @@ int main() {
 
 	try {
 		Gamnet::Network::Tcp::Listen<Session>(20000, 1024, 300);
-		Gamnet::Network::Http::Listen(20001, 1024, 60);
+		Gamnet::Network::Http::Listen(20001);
 		Gamnet::Network::Router::Listen("GAME", 20002,
 			[](const Gamnet::Network::Router::Address& addr) {
 				LOG(DEV, "Router::OnAccept(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");

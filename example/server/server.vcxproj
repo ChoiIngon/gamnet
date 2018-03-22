@@ -138,7 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\idl\message.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\idlc\x64\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Message>
     </CustomBuild>

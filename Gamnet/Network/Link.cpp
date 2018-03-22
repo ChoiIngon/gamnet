@@ -116,7 +116,7 @@ void Link::Close(int reason)
 
 		socket.close();
 	}
-	session = nullptr;
+	AttachSession(nullptr);
 }
 
 void Link::AsyncRead()
