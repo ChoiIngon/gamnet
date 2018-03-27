@@ -51,17 +51,15 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
 {
-	const std::shared_ptr<Network::Link> link = Create();
+	std::shared_ptr<Network::Link> link = Network::LinkManager::Connect(host, port, timeout);
 	if(nullptr == link)
 	{
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create link instance");
 	}
 
-	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
+	std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
-
-	link->Connect(host, port, timeout);
 }
 
 void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)

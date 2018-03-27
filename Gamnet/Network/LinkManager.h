@@ -26,6 +26,7 @@ public :
 	virtual ~LinkManager();
 
 	void Listen(int port);
+	virtual std::shared_ptr<Link> Connect(const char* host, int port, int timeout);
 	void Close();
 
 	virtual void OnAccept(const std::shared_ptr<Link>& link) {}

@@ -17,7 +17,14 @@ class LinkManager : public Network::Tcp::LinkManager<SESSION_T>
 public :
 	typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 	typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
-	
+protected :
+	Log::Logger	log;
+	std::string host;
+	int			port;
+	Timer 		log_timer;
+	Timer 		execute_timer;
+	ThreadPool 	thread_pool;
+	std::atomic_int	execute_count;
 private:
 	struct RecvHandlerInfo
 	{
@@ -42,14 +49,9 @@ private:
 	std::map<std::string, std::list<std::shared_ptr<RecvHandlerInfo>>> 	recv_handlers;
 	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 
-	Log::Logger	log;
-	Timer 		log_timer;
-	Timer 		execute_timer;
-	ThreadPool 	thread_pool;
-	std::atomic_int	execute_count;
 	
-	std::string host;
-	int			port;
+	
+	
 public :
 	LinkManager() : thread_pool(30), execute_count(0), host(""), port(0)
 	{

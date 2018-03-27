@@ -84,6 +84,7 @@ void Link::Connect(const char* host, int port, int timeout)
 			catch(const boost::system::system_error& e)
 			{
 				LOG(ERR, "[link_key:", self->link_key, "] connect fail(errno:", errno, ", errstr:", e.what(), ")");
+				self->Close(ErrorCode::UndefinedError);
 			}
 		}
 	}));
@@ -100,6 +101,7 @@ void Link::Connect(const char* host, int port, int timeout)
 
 void Link::Close(int reason)
 {
+	LOG(DEV, "[link_key:", link_key, "] reason:", reason);
 	if(true == socket.is_open())
 	{
 		try {
@@ -191,6 +193,10 @@ void Link::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 
 void Link::FlushSend()
 {
+	if (nullptr == session)
+	{
+		return;
+	}
 	if(false == send_buffers.empty())
 	{
 		auto self(shared_from_this());
@@ -255,22 +261,23 @@ int Link::SyncSend(const char* buf, int len)
 
 void Link::AttachSession(const std::shared_ptr<Session> session)
 {
-	auto self(shared_from_this());
 	if(nullptr != this->session)
 	{
-		this->session->strand.wrap([self](const std::shared_ptr<Session> session) {
-			session->link = nullptr;
-			session->remote_address = nullptr;
+		auto self(shared_from_this());
+		this->session->strand.wrap([self](const std::shared_ptr<Session> self_session) {
+			self_session->link = nullptr;
+			self_session->remote_address = nullptr;
 			self->session = nullptr;
 		})(this->session);
 	}
 
 	if(nullptr != session)
 	{
-		session->strand.wrap([self](const std::shared_ptr<Session> session) {
-			session->link = self;
-			session->remote_address = &(self->remote_address);
-			self->session = session;
+		auto self(shared_from_this());
+		session->strand.wrap([self](const std::shared_ptr<Session> self_session) {
+			self_session->link = self;
+			self_session->remote_address = &(self->remote_address);
+			self->session = self_session;
 		})(session);
 	}
 }
