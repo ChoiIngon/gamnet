@@ -18,6 +18,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return false;
 		}
 
+		msg_seq = 0;
 		recv_packet = Packet::Create();
 		if (nullptr == recv_packet)
 		{
@@ -29,14 +30,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 	{
-		if (nullptr == session)
-		{
-			LOG(GAMNET_ERR, "invalid session(link_key:", link_key, ")");
-			Close(ErrorCode::InvalidSessionError);
-			return;
-		}
-
-		session->expire_time = ::time(nullptr);
 		recv_packet->Append(buffer->ReadPtr(), buffer->Size());
 		while (Packet::HEADER_SIZE <= (int)recv_packet->Size())
 		{
@@ -60,15 +53,17 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				break;
 			}
 
-			link_manager->OnRecvMsg(shared_from_this(), recv_packet);
-			if (nullptr == session)
+			if(msg_seq < recv_packet->GetSEQ())
 			{
-				Close(ErrorCode::InvalidSessionError);
-				return;
+				link_manager->OnRecvMsg(shared_from_this(), recv_packet);
 			}
-			
+#ifdef _DEBUG
+			else
+			{
+				LOG(WRN, "[link_key:", link->link_key, "] discard message(msg_seq:", recv_packet->GetSEQ(), ", expect:", msg_seq + 1, ")");
+			}
+#endif
 			recv_packet->Remove(totalLength);
-
 			if (0 < recv_packet->Size())
 			{
 				std::shared_ptr<Packet> packet = Packet::Create();

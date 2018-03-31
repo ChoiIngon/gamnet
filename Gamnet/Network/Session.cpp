@@ -7,15 +7,12 @@
 
 namespace Gamnet { namespace Network {
 
-static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
-
 std::string Session::GenerateSessionToken(uint32_t session_key)
 {
 	return md5(Format(session_key, time(nullptr), Random::Range(1, 99999999)));
 }
 
 Session::Session() :
-	strand(io_service_),
 	session_key(0),
 	session_token(""),
 	expire_time(0),
@@ -42,7 +39,7 @@ bool Session::Init()
 void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	std::shared_ptr<Link> _link = link;
-	if(NULL == _link)
+	if(nullptr == _link)
 	{
 		return;
 	}
@@ -51,7 +48,7 @@ void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 void Session::AsyncSend(const char* data, int length)
 {
 	std::shared_ptr<Link> _link = link;
-	if (NULL == _link)
+	if (nullptr == _link)
 	{
 		return;
 	}
@@ -60,7 +57,7 @@ void Session::AsyncSend(const char* data, int length)
 int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	std::shared_ptr<Link> _link = link;
-	if (NULL == _link)
+	if (nullptr == _link)
 	{
 		return -1;
 	}
@@ -69,7 +66,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 int Session::SyncSend(const char* data, int length)
 {
 	std::shared_ptr<Link> _link = link;
-	if (NULL == _link)
+	if (nullptr == _link)
 	{
 		return -1;
 	}

@@ -55,7 +55,6 @@ public :
 	Session();
 	virtual ~Session();
 
-	boost::asio::strand			strand;
 	uint32_t					session_key;
 	std::string					session_token;
 	boost::asio::ip::address*	remote_address;

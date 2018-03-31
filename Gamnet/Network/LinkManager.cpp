@@ -37,35 +37,9 @@ void LinkManager::Accept()
 		return;
 	}
 
-	if(nullptr == link->session)
-	{
-		LOG(GAMNET_ERR, "[link_manager:", _name, ", link_key:", link->link_key, "] link refers null session pointer");
-		assert(link->session);
-	}
-
-	_acceptor.async_accept(link->socket, link->session->strand.wrap(
+	_acceptor.async_accept(link->socket, link->strand.wrap(
 		boost::bind(&LinkManager::Callback_Accept, this, link, boost::asio::placeholders::error)
 	));
-}
-
-std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeout)
-{
-	std::shared_ptr<Link> link = Create();
-	if(nullptr == link)
-	{
-		LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create link. connect fail(pool_size:", Available(), ", host:", host, ", port:", port, ", timeout:", timeout);
-		return nullptr;
-	}
-
-	if (nullptr == link->session)
-	{
-		LOG(GAMNET_ERR, "[link_manager:", _name, ", link_key:", link->link_key, "] link refers null session pointer");
-		assert(link->session);
-	}
-
-	link->Connect(host, port, timeout);
-
-	return link;
 }
 
 void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error)
@@ -95,6 +69,27 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 		link->Close(ErrorCode::AcceptFailError);
 	}
 }
+
+std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeout)
+{
+	std::shared_ptr<Link> link = Create();
+	if(nullptr == link)
+	{
+		LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create link. connect fail(pool_size:", Available(), ", host:", host, ", port:", port, ", timeout:", timeout);
+		return nullptr;
+	}
+
+	if (nullptr == link->session)
+	{
+		LOG(GAMNET_ERR, "[link_manager:", _name, ", link_key:", link->link_key, "] link refers null session pointer");
+		assert(link->session);
+	}
+
+	link->Connect(host, port, timeout);
+
+	return link;
+}
+
 
 void LinkManager::Close()
 {

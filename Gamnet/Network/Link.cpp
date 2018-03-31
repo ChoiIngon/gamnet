@@ -7,6 +7,7 @@ static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>
 
 Link::Link(LinkManager* linkManager) : 
 	socket(io_service_),
+	strand(io_service_),
 	link_manager(linkManager),
 	link_key(0),
 	read_buffer(nullptr),
@@ -22,14 +23,14 @@ bool Link::Init()
 {
 	link_key = ++LinkManager::link_key;
 	read_buffer = Buffer::Create();
-	send_buffers.clear();
-	session = nullptr;
-
 	if (nullptr == read_buffer)
 	{
 		LOG(GAMNET_ERR, "[link_key:", link_key, "] can not create read buffer");
 		return false;
 	}
+
+	send_buffers.clear();
+	session = nullptr;
 	return true;
 }
 
@@ -40,34 +41,25 @@ void Link::Connect(const char* host, int port, int timeout)
 		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid host name");
 	}
 
-	if(nullptr == session)
+	if(nullptr == link_manager)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPacketError), "[link_key:", link_key, "] link refers null session pointer");
+		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid link manager");
 	}
 
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
 	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
 
 	auto self = shared_from_this();
-	socket.async_connect(endpoint_, session->strand.wrap([self](const boost::system::error_code& ec){
+	socket.async_connect(endpoint_, strand.wrap([self](const boost::system::error_code& ec) {
 		self->timer.Cancel();
-		if(ec)
+
+		if(0 != ec)
 		{
 			self->Close(ErrorCode::ConnectFailError);
 			return;
 		}
 		else
 		{
-			if(nullptr == self->link_manager)
-			{
-				self->Close(ErrorCode::InvalidLinkManagerError);
-				return;
-			}
-			if(nullptr == self->session)
-			{
-				self->Close(ErrorCode::InvalidSessionError);
-				return;
-			}
 			try {
 				{
 					boost::asio::socket_base::linger option(true, 0);
@@ -78,8 +70,8 @@ void Link::Connect(const char* host, int port, int timeout)
 					self->socket.set_option(option);
 				}
 				self->remote_address = self->socket.remote_endpoint().address();
-				self->link_manager->OnConnect(self);
 				self->AsyncRead();
+				self->link_manager->OnConnect(self);
 			}
 			catch(const boost::system::system_error& e)
 			{
@@ -92,44 +84,18 @@ void Link::Connect(const char* host, int port, int timeout)
 	if(0 < timeout)
 	{
 		timer.AutoReset(false);
-		timer.SetTimer(timeout*1000, session->strand.wrap([this]() {
-			Log::Write(GAMNET_WRN, "[link_key:", this->link_key, ", session_key:", NULL == this->session ? 0 : this->session->session_key, "] connect timeout(ip:", this->remote_address.to_string(), ")");
+		timer.SetTimer(timeout*1000, strand.wrap([this]() {
+			Log::Write(GAMNET_WRN, "[link_key:", this->link_key, "] connect timeout(ip:", this->remote_address.to_string(), ")");
 			this->Close(ErrorCode::ConnectTimeoutError);
 		}));
 	}
 }
 
-void Link::Close(int reason)
-{
-	LOG(DEV, "[link_key:", link_key, "] reason:", reason);
-	if(true == socket.is_open())
-	{
-		try {
-			if (nullptr != link_manager)
-			{
-				link_manager->Close();
-				link_manager->OnClose(shared_from_this(), reason);
-			}
-		}
-		catch (const Exception& e)
-		{
-			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-
-		socket.close();
-	}
-	AttachSession(nullptr);
-}
-
 void Link::AsyncRead()
 {
-	if(nullptr == session)
-	{
-		return;
-	}
 	auto self(shared_from_this());
 	socket.async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
-		session->strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
+		strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
 				self->Close(ErrorCode::Success); // no error, just closed socket
@@ -144,20 +110,22 @@ void Link::AsyncRead()
 
 			self->read_buffer->writeCursor_ += readbytes;
 
-			try {
+			try 
+			{
 				self->OnRead(self->read_buffer);
+				if(nullptr == self->read_buffer)
+				{
+					return;
+				}
 			}
 			catch(const Exception& e)
 			{
-				LOG(ERR, "link key:", self->link_key, ", session_key:", (nullptr != self->session ? self->session->session_key : 0), ", error_code:", e.error_code(), ", error_msg:", e.what());
+				LOG(ERR, "[link key:", self->link_key, "] uncaught exception(error_code:", e.error_code(), ", error_msg:", e.what());
 				self->Close(e.error_code());
 				return;
 			}
-			if(nullptr != self->read_buffer)
-			{
-				self->read_buffer->Clear();
-				self->AsyncRead();
-			}
+			self->read_buffer->Clear();
+			self->AsyncRead();
 		})
 	);
 }
@@ -165,7 +133,7 @@ void Link::AsyncRead()
 void Link::AsyncSend(const char* buf, int len)
 {
 	std::shared_ptr<Buffer> buffer = Buffer::Create();
-	if(NULL == buffer)
+	if(nullptr == buffer)
 	{
 		LOG(GAMNET_ERR, "can not create buffer(link_key:", link_key, ")");
 		return;
@@ -176,12 +144,8 @@ void Link::AsyncSend(const char* buf, int len)
 
 void Link::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	if (nullptr == session)
-	{
-		return;
-	}
 	auto self(shared_from_this());
-	session->strand.wrap([self](const std::shared_ptr<Buffer>& buffer) {
+	strand.wrap([self](const std::shared_ptr<Buffer>& buffer) {
 		bool needFlush = self->send_buffers.empty();
 		self->send_buffers.push_back(buffer);
 		if(true == needFlush)
@@ -193,16 +157,12 @@ void Link::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 
 void Link::FlushSend()
 {
-	if (nullptr == session)
-	{
-		return;
-	}
 	if(false == send_buffers.empty())
 	{
 		auto self(shared_from_this());
 		const std::shared_ptr<Buffer> buffer = send_buffers.front();
 		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()),
-			session->strand.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
+			strand.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
 				if (0 != ec)
 				{
 					self->Close(ErrorCode::Success); // no error, just closed socket
@@ -259,26 +219,38 @@ int Link::SyncSend(const char* buf, int len)
 	return totalSentBytes;
 }
 
+void Link::Close(int reason)
+{
+	if(true == socket.is_open())
+	{
+		try 
+		{
+			link_manager->Close();
+			link_manager->OnClose(shared_from_this(), reason);
+		}
+		catch (const Exception& e)
+		{
+			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
+
+		socket.close();
+	}
+}
+
 void Link::AttachSession(const std::shared_ptr<Session> session)
 {
 	if(nullptr != this->session)
 	{
-		auto self(shared_from_this());
-		this->session->strand.wrap([self](const std::shared_ptr<Session> self_session) {
-			self_session->link = nullptr;
-			self_session->remote_address = nullptr;
-			self->session = nullptr;
-		})(this->session);
+		//this->session->link = nullptr;
+		this->session->remote_address = nullptr;
+		this->session = nullptr;
 	}
 
 	if(nullptr != session)
 	{
-		auto self(shared_from_this());
-		session->strand.wrap([self](const std::shared_ptr<Session> self_session) {
-			self_session->link = self;
-			self_session->remote_address = &(self->remote_address);
-			self->session = self_session;
-		})(session);
+		//session->link = shared_from_this();
+		this->session = session;
+		this->session->remote_address = &(remote_address);
 	}
 }
 

@@ -8,13 +8,18 @@ namespace Gamnet { namespace Test {
 class Session : public Network::Tcp::Session {
 public:
 	int test_seq;
+	bool is_pause;
 
 	Session();
 	virtual ~Session();
 
-	void OnCreate() {}
-	void OnAccept() {}
-	void OnClose(int reason) {}
+	virtual void OnCreate() override {}
+	virtual void OnAccept() override {}
+	virtual void OnConnect() {}
+	virtual void OnClose(int reason) override {}
+
+	void Pause();
+	void Resume();
 };
 
 }} /* namespace Gamnet */

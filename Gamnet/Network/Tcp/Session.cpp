@@ -16,7 +16,7 @@ bool Session::Init()
 	{
 		return false;
 	}
-	msg_seq = 0;
+	msg_seq = 1;
 	return true;;
 }
 }}}

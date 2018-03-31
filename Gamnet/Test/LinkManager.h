@@ -17,14 +17,7 @@ class LinkManager : public Network::Tcp::LinkManager<SESSION_T>
 public :
 	typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 	typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
-protected :
-	Log::Logger	log;
-	std::string host;
-	int			port;
-	Timer 		log_timer;
-	Timer 		execute_timer;
-	ThreadPool 	thread_pool;
-	std::atomic_int	execute_count;
+	
 private:
 	struct RecvHandlerInfo
 	{
@@ -35,38 +28,36 @@ private:
 	
 	struct TestExecuteInfo
 	{
+		TestExecuteInfo()
+		{
+			name = "";
+			execute_count = 0;
+		}
 		std::string name;
-		std::atomic_int execute_count;
-	
-		int send_id;
-		int recv_id;
-		SEND_HANDLER_TYPE send_handler;
+		std::atomic_uint execute_count;
+		SEND_HANDLER_TYPE send_handler;		
 		std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> recv_handlers;
 	};
 
-	//std::mutex lock_;
 	std::map<std::string, std::shared_ptr<TestExecuteInfo>>	execute_infos;
 	std::map<std::string, std::list<std::shared_ptr<RecvHandlerInfo>>> 	recv_handlers;
-	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 
+	Log::Logger	log;
+	Timer 		log_timer;
+	Timer 		execute_timer;
+	ThreadPool 	thread_pool;
+	std::atomic_int	execute_count;
 	
-	
-	
+	std::string host;
+	int			port;
 public :
+	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 	LinkManager() : thread_pool(30), execute_count(0), host(""), port(0)
 	{
 		Network::Tcp::LinkManager<SESSION_T>::_name = "Gamnet::Test::LinkManager";
-		std::shared_ptr<TestExecuteInfo> executeInfo = std::shared_ptr<TestExecuteInfo>(new TestExecuteInfo());
-		executeInfo->name = "__connect__";
-		executeInfo->send_handler = std::bind(&LinkManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1);
-		execute_infos[executeInfo->name] = executeInfo;
 
-		std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
-		recvHandlerInfo->msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgHandler::MsgID_Connect_Ans;
-		recvHandlerInfo->increase_test_seq = 1;
-		recvHandlerInfo->recv_handler = std::bind(&LinkManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2);
-		std::list<std::shared_ptr<RecvHandlerInfo>>& lstRecvHandlerInfos = recv_handlers[executeInfo->name];
-		lstRecvHandlerInfos.push_back(recvHandlerInfo);
+		RegisterSendHandler("__connect__", std::bind(&LinkManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1));
+		RegisterRecvHandler("__connect__", (uint32_t)Network::Tcp::LinkManager<SESSION_T>::MsgID_SvrCli_Connect_Ans, std::bind(&LinkManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2), 1);
 	}
 
 	virtual ~LinkManager()
@@ -102,7 +93,19 @@ public :
 					LOG(GAMNET_ERR, "can not create link(link_count:", this->Size(), ", avaiable:", this->Available(), ", capacity:", this->Capacity(), ")");
 					return;
 				}
+
+				std::shared_ptr<SESSION_T> session = this->session_pool.Create();
+				if (nullptr == session)
+				{
+					LOG(GAMNET_ERR, "can not create session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
+					link->Close(ErrorCode::InvalidSessionError);
+					return;
+				}
 				
+				session->test_seq = 0;
+
+				link->AttachSession(session);
+				session->OnCreate();
 				thread_pool.PostTask([this, link]() {
 					link->Connect(this->host.c_str(), this->port, 5);
 				});
@@ -140,57 +143,62 @@ public :
 		});
 	}
 
-	virtual std::shared_ptr<Network::Link> Create() override
-	{
-		std::shared_ptr<Network::Link> link = Network::Tcp::LinkManager<SESSION_T>::Create();
-		std::static_pointer_cast<Session>(link->session)->test_seq = 0;
-		return link;
-	}
-	virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override
+	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
 		thread_pool.PostTask([this, link]() {
 			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-			if(session->test_seq < (int)this->execute_order.size())
+			if(0 == session->test_seq && 0 < (int)this->execute_order.size())
 			{
-				const std::shared_ptr<TestExecuteInfo>& info = execute_order[session->test_seq];
+				const std::shared_ptr<TestExecuteInfo>& info = execute_order[0];
 				info->send_handler(session);
 				info->execute_count++;
 			}
 		});
 	}
 
-	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
+	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 	{
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		Send_Close_Ntf(session);
+		if(nullptr != session)
+		{
+			Send_Close_Ntf(session);
+			session->OnDestroy();
+		}
 		Network::Tcp::LinkManager<SESSION_T>::OnClose(link, reason);
-		session->OnDestroy();
 	}
 
-	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
+	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
+		const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr == session)
 		{
+			LOG(GAMNET_ERR, "invalid session(link_key:", link->link_key, ")");
+			link->Close(ErrorCode::InvalidSessionError);
 			return;
 		}
 		
 		if(session->test_seq < (int)this->execute_order.size())
 		{
-			uint32_t msg_id = std::static_pointer_cast<Network::Tcp::Link>(link)->recv_packet->GetID();
-				
+			uint32_t msg_id = packet->GetID();
+
 			const std::shared_ptr<TestExecuteInfo>& execute_info = this->execute_order[session->test_seq];
 			auto itr = execute_info->recv_handlers.find(msg_id);
 			if(execute_info->recv_handlers.end() == itr)
 			{
-				LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
-				return ;
+				itr = this->execute_order[0]->recv_handlers.find(msg_id);
+				if (this->execute_order[0]->recv_handlers.end() == itr)
+				{
+					LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
+					link->Close(ErrorCode::InvalidHandlerError);
+					return ;
+				}
 			}
 				
 			RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
-			handler(session, std::static_pointer_cast<Network::Tcp::Link>(link)->recv_packet);
+			handler(session, packet);
 				
-			if(0 < itr->second->increase_test_seq) 
+			if(false == session->is_pause && 0 < itr->second->increase_test_seq)
 			{
 				session->test_seq += itr->second->increase_test_seq;
 				if(session->test_seq >= (int)this->execute_order.size())
@@ -217,31 +225,27 @@ public :
 		}
 	}
 
-	template<class NTF_T>
-	void RegisterHandler(const std::string& test_name, RECV_HANDLER_TYPE recv)
-	{
-		std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
-		recvHandlerInfo->msg_id = NTF_T::MSG_ID;
-		recvHandlerInfo->increase_test_seq = 0;
-		recvHandlerInfo->recv_handler = recv;
-		std::list<std::shared_ptr<RecvHandlerInfo>>& lstRecvHandlerInfos = recv_handlers[test_name];
-		lstRecvHandlerInfos.push_back(recvHandlerInfo);
-	}
-	template<class REQ_T, class ANS_T>
-	void RegisterHandler(const std::string& test_name, SEND_HANDLER_TYPE send, RECV_HANDLER_TYPE recv)
+	void RegisterSendHandler(const std::string& test_name, SEND_HANDLER_TYPE send)
 	{
 		std::shared_ptr<TestExecuteInfo> executeInfo = std::shared_ptr<TestExecuteInfo>(new TestExecuteInfo());
 		executeInfo->name = test_name;
 		executeInfo->send_handler = send;
-		execute_infos[test_name] = executeInfo;
+		if (false == execute_infos.insert(std::make_pair(test_name, executeInfo)).second)
+		{
+			Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError), "(duplicate test case name(", test_name, ")");
+		}
+	}
 
+	void RegisterRecvHandler(const std::string& test_name, uint32_t msgID, RECV_HANDLER_TYPE recv, int increaseTestSEQ = 1)
+	{
 		std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
-		recvHandlerInfo->msg_id = ANS_T::MSG_ID;
-		recvHandlerInfo->increase_test_seq = 1;
+		recvHandlerInfo->msg_id = msgID;
+		recvHandlerInfo->increase_test_seq = increaseTestSEQ;
 		recvHandlerInfo->recv_handler = recv;
 		std::list<std::shared_ptr<RecvHandlerInfo>>& lstRecvHandlerInfos = recv_handlers[test_name];
 		lstRecvHandlerInfos.push_back(recvHandlerInfo);
 	}
+	
 	void SetTestSequence(const std::string& test_name)
 	{
 		auto itr_execute_info = execute_infos.find(test_name);
@@ -267,7 +271,7 @@ public :
 	void Send_Connect_Req(const std::shared_ptr<SESSION_T>& session)
 	{
 		Network::Tcp::Packet::Header header;
-		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgHandler::MsgID_Connect_Req;
+		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Connect_Req;
 		header.msg_seq = ++session->msg_seq;
 		header.length = Network::Tcp::Packet::HEADER_SIZE;
 
@@ -295,6 +299,7 @@ public :
 		{
 			session->session_token = ans["session_token"].asString();
 		}
+		session->OnConnect();
 	}
 
 	void Send_Close_Ntf(const std::shared_ptr<SESSION_T>& session)
@@ -305,7 +310,7 @@ public :
 			return;
 		}
 		Network::Tcp::Packet::Header header;
-		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgHandler::MsgID_Close_Ntf;
+		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Close_Ntf;
 		header.msg_seq = ++session->msg_seq;
 		header.length = Network::Tcp::Packet::HEADER_SIZE;
 
