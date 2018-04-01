@@ -85,6 +85,7 @@ public :
 			{
 				if(this->Size() >= session_count || 0 == this->Available())
 				{
+						
 					break;
 				}
 
@@ -151,12 +152,13 @@ public :
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 	{
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		Send_Close_Ntf(session);
+		Network::Tcp::LinkManager<SESSION_T>::OnClose(link, reason);
 		if(nullptr != session)
 		{
-			Send_Close_Ntf(session);
 			session->OnDestroy();
+			Network::Tcp::LinkManager<SESSION_T>::session_manager.Remove(session->session_key);
 		}
-		Network::Tcp::LinkManager<SESSION_T>::OnClose(link, reason);
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
@@ -262,9 +264,15 @@ public :
 
 	void Send_Connect_Req(const std::shared_ptr<SESSION_T>& session)
 	{
+		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
+		if(nullptr == link)
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ")");
+		}
+
 		Network::Tcp::Packet::Header header;
 		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Connect_Req;
-		header.msg_seq = 1;
+		header.msg_seq = ++link->msg_seq;
 		header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
@@ -304,9 +312,16 @@ public :
 			LOG(GAMNET_ERR, GAMNET_ERRSTR(ErrorCode::InvalidSessionError));
 			return;
 		}
+
+		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
+		if(nullptr == link)
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ")");
+		}
+
 		Network::Tcp::Packet::Header header;
 		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Close_Ntf;
-		header.msg_seq = ++std::static_pointer_cast<Network::Tcp::Link>(session->link)->msg_seq;
+		header.msg_seq = ++link->msg_seq;
 		header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();

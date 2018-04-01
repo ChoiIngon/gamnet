@@ -15,6 +15,7 @@ bool Session::Init()
 		return false;
 	}
 	test_seq = 0;
+	is_pause = false;
 	return true;
 }
 

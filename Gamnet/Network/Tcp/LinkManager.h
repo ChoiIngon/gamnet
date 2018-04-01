@@ -120,6 +120,16 @@ public :
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
 		const std::shared_ptr<Packet>& packet = std::static_pointer_cast<Packet>(buffer);
+			
+		uint32_t msg_seq = packet->GetSEQ();
+		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
+		if(msg_seq <= tcpLink->msg_seq)
+		{
+			LOG(WRN, "[link_key:", link->link_key, "] discard message(received msg_seq:", msg_seq, ", expected msg_seq:", tcpLink->msg_seq + 1, ")");
+			return;
+		}
+
+		tcpLink->msg_seq = msg_seq;
 		uint32_t msgID = packet->GetID();
 		if(MSG_ID::MsgID_Max <= msgID)
 		{
@@ -168,7 +178,6 @@ public :
 
 	void Recv_Connect_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) 
 	{
-		LOG(DEV, "[link_key:", link->link_key, "]");	
 		Json::Value ans;
 		ans["error_code"] = 0;
 		ans["session_key"] = 0;
@@ -176,6 +185,7 @@ public :
 
 		try 
 		{
+			LOG(DEV, "[link_key:", link->link_key, "]");	
 			std::shared_ptr<SESSION_T> session = session_pool.Create();
 			if(nullptr == session)
 			{
@@ -232,6 +242,7 @@ public :
 			uint32_t session_key = req["session_key"].asUInt();
 			const std::string session_token = req["session_token"].asString();
 				
+			LOG(DEV, "[link_key:", link->link_key, "] session_key:", session_key, ", session_token:", session_token);	
 			const std::shared_ptr<SESSION_T> session = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
 			if (nullptr == session)
 			{
@@ -262,6 +273,7 @@ public :
 			ans["error_code"] = e.error_code();
 		}
 
+		LOG(DEV, "[link_key:", link->link_key, "] error_code:", ans["error_code"].asUInt());
 		Json::StyledWriter writer;
 		std::string str = writer.write(ans);
 
@@ -304,6 +316,7 @@ public :
 
 	void Recv_Close_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
+		LOG(DEV, "[link_key:", link->link_key, "]");
 		std::shared_ptr<Network::Session> session = link->session;
 		link->Close(ErrorCode::Success);
 		if(nullptr == session)

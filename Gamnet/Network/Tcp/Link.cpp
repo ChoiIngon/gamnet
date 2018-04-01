@@ -53,19 +53,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				break;
 			}
 
-			LOG(DEV, "[link_key:", link_key, "] msg_seq:", recv_packet->GetSEQ(), ", msg_id:", recv_packet->GetID());
-			uint32_t recvMsgSEQ = recv_packet->GetSEQ();
-			if(recvMsgSEQ > msg_seq)
-			{
-				msg_seq = recvMsgSEQ;
-				link_manager->OnRecvMsg(shared_from_this(), recv_packet);
-			}
-#ifdef _DEBUG
-			else
-			{
-				LOG(WRN, "[link_key:", link->link_key, "] discard message(msg_seq:", recv_packet->GetSEQ(), ", expect:", msg_seq + 1, ")");
-			}
-#endif
+			link_manager->OnRecvMsg(shared_from_this(), recv_packet);
+
 			recv_packet->Remove(totalLength);
 			if (0 < recv_packet->Size())
 			{
