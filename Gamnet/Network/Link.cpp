@@ -225,7 +225,6 @@ void Link::Close(int reason)
 	{
 		try 
 		{
-			link_manager->Close();
 			link_manager->OnClose(shared_from_this(), reason);
 		}
 		catch (const Exception& e)
@@ -235,20 +234,22 @@ void Link::Close(int reason)
 
 		socket.close();
 	}
+	link_manager->Remove(link_key);
+	AttachSession(nullptr);
 }
 
 void Link::AttachSession(const std::shared_ptr<Session> session)
 {
 	if(nullptr != this->session)
 	{
-		//this->session->link = nullptr;
+		this->session->link = nullptr;
 		this->session->remote_address = nullptr;
 		this->session = nullptr;
 	}
 
 	if(nullptr != session)
 	{
-		//session->link = shared_from_this();
+		session->link = shared_from_this();
 		this->session = session;
 		this->session->remote_address = &(remote_address);
 	}

@@ -44,6 +44,7 @@ void LinkManager::Accept()
 
 void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error)
 {
+	LOG(DEV, "[link_key:", link->link_key, "] error_code:", error.value());
 	Accept();
 
 	if(0 == error)
@@ -54,8 +55,10 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 			link->remote_address = link->socket.remote_endpoint().address();
 			link->AsyncRead();
 
-			std::shared_ptr<Session> session = link->session;
 			OnAccept(link);
+
+			std::lock_guard<std::mutex> lo(_lock);
+			_links.insert(std::make_pair(link->link_key, link));
 		}
 		catch(const boost::system::system_error& e)
 		{
@@ -79,31 +82,26 @@ std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeo
 		return nullptr;
 	}
 
-	if (nullptr == link->session)
 	{
-		LOG(GAMNET_ERR, "[link_manager:", _name, ", link_key:", link->link_key, "] link refers null session pointer");
-		assert(link->session);
+		std::lock_guard<std::mutex> lo(_lock);
+		_links.insert(std::make_pair(link->link_key, link));
 	}
-
 	link->Connect(host, port, timeout);
-
+	
 	return link;
 }
 
 
-void LinkManager::Close()
+void LinkManager::Remove(uint32_t linkKey)
 {
+	std::lock_guard<std::mutex> lo(_lock);
+	_links.erase(linkKey);
 	if(false == _is_acceptable)
 	{
-		std::lock_guard<std::mutex> lo(_lock);
-		if(false == _is_acceptable)
+		if(0 < Available())
 		{
-			LOG(GAMNET_INF, "new connection is available");
-			if(0 < Available())
-			{
-				_is_acceptable = true;
-				Accept();
-			}
+			_is_acceptable = true;
+			Accept();
 		}
 	}
 }

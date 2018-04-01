@@ -102,8 +102,6 @@ public :
 
 	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
 	{
-		std::lock_guard<std::mutex> lo(lock);
-		links.insert(std::make_pair(link->link_key, link));
 	}
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
@@ -159,7 +157,7 @@ public :
 			return;
 		}
 		session->OnDestroy();
-		session_manager.Remove(session->session_key);
+		session_manager.Remove(session_key);
 	}
 
 	template <class FUNC, class FACTORY>
@@ -185,11 +183,10 @@ public :
 
 			session->session_token = Session::GenerateSessionToken(session->session_key);
 			session->OnCreate();
-
-			session->link = link;
 			link->AttachSession(session);
-
+			session_manager.Add(session->session_key, session);
 			session->OnAccept();
+
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
 		}
@@ -254,7 +251,6 @@ public :
 				});
 			}
 
-			session->link = link;
 			link->AttachSession(session);
 			session->OnAccept();
 		}
@@ -306,12 +302,14 @@ public :
 
 	void Recv_Close_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
-		if(nullptr == link->session)
+		std::shared_ptr<Network::Session> session = link->session;
+		link->Close(ErrorCode::Success);
+		if(nullptr == session)
 		{
+			LOG(DEV, "[link_key:", link->link_key, "] null session");
 			return;
 		}
-		Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(link->session->session_key);
-		link->Close(ErrorCode::Success);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(session->session_key);
 	}
 
 	Json::Value State()
