@@ -31,10 +31,13 @@ void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const 
 	catch(const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		MsgSvrCli_Kickout_Ntf ntf;
-		ntf.error_code = e.error_code();
-		Gamnet::Network::Tcp::SendMsg(session, ntf);
+		MsgSvrCli_Kickout_Ntf ntfToCli;
+		ntfToCli.error_code = e.error_code();
+		Gamnet::Network::Tcp::SendMsg(session, ntfToCli);
 	}
+	MsgSvrCli_HeartBeat_Ntf ntfToCli;
+	LOG(DEV, "MsgSvrCli_HeartBeat_Ntf(session_key:", session->session_key, ", msg_seq:", ntf.msg_seq, ")");
+	Gamnet::Network::Tcp::SendMsg(session, ntfToCli);
 }
 
 GAMNET_BIND_TCP_HANDLER(
@@ -42,4 +45,32 @@ GAMNET_BIND_TCP_HANDLER(
 	MsgCliSvr_HeartBeat_Ntf,
 	Handler_HeartBeat, Recv_Ntf,
 	HandlerStatic
+);
+
+static std::atomic_uint msg_seq;
+void Test_CliSvr_HeartBeat_Ntf(const std::shared_ptr<TestSession>& session)
+{
+	MsgCliSvr_HeartBeat_Ntf ntf;
+	ntf.msg_seq = ++msg_seq;
+	Gamnet::Test::SendMsg(session, ntf);
+}
+
+void Test_SvrCli_HeartBeat_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+{
+	MsgSvrCli_HeartBeat_Ntf ntf;
+	try {
+		if(false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
+		{
+			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "message load fail");
+		}
+	}
+	catch(const Gamnet::Exception& e) {
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+	}
+}
+
+GAMNET_BIND_TEST_HANDLER(
+	TestSession, "Test_HeartBeat",
+	MsgCliSvr_HeartBeat_Ntf, MsgSvrCli_HeartBeat_Ntf,
+	Test_CliSvr_HeartBeat_Ntf, Test_SvrCli_HeartBeat_Ntf
 );

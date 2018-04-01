@@ -11,6 +11,7 @@ endif()
 if(LINUX)
 	include_directories(
 	   	/usr/include/mysql
+		/usr/local/include/Gamnet
 	)
 	link_directories(
 		/usr/lib/x86_64-linux-gnu

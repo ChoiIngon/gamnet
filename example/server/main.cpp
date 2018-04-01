@@ -8,6 +8,7 @@ int main() {
 
 	try {
 		Gamnet::Network::Tcp::Listen<Session>(20000, 1024, 300);
+/*
 		Gamnet::Network::Http::Listen(20001);
 		Gamnet::Network::Router::Listen("GAME", 20002,
 			[](const Gamnet::Network::Router::Address& addr) {
@@ -26,6 +27,7 @@ int main() {
 				LOG(DEV, "Router::OnClose(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
 			}
 		);
+*/
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
 		Gamnet::Run(std::thread::hardware_concurrency());
 	}

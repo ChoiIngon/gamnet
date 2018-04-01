@@ -27,7 +27,6 @@ void Session::Pause()
 void Session::Resume()
 {
 	is_pause = false;
-	test_seq++;
 }
 
 }}/* namespace Gamnet */

@@ -12,7 +12,8 @@
 	<database name="DB_NAME_2" id="2" host="some.host.com" port="3306" user="user_id" passwd="user_passwd" db="db_name_2" />
 	-->
 	
-	<test host="127.0.0.1" port="20000" session_count="1" loop_count="1" interval="100">
+	<test host="127.0.0.1" port="20000" session_count="100" loop_count="1000" interval="100">
 		<message name="Test_Login"/>
+		<message name="Test_HeartBeat"/>
 	</test>
 </server>

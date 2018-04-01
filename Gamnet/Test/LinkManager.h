@@ -58,6 +58,7 @@ public :
 
 		RegisterSendHandler("__connect__", std::bind(&LinkManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1));
 		RegisterRecvHandler("__connect__", (uint32_t)Network::Tcp::LinkManager<SESSION_T>::MsgID_SvrCli_Connect_Ans, std::bind(&LinkManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2), 1);
+		RegisterRecvHandler("__connect__", (uint32_t)Network::Tcp::LinkManager<SESSION_T>::MsgID_SvrCli_Reconnect_Ans, std::bind(&LinkManager<SESSION_T>::Recv_Reconnect_Ans, this, std::placeholders::_1, std::placeholders::_2), 1);
 	}
 
 	virtual ~LinkManager()
@@ -85,12 +86,34 @@ public :
 			{
 				if(this->Size() >= session_count || 0 == this->Available())
 				{
-						
 					break;
 				}
 
 				thread_pool.PostTask([this]() {
-					this->Connect(this->host.c_str(), this->port, 5);
+					std::shared_ptr<Network::Link> link = this->Create();
+					if(nullptr == link)
+					{
+						LOG(ERR, "[link_manager:", this->_name, "] can not create link. connect fail(pool_size:", this->Available(), ", host:", this->host, ", port:", this->port);
+						return;
+					}
+
+					std::shared_ptr<SESSION_T> session = this->session_pool.Create();
+					if(nullptr == session)
+					{
+						LOG(ERR, "[link_manager:", this->_name, "] can not create session. connect fail(pool_size:", this->Available(), ", host:", this->host, ", port:", this->port);
+						return;
+					}
+	
+					session->session_key = 0;
+					session->session_token = "";
+					link->AttachSession(session);
+
+					{
+						std::lock_guard<std::mutex> lo(this->_lock);
+						this->_links.insert(std::make_pair(link->link_key, link));
+					}
+					this->session_manager.Add(session->session_key, session);
+					link->Connect(this->host.c_str(), this->port, 5);
 				});
 
 				this->execute_count++;
@@ -128,23 +151,20 @@ public :
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
-		std::shared_ptr<SESSION_T> session = Network::Tcp::LinkManager<SESSION_T>::session_pool.Create();
-		if(nullptr == session)
-		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link->link_key, "] can not create session instance");
-		}
-	
-		session->session_key = 0;
-		session->session_token = "";
-		link->AttachSession(session);
-
 		thread_pool.PostTask([this, link]() {
 			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-			if(0 == session->test_seq && 0 < (int)this->execute_order.size())
+			if(0 < this->execute_order.size())
 			{
-				const std::shared_ptr<TestExecuteInfo>& info = execute_order[0];
-				info->send_handler(session);
-				info->execute_count++;
+				if(0 == session->test_seq)
+				{
+					const std::shared_ptr<TestExecuteInfo>& info = execute_order[0];
+					info->send_handler(session);
+					info->execute_count++;
+				}
+				else 
+				{
+					this->Send_Reconnect_Req(session);
+				}
 			}
 		});
 	}
@@ -305,6 +325,54 @@ public :
 		Network::Tcp::LinkManager<SESSION_T>::session_manager.Add(session->session_key, session);
 	}
 
+	void Send_Reconnect_Req(const std::shared_ptr<SESSION_T>& session)
+	{
+		LOG(DEV, "[session_key:", session->session_key, "]");
+		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
+		if(nullptr == link)
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ")");
+		}
+
+		Json::Value req;
+		req["session_key"] = session->session_key;
+		req["session_token"] = session->session_token;
+
+		Json::StyledWriter writer;
+		std::string str = writer.write(req);
+
+		Network::Tcp::Packet::Header header;
+		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Reconnect_Req;
+		header.msg_seq = ++link->msg_seq;
+		header.length = (uint16_t)(Network::Tcp::Packet::HEADER_SIZE + str.length() + 1);
+
+		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
+		if(nullptr == req_packet)
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create packet");
+		}
+		req_packet->Write(header, str.c_str(), str.length() + 1);
+		session->AsyncSend(req_packet);
+	}
+
+	void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+	{
+		std::string json = std::string(packet->ReadPtr() + Network::Tcp::Packet::HEADER_SIZE, packet->Size());
+		Json::Value ans;
+		Json::Reader reader;
+		if (false == reader.parse(json, ans))
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
+		}
+
+		if(ErrorCode::Success != ans["error_code"].asInt())
+		{
+			session->link->Close(ans["error_code"].asInt());
+			return;
+		}	
+		session->OnConnect();
+		session->Resume();
+	}
 	void Send_Close_Ntf(const std::shared_ptr<SESSION_T>& session)
 	{
 		if(nullptr == session)

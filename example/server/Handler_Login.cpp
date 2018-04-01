@@ -66,7 +66,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_Login_Ans(user_seq:", ans.user_data.user_seq, ", error_code:", (int)ans.error_code, ")");
+	LOG(DEV, "MsgSvrCli_Login_Ans(session_key:", session->session_key, ", user_seq:", ans.user_data.user_seq, ", error_code:", (int)ans.error_code, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
@@ -84,6 +84,7 @@ void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 	Gamnet::Test::SendMsg(session, req);
 }
 
+static std::atomic_uint msg_seq;
 void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgSvrCli_Login_Ans ans;
@@ -98,11 +99,13 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 			assert(!"item size over");
 		}
 		session->user_data = ans.user_data;
-		LOG(DEV, "user_seq:", session->user_data.user_seq, ", session_token:", session->session_token);
+
 	}
 	catch(const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
+
+	session->Reconnect();
 }
 
 GAMNET_BIND_TEST_HANDLER(
