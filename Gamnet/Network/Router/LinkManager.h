@@ -25,6 +25,7 @@ public :
 	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose);
 	void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose);
 
+	virtual std::shared_ptr<Network::Link> Create() override;
 	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override;
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override;
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override;

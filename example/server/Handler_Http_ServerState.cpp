@@ -29,6 +29,6 @@ void Handler_Http_ServerState::Recv_Req(const std::shared_ptr<Gamnet::Network::H
 	Gamnet::Network::Http::SendMsg(session, res);
 }
 
-GAMNET_BIND_HTTP_HANDLER("test/server_state", Handler_Http_ServerState, Recv_Req);
+GAMNET_BIND_HTTP_HANDLER("server_state", Handler_Http_ServerState, Recv_Req);
 
 

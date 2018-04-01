@@ -19,37 +19,39 @@ namespace Gamnet { namespace Network { namespace Router {
 	}
 
 	template <class MSG>
-	bool SendMsg(const std::shared_ptr<Network::Tcp::Session>& session, const Address& addr, const MSG& msg)
+	void SendMsg(const std::shared_ptr<Network::Tcp::Session>& session, const Address& addr, const MSG& msg)
 	{
-		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
-		if(NULL == packet)
+		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
+		if(nullptr == link)
 		{
-			return false;
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+		}
+
+		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+		if(nullptr == packet)
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 
 		uint32_t msg_seq = 0;
-		if(NULL != session)
+		if(nullptr != session)
 		{
-			msg_seq = session->msg_seq;
-		}
-		if(false == packet->Write(msg_seq, msg))
-		{
-			return false;
+			msg_seq = link->msg_seq;
 		}
 
-		if(false == Singleton<RouterCaster>::GetInstance().SendMsg(session, addr, packet->ReadPtr(), (int)packet->Size()))
+		if(false == packet->Write(msg_seq, msg))
 		{
-			return false;
+			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
-		return true;
+
+		Singleton<RouterCaster>::GetInstance().SendMsg(session, addr, packet->ReadPtr(), (int)packet->Size());
 	}
 
 	template <class MSG>
-	bool SendMsg(const Address& addr, const MSG& msg)
+	void SendMsg(const Address& addr, const MSG& msg)
 	{
-		return SendMsg(NULL, addr, msg);
+		SendMsg(nullptr, addr, msg);
 	}
-
 }}}
 
 #define GAMNET_BIND_ROUTER_HANDLER(message_type, class_type, func, policy) \

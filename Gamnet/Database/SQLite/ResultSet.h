@@ -7,8 +7,12 @@
 #include "../../Library/Variant.h"
 
 namespace Gamnet { namespace Database { namespace SQLite {
+	class Connection;
+
 	struct ResultSetImpl 
 	{
+		std::shared_ptr<Connection> conn_;
+
 		std::map<std::string, unsigned short> mapColumnName_;
 		std::vector<std::vector<std::string>> vecRows_;
 		uint32_t rowCount_;

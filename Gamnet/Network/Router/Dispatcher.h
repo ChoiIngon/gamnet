@@ -55,21 +55,22 @@ public:
 		if(ROUTER_CAST_TYPE::UNI_CAST == from.cast_type && Network::IHandlerFactory::HANDLER_FACTORY_FIND == handler_function.factory_->GetFactoryType())
 		{
 			std::shared_ptr<Session> router_session = Singleton<RouterCaster>::GetInstance().FindSession(from);
-			if(NULL == router_session)
+			if(nullptr == router_session)
 			{
 				LOG(GAMNET_ERR, "can't find registered address");
 				return ;
 			}
 
 			std::shared_ptr<Network::Tcp::Session> network_session = router_session->watingSessionManager_.FindSession(from.msg_seq);
-			if(NULL == network_session)
+			if(nullptr == network_session)
 			{
 				LOG(GAMNET_ERR, "can't find session(msg_seq:", from.msg_seq, ")");
 				return;
 			}
 
+			std::shared_ptr<Network::Link> link = network_session->link;
 			{
-				auto thread_safe_function = network_session->strand.wrap([network_session, handler_function, msg_id, from, packet](){
+				auto thread_safe_function = link->strand.wrap([network_session, handler_function, msg_id, from, packet](){
 					std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
 					if(NULL == handler)
 					{

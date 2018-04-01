@@ -49,6 +49,29 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	Network::LinkManager::Listen(port);
 }
 
+std::shared_ptr<Network::Link> LinkManager::Create()
+{ 
+	std::shared_ptr<Network::Link> link = Tcp::LinkManager<Session>::Create(); 
+	if(nullptr == link) 
+	{ 
+		LOG(ERR, "[link_manager:", _name, "] can not create 'Router::Link' instance"); 
+		return nullptr; 
+	} 
+
+	std::shared_ptr<Session> session = session_pool.Create(); 
+	if(nullptr == session) 
+	{ 
+		LOG(ERR, "[link_manager:", _name, "] can not create session");
+		return nullptr;
+	}
+	
+	session->OnCreate();
+	link->AttachSession(session);
+
+	std::lock_guard<std::mutex> lo(this->_lock);
+	this->_links.insert(std::make_pair(link->link_key, link));
+} 
+
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
 {
 	std::shared_ptr<Network::Link> link = Network::LinkManager::Connect(host, port, timeout);
@@ -72,6 +95,7 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 	}
 
 	session->OnAccept();
+	session_manager.Add(session->session_key, session);
 	_cast_group->AddSession(session);
 }
 

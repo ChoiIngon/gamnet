@@ -16,6 +16,7 @@ namespace Gamnet { namespace Database { namespace SQLite {
 		std::shared_ptr<Connection> conn = Singleton<Database::ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
 		ResultSet res;
 		res.impl_ = conn->Execute(query);
+		res.impl_->conn_ = conn;
 		return res;
 	}
 }}}

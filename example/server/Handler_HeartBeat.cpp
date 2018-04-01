@@ -21,12 +21,13 @@ void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const 
 		{
 			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::InvalidUserError), "invalid user(session_key:", session->session_key, ")");
 		}
-		
+	/*	
 		if(1 != ntf.msg_seq - session->ack_seq)
 		{
 			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageSeqOmmitError), "(recv:", ntf.msg_seq, ", expect:", session->ack_seq + 1, ")");
 		}
 		session->ack_seq = ntf.msg_seq;
+	*/
 	}
 	catch(const Gamnet::Exception& e)
 	{
