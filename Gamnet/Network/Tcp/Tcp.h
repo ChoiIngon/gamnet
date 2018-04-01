@@ -41,21 +41,23 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	template <class SESSION_T, class MSG>
-	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg)
+	void SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg)
 	{
-		std::shared_ptr<Packet> packet = Packet::Create();
-		if(NULL == packet)
+		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
+		if(nullptr == link)
 		{
-			LOG(GAMNET_ERR, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
-		if(false == packet->Write<MSG>(session->msg_seq, msg))
+		std::shared_ptr<Packet> packet = Packet::Create();
+		if(nullptr == packet)
 		{
-			LOG(GAMNET_ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+		}
+		if(false == packet->Write<MSG>(link->msg_seq, msg))
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 		session->AsyncSend(packet);
-		return true;
 	}
 
 	boost::asio::ip::address GetLocalAddress();

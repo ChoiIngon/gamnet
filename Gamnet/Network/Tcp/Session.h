@@ -10,8 +10,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 class Session : public Network::Session
 {
 public :
-	std::atomic<uint32_t> msg_seq;
-
 	Session();
 	virtual ~Session();
 

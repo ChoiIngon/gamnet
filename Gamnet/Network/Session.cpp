@@ -41,6 +41,7 @@ void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 	std::shared_ptr<Link> _link = link;
 	if(nullptr == _link)
 	{
+		LOG(ERR, "invalid link[session_key:", session_key, "]");
 		return;
 	}
 	_link->AsyncSend(buffer);
@@ -50,6 +51,7 @@ void Session::AsyncSend(const char* data, int length)
 	std::shared_ptr<Link> _link = link;
 	if (nullptr == _link)
 	{
+		LOG(ERR, "invalid link[session_key:", session_key, "]");
 		return;
 	}
 	_link->AsyncSend(data, length);

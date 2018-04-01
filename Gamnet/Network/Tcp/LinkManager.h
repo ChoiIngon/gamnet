@@ -168,6 +168,7 @@ public :
 
 	void Recv_Connect_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) 
 	{
+		LOG(DEV, "[link_key:", link->link_key, "]");	
 		Json::Value ans;
 		ans["error_code"] = 0;
 		ans["session_key"] = 0;
@@ -189,6 +190,7 @@ public :
 
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
+			LOG(DEV, "[link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
 		}
 		catch (const Exception& e)
 		{

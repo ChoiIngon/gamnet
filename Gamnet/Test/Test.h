@@ -32,22 +32,25 @@ namespace Gamnet { namespace Test {
 	}
 
 	template <class SESSION_T, class MSG>
-	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg)
+	void SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg)
 	{
-		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
-		if (NULL == packet)
+		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
+		if(nullptr == link)
 		{
-			LOG(ERR, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
-		session->msg_seq++;
-		if (false == packet->Write(session->msg_seq, msg))
+
+		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+		if(nullptr == packet)
 		{
-			LOG(ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+		}
+
+		if (false == packet->Write(++link->msg_seq, msg))
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 		session->AsyncSend(packet);
-		return true;
 	}
 
 	template<class SESSION_T>

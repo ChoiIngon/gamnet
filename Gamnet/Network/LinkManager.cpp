@@ -44,7 +44,6 @@ void LinkManager::Accept()
 
 void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error)
 {
-	LOG(DEV, "[link_key:", link->link_key, "] error_code:", error.value());
 	Accept();
 
 	if(0 == error)

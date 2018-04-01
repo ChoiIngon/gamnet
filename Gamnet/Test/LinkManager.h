@@ -87,27 +87,9 @@ public :
 				{
 					break;
 				}
-				std::shared_ptr<Network::Link> link = this->Create();
-				if (nullptr == link)
-				{
-					LOG(GAMNET_ERR, "can not create link(link_count:", this->Size(), ", avaiable:", this->Available(), ", capacity:", this->Capacity(), ")");
-					return;
-				}
 
-				std::shared_ptr<SESSION_T> session = this->session_pool.Create();
-				if (nullptr == session)
-				{
-					LOG(GAMNET_ERR, "can not create session(max:", this->session_pool.Capacity(), ", current:", this->session_pool.Available(), ")");
-					link->Close(ErrorCode::InvalidSessionError);
-					return;
-				}
-				
-				session->test_seq = 0;
-
-				link->AttachSession(session);
-				session->OnCreate();
-				thread_pool.PostTask([this, link]() {
-					link->Connect(this->host.c_str(), this->port, 5);
+				thread_pool.PostTask([this]() {
+					this->Connect(this->host.c_str(), this->port, 5);
 				});
 
 				this->execute_count++;
@@ -145,6 +127,16 @@ public :
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
+		std::shared_ptr<SESSION_T> session = Network::Tcp::LinkManager<SESSION_T>::session_pool.Create();
+		if(nullptr == session)
+		{
+			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link->link_key, "] can not create session instance");
+		}
+	
+		session->session_key = 0;
+		session->session_token = "";
+		link->AttachSession(session);
+
 		thread_pool.PostTask([this, link]() {
 			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 			if(0 == session->test_seq && 0 < (int)this->execute_order.size())
@@ -272,7 +264,7 @@ public :
 	{
 		Network::Tcp::Packet::Header header;
 		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Connect_Req;
-		header.msg_seq = ++session->msg_seq;
+		header.msg_seq = 1;
 		header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
@@ -297,9 +289,12 @@ public :
 
 		if(ErrorCode::Success == ans["error_code"].asInt())
 		{
+			session->session_key = ans["session_key"].asUInt();
 			session->session_token = ans["session_token"].asString();
 		}
+		session->OnCreate();
 		session->OnConnect();
+		Network::Tcp::LinkManager<SESSION_T>::session_manager.Add(session->session_key, session);
 	}
 
 	void Send_Close_Ntf(const std::shared_ptr<SESSION_T>& session)
@@ -311,7 +306,7 @@ public :
 		}
 		Network::Tcp::Packet::Header header;
 		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Close_Ntf;
-		header.msg_seq = ++session->msg_seq;
+		header.msg_seq = ++std::static_pointer_cast<Network::Tcp::Link>(session->link)->msg_seq;
 		header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();

@@ -18,6 +18,7 @@ public:
 	virtual void OnConnect() {}
 	virtual void OnClose(int reason) override {}
 
+	bool Init() override;
 	void Pause();
 	void Resume();
 };

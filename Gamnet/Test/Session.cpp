@@ -8,6 +8,16 @@ Session::Session() : test_seq(-1), is_pause(false) {
 Session::~Session() {
 }
 
+bool Session::Init()
+{
+	if(false == Network::Session::Init())
+	{
+		return false;
+	}
+	test_seq = 0;
+	return true;
+}
+
 void Session::Pause()
 {
 	is_pause = true;

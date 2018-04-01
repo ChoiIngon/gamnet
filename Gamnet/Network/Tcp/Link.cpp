@@ -53,8 +53,11 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				break;
 			}
 
-			if(msg_seq < recv_packet->GetSEQ())
+			LOG(DEV, "[link_key:", link_key, "] msg_seq:", recv_packet->GetSEQ(), ", msg_id:", recv_packet->GetID());
+			uint32_t recvMsgSEQ = recv_packet->GetSEQ();
+			if(recvMsgSEQ > msg_seq)
 			{
+				msg_seq = recvMsgSEQ;
 				link_manager->OnRecvMsg(shared_from_this(), recv_packet);
 			}
 #ifdef _DEBUG
