@@ -19,7 +19,7 @@ namespace Gamnet { namespace Network { namespace Router {
 	}
 
 	template <class MSG>
-	void SendMsg(const std::shared_ptr<Network::Tcp::Session>& session, const Address& addr, const MSG& msg)
+	bool SendMsg(const std::shared_ptr<Network::Tcp::Session>& session, const Address& addr, const MSG& msg)
 	{
 		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
 		if(nullptr == link)
@@ -44,7 +44,7 @@ namespace Gamnet { namespace Network { namespace Router {
 			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 
-		Singleton<RouterCaster>::GetInstance().SendMsg(session, addr, packet->ReadPtr(), (int)packet->Size());
+		return Singleton<RouterCaster>::GetInstance().SendMsg(session, addr, packet->ReadPtr(), (int)packet->Size());
 	}
 
 	template <class MSG>
