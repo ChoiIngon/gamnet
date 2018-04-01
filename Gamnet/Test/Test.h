@@ -37,7 +37,8 @@ namespace Gamnet { namespace Test {
 		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
 		if(nullptr == link)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			LOG(ERR, "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			return;
 		}
 
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();

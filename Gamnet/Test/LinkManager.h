@@ -314,11 +314,14 @@ public :
 			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
 		}
 
-		if(ErrorCode::Success == ans["error_code"].asInt())
+		if(ErrorCode::Success != ans["error_code"].asInt())
 		{
-			session->session_key = ans["session_key"].asUInt();
-			session->session_token = ans["session_token"].asString();
-		}
+			session->link->Close(ans["error_code"].asInt());
+			return;
+		}	
+
+		session->session_key = ans["session_key"].asUInt();
+		session->session_token = ans["session_token"].asString();
 		session->OnCreate();
 		session->OnConnect();
 		Network::Tcp::LinkManager<SESSION_T>::session_manager.Add(session->session_key, session);
