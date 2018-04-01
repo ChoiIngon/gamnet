@@ -68,8 +68,11 @@ std::shared_ptr<Network::Link> LinkManager::Create()
 	session->OnCreate();
 	link->AttachSession(session);
 
-	std::lock_guard<std::mutex> lo(this->_lock);
-	this->_links.insert(std::make_pair(link->link_key, link));
+	{
+		std::lock_guard<std::mutex> lo(this->_lock);
+		this->_links.insert(std::make_pair(link->link_key, link));
+	}
+	return link;
 } 
 
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)

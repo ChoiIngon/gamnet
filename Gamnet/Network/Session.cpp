@@ -141,6 +141,7 @@ bool SessionManager::Add(uint32_t key, const std::shared_ptr<Session>& session)
 	if(false == _sessions.insert(std::make_pair(key, session)).second)
 	{
 		LOG(GAMNET_ERR, "[link_key:", session->link->link_key, ", session_key:", key, "] duplicated session key");
+		assert(!"duplicate session");
 		return false;
 	}
 	

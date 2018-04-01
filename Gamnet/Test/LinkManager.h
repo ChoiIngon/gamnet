@@ -112,7 +112,6 @@ public :
 						std::lock_guard<std::mutex> lo(this->_lock);
 						this->_links.insert(std::make_pair(link->link_key, link));
 					}
-					this->session_manager.Add(session->session_key, session);
 					link->Connect(this->host.c_str(), this->port, 5);
 				});
 
