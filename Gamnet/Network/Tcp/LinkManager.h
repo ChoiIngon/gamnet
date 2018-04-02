@@ -111,8 +111,7 @@ public :
 		{
 			session->OnClose(reason);
 		}
-
-		link->AttachSession(nullptr);
+		
 		std::lock_guard<std::mutex> lo(lock);
 		links.erase(link->link_key);
 	}
@@ -121,16 +120,18 @@ public :
 	{
 		const std::shared_ptr<Packet>& packet = std::static_pointer_cast<Packet>(buffer);
 			
-		uint32_t msg_seq = packet->GetSEQ();
+		uint32_t msgSEQ = packet->GetSEQ();
+		uint32_t msgID = packet->GetID();
+
 		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
-		if(msg_seq <= tcpLink->msg_seq)
+		if(msgSEQ <= tcpLink->msg_seq)
 		{
-			LOG(WRN, "[link_key:", link->link_key, "] discard message(received msg_seq:", msg_seq, ", expected msg_seq:", tcpLink->msg_seq + 1, ")");
+			LOG(WRN, "[link_key:", link->link_key, "] discard message(msg_id:", packet->GetID(), ", received msg_seq:", msgSEQ, ", expected msg_seq:", tcpLink->msg_seq + 1, ")");
 			return;
 		}
 
-		tcpLink->msg_seq = msg_seq;
-		uint32_t msgID = packet->GetID();
+		tcpLink->msg_seq = msgSEQ;
+		
 		if(MSG_ID::MsgID_Max <= msgID)
 		{
 			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);

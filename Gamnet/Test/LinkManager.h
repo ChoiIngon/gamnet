@@ -152,6 +152,7 @@ public :
 	{
 		thread_pool.PostTask([this, link]() {
 			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+			std::lock_guard<std::recursive_mutex> lo(session->lock);
 			if(0 < this->execute_order.size())
 			{
 				if(0 == session->test_seq)
@@ -170,14 +171,18 @@ public :
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 	{
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		Send_Close_Ntf(session);
 		Network::Tcp::LinkManager<SESSION_T>::OnClose(link, reason);
-		if(nullptr != session)
+
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		if(nullptr == session)
 		{
-			session->OnDestroy();
-			Network::Tcp::LinkManager<SESSION_T>::session_manager.Remove(session->session_key);
+			return;
 		}
+		
+		std::lock_guard<std::recursive_mutex> lo(session->lock);
+		Send_Close_Ntf(session);
+		session->OnDestroy();
+		Network::Tcp::LinkManager<SESSION_T>::session_manager.Remove(session->session_key);
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
@@ -191,6 +196,7 @@ public :
 			return;
 		}
 		
+		std::lock_guard<std::recursive_mutex> lo(session->lock);
 		if(session->test_seq < (int)this->execute_order.size())
 		{
 			uint32_t msg_id = packet->GetID();
@@ -224,6 +230,11 @@ public :
 				try
 				{ 
 					thread_pool.PostTask([next_execute_info, session]() {
+						std::lock_guard<std::recursive_mutex> lo(session->lock);
+						if(nullptr == session->link)
+						{
+							return;
+						}
 						next_execute_info->send_handler(session);
 					});
 				}

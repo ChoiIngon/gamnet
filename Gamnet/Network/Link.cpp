@@ -120,7 +120,7 @@ void Link::AsyncRead()
 			}
 			catch(const Exception& e)
 			{
-				LOG(ERR, "[link key:", self->link_key, "] uncaught exception(error_code:", e.error_code(), ", error_msg:", e.what());
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), ", link key:", self->link_key, ", session_key:", (nullptr != self->session ? self->session->session_key : 0));
 				self->Close(e.error_code());
 				return;
 			}

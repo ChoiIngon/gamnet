@@ -22,17 +22,17 @@ Packet::~Packet()
 
 uint16_t Packet::GetLength() const
 {
-	return *((uint16_t*)(data + OFFSET_LENGTH));
+	return *((uint16_t*)(data + readCursor_ + OFFSET_LENGTH));
 }
 
 uint32_t Packet::GetSEQ() const
 {
-	return *((uint32_t*)(data + OFFSET_MSGSEQ));
+	return *((uint32_t*)(data + readCursor_ + OFFSET_MSGSEQ));
 }
 
 uint32_t Packet::GetID() const
 {
-	return  *((uint32_t*)(data + OFFSET_MSGID));
+	return  *((uint32_t*)(data + readCursor_ + OFFSET_MSGID));
 }
 
 static Pool<Packet, std::mutex, Packet::Init> packetPool_(65535);

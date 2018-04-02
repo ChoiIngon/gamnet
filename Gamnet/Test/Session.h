@@ -7,6 +7,7 @@ namespace Gamnet { namespace Test {
 
 class Session : public Network::Tcp::Session {
 public:
+	std::recursive_mutex lock;
 	int test_seq;
 	bool is_pause;
 

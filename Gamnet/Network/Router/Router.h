@@ -21,22 +21,22 @@ namespace Gamnet { namespace Network { namespace Router {
 	template <class MSG>
 	bool SendMsg(const std::shared_ptr<Network::Tcp::Session>& session, const Address& addr, const MSG& msg)
 	{
-		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
-		if(nullptr == link)
+		uint32_t msg_seq = 0;
+		if(nullptr != session)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
+			if(nullptr == link)
+			{
+				throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			}
+
+			msg_seq = link->msg_seq;
 		}
 
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
 		{
 			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-		}
-
-		uint32_t msg_seq = 0;
-		if(nullptr != session)
-		{
-			msg_seq = link->msg_seq;
 		}
 
 		if(false == packet->Write(msg_seq, msg))

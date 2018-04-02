@@ -139,6 +139,7 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const st
 		return;
 	}
 
+	session->expire_time = ::time(nullptr);
 	const std::shared_ptr<Tcp::Packet>& packet = std::static_pointer_cast<Tcp::Packet>(buffer);
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().OnRecvMsg(session, packet);
 }
