@@ -111,7 +111,13 @@ public:
 		}
 		catch (const std::exception& e)
 		{
-			LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
+			std::shared_ptr<Network::Link> link = session->link;
+			if(nullptr != link)
+			{
+				link->Close(ErrorCode::UndefinedError);
+			}
+			return;
 		}
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
