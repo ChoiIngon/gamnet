@@ -87,7 +87,7 @@ void Buffer::Append(const char* buf, size_t size)
 	}
 	if(Available() < size)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BufferOverflowError), "not enough space(need:", size," bytes, left:", Available(), " bytes)");
+		throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "not enough space(need:", size," bytes, left:", Available(), " bytes)");
 	}
 
 	if(size > bufSize_ - writeCursor_)

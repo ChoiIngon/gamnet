@@ -28,7 +28,7 @@ void ReadXml(const char* xml_path)
 		const std::string db = elmt.second.get<std::string>("<xmlattr>.db");
 		if(false == Connect(id, host.c_str(), port, user.c_str(), passwd.c_str(), db.c_str()))
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::ConnectFailError), "database connect  fail(id:", id, ", host:", host, ", port:", port, ", user:", user, ", password:", passwd, ", db_name:", db);
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "database connect  fail(id:", id, ", host:", host, ", port:", port, ", user:", user, ", password:", passwd, ", db_name:", db);
 		}
 	}
 }

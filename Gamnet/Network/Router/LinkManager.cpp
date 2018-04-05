@@ -31,7 +31,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	local_address.id = Network::Tcp::GetLocalAddress().to_v4().to_ulong();
 	if(0 == local_address.id)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidAddressError), "unique router id is not set");
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "unique router id is not set");
 	}
 
 	_cast_group = Tcp::CastGroup::Create();
@@ -80,7 +80,7 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 	std::shared_ptr<Network::Link> link = Network::LinkManager::Connect(host, port, timeout);
 	if(nullptr == link)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "cannot create link instance");
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "cannot create link instance");
 	}
 
 	std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
@@ -94,7 +94,7 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	if(NULL == session)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link->link_key,"] invalid session");
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key,"] invalid session");
 	}
 
 	session->OnAccept();

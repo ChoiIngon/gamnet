@@ -140,12 +140,12 @@ ResultSet::iterator ResultSet::operator [] (unsigned int index)
 	iterator itr;
 	if (NULL == impl_ || NULL == impl_->res_)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid result set");
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid result set");
 	}
 
 	if (index >= mysql_num_rows(impl_->res_))
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidArrayRangeError), "out range row index(index:", index, ")");
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidArrayRangeError, "out range row index(index:", index, ")");
 	}
 	mysql_data_seek(impl_->res_, index);
 	itr.impl_ = impl_;
@@ -159,11 +159,11 @@ const std::string ResultSet::iterator::getString(const std::string& column_name)
 	auto itr = impl_->mapColumnName_.find(column_name);
 	if (impl_->mapColumnName_.end() == itr)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError), "Unknown column '", column_name, "' in 'field list'");
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "Unknown column '", column_name, "' in 'field list'");
 	}
 	if (NULL == row_)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid data");
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid data");
 	}
 
 	return row_[itr->second];
@@ -177,7 +177,7 @@ uint32_t ResultSet::iterator::getUInt(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 uint16_t ResultSet::iterator::getUInt16(const std::string& column_name)
@@ -188,7 +188,7 @@ uint16_t ResultSet::iterator::getUInt16(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 uint32_t ResultSet::iterator::getUInt32(const std::string& column_name)
@@ -199,7 +199,7 @@ uint32_t ResultSet::iterator::getUInt32(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 uint64_t ResultSet::iterator::getUInt64(const std::string& column_name)
@@ -210,7 +210,7 @@ uint64_t ResultSet::iterator::getUInt64(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 int32_t ResultSet::iterator::getInt(const std::string& column_name)
@@ -221,7 +221,7 @@ int32_t ResultSet::iterator::getInt(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 int16_t ResultSet::iterator::getInt16(const std::string& column_name)
@@ -232,7 +232,7 @@ int16_t ResultSet::iterator::getInt16(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 int32_t ResultSet::iterator::getInt32(const std::string& column_name)
@@ -243,7 +243,7 @@ int32_t ResultSet::iterator::getInt32(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 int64_t ResultSet::iterator::getInt64(const std::string& column_name)
@@ -254,7 +254,7 @@ int64_t ResultSet::iterator::getInt64(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 bool ResultSet::iterator::getBool(const std::string& column_name)
@@ -265,7 +265,7 @@ bool ResultSet::iterator::getBool(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 float ResultSet::iterator::getFloat(const std::string& column_name)
@@ -276,7 +276,7 @@ float ResultSet::iterator::getFloat(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 double ResultSet::iterator::getDouble(const std::string& column_name)
@@ -287,7 +287,7 @@ double ResultSet::iterator::getDouble(const std::string& column_name)
 	}
 	catch (const boost::bad_lexical_cast& /* e */)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::BadLexicalCastError), "column_name:", column_name);
+		throw GAMNET_EXCEPTION(ErrorCode::BadLexicalCastError, "column_name:", column_name);
 	}
 }
 

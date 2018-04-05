@@ -86,7 +86,7 @@ namespace Gamnet { namespace Database { namespace SQLite {
 		auto itr = impl_->mapColumnName_.find(column_name);
 		if (impl_->mapColumnName_.end() == itr)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError), "Unknown column '", column_name, "' in 'field list'");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "Unknown column '", column_name, "' in 'field list'");
 		}
 		
 		const std::vector<std::string>& row = *itr_;

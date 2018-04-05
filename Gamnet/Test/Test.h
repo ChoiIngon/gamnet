@@ -44,12 +44,12 @@ namespace Gamnet { namespace Test {
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 
 		if (false == packet->Write(++link->msg_seq, msg))
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 		session->AsyncSend(packet);
 	}

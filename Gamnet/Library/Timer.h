@@ -42,12 +42,14 @@ class Timer
 	};
 
 	std::shared_ptr<TimerEntry> entry_;
+	std::mutex lock_;
 	long interval_;
 	bool auto_reset_;
 	boost::asio::deadline_timer deadline_timer_;
 
 	void OnExpire(const boost::system::error_code& ec)
 	{
+		std::lock_guard<std::mutex> lo(lock_);
 		if (0 != ec)
 		{
 			return;
@@ -120,6 +122,7 @@ public :
 
 	void Cancel()
 	{
+		std::lock_guard<std::mutex> lo(lock_);
 		deadline_timer_.cancel();
 		entry_ = nullptr;
 	}

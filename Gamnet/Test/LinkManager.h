@@ -70,11 +70,11 @@ public :
 		log.Init("test", "test", 5);
 		if(0 == interval)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidArgumentError), " 'interval' should be set");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'interval' should be set");
 		}
 		if(0 == session_count)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidArgumentError), " 'session_count' should be set");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'session_count' should be set");
 		}
 
 		this->host = host;
@@ -256,7 +256,7 @@ public :
 		executeInfo->send_handler = send;
 		if (false == execute_infos.insert(std::make_pair(test_name, executeInfo)).second)
 		{
-			Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError), "(duplicate test case name(", test_name, ")");
+			GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "(duplicate test case name(", test_name, ")");
 		}
 	}
 
@@ -275,14 +275,14 @@ public :
 		auto itr_execute_info = execute_infos.find(test_name);
 		if(execute_infos.end() == itr_execute_info)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError),"can't find registered test case execute info(test_name:", test_name, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError,"can't find registered test case execute info(test_name:", test_name, ")");
 		}
 		const std::shared_ptr<TestExecuteInfo>& info = itr_execute_info->second;
 
 		auto itr_recv_handlers = recv_handlers.find(test_name);
 		if(recv_handlers.end() == itr_recv_handlers)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError),"can't find registered test case recv handler(test_name:", test_name, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError,"can't find registered test case recv handler(test_name:", test_name, ")");
 		}
 		
 		for(const std::shared_ptr<RecvHandlerInfo> recv_handler : itr_recv_handlers->second)
@@ -297,7 +297,7 @@ public :
 		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
 		if(nullptr == link)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
 		}
 
 		Network::Tcp::Packet::Header header;
@@ -308,7 +308,7 @@ public :
 		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
 		if(nullptr == req_packet)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create packet");
+			throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
 		}
 		req_packet->Write(header, nullptr, 0);
 
@@ -322,7 +322,7 @@ public :
 		Json::Reader reader;
 		if (false == reader.parse(json, ans))
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
 		}
 
 		if(ErrorCode::Success != ans["error_code"].asInt())
@@ -344,7 +344,7 @@ public :
 		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
 		if(nullptr == link)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
 		}
 
 		Json::Value req;
@@ -362,7 +362,7 @@ public :
 		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
 		if(nullptr == req_packet)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::CreateInstanceFailError), "can not create packet");
+			throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
 		}
 		req_packet->Write(header, str.c_str(), str.length() + 1);
 		session->AsyncSend(req_packet);
@@ -375,7 +375,7 @@ public :
 		Json::Reader reader;
 		if (false == reader.parse(json, ans))
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
 		}
 
 		if(ErrorCode::Success != ans["error_code"].asInt())
@@ -390,14 +390,14 @@ public :
 	{
 		if(nullptr == session)
 		{
-			LOG(GAMNET_ERR, GAMNET_ERRSTR(ErrorCode::InvalidSessionError));
+			LOG(GAMNET_ERR, "null session instance");
 			return;
 		}
 
 		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
 		if(nullptr == link)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
 		}
 
 		Network::Tcp::Packet::Header header;

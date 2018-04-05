@@ -190,7 +190,7 @@ public :
 			std::shared_ptr<SESSION_T> session = session_pool.Create();
 			if(nullptr == session)
 			{
-				throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link->link_key, "] can not create session instance");
+				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
 			}
 
 			session->session_token = Session::GenerateSessionToken(session->session_key);
@@ -237,7 +237,7 @@ public :
 			Json::Reader reader;
 			if (false == reader.parse(json, req))
 			{
-				throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "[link_key:", link->link_key, "] message format error(data:", json, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", link->link_key, "] message format error(data:", json, ")");
 			}
 
 			uint32_t session_key = req["session_key"].asUInt();
@@ -247,12 +247,12 @@ public :
 			const std::shared_ptr<SESSION_T> session = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
 			if (nullptr == session)
 			{
-				throw Exception(GAMNET_ERRNO(ErrorCode::InvalidSessionKeyError), "[link_key:", link->link_key, " ] can not find session data for reconnect(session_key:", session_key, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionKeyError, "[link_key:", link->link_key, " ] can not find session data for reconnect(session_key:", session_key, ")");
 			}
 
 			if(session_token != session->session_token)
 			{
-				throw Exception(GAMNET_ERRNO(ErrorCode::InvalidSessionTokenError), "[link_key:", link->link_key, "] invalid session token(expect:", session->session_token, ", receive:", session_token, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "[link_key:", link->link_key, "] invalid session token(expect:", session->session_token, ", receive:", session_token, ")");
 			}
 				
 			std::shared_ptr<Network::Tcp::Link> other = std::static_pointer_cast<Network::Tcp::Link>(session->link);

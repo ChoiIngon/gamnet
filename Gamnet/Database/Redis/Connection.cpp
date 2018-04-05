@@ -51,7 +51,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	{	
 		if (false == socket_.is_open())
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::ConnectFailError));
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
 		}
 	
 		socket_.write_some(boost::asio::buffer(query + "\r\n", query.length()+2));

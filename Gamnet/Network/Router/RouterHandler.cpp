@@ -11,12 +11,12 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "router message format error");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 		}
 
 		if(NULL == Singleton<RouterCaster>::GetInstance().FindSession(session->address))
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::InvalidAddressError), " receive a message from unregistered address(ip:", session->remote_address->to_string(), ", service_name:", session->address.service_name, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, " receive a message from unregistered address(ip:", session->remote_address->to_string(), ", service_name:", session->address.service_name, ")");
 		}
 	}
 	catch(const Gamnet::Exception& e) {
@@ -45,13 +45,13 @@ void RouterHandler::Recv_SetAddress_Req(const std::shared_ptr<Session>& session,
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "router message format error");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 		}
 		LOG(INF, "[Router] recv SetAddress_Req (", session->remote_address->to_string(), "->localhost, service_name:", req.local_address.service_name.c_str(), ")");
 
 		if (Singleton<LinkManager>::GetInstance().local_address == req.local_address)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidAddressError), "same router address(", req.local_address.service_name, ":", (int)req.local_address.cast_type, ":", req.local_address.id, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "same router address(", req.local_address.service_name, ":", (int)req.local_address.cast_type, ":", req.local_address.id, ")");
 		}
 		session->address = req.local_address;
 		ans.remote_address = Singleton<LinkManager>::GetInstance().local_address;
@@ -70,7 +70,7 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "router message format error");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 		}
 
 		if(ErrorCode::Success != ans.error_code)
@@ -104,7 +104,7 @@ void RouterHandler::Recv_SetAddress_Ntf(const std::shared_ptr<Session>& session,
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "router message format error");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 		}
 		LOG(GAMNET_INF, "[Router] recv SetAddress_Ntf (", session->remote_address->to_string(), "->localhost)");
 		Singleton<RouterCaster>::GetInstance().RegisterAddress(session->address, session);

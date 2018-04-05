@@ -47,7 +47,7 @@ const Variant& Request::operator[](const std::string& name) const
 	auto itr = params.find(name);
 	if(params.end() == itr)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError), "(key:", name, ")");
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "(key:", name, ")");
 	}
 
 	return itr->second;

@@ -38,12 +38,12 @@ void Link::Connect(const char* host, int port, int timeout)
 {
 	if(nullptr == host)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid host name");
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link_key, "] invalid host name");
 	}
 
 	if(nullptr == link_manager)
 	{
-		throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "[link_key:", link_key, "] invalid link manager");
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link_key, "] invalid link manager");
 	}
 
 	boost::asio::ip::tcp::resolver resolver_(io_service_);

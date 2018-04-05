@@ -19,7 +19,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	{
 		if (index >= impl_->size()) // no neet to compare with 0. size() returns unsigned int
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::InvalidArrayRangeError), "invalid index(index:", index, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidArrayRangeError, "invalid index(index:", index, ")");
 		}
 		return impl_->at(index);
 	}

@@ -46,16 +46,16 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
 		if(nullptr == link)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 		std::shared_ptr<Packet> packet = Packet::Create();
 		if(nullptr == packet)
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::NullPointerError), "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 		if(false == packet->Write<MSG>(link->msg_seq, msg))
 		{
-			throw Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 		session->AsyncSend(packet);
 	}

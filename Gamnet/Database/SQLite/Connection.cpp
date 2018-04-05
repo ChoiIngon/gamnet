@@ -34,7 +34,7 @@ namespace Gamnet { namespace Database { namespace SQLite {
 		{
 			LOG(GAMNET_ERR, errorMessage, "(query:", query, ")");
 			sqlite3_free(errorMessage);
-			throw Exception(GAMNET_ERRNO(ErrorCode::UndefinedError));
+			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError);
 		}
 		return impl;
 	}

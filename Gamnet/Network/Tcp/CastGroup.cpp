@@ -18,7 +18,7 @@ void CastGroup::AddSession(const std::shared_ptr<Session>& session)
 	std::lock_guard<std::mutex> lo(lock);
 	if (false == sessions.insert(std::make_pair(session->session_key, session)).second)
 	{
-		throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::InvalidKeyError), "castgroup_seq:", group_seq, ", duplicate session");
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "castgroup_seq:", group_seq, ", duplicate session");
 	}
 }
 
