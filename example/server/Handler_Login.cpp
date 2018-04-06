@@ -22,14 +22,14 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_Login_Req(session_key:", session->session_key, ", user_id:", req.user_id, ")");
 
 		if(0 != session->user_data.user_seq)
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::AlreadyLoginSessionError), "session_key:", session->session_key);
+			throw GAMNET_EXCEPTION(ErrorCode::AlreadyLoginSessionError, "session_key:", session->session_key);
 		}
 
 		const std::shared_ptr<Session> other = Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.user_id, session);
@@ -91,7 +91,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 		if(10 < ans.user_data.items.size())
 		{

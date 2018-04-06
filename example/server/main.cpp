@@ -7,6 +7,7 @@ int main() {
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 	try {
+	
 		Gamnet::Network::Tcp::Listen<Session>(20000, 1024, 300);
 
 		Gamnet::Network::Http::Listen(20001);

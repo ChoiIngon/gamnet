@@ -2,6 +2,7 @@
 #define GAMNET_DATABASE_SQLITE_SQLITE_H_
 
 #include "Connection.h"
+#include "Transaction.h"
 
 namespace Gamnet { namespace Database { namespace SQLite {
 	bool Connect(int db_type, const char* db);

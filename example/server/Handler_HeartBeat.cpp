@@ -13,13 +13,13 @@ void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const 
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_HeartBeat_Ntf(session_key:", session->session_key, ", msg_seq:", ntf.msg_seq, ")");
 		if(0 == session->user_data.user_seq)
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::InvalidUserError), "invalid user(session_key:", session->session_key, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError, "invalid user(session_key:", session->session_key, ")");
 		}
 	/*	
 		if(1 != ntf.msg_seq - session->ack_seq)
@@ -62,7 +62,7 @@ void Test_SvrCli_HeartBeat_Ntf(const std::shared_ptr<TestSession>& session, cons
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageFormatError), "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 	}
 	catch(const Gamnet::Exception& e) {

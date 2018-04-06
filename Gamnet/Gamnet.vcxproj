@@ -151,6 +151,7 @@
     <ClCompile Include="Database\SQLite\ResultSet.cpp" />
     <ClCompile Include="Database\SQLite\SQLite.cpp" />
     <ClCompile Include="Database\SQLite\sqlite3.c" />
+    <ClCompile Include="Database\SQLite\Transaction.cpp" />
     <ClCompile Include="Gamnet.cpp" />
     <ClCompile Include="library\Base64.cpp" />
     <ClCompile Include="library\Buffer.cpp" />
@@ -202,6 +203,7 @@
     <ClInclude Include="Database\SQLite\SQLite.h" />
     <ClInclude Include="Database\SQLite\sqlite3.h" />
     <ClInclude Include="Database\SQLite\sqlite3ext.h" />
+    <ClInclude Include="Database\SQLite\Transaction.h" />
     <ClInclude Include="Gamnet.h" />
     <ClInclude Include="library\Atomic.h" />
     <ClInclude Include="library\Base64.h" />
