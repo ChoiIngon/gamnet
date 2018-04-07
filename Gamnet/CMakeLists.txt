@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(Gamnet)
 
-set(CMAKE_CXX_FLAG_DEBUG "${CMAKE_CXX_FLAG_DEBUG} -g -Wall -DDEBUG -D_DEBUG")
-set(CMAKE_CXX_FLAG_RELEASE "${CMAKE_CXX_FLAG_RELEASE} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -DDEBUG -D_DEBUG -std=c++11")
 
 set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Debug)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
@@ -34,9 +33,9 @@ if(APPLE)
 	)
 endif()
 
-add_definitions ( 
-	-std=c++11
-)
+#add_definitions ( 
+#	-std=c++11
+#)
 
 set(EXCLUDE_PATHS 
 	".settings" 

@@ -20,6 +20,7 @@ endif()
 
 if(APPLE)
 	include_directories(
+		/usr/local/include/Gamnet
 		/usr/local/Cellar/mysql-connector-c/6.1.6/include
 		/usr/local/Cellar/boost/1.64.0_1/include
 		/usr/local/Cellar/openssl/1.0.2l/include

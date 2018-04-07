@@ -7,9 +7,7 @@ int main() {
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 	try {
-	
 		Gamnet::Network::Tcp::Listen<Session>(20000, 1024, 300);
-
 		Gamnet::Network::Http::Listen(20001);
 
 		Gamnet::Network::Router::Listen("GAME", 20002,
@@ -36,6 +34,7 @@ int main() {
 	catch(const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		return 1;
 	}
 	return 0;
 }
