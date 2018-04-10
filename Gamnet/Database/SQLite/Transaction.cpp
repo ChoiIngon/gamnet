@@ -8,13 +8,13 @@ namespace Gamnet { namespace Database {	namespace SQLite {
 	Transaction::Transaction(int db_type) : commit(false)
 	{
 		connection = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
-		connection->Execute("begin transaction");
+		connection->Execute("begin exclusive transaction");
 	}
 
 	Transaction::~Transaction() {
 		if (false == commit && nullptr != connection)
 		{
-			connection->Execute("rollback");
+			connection->Execute("rollback transaction");
 		}
 	}
 

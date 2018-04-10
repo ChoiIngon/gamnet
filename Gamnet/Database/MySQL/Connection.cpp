@@ -37,7 +37,7 @@ namespace Gamnet {	namespace Database { namespace MySQL {
 		LOG(INF, "[MySQL] connect...(host:", connInfo.uri_, ", port:", connInfo.port_, ", db:", connInfo.db_, ", user:", connInfo.id_, ", passwd:", connInfo.passwd_, ")");
 		if (NULL == mysql_real_connect(&conn_, connInfo.uri_.c_str(), connInfo.id_.c_str(), connInfo.passwd_.c_str(), connInfo.db_.c_str(), connInfo.port_, NULL, 0))
 		{
-			LOG(GAMNET_ERR, "[MySQL] connect fail(host:", connInfo.uri_, ", port:", connInfo.port_, ", db:", connInfo.db_, ", user:", connInfo.id_, ", passwd:", connInfo.passwd_, ")");
+			LOG(GAMNET_ERR, "[MySQL] connect fail(host:", connInfo.uri_, ", port:", connInfo.port_, ", error_message:", mysql_error(&conn_),")");
 			mysql_thread_end();
 			return false;
 		}

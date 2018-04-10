@@ -5,7 +5,7 @@
 #include <memory>
 #include <deque>
 #include <iostream>
-
+#include <assert.h>
 
 namespace Gamnet {
 	namespace Policy {
@@ -120,6 +120,7 @@ public:
 		}
 
 		object* ptr = lstObjectPtr_.front();
+		assert(nullptr != ptr);
 		lstObjectPtr_.pop_front();
 		return std::shared_ptr<object>(init_(ptr), Deleter(*this));
 	}

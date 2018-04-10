@@ -28,7 +28,7 @@ bool Link::Init()
 		LOG(GAMNET_ERR, "[link_key:", link_key, "] can not create read buffer");
 		return false;
 	}
-
+	remote_address = boost::asio::ip::address();
 	send_buffers.clear();
 	session = nullptr;
 	return true;
