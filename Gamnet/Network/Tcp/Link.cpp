@@ -53,23 +53,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				break;
 			}
 
-			link_manager->OnRecvMsg(shared_from_this(), recv_packet);
-
-			recv_packet->Remove(totalLength);
-			/*
-			if (0 < recv_packet->Size())
-			{
-				std::shared_ptr<Packet> packet = Packet::Create();
-				if (nullptr == packet)
-				{
-					LOG(ERR, "can not create buffer(link_key:", link_key, ")");
-					Close(ErrorCode::NullPacketError);
-					return;
-				}
-				packet->Append(recv_packet->ReadPtr(), recv_packet->Size());
-				recv_packet = packet;
-			}
-			*/
+			std::shared_ptr<Packet> packet = recv_packet;
+			link_manager->OnRecvMsg(shared_from_this(), packet);
+			recv_packet = Packet::Create();
+			recv_packet->Append(packet->ReadPtr() + totalLength, packet->Size() - totalLength);
 		}
 	}
 }}}

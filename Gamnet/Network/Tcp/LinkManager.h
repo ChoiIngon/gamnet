@@ -102,6 +102,7 @@ public :
 
 	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
 	{
+
 	}
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
@@ -109,7 +110,8 @@ public :
 		std::shared_ptr<Network::Session> session = link->session;
 		if(nullptr != session)
 		{
-			session->OnClose(reason);
+			//session->OnClose(reason);
+			session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
 		}
 		
 		std::lock_guard<std::mutex> lo(lock);
@@ -143,7 +145,8 @@ public :
 			}
 
 			session->expire_time = ::time(nullptr);
-			Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, packet);
+			//Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, packet);
+			session->strand.wrap(std::bind(&Dispatcher<SESSION_T>::OnRecvMsg, &Singleton<Dispatcher<SESSION_T>>::GetInstance(), session, packet))();
 		}
 		else
 		{
@@ -167,7 +170,8 @@ public :
 			LOG(WRN, "can not find session(session_key:", session_key, ")");
 			return;
 		}
-		session->OnDestroy();
+		//session->OnDestroy();
+		session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
 		session_manager.Remove(session_key);
 	}
 
@@ -194,10 +198,12 @@ public :
 			}
 
 			session->session_token = Session::GenerateSessionToken(session->session_key);
-			session->OnCreate();
 			link->AttachSession(session);
 			session_manager.Add(session->session_key, session);
-			session->OnAccept();
+			//session->OnCreate();
+			session->strand.wrap(std::bind(&Session::OnCreate, session))();
+			//session->OnAccept();
+			session->strand.wrap(std::bind(&Session::OnAccept, session))();
 
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
@@ -266,7 +272,8 @@ public :
 			}
 
 			link->AttachSession(session);
-			session->OnAccept();
+			//session->OnAccept();
+			session->strand.wrap(std::bind(&Session::OnAccept, session))();
 		}
 		catch (const Exception& e)
 		{

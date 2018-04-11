@@ -12,6 +12,8 @@
 
 namespace Gamnet { namespace Network {
 
+void CreateServiceThreadPool(int thread_count);
+
 class Link;
 class LinkManager;
 class Session;
@@ -58,9 +60,11 @@ public :
 	uint32_t					session_key;
 	std::string					session_token;
 	boost::asio::ip::address*	remote_address;
+	boost::asio::strand			strand;
 	time_t						expire_time;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;
+
 public :
 	virtual void OnCreate() = 0;
 	virtual void OnAccept() = 0;

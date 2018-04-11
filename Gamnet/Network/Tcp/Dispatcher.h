@@ -77,7 +77,7 @@ public:
 		return true;
 	}
 
-	void OnRecvMsg(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
+	void OnRecvMsg(const std::shared_ptr<SESSION_T> session, const std::shared_ptr<Packet> packet)
 	{
 		const unsigned int msg_id = packet->GetID();
 		auto itr = mapHandlerFunction_.find(msg_id);

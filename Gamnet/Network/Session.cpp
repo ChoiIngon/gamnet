@@ -3,9 +3,31 @@
 #include "LinkManager.h"
 #include "../Library/MD5.h"
 #include "../Library/Random.h"
+#include "../Library/Timer.h"
 #include <list>
 
 namespace Gamnet { namespace Network {
+
+static boost::asio::io_service io_service_;
+static boost::asio::deadline_timer deadline_timer_(io_service_);
+static std::vector<std::thread > workers_;
+
+void _IdleTimerCallback(const boost::system::error_code& ec)
+{
+	deadline_timer_.expires_from_now(boost::posix_time::seconds(60));
+	deadline_timer_.async_wait(boost::bind(&_IdleTimerCallback, boost::asio::placeholders::error));
+}
+
+void CreateServiceThreadPool(int thread_count)
+{
+	deadline_timer_.expires_from_now(boost::posix_time::seconds(60));
+	deadline_timer_.async_wait(boost::bind(&_IdleTimerCallback, boost::asio::placeholders::error));
+	for (int i = 0; i<thread_count; i++)
+	{
+		workers_.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &io_service_)));
+	}
+	//io_service_.run();
+}
 
 std::string Session::GenerateSessionToken(uint32_t session_key)
 {
@@ -17,6 +39,7 @@ Session::Session() :
 	session_token(""),
 	expire_time(0),
 	remote_address(nullptr),
+	strand(io_service_),
 	link(nullptr)
 {
 }
@@ -170,4 +193,5 @@ size_t SessionManager::Size()
 	std::lock_guard<std::mutex> lo(_lock);
 	return _sessions.size();
 }
+
 }} /* namespace Gamnet */
