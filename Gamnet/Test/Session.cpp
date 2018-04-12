@@ -10,7 +10,7 @@ Session::~Session() {
 
 bool Session::Init()
 {
-	if(false == Network::Session::Init())
+	if(false == Network::Tcp::Session::Init())
 	{
 		return false;
 	}
