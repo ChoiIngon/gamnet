@@ -16,6 +16,9 @@ bool Session::Init()
 	}
 	test_seq = 0;
 	is_pause = false;
+
+	access_token = "";
+	server_session_key = 0;
 	return true;
 }
 

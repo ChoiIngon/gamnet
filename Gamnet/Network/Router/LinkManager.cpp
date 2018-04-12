@@ -11,6 +11,7 @@ std::mutex LinkManager::lock;
 LinkManager::LinkManager()
 {
 	_name = "Gamnet::Network::Router::LinkManager";
+	_cast_group = Tcp::CastGroup::Create();
 }
 
 LinkManager::~LinkManager() {
@@ -34,7 +35,6 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "unique router id is not set");
 	}
 
-	_cast_group = Tcp::CastGroup::Create();
 	_heartbeat_timer.AutoReset(true);
 	_heartbeat_timer.SetTimer(60000, [this] () {
 		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
@@ -49,72 +49,57 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	Network::LinkManager::Listen(port);
 }
 
-std::shared_ptr<Network::Link> LinkManager::Create()
-{ 
-	std::shared_ptr<Network::Link> link = Tcp::LinkManager<Session>::Create(); 
-	if(nullptr == link) 
-	{ 
-		LOG(ERR, "[link_manager:", _name, "] can not create 'Router::Link' instance"); 
-		return nullptr; 
-	} 
-
-	std::shared_ptr<Session> session = session_pool.Create(); 
-	if(nullptr == session) 
-	{ 
-		LOG(ERR, "[link_manager:", _name, "] can not create session");
-		return nullptr;
-	}
-	
-	session->OnCreate();
-	link->AttachSession(session);
-
-	{
-		std::lock_guard<std::mutex> lo(this->_lock);
-		this->_links.insert(std::make_pair(link->link_key, link));
-	}
-	return link;
-} 
-
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
 {
-	std::shared_ptr<Network::Link> link = Network::LinkManager::Connect(host, port, timeout);
+	std::shared_ptr<Network::Link> link = Create();
 	if(nullptr == link)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "cannot create link instance");
 	}
 
-	std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
-	session->onRouterConnect = onConnect;
-	session->onRouterClose = onClose;
-}
-
-void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
-{
-	Tcp::LinkManager<Session>::OnAccept(link);
-	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
-	if(NULL == session)
+	std::shared_ptr<Session> session = session_pool.Create();
+	if (nullptr == session)
 	{
-		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key,"] invalid session");
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "cannot create session instance");
 	}
 
-	session->OnAccept();
+	link->session = session;
+	session->onRouterConnect = onConnect;
+	session->onRouterClose = onClose;
+	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 	session_manager.Add(session->session_key, session);
-	_cast_group->AddSession(session);
+
+	link->Connect(host, port, timeout);
+	std::lock_guard<std::mutex> lo(this->_lock);
+	_links.insert(std::make_pair(link->link_key, link));
 }
 
 void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
-{	
+{
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
-	if(nullptr == link->session)
+	if (nullptr == link->session)
 	{
 		link->Close(ErrorCode::InvalidSessionError);
 		return;
 	}
-	session->session_token = Network::Session::GenerateSessionToken(session->session_key);
-	session_manager.Add(session->session_key, session);
-	session->OnCreate();
-	session->OnConnect();
+	
+	session->strand.wrap(std::bind(&Session::OnConnect, session))();
+	_cast_group->AddSession(session);
+}
 
+void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
+{
+	std::shared_ptr<Session> session = session_pool.Create();
+	if (nullptr == session)
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
+	}
+
+	link->session = session;
+
+	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
+	session->strand.wrap(std::bind(&Session::OnAccept, session))();
+	session_manager.Add(session->session_key, session);
 	_cast_group->AddSession(session);
 }
 
@@ -123,12 +108,10 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	if (nullptr != session)
 	{
-		session->OnClose(reason);
-		session->OnDestroy();
+		session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
 		session_manager.Remove(session->session_key);
 		_cast_group->DelSession(session);
 	}
-	Network::LinkManager::OnClose(link, reason);
 }
 
 void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) 
@@ -141,7 +124,7 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const st
 
 	session->expire_time = ::time(nullptr);
 	const std::shared_ptr<Tcp::Packet>& packet = std::static_pointer_cast<Tcp::Packet>(buffer);
-	Singleton<Tcp::Dispatcher<Session>>::GetInstance().OnRecvMsg(session, packet);
+	session->strand.wrap(std::bind(&Tcp::Dispatcher<Session>::OnRecvMsg, &Singleton<Tcp::Dispatcher<Session>>::GetInstance(), session, packet))();
 }
 
 }}}

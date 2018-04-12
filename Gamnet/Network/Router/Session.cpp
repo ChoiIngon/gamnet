@@ -9,24 +9,22 @@ namespace Gamnet { namespace Network { namespace Router {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
-/*
-Session* Session::Init::operator() (Session* session)
+Session::Session() : Network::Tcp::Session() 
 {
-	return session;
-}
-*/
-
-Session::Session() : Network::Tcp::Session() {
 	onRouterConnect = [](const Address&) {};
 	onRouterClose = [](const Address&) {};
 }
 
-Session::~Session() {}
-
-void Session::OnCreate() {
+Session::~Session() 
+{
 }
 
-void Session::OnAccept() {
+void Session::OnCreate() 
+{
+}
+
+void Session::OnAccept() 
+{
 	onRouterClose = LinkManager::onRouterClose;
 }
 
@@ -42,7 +40,7 @@ void Session::OnConnect()
 
 void Session::OnClose(int reason)
 {
-	LOG(GAMNET_INF, "[Router] remote server closed(session_key:", session_key, ", ip:", remote_address->to_string(), ", service_name:", address.service_name, ")");
+	LOG(GAMNET_INF, "[Router] remote server closed(session_key:", session_key, ", ip:", remote_address->to_string(), ", service_name:", address.service_name, ", reason:", reason, ")");
 	if("" != address.service_name)
 	{
 		{

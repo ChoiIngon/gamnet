@@ -16,6 +16,8 @@ bool Session::Init()
 	{
 		return false;
 	}
+
+	session_token = Session::GenerateSessionToken(session_key);
 	return true;
 }
 }}}

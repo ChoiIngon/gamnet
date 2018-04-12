@@ -22,8 +22,6 @@ protected:
 
 	std::map<uint32_t, std::shared_ptr<Network::Link>> _links;
 public :
-	static std::atomic_ulong link_key;
-
 	LinkManager();
 	virtual ~LinkManager();
 

@@ -61,12 +61,14 @@ void TestSession::Reconnect()
 { 
 	{
 		std::shared_ptr<Gamnet::Network::Link> link = this->link;
-		this->link->AttachSession(nullptr);
+		AttachLink(nullptr);
 		link->Close(Gamnet::ErrorCode::Success);
 	}
 
 	std::shared_ptr<Gamnet::Network::Link> link = Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().Create();
-	link->AttachSession(shared_from_this());
+	link->session = shared_from_this();
+	AttachLink(link);
+	
 	link->Connect(host.c_str(), 20000, 5);
 	Pause();
 }

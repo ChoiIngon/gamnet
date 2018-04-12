@@ -10,7 +10,6 @@
 #include <memory>
 #include <atomic>
 #include <mutex>
-#include <boost/bind.hpp>
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
@@ -42,11 +41,9 @@ private :
 
 	std::function<void(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)> handlers[MSG_ID::MsgID_Max];
 
-	std::mutex lock;
-	std::map<uint32_t, std::shared_ptr<Network::Link>> links;
 public :
 	SessionManager session_manager;
-	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor> session_pool;
+	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
 	Pool<Link, std::mutex, Network::Link::InitFunctor> link_pool;
 
 	LinkManager() : session_pool(), link_pool(65535, LinkFactory(this))
@@ -113,9 +110,6 @@ public :
 			//session->OnClose(reason);
 			session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
 		}
-		
-		std::lock_guard<std::mutex> lo(lock);
-		links.erase(link->link_key);
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
@@ -145,7 +139,6 @@ public :
 			}
 
 			session->expire_time = ::time(nullptr);
-			//Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(session, packet);
 			session->strand.wrap(std::bind(&Dispatcher<SESSION_T>::OnRecvMsg, &Singleton<Dispatcher<SESSION_T>>::GetInstance(), session, packet))();
 		}
 		else
@@ -171,7 +164,8 @@ public :
 			return;
 		}
 		//session->OnDestroy();
-		session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
+		//session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
+		session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
 		session_manager.Remove(session_key);
 	}
 
@@ -197,13 +191,11 @@ public :
 				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
 			}
 
-			session->session_token = Session::GenerateSessionToken(session->session_key);
-			link->AttachSession(session);
-			session_manager.Add(session->session_key, session);
-			//session->OnCreate();
-			session->strand.wrap(std::bind(&Session::OnCreate, session))();
-			//session->OnAccept();
+			link->session = session;
+
+			session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 			session->strand.wrap(std::bind(&Session::OnAccept, session))();
+			session_manager.Add(session->session_key, session);
 
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
@@ -260,19 +252,15 @@ public :
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "[link_key:", link->link_key, "] invalid session token(expect:", session->session_token, ", receive:", session_token, ")");
 			}
-				
-			std::shared_ptr<Network::Tcp::Link> other = std::static_pointer_cast<Network::Tcp::Link>(session->link);
-			if (nullptr != other)
-			{
-				other->strand.wrap([link, other] () {
-					//link->recv_packet = other->recv_packet;
-					std::static_pointer_cast<Tcp::Link>(link)->msg_seq = other->msg_seq;
-					other->AttachSession(nullptr);
-				});
-			}
 
-			link->AttachSession(session);
-			//session->OnAccept();
+			std::shared_ptr<Link> other = std::static_pointer_cast<Link>(session->link);
+			if(nullptr != other)
+			{
+				other->strand.wrap(std::bind(&Link::Close, other, ErrorCode::DuplicateConnectionError))();
+			}
+			
+			link->session = session;
+			session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 			session->strand.wrap(std::bind(&Session::OnAccept, session))();
 		}
 		catch (const Exception& e)
@@ -344,7 +332,7 @@ public :
 		session["capacity"] = (unsigned int)session_pool.Capacity();
 		session["available"] = (unsigned int)session_pool.Available();
 		session["running_count"] = (unsigned int)session_manager.Size();
-		session["keepalive_time"] = session_manager.keepalive_time;
+		//session["keepalive_time"] = session_manager.keepalive_time;
 		root["session"] = session;
 
 #ifdef _DEBUG

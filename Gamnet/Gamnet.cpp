@@ -14,13 +14,14 @@ void Run(int thread_count)
 {
 	SingletonInitHelper::GetInstance().Init();
 
-	std::thread handlerThread(std::bind(&Network::CreateServiceThreadPool, thread_count * 2));
+	//std::thread handlerThread(std::bind(&Network::SessionCreateServiceThreadPool, thread_count * 2));
+	Network::Session::CreateWorkerThreadPool(thread_count * 2);
 
 	Log::Write(GAMNET_INF, "Gamnet server starts..");
-	std::vector<std::thread > workers_;
+	std::vector<std::thread > ioThreads;
 	for(int i=0; i<thread_count; i++)
 	{
-		workers_.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &io_service_)));
+		ioThreads.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &io_service_)));
 	}
 
 	io_service_.run();

@@ -3,6 +3,7 @@
 
 #include "MsgRouter.h"
 #include "../Tcp/Session.h"
+#include "../../Library/Timer.h"
 
 namespace Gamnet { namespace Network { namespace Router {
 
@@ -76,11 +77,11 @@ public:
 	std::function<void(const Address& addr)> onRouterConnect;
 	std::function<void(const Address& addr)> onRouterClose;
 
-	virtual void OnCreate();
-	virtual void OnAccept();
+	virtual void OnCreate() override;
+	virtual void OnAccept() override;
 	virtual void OnConnect();
-	virtual void OnClose(int reason);
-	virtual void OnDestroy();
+	virtual void OnClose(int reason) override;
+	virtual void OnDestroy() override;
 };
 
 }}} /* namespace Gamnet */

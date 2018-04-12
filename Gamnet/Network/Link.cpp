@@ -4,6 +4,7 @@
 namespace Gamnet { namespace Network {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
+std::atomic<uint32_t> Link::link_key_generator;
 
 Link::Link(LinkManager* linkManager) : 
 	socket(io_service_),
@@ -21,7 +22,7 @@ Link::~Link()
 
 bool Link::Init()
 {
-	link_key = ++LinkManager::link_key;
+	link_key = ++Link::link_key_generator;
 	read_buffer = Buffer::Create();
 	if (nullptr == read_buffer)
 	{
@@ -235,9 +236,11 @@ void Link::Close(int reason)
 		socket.close();
 	}
 	link_manager->Remove(link_key);
-	AttachSession(nullptr);
+	session = nullptr;
+	//AttachSession(nullptr);
 }
 
+/*
 void Link::AttachSession(const std::shared_ptr<Session> session)
 {
 	if(nullptr != this->session)
@@ -254,6 +257,7 @@ void Link::AttachSession(const std::shared_ptr<Session> session)
 		this->session->remote_address = &(remote_address);
 	}
 }
+*/
 
 }}
 

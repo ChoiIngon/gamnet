@@ -6,13 +6,10 @@
 #include <map>
 
 #include "../Library/Buffer.h"
-#include "../Library/Timer.h"
 #include "../Log/Log.h"
 #include "HandlerContainer.h"
 
 namespace Gamnet { namespace Network {
-
-void CreateServiceThreadPool(int thread_count);
 
 class Link;
 class LinkManager;
@@ -20,14 +17,13 @@ class Session;
 
 class SessionManager
 {
-	Timer 		_timer;
-	std::mutex _lock;
-	std::map<uint32_t, std::shared_ptr<Session>> _sessions;
+	boost::asio::deadline_timer						_deadline_timer;
+	std::mutex										_lock;
+	std::map<uint32_t, std::shared_ptr<Session>>	_sessions;
+	uint64_t										_keepalive_time;
 public :
 	static std::atomic<uint32_t> session_key;
-
-	uint32_t	keepalive_time;
-	
+		
 	SessionManager();
 	~SessionManager();
 	
@@ -36,6 +32,9 @@ public :
 	void Remove(uint32_t key);
 	std::shared_ptr<Session> Find(uint32_t key);
 	size_t Size();
+
+private :
+	void OnTimerExpire(const boost::system::error_code& ec);
 };
 
 class Session : public std::enable_shared_from_this<Session>
@@ -50,6 +49,21 @@ public :
 			{
 				return nullptr;
 			}	
+			session->OnCreate();
+			return session;
+		}
+	};
+
+	struct ReleaseFunctor
+	{
+		template <class T>
+		T* operator() (T* session)
+		{
+			if(nullptr == session)
+			{
+				return nullptr;
+			}
+			session->OnDestroy();
 			return session;
 		}
 	};
@@ -72,12 +86,14 @@ public :
 	virtual void OnDestroy() = 0;
 
 	virtual bool Init();
-	void AsyncSend(const std::shared_ptr<Buffer>& buffer);
-	void AsyncSend(const char* data, int length);
+	bool AsyncSend(const std::shared_ptr<Buffer>& buffer);
+	bool AsyncSend(const char* data, int length);
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);
 	int SyncSend(const char* data, int length);
 		
+	void AttachLink(const std::shared_ptr<Link>& link);
 	static std::string GenerateSessionToken(uint32_t session_key);
+	static void CreateWorkerThreadPool(uint32_t threadCount);
 };
 
 

@@ -3,8 +3,6 @@
 
 namespace Gamnet { namespace Network {
 
-std::atomic_ulong LinkManager::link_key;
-
 LinkManager::LinkManager() :
 	_name("Gamnet::Network::LinkManager"),
 	_is_acceptable(true),
@@ -81,15 +79,12 @@ std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeo
 		return nullptr;
 	}
 
-	{
-		std::lock_guard<std::mutex> lo(_lock);
-		_links.insert(std::make_pair(link->link_key, link));
-	}
 	link->Connect(host, port, timeout);
-	
+
+	std::lock_guard<std::mutex> lo(_lock);
+	_links.insert(std::make_pair(link->link_key, link));
 	return link;
 }
-
 
 void LinkManager::Remove(uint32_t linkKey)
 {

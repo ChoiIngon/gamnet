@@ -32,19 +32,15 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 			throw GAMNET_EXCEPTION(ErrorCode::AlreadyLoginSessionError, "session_key:", session->session_key);
 		}
 
-		const std::shared_ptr<Session> other = Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.user_id, session);
-		if(NULL != other)
+		const std::shared_ptr<Session> otherSession = Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.user_id, session);
+		if(nullptr != otherSession)
 		{
 			LOG(WRN, "duplicated session(user_id:", req.user_id, ")");
 			MsgSvrCli_Kickout_Ntf ntf;
 			ntf.error_code = ErrorCode::DuplicateConnectionError;
-			LOG(DEV, "MsgSvrCli_Kickout_Ntf(session_key:", other->session_key, ")");
-			Gamnet::Network::Tcp::SendMsg(other, ntf);
-			const std::shared_ptr<Gamnet::Network::Link> link = other->link;
-			if(NULL != link)
-			{
-				link->AttachSession(NULL);
-			}
+			LOG(DEV, "MsgSvrCli_Kickout_Ntf(session_key:", otherSession->session_key, ")");
+			Gamnet::Network::Tcp::SendMsg(otherSession, ntf);
+			otherSession->user_data.user_seq = 0;
 		}
 		
 		UserData& user_data = session->user_data;

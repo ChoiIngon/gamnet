@@ -1,13 +1,14 @@
 #ifndef GAMNET_TEST_TESTER_H_
 #define GAMNET_TEST_TESTER_H_
 
+#include "../Network/Tcp/LinkManager.h"
+#include "../Library/ThreadPool.h"
+
 #include <map>
 #include <memory>
 #include <vector>
 #include <atomic>
 #include <functional>
-#include "../Network/Tcp/LinkManager.h"
-#include "../Library/ThreadPool.h"
 
 namespace Gamnet { namespace Test {
 template <class SESSION_T>
@@ -32,10 +33,12 @@ private:
 		{
 			name = "";
 			execute_count = 0;
+			elapsed_time = 0;
 		}
 		std::string name;
 		std::atomic_uint execute_count;
-		SEND_HANDLER_TYPE send_handler;		
+		uint64_t elapsed_time;
+		SEND_HANDLER_TYPE send_handler;
 		std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> recv_handlers;
 	};
 
@@ -104,15 +107,15 @@ public :
 						return;
 					}
 	
-					session->session_key = 0;
-					session->session_token = "";
-					link->AttachSession(session);
+					link->session = session;
 
-					{
-						std::lock_guard<std::mutex> lo(this->_lock);
-						this->_links.insert(std::make_pair(link->link_key, link));
-					}
+					session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
+					session_manager.Add(session->session_key, session);
+
 					link->Connect(this->host.c_str(), this->port, 5);
+					
+					std::lock_guard<std::mutex> lo(this->_lock);
+					this->_links.insert(std::make_pair(link->link_key, link));
 				});
 
 				this->execute_count++;
@@ -133,9 +136,16 @@ public :
 			log.Write(GAMNET_INF, "[Test] link count : (active:", this->Size(), ", available : ", this->Available(), ", max:", this->Capacity(), ")");
 			log.Write(GAMNET_INF, "[Test] session count : (active:", this->session_manager.Size(), ", available:", this->session_pool.Available(), ", max:", this->session_pool.Capacity(), ")");
 			
-			for(auto itr : execute_order)
+			for (auto itr : execute_order)
 			{
-				log.Write(GAMNET_INF, "[Test] running state(name : ", itr->name, ", count : ", itr->execute_count, ")");
+				if (0 < itr->execute_count)
+				{
+					log.Write(GAMNET_INF, "[Test] running state(name : ", itr->name, ", count : ", itr->execute_count, ", elapsed : ", itr->elapsed_time, "ms, average : ", itr->elapsed_time / itr->execute_count, "ms )");
+				}
+				else
+				{
+					log.Write(GAMNET_INF, "[Test] running state(name : ", itr->name, ", count : ", itr->execute_count, ", elapsed : 0ms, average : 0ms )");
+				}
 			}
 			if(this->execute_count < execute_count)
 			{
@@ -150,6 +160,7 @@ public :
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
+		/*
 		thread_pool.PostTask([this, link]() {
 			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 			std::lock_guard<std::recursive_mutex> lo(session->lock);
@@ -158,6 +169,7 @@ public :
 				if(0 == session->test_seq)
 				{
 					const std::shared_ptr<TestExecuteInfo>& info = execute_order[0];
+					session->send_time = std::chrono::steady_clock::now();
 					info->send_handler(session);
 					info->execute_count++;
 				}
@@ -167,22 +179,41 @@ public :
 				}
 			}
 		});
+		*/
+		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		if (nullptr == link->session)
+		{
+			link->Close(ErrorCode::InvalidSessionError);
+			return;
+		}
+
+		session->strand.wrap([this, session] () {
+			if (0 < this->execute_order.size())
+			{
+				if (0 == session->test_seq)
+				{
+					const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
+					session->send_time = std::chrono::steady_clock::now();
+					info->send_handler(session);
+					info->execute_count++;
+				}
+				else
+				{
+					this->Send_Reconnect_Req(session);
+				}
+			}
+		})();
 	}
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 	{
-		Network::Tcp::LinkManager<SESSION_T>::OnClose(link, reason);
-
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if(nullptr == session)
+		if(nullptr != session)
 		{
-			return;
+			Send_Close_Ntf(session);
+			session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
+			session_manager.Remove(session->session_key);
 		}
-		
-		std::lock_guard<std::recursive_mutex> lo(session->lock);
-		Send_Close_Ntf(session);
-		session->OnDestroy();
-		Network::Tcp::LinkManager<SESSION_T>::session_manager.Remove(session->session_key);
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
@@ -196,57 +227,64 @@ public :
 			return;
 		}
 		
-		std::lock_guard<std::recursive_mutex> lo(session->lock);
-		if(session->test_seq < (int)this->execute_order.size())
-		{
-			uint32_t msg_id = packet->GetID();
+		session->strand.wrap([this, link, session, packet]() {
+			if (session->test_seq < (int)this->execute_order.size())
+			{
+				bool is_global_handler = false;
+				uint32_t msg_id = packet->GetID();
 
-			const std::shared_ptr<TestExecuteInfo>& execute_info = this->execute_order[session->test_seq];
-			auto itr = execute_info->recv_handlers.find(msg_id);
-			if(execute_info->recv_handlers.end() == itr)
-			{
-				itr = this->execute_order[0]->recv_handlers.find(msg_id);
-				if (this->execute_order[0]->recv_handlers.end() == itr)
+				const std::shared_ptr<TestExecuteInfo>& execute_info = this->execute_order[session->test_seq];
+				auto itr = execute_info->recv_handlers.find(msg_id);
+				if (execute_info->recv_handlers.end() == itr)
 				{
-					LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
-					link->Close(ErrorCode::InvalidHandlerError);
-					return ;
-				}
-			}
-				
-			RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
-			handler(session, packet);
-				
-			if(false == session->is_pause && 0 < itr->second->increase_test_seq)
-			{
-				session->test_seq += itr->second->increase_test_seq;
-				if(session->test_seq >= (int)this->execute_order.size())
-				{
-					link->Close(ErrorCode::Success);
-					return;
+					itr = this->execute_order[0]->recv_handlers.find(msg_id);
+					if (this->execute_order[0]->recv_handlers.end() == itr)
+					{
+						LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
+						link->Close(ErrorCode::InvalidHandlerError);
+						return;
+					}
+
+					is_global_handler = true;
 				}
 
-				const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
-				try
-				{ 
-					thread_pool.PostTask([next_execute_info, session]() {
-						std::lock_guard<std::recursive_mutex> lo(session->lock);
-						if(nullptr == session->link)
-						{
-							return;
-						}
-						next_execute_info->send_handler(session);
-					});
-				}
-				catch(const Gamnet::Exception& e)
+				RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
+				handler(session, packet);
+
+				if (false == is_global_handler)
 				{
-					LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-					link->Close(ErrorCode::UndefinedError);
-					return;
+					auto now = std::chrono::steady_clock::now();
+					execute_info->elapsed_time += std::chrono::duration_cast<std::chrono::milliseconds>(now - session->send_time).count();
+					session->send_time = now;
 				}
-				next_execute_info->execute_count++;
+
+				if (false == session->is_pause && 0 < itr->second->increase_test_seq)
+				{
+					session->test_seq += itr->second->increase_test_seq;
+					if (session->test_seq >= (int)this->execute_order.size())
+					{
+						link->Close(ErrorCode::Success);
+						return;
+					}
+
+					const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
+					try
+					{
+						thread_pool.PostTask([next_execute_info, session]() {
+							session->send_time = std::chrono::steady_clock::now();
+							next_execute_info->send_handler(session);
+						});
+					}
+					catch (const Gamnet::Exception& e)
+					{
+						LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
+						link->Close(ErrorCode::UndefinedError);
+						return;
+					}
+					next_execute_info->execute_count++;
+				}
 			}
-		}
+		})();
 	}
 
 	void RegisterSendHandler(const std::string& test_name, SEND_HANDLER_TYPE send)
@@ -331,11 +369,9 @@ public :
 			return;
 		}	
 
-		session->session_key = ans["session_key"].asUInt();
-		session->session_token = ans["session_token"].asString();
-		session->OnCreate();
+		session->server_session_key = ans["session_key"].asUInt();
+		session->access_token = ans["session_token"].asString();
 		session->OnConnect();
-		Network::Tcp::LinkManager<SESSION_T>::session_manager.Add(session->session_key, session);
 	}
 
 	void Send_Reconnect_Req(const std::shared_ptr<SESSION_T>& session)
@@ -348,8 +384,8 @@ public :
 		}
 
 		Json::Value req;
-		req["session_key"] = session->session_key;
-		req["session_token"] = session->session_token;
+		req["session_key"] = session->server_session_key;
+		req["session_token"] = session->access_token;
 
 		Json::StyledWriter writer;
 		std::string str = writer.write(req);

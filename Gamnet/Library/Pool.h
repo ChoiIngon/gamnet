@@ -33,6 +33,17 @@ namespace Gamnet {
 			};
 		}; 
 
+		namespace Release {
+			struct do_nothing
+			{
+				template <class T>
+				T* operator() (T* t)
+				{
+					return t;
+				}
+			};
+		};
+
 		namespace Factory
 		{
 			template <class T>
@@ -67,13 +78,13 @@ namespace Gamnet {
 	};
  * </pre>
  */
-template<class object, class lock_policy = Policy::nolock, class init_policy=Policy::Initialze::do_nothing>
+template<class object, class lock_policy = Policy::nolock, class init_policy=Policy::Initialze::do_nothing, class release_policy=Policy::Release::do_nothing>
 class Pool
 {
 	typedef std::function<object*()> object_factory;
 	struct Deleter
 	{
-		typedef Pool<object, lock_policy, init_policy> pool_type;
+		typedef Pool<object, lock_policy, init_policy, release_policy> pool_type;
 		pool_type& pool_;
 		Deleter(pool_type& pool) : pool_(pool)
 		{
@@ -154,12 +165,13 @@ public:
 private :
 	void Restitute(const object* ptr)
 	{
-		std::lock_guard<lock_policy> lo(lock_);
-		if(NULL == ptr)
+		if (nullptr == ptr)
 		{
 			return;
 		}
-		lstObjectPtr_.push_front(const_cast<object*>(ptr));
+
+		std::lock_guard<lock_policy> lo(lock_);
+		lstObjectPtr_.push_front(release_(const_cast<object*>(ptr)));
 	}
 
 private :
@@ -168,6 +180,7 @@ private :
 	size_t cur_size_;
 	size_t max_size_;
 	init_policy init_;
+	release_policy release_;
 	object_factory factory_;
 };
 

@@ -1,8 +1,9 @@
 #ifndef GAMNET_NETWORK_LINK_H_
 #define GAMNET_NETWORK_LINK_H_
 
-#include "Session.h"
 #include <deque>
+#include "Session.h"
+#include "../Library/Timer.h"
 
 namespace Gamnet { namespace Network {
 
@@ -34,6 +35,7 @@ public:
 	uint32_t 	link_key;
 	std::shared_ptr<Session> session;
 	LinkManager* const link_manager;
+	static std::atomic<uint32_t> link_key_generator;
 public :
 	Link(LinkManager* linkManager);
 	virtual ~Link();
@@ -46,7 +48,7 @@ public :
 	int  SyncSend(const std::shared_ptr<Buffer>& buffer);
 	void Close(int reason);
 		
-	void AttachSession(const std::shared_ptr<Session> session);
+	//void AttachSession(const std::shared_ptr<Session> session);
 
 	void AsyncRead();
 protected :
