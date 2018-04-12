@@ -240,8 +240,7 @@ void Link::Close(int reason)
 		self->link_manager->Remove(self->link_key);
 		self->session = nullptr;
 		//AttachSession(nullptr);
-	});
-	
+	})();
 }
 
 /*
