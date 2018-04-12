@@ -101,7 +101,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
-	session->Reconnect();
+	//session->Reconnect();
 }
 
 GAMNET_BIND_TEST_HANDLER(

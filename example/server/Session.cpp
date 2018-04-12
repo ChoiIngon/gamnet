@@ -62,7 +62,7 @@ void TestSession::Reconnect()
 	{
 		std::shared_ptr<Gamnet::Network::Link> link = this->link;
 		AttachLink(nullptr);
-		link->Close(Gamnet::ErrorCode::Success);
+		link->strand.wrap(std::bind(&Gamnet::Network::Link::Close, link, Gamnet::ErrorCode::Success))();
 	}
 
 	std::shared_ptr<Gamnet::Network::Link> link = Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().Create();

@@ -74,6 +74,7 @@ void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 
 	uri = uri.substr(0, uri_end);
 	Request req(param);
+	
 	Singleton<Dispatcher>::GetInstance().OnRecvMsg(shared_from_this(), uri, req);
 	Close(ErrorCode::Success);
 }

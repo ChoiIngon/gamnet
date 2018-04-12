@@ -207,10 +207,10 @@ public :
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 	{
+		Send_Close_Ntf(link);
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if(nullptr != session)
 		{
-			Send_Close_Ntf(session);
 			session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
 			Network::Tcp::LinkManager<SESSION_T>::session_manager.Remove(session->session_key);
 		}
@@ -241,7 +241,7 @@ public :
 					if (this->execute_order[0]->recv_handlers.end() == itr)
 					{
 						LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
-						link->Close(ErrorCode::InvalidHandlerError);
+						link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::InvalidHandlerError))();
 						return;
 					}
 
@@ -263,7 +263,7 @@ public :
 					session->test_seq += itr->second->increase_test_seq;
 					if (session->test_seq >= (int)this->execute_order.size())
 					{
-						link->Close(ErrorCode::Success);
+						link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 						return;
 					}
 
@@ -278,7 +278,7 @@ public :
 					catch (const Gamnet::Exception& e)
 					{
 						LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-						link->Close(ErrorCode::UndefinedError);
+						link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::UndefinedError))();
 						return;
 					}
 					next_execute_info->execute_count++;
@@ -365,7 +365,7 @@ public :
 
 		if(ErrorCode::Success != ans["error_code"].asInt())
 		{
-			session->link->Close(ans["error_code"].asInt());
+			session->link->strand.wrap(std::bind(&Network::Link::Close, session->link, ans["error_code"].asInt()))();
 			return;
 		}	
 
@@ -416,29 +416,17 @@ public :
 
 		if(ErrorCode::Success != ans["error_code"].asInt())
 		{
-			session->link->Close(ans["error_code"].asInt());
+			session->link->strand.wrap(std::bind(&Network::Link::Close, session->link, ans["error_code"].asInt()))();
 			return;
 		}	
 		session->OnConnect();
 		session->Resume();
 	}
-	void Send_Close_Ntf(const std::shared_ptr<SESSION_T>& session)
+	void Send_Close_Ntf(const std::shared_ptr<Network::Link>& link)
 	{
-		if(nullptr == session)
-		{
-			//LOG(GAMNET_ERR, "null session instance");
-			return;
-		}
-
-		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
-		if(nullptr == link)
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
-		}
-
 		Network::Tcp::Packet::Header header;
 		header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Close_Ntf;
-		header.msg_seq = ++link->msg_seq;
+		header.msg_seq = ++std::static_pointer_cast<Network::Tcp::Link>(link)->msg_seq;
 		header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 		std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
@@ -448,7 +436,7 @@ public :
 			return;
 		}
 		req_packet->Write(header, nullptr, 0);
-		session->AsyncSend(req_packet);
+		link->AsyncSend(req_packet);
 	}
 };
 

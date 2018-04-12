@@ -209,7 +209,7 @@ void SessionManager::OnTimerExpire(/*const boost::system::error_code& ec*/)
 		std::shared_ptr<Link> link = session->link;
 		if (nullptr != link)
 		{
-			link->Close(ErrorCode::IdleTimeoutError);
+			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::IdleTimeoutError))();
 		}
 	}
 

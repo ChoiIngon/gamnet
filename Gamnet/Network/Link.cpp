@@ -51,6 +51,7 @@ void Link::Connect(const char* host, int port, int timeout)
 	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
 
 	auto self = shared_from_this();
+	assert(self);
 	socket.async_connect(endpoint_, strand.wrap([self](const boost::system::error_code& ec) {
 		self->timer.Cancel();
 
@@ -85,9 +86,9 @@ void Link::Connect(const char* host, int port, int timeout)
 	if(0 < timeout)
 	{
 		timer.AutoReset(false);
-		timer.SetTimer(timeout*1000, strand.wrap([self]() {
-			Log::Write(GAMNET_WRN, "[link_key:", self->link_key, "] connect timeout(ip:", self->remote_address.to_string(), ")");
-			self->Close(ErrorCode::ConnectTimeoutError);
+		timer.SetTimer(timeout*1000, strand.wrap([this]() {
+			Log::Write(GAMNET_WRN, "[link_key:", link_key, "] connect timeout(ip:", remote_address.to_string(), ")");
+			Close(ErrorCode::ConnectTimeoutError);
 		}));
 	}
 }
@@ -222,45 +223,22 @@ int Link::SyncSend(const char* buf, int len)
 
 void Link::Close(int reason)
 {
-	auto self = shared_from_this();
-	strand.wrap([self, reason]() {
-		if (true == self->socket.is_open())
+	if (true == socket.is_open())
+	{
+		try
 		{
-			try
-			{
-				self->link_manager->OnClose(self, reason);
-			}
-			catch (const Exception& e)
-			{
-				LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-
-			self->socket.close();
+			link_manager->OnClose(shared_from_this(), reason);
 		}
-		self->link_manager->Remove(self->link_key);
-		self->session = nullptr;
-		//AttachSession(nullptr);
-	})();
-}
+		catch (const Exception& e)
+		{
+			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
 
-/*
-void Link::AttachSession(const std::shared_ptr<Session> session)
-{
-	if(nullptr != this->session)
-	{
-		this->session->link = nullptr;
-		this->session->remote_address = nullptr;
-		this->session = nullptr;
+		socket.close();
 	}
-
-	if(nullptr != session)
-	{
-		session->link = shared_from_this();
-		this->session = session;
-		this->session->remote_address = &(remote_address);
-	}
+	link_manager->Remove(link_key);
+	session = nullptr;
 }
-*/
 
 }}
 
