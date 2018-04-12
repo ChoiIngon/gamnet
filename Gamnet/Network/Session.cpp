@@ -204,7 +204,6 @@ void SessionManager::OnTimerExpire(const boost::system::error_code& ec)
 		{
 			link->Close(ErrorCode::IdleTimeoutError);
 		}
-		session->OnDestroy();
 	}
 
 	_deadline_timer.expires_from_now(boost::posix_time::seconds((0 == _keepalive_time ? 3600 : _keepalive_time)));
