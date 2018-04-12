@@ -54,9 +54,9 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			}
 
 			std::shared_ptr<Packet> packet = recv_packet;
-			link_manager->OnRecvMsg(shared_from_this(), packet);
 			recv_packet = Packet::Create();
 			recv_packet->Append(packet->ReadPtr() + totalLength, packet->Size() - totalLength);
+			link_manager->OnRecvMsg(shared_from_this(), packet);
 		}
 	}
 }}}

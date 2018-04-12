@@ -318,7 +318,7 @@ public :
 		link->Close(ErrorCode::Success);
 		if(nullptr == session)
 		{
-			LOG(DEV, "[link_key:", link->link_key, "] null session");
+			LOG(ERR, "[link_key:", link->link_key, "] null session");
 			return;
 		}
 		session_manager.Remove(session->session_key);

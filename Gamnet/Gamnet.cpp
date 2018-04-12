@@ -1,10 +1,3 @@
-/*
- * Gamnet.cpp
- *
- *  Created on: Jun 9, 2014
- *      Author: kukuta
- */
-
 #include "Gamnet.h"
 
 namespace Gamnet {
@@ -13,9 +6,6 @@ static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>
 void Run(int thread_count)
 {
 	SingletonInitHelper::GetInstance().Init();
-
-	//std::thread handlerThread(std::bind(&Network::SessionCreateServiceThreadPool, thread_count * 2));
-	Network::Session::CreateWorkerThreadPool(thread_count * 2);
 
 	Log::Write(GAMNET_INF, "Gamnet server starts..");
 	std::vector<std::thread > ioThreads;

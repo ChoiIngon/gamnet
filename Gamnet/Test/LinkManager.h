@@ -426,7 +426,7 @@ public :
 	{
 		if(nullptr == session)
 		{
-			LOG(GAMNET_ERR, "null session instance");
+			//LOG(GAMNET_ERR, "null session instance");
 			return;
 		}
 

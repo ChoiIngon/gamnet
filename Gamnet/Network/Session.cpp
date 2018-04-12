@@ -7,7 +7,10 @@
 #include <list>
 
 namespace Gamnet { namespace Network {
+	
 
+static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
+/*
 static boost::asio::io_service& GetIOService()
 {
 	static boost::asio::io_service io_service_;
@@ -23,6 +26,7 @@ void Session::CreateWorkerThreadPool(uint32_t threadCount)
 		workers_.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &GetIOService())));
 	}
 }
+*/
 
 std::string Session::GenerateSessionToken(uint32_t session_key)
 {
@@ -34,7 +38,8 @@ Session::Session() :
 	session_token(""),
 	expire_time(0),
 	remote_address(nullptr),
-	strand(GetIOService()),
+	//strand(GetIOService()),
+	strand(io_service_),
 	link(nullptr)
 {
 }
@@ -115,8 +120,8 @@ void Session::AttachLink(const std::shared_ptr<Link>& link)
 std::atomic<uint32_t> SessionManager::session_key;
 
 SessionManager::SessionManager() : 
-	_keepalive_time(0),
-	_deadline_timer(GetIOService())
+	_keepalive_time(0) //,
+	//_deadline_timer(Singleton<boost::asio::io_service>::GetInstance())
 {
 }
 
@@ -129,11 +134,13 @@ bool SessionManager::Init(int keepAliveSeconds)
 	std::lock_guard<std::mutex> lo(_lock);
 
 	_keepalive_time = keepAliveSeconds;
-	_deadline_timer.cancel();
-	_deadline_timer.expires_from_now(boost::posix_time::seconds((0 == _keepalive_time ? 3600 : _keepalive_time)));
-	_deadline_timer.async_wait(boost::bind(&SessionManager::OnTimerExpire, this, boost::asio::placeholders::error));
-	
+	//_deadline_timer.cancel();
+	//_deadline_timer.expires_from_now(boost::posix_time::seconds((0 == _keepalive_time ? 3600 : _keepalive_time)));
+	//_deadline_timer.async_wait(boost::bind(&SessionManager::OnTimerExpire, this, boost::asio::placeholders::error));
 	_sessions.clear();
+	_timer.Cancel();
+	_timer.AutoReset(true);
+	_timer.SetTimer((0 == _keepalive_time ? 3600 * 1000 : _keepalive_time * 1000), std::bind(&SessionManager::OnTimerExpire, this));
 	
 	return true;
 }
@@ -174,7 +181,7 @@ size_t SessionManager::Size()
 	return _sessions.size();
 }
 
-void SessionManager::OnTimerExpire(const boost::system::error_code& ec)
+void SessionManager::OnTimerExpire(/*const boost::system::error_code& ec*/)
 {
 	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
 	{
@@ -206,8 +213,8 @@ void SessionManager::OnTimerExpire(const boost::system::error_code& ec)
 		}
 	}
 
-	_deadline_timer.expires_from_now(boost::posix_time::seconds((0 == _keepalive_time ? 3600 : _keepalive_time)));
-	_deadline_timer.async_wait(boost::bind(&SessionManager::OnTimerExpire, this, boost::asio::placeholders::error));
+	//_deadline_timer.expires_from_now(boost::posix_time::seconds((0 == _keepalive_time ? 3600 : _keepalive_time)));
+	//_deadline_timer.async_wait(boost::bind(&SessionManager::OnTimerExpire, this, boost::asio::placeholders::error));
 }
 
 }} /* namespace Gamnet */
