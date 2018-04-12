@@ -108,6 +108,7 @@ public :
 		if(nullptr != session)
 		{
 			//session->OnClose(reason);
+			session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
 			session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
 		}
 	}
@@ -157,15 +158,15 @@ public :
 	
 	void DestroySession(uint32_t session_key)
 	{
-		std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
-		if (nullptr == session)
-		{
-			LOG(WRN, "can not find session(session_key:", session_key, ")");
-			return;
-		}
+		//std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
+		//if (nullptr == session)
+		//{
+		//	LOG(WRN, "can not find session(session_key:", session_key, ")");
+		//	return;
+		//}
 		//session->OnDestroy();
 		//session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
-		session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
+		//session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
 		session_manager.Remove(session_key);
 	}
 
@@ -320,7 +321,8 @@ public :
 			LOG(DEV, "[link_key:", link->link_key, "] null session");
 			return;
 		}
-		Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(session->session_key);
+		session_manager.Remove(session->session_key);
+		//;Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(session->session_key);
 	}
 
 	Json::Value State()
