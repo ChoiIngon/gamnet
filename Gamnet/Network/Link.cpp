@@ -222,22 +222,26 @@ int Link::SyncSend(const char* buf, int len)
 
 void Link::Close(int reason)
 {
-	if(true == socket.is_open())
-	{
-		try 
+	auto self = shared_from_this();
+	strand.wrap([self, reason]() {
+		if (true == self->socket.is_open())
 		{
-			link_manager->OnClose(shared_from_this(), reason);
-		}
-		catch (const Exception& e)
-		{
-			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
+			try
+			{
+				self->link_manager->OnClose(self, reason);
+			}
+			catch (const Exception& e)
+			{
+				LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+			}
 
-		socket.close();
-	}
-	link_manager->Remove(link_key);
-	session = nullptr;
-	//AttachSession(nullptr);
+			self->socket.close();
+		}
+		self->link_manager->Remove(self->link_key);
+		self->session = nullptr;
+		//AttachSession(nullptr);
+	});
+	
 }
 
 /*

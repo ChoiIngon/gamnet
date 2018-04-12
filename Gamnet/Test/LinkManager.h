@@ -110,7 +110,7 @@ public :
 					link->session = session;
 
 					session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
-					session_manager.Add(session->session_key, session);
+					Network::Tcp::LinkManager<SESSION_T>::session_manager.Add(session->session_key, session);
 
 					link->Connect(this->host.c_str(), this->port, 5);
 					
@@ -212,7 +212,7 @@ public :
 		{
 			Send_Close_Ntf(session);
 			session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
-			session_manager.Remove(session->session_key);
+			Network::Tcp::LinkManager<SESSION_T>::session_manager.Remove(session->session_key);
 		}
 	}
 
