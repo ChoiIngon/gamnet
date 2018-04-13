@@ -12,13 +12,9 @@
 
 namespace Gamnet { namespace Network {
 
-class Link;
-class LinkManager;
 class Session;
-
 class SessionManager
 {
-	//boost::asio::deadline_timer						_deadline_timer;
 	Timer											_timer;
 	std::mutex										_lock;
 	std::map<uint32_t, std::shared_ptr<Session>>	_sessions;
@@ -34,9 +30,10 @@ public :
 	size_t Size();
 
 private :
-	void OnTimerExpire(/*const boost::system::error_code& ec*/);
+	void OnTimerExpire();
 };
 
+class Link;
 class Session : public std::enable_shared_from_this<Session>
 {
 public :

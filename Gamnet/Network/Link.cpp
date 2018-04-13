@@ -7,12 +7,12 @@ static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>
 std::atomic<uint32_t> Link::link_key_generator;
 
 Link::Link(LinkManager* linkManager) : 
+	read_buffer(nullptr),
 	socket(io_service_),
 	strand(io_service_),
-	link_manager(linkManager),
 	link_key(0),
-	read_buffer(nullptr),
-	session(nullptr)	
+	session(nullptr),	
+	link_manager(linkManager)
 {
 }
 

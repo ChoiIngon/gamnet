@@ -22,9 +22,9 @@ std::string Session::GenerateSessionToken(uint32_t session_key)
 Session::Session() :
 	session_key(0),
 	session_token(""),
-	expire_time(0),
 	remote_address(nullptr),
 	strand(io_service_),
+	expire_time(0),
 	link(nullptr)
 {
 }
@@ -32,9 +32,9 @@ Session::Session() :
 Session::Session(boost::asio::io_service& io_service) :
 	session_key(0),
 	session_token(""),
-	expire_time(0),
 	remote_address(nullptr),
 	strand(io_service),
+	expire_time(0),
 	link(nullptr)
 {
 }

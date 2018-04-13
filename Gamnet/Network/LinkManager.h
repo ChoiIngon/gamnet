@@ -35,14 +35,8 @@ public :
 
 	virtual std::shared_ptr<Link> Create() = 0;
 	void Remove(uint32_t linkKey);
-
-	virtual size_t	Available();
-	virtual size_t	Size();
-	virtual size_t	Capacity();
-	
-	Json::Value State();
 private :
-	void Accept();
+	bool Accept();
 	void Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error);
 };
 }} /* namespace Gamnet */

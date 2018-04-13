@@ -21,7 +21,13 @@ void CreateThreadPool(int threadCount)
 	}
 }
 
-Session::Session() : test_seq(-1), is_pause(false), Network::Tcp::Session(io_service_) {
+Session::Session() : 
+	Network::Tcp::Session(io_service_), 
+	server_session_key(0),
+	access_token(""),
+	test_seq(-1), 
+	is_pause(false) 
+{
 }
 
 Session::~Session() {
@@ -33,11 +39,11 @@ bool Session::Init()
 	{
 		return false;
 	}
+	server_session_key = 0;
+	access_token = "";
 	test_seq = 0;
 	is_pause = false;
-
-	access_token = "";
-	server_session_key = 0;
+	
 	return true;
 }
 

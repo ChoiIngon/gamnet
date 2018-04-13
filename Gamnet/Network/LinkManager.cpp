@@ -24,20 +24,22 @@ void LinkManager::Listen(int port)
 	Accept();
 }
 
-void LinkManager::Accept()
+bool LinkManager::Accept()
 {
 	std::shared_ptr<Link> link = Create();
 	if(nullptr == link)
 	{
-		LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create link(pool_size:", Available(), "). deny addtional connection");
+		LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create link. deny addtional connection");
 		std::lock_guard<std::mutex> lo(_lock);
 		_is_acceptable = false;
-		return;
+		return false;
 	}
 
 	_acceptor.async_accept(link->socket, link->strand.wrap(
 		boost::bind(&LinkManager::Callback_Accept, this, link, boost::asio::placeholders::error)
 	));
+
+	return true;
 }
 
 void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error)
@@ -75,7 +77,7 @@ std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeo
 	std::shared_ptr<Link> link = Create();
 	if(nullptr == link)
 	{
-		LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create link. connect fail(pool_size:", Available(), ", host:", host, ", port:", port, ", timeout:", timeout);
+		LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create link. connect fail(host:", host, ", port:", port, ", timeout:", timeout, ")");
 		return nullptr;
 	}
 
@@ -92,53 +94,11 @@ void LinkManager::Remove(uint32_t linkKey)
 	_links.erase(linkKey);
 	if(false == _is_acceptable)
 	{
-		if(0 < Available())
+		if(true == Accept())
 		{
 			_is_acceptable = true;
-			Accept();
 		}
 	}
-}
-
-size_t LinkManager::Size()
-{
-	return 0; 
-}
-
-size_t LinkManager::Available()
-{
-	return 0; 
-}
-
-size_t LinkManager::Capacity() 
-{
-	return 0; 
-}
-
-Json::Value LinkManager::State()
-{
-	Json::Value root;
-
-	time_t logtime_;
-	struct tm when;
-	time(&logtime_);
-
-	char date_time[22] = { 0 };
-#ifdef _WIN32
-	localtime_s(&when, &logtime_);
-	_snprintf_s(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
-#else
-	localtime_r(&logtime_, &when);
-	snprintf(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
-#endif
-	root["date_time"] = date_time;
-	
-	Json::Value link;
-	link["capacity"] = (unsigned int)Capacity();
-	link["available"] = (unsigned int)Available();
-	link["running_count"] = (unsigned int)Size();
-	root["link"] = link;
-	return root;
 }
 
 }} 

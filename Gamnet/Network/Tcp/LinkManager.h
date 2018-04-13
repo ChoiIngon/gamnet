@@ -82,21 +82,6 @@ public :
 		return link;
 	}
 
-	virtual size_t Available() override
-	{
-		return link_pool.Available();
-	}
-	
-	virtual size_t Capacity() override
-	{
-		return link_pool.Capacity();
-	}
-	
-	virtual size_t Size() override
-	{
-		return session_manager.Size();
-	}
-
 	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
 	{
 
@@ -334,14 +319,34 @@ public :
 
 	Json::Value State()
 	{
-		Json::Value root = Network::LinkManager::State();
+		Json::Value root;
+
 		root["name"] = _name;
+
+		time_t logtime_;
+		struct tm when;
+		time(&logtime_);
+
+		char date_time[22] = { 0 };
+#ifdef _WIN32
+		localtime_s(&when, &logtime_);
+		_snprintf_s(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+#else
+		localtime_r(&logtime_, &when);
+		snprintf(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
+#endif
+		root["date_time"] = date_time;
+	
+		Json::Value link;
+		link["capacity"] = (unsigned int)link_pool.Capacity();
+		link["available"] = (unsigned int)link_pool.Available();
+		link["running_count"] = (unsigned int)_links.size();
+		root["link"] = link;
 		
 		Json::Value session;
 		session["capacity"] = (unsigned int)session_pool.Capacity();
 		session["available"] = (unsigned int)session_pool.Available();
 		session["running_count"] = (unsigned int)session_manager.Size();
-		//session["keepalive_time"] = session_manager.keepalive_time;
 		root["session"] = session;
 
 #ifdef _DEBUG
