@@ -21,43 +21,43 @@ std::shared_ptr<Network::Link> LinkManager::Create()
 	std::shared_ptr<Link> link = link_pool.Create();
 	if(nullptr == link)
 	{
-		LOG(GAMNET_ERR, "can not create 'Tcp::Link' instance");
+		LOG(GAMNET_ERR, "can not create 'Http::Link' instance");
 		return nullptr;
 	}
 
-	const std::shared_ptr<Session> session = std::shared_ptr<Session>(new Session());
-	if (nullptr == session)
-	{
-		LOG(GAMNET_ERR, "create session instance fail(link_key:", link->link_key, ")");
-		return nullptr;
-	}
-
-	session->session_key = ++Network::SessionManager::session_key;
-		
-	link->session = session;
-	session->link = link;
-	session->remote_address = &(link->remote_address);
-	session->OnCreate();
 	return link;
 }
 
 void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 {
-	std::shared_ptr<Network::Session> session = link->session;
-	session->OnAccept();
+	const std::shared_ptr<Session> session = std::shared_ptr<Session>(new Session());
+	if (nullptr == session)
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
+	}
+
+	session->session_key = ++Network::Session::session_key_generator;
+
+	link->session = session;
+	
+	session->strand.wrap(std::bind(&Session::OnCreate, session))();
+	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
+	session->strand.wrap(std::bind(&Session::OnAccept, session))();
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 {
-	std::shared_ptr<Network::Session> session = link->session;
+	std::shared_ptr<Network::Http::Session> session = std::static_pointer_cast<Network::Http::Session>(link->session);
 	if (nullptr == session)
 	{
 		LOG(ERR, "[link_key:", link->link_key, "] link refers invalid session");
 		return;
 	}
-
-	session->OnClose(reason);
-	session->OnDestroy();
+	
+	session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
+	session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
+	session->strand.wrap(std::bind(&Session::OnDestroy, session))();
 }
+
 
 }}}

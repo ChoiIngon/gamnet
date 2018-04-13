@@ -11,6 +11,7 @@ class Session : public Network::Session
 {
 public :
 	Session();
+	Session(boost::asio::io_service& ioService);
 	virtual ~Session();
 
 	virtual bool Init() override;

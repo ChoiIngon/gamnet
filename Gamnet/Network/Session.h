@@ -22,10 +22,8 @@ class SessionManager
 	Timer											_timer;
 	std::mutex										_lock;
 	std::map<uint32_t, std::shared_ptr<Session>>	_sessions;
-	uint64_t										_keepalive_time;
+	int64_t											_keepalive_time;
 public :
-	static std::atomic<uint32_t> session_key;
-		
 	SessionManager();
 	~SessionManager();
 	
@@ -51,33 +49,19 @@ public :
 			{
 				return nullptr;
 			}	
-			session->OnCreate();
-			return session;
-		}
-	};
-
-	struct ReleaseFunctor
-	{
-		template <class T>
-		T* operator() (T* session)
-		{
-			if(nullptr == session)
-			{
-				return nullptr;
-			}
-			session->OnDestroy();
 			return session;
 		}
 	};
 
 	Session();
+	Session(boost::asio::io_service& io_service);
 	virtual ~Session();
 
 	uint32_t					session_key;
 	std::string					session_token;
 	boost::asio::ip::address*	remote_address;
 	boost::asio::strand			strand;
-	time_t						expire_time;
+	int64_t						expire_time;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;
 
@@ -94,8 +78,9 @@ public :
 	int SyncSend(const char* data, int length);
 		
 	void AttachLink(const std::shared_ptr<Link>& link);
+
+	static std::atomic<uint32_t> session_key_generator;
 	static std::string GenerateSessionToken(uint32_t session_key);
-	//static void CreateWorkerThreadPool(uint32_t threadCount);
 };
 
 

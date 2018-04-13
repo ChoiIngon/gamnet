@@ -43,7 +43,7 @@ private :
 
 public :
 	SessionManager session_manager;
-	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
+	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor> session_pool;
 	Pool<Link, std::mutex, Network::Link::InitFunctor> link_pool;
 
 	LinkManager() : session_pool(), link_pool(65535, LinkFactory(this))
@@ -105,12 +105,13 @@ public :
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 	{
 		std::shared_ptr<Network::Session> session = link->session;
-		if(nullptr != session)
+		if(nullptr == session)
 		{
-			//session->OnClose(reason);
-			session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
-			session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
+			return;
 		}
+
+		session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
+		session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
@@ -158,15 +159,18 @@ public :
 	
 	void DestroySession(uint32_t session_key)
 	{
-		//std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
-		//if (nullptr == session)
-		//{
-		//	LOG(WRN, "can not find session(session_key:", session_key, ")");
-		//	return;
-		//}
-		//session->OnDestroy();
-		//session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
-		//session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
+		std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
+		if (nullptr == session)
+		{
+			LOG(WRN, "can not find session(session_key:", session_key, ")");
+			return;
+		}
+		std::shared_ptr<Network::Link> link = session->link;
+		if(nullptr != link)
+		{
+			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
+		}
+		session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
 		session_manager.Remove(session_key);
 	}
 
@@ -194,9 +198,11 @@ public :
 
 			link->session = session;
 
+			session_manager.Add(session->session_key, session);
+
+			session->strand.wrap(std::bind(&Session::OnCreate, session))();
 			session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 			session->strand.wrap(std::bind(&Session::OnAccept, session))();
-			session_manager.Add(session->session_key, session);
 
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
@@ -321,8 +327,9 @@ public :
 			LOG(ERR, "[link_key:", link->link_key, "] null session");
 			return;
 		}
+
+		session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
 		session_manager.Remove(session->session_key);
-		//;Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(session->session_key);
 	}
 
 	Json::Value State()

@@ -66,9 +66,12 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 	link->session = session;
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
-	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
+
 	session_manager.Add(session->session_key, session);
 
+	session->strand.wrap(std::bind(&Session::OnCreate, session))();
+	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
+	
 	link->Connect(host, port, timeout);
 	std::lock_guard<std::mutex> lo(this->_lock);
 	_links.insert(std::make_pair(link->link_key, link));
@@ -97,21 +100,31 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 
 	link->session = session;
 
+	_cast_group->AddSession(session);
+
+	session_manager.Add(session->session_key, session);
+
+	session->strand.wrap(std::bind(&Session::OnCreate, session))();
 	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 	session->strand.wrap(std::bind(&Session::OnAccept, session))();
-	session_manager.Add(session->session_key, session);
-	_cast_group->AddSession(session);
+	
+	
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 {
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
-	if (nullptr != session)
+	if (nullptr == session)
 	{
-		session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
-		session_manager.Remove(session->session_key);
-		_cast_group->DelSession(session);
+		return;
 	}
+	session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
+	session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
+	session->strand.wrap(std::bind(&Session::OnDestroy, session))();
+
+	session_manager.Remove(session->session_key);
+
+	_cast_group->DelSession(session);
 }
 
 void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) 

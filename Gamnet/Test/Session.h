@@ -4,6 +4,9 @@
 
 namespace Gamnet { namespace Test {
 
+boost::asio::io_service& GetIOService();
+void CreateThreadPool(int threadCount);
+
 class Session : public Network::Tcp::Session {
 public:
 	std::recursive_mutex lock;

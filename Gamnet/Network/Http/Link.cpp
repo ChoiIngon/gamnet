@@ -31,13 +31,6 @@ bool Link::Init()
 
 void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 {
-	if (NULL == session)
-	{
-		LOG(GAMNET_ERR, "invalid session(link_key:", link_key, ")");
-		Close(ErrorCode::InvalidSessionError);
-		return;
-	}
-
 	recv_buffer->Append(buffer->ReadPtr(), buffer->Size());
 	const std::string request = std::string(recv_buffer->ReadPtr(), recv_buffer->Size());
 
@@ -75,7 +68,18 @@ void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 	uri = uri.substr(0, uri_end);
 	Request req(param);
 	
-	Singleton<Dispatcher>::GetInstance().OnRecvMsg(shared_from_this(), uri, req);
-	Close(ErrorCode::Success);
+	std::shared_ptr<Network::Session> s = this->session;
+	if (nullptr == s)
+	{
+		LOG(GAMNET_ERR, "invalid session(link_key:", link_key, ")");
+		Close(ErrorCode::InvalidSessionError);
+		return;
+	}
+	
+	auto self = shared_from_this();
+	s->strand.wrap([self, uri, req] () {
+		Singleton<Dispatcher>::GetInstance().OnRecvMsg(self, uri, req);
+		self->strand.wrap(std::bind(&Link::Close, self, ErrorCode::Success))();
+	})();	
 }
 }}}

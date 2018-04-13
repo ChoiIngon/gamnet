@@ -66,8 +66,13 @@ class Timer
 	}
 public :
 	Timer() :
-		entry_(NULL), interval_(0), auto_reset_(false), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
+		entry_(nullptr), interval_(0), auto_reset_(false), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
 	{
+	}
+
+	Timer(boost::asio::io_service& ioService) :
+		entry_(nullptr), interval_(0), auto_reset_(false), deadline_timer_(ioService)
+	{	
 	}
 
 	~Timer()

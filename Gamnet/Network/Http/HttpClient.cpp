@@ -127,13 +127,14 @@ bool HttpClient::Get(const char* path, const char* param, std::function<void(int
 	int httpCode = 200;
 	try {
 		httpCode = HttpRequest(path_param);
+		callback(httpCode, resData_.c_str());
 	}
 	catch(const Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
-	callback(httpCode, resData_.c_str());
+	
 	return true;
 }
 
@@ -167,13 +168,14 @@ bool HttpClient::Post(const char* path, const char* param, std::function<void(in
 			path_param = path;
 		}
 		httpCode = HttpRequest(path_param);
+		callback(httpCode, resData_.c_str());
 	}
 	catch(const Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
-	callback(httpCode, resData_.c_str());
+	
 	return true;
 }
 
@@ -201,13 +203,14 @@ bool HttpClient::Put(const char* path, const char* param, std::function<void(int
 			path_param = path;
 		}
 		httpCode = HttpRequest(path_param);
+		callback(httpCode, resData_.c_str());
 	}
 	catch(const Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
-	callback(httpCode, resData_.c_str());
+	
 	return true;
 }
 
@@ -343,6 +346,7 @@ int HttpClient::HttpRequest(const std::string& path)
 		_httpCode = e.error_code();
 		Log::Write(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
+
 	if(NULL != header_list)
 	{
 		curl_slist_free_all(header_list);

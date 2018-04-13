@@ -10,36 +10,31 @@ namespace Gamnet { namespace Network {
 	
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
-/*
-static boost::asio::io_service& GetIOService()
-{
-	static boost::asio::io_service io_service_;
-	return io_service_;
-}
 
-static std::vector<std::thread > workers_;
-
-void Session::CreateWorkerThreadPool(uint32_t threadCount)
-{
-	for (int i = 0; i<threadCount + 1; i++)
-	{
-		workers_.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &GetIOService())));
-	}
-}
-*/
+std::atomic<uint32_t> Session::session_key_generator;
 
 std::string Session::GenerateSessionToken(uint32_t session_key)
 {
 	return md5(Format(session_key, time(nullptr), Random::Range(1, 99999999)));
 }
 
+
 Session::Session() :
 	session_key(0),
 	session_token(""),
 	expire_time(0),
 	remote_address(nullptr),
-	//strand(GetIOService()),
 	strand(io_service_),
+	link(nullptr)
+{
+}
+
+Session::Session(boost::asio::io_service& io_service) :
+	session_key(0),
+	session_token(""),
+	expire_time(0),
+	remote_address(nullptr),
+	strand(io_service),
 	link(nullptr)
 {
 }
@@ -50,7 +45,7 @@ Session::~Session()
 
 bool Session::Init()
 {
-	session_key = ++Network::SessionManager::session_key;
+	session_key = ++Session::session_key_generator;
 	session_token = "";
 	expire_time = ::time(nullptr);
 	link = nullptr;
@@ -104,24 +99,19 @@ void Session::AttachLink(const std::shared_ptr<Link>& link)
 {
 	if(nullptr != this->link)
 	{
-	//	this->link->session = nullptr;
 		this->remote_address = nullptr;
 		this->link = nullptr;
 	}
 
 	if(nullptr != link)
 	{
-	//	link->session = shared_from_this();
 		this->link = link;
 		this->remote_address = &(link->remote_address);
 	}
 }
 
-std::atomic<uint32_t> SessionManager::session_key;
-
 SessionManager::SessionManager() : 
-	_keepalive_time(0) //,
-	//_deadline_timer(Singleton<boost::asio::io_service>::GetInstance())
+	_keepalive_time(0) 
 {
 }
 
@@ -134,9 +124,7 @@ bool SessionManager::Init(int keepAliveSeconds)
 	std::lock_guard<std::mutex> lo(_lock);
 
 	_keepalive_time = keepAliveSeconds;
-	//_deadline_timer.cancel();
-	//_deadline_timer.expires_from_now(boost::posix_time::seconds((0 == _keepalive_time ? 3600 : _keepalive_time)));
-	//_deadline_timer.async_wait(boost::bind(&SessionManager::OnTimerExpire, this, boost::asio::placeholders::error));
+
 	_sessions.clear();
 	_timer.Cancel();
 	_timer.AutoReset(true);
@@ -181,12 +169,12 @@ size_t SessionManager::Size()
 	return _sessions.size();
 }
 
-void SessionManager::OnTimerExpire(/*const boost::system::error_code& ec*/)
+void SessionManager::OnTimerExpire()
 {
 	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
 	{
 		std::lock_guard<std::mutex> lo(_lock);
-		time_t now_ = time(nullptr);
+		int64_t now_ = time(nullptr);
 		if(0 < _keepalive_time)
 		{
 			for (auto itr = _sessions.begin(); itr != _sessions.end();) {
@@ -211,10 +199,8 @@ void SessionManager::OnTimerExpire(/*const boost::system::error_code& ec*/)
 		{
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::IdleTimeoutError))();
 		}
+		session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
 	}
-
-	//_deadline_timer.expires_from_now(boost::posix_time::seconds((0 == _keepalive_time ? 3600 : _keepalive_time)));
-	//_deadline_timer.async_wait(boost::bind(&SessionManager::OnTimerExpire, this, boost::asio::placeholders::error));
 }
 
 }} /* namespace Gamnet */

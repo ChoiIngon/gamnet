@@ -3,6 +3,7 @@
 
 #include "../Network/Tcp/LinkManager.h"
 #include "../Library/ThreadPool.h"
+#include "Session.h"
 
 #include <map>
 #include <memory>
@@ -53,9 +54,10 @@ private:
 	
 	std::string host;
 	int			port;
+
 public :
 	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
-	LinkManager() : thread_pool(30), execute_count(0), host(""), port(0)
+	LinkManager() : log_timer(GetIOService()), execute_timer(GetIOService()), thread_pool(30), execute_count(0), host(""), port(0)
 	{
 		Network::Tcp::LinkManager<SESSION_T>::_name = "Gamnet::Test::LinkManager";
 
@@ -109,11 +111,12 @@ public :
 	
 					link->session = session;
 
-					session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 					Network::Tcp::LinkManager<SESSION_T>::session_manager.Add(session->session_key, session);
 
+					session->strand.wrap(std::bind(&Session::OnCreate, session))();
+					session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
+
 					link->Connect(this->host.c_str(), this->port, 5);
-					
 					std::lock_guard<std::mutex> lo(this->_lock);
 					this->_links.insert(std::make_pair(link->link_key, link));
 				});
@@ -156,30 +159,12 @@ public :
 				log.Write(GAMNET_INF, "[Test] test finished..(", this->execute_count, "/", execute_count, ")");
 			}
 		});
+
+		CreateThreadPool(std::thread::hardware_concurrency() * 2);
 	}
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
-		/*
-		thread_pool.PostTask([this, link]() {
-			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-			std::lock_guard<std::recursive_mutex> lo(session->lock);
-			if(0 < this->execute_order.size())
-			{
-				if(0 == session->test_seq)
-				{
-					const std::shared_ptr<TestExecuteInfo>& info = execute_order[0];
-					session->send_time = std::chrono::steady_clock::now();
-					info->send_handler(session);
-					info->execute_count++;
-				}
-				else 
-				{
-					this->Send_Reconnect_Req(session);
-				}
-			}
-		});
-		*/
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr == link->session)
 		{
@@ -209,11 +194,15 @@ public :
 	{
 		Send_Close_Ntf(link);
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if(nullptr != session)
+		if(nullptr == session)
 		{
-			session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
-			Network::Tcp::LinkManager<SESSION_T>::session_manager.Remove(session->session_key);
+			return;
 		}
+		
+		session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
+		session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
+		session->strand.wrap(std::bind(&Session::OnDestroy, session))();
+		Network::Tcp::LinkManager<SESSION_T>::session_manager.Remove(session->session_key);
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
@@ -249,7 +238,14 @@ public :
 				}
 
 				RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
-				handler(session, packet);
+				try {
+					handler(session, packet);
+				}
+				catch(const Exception& e)
+				{
+					link->strand.wrap(std::bind(&Network::Link::Close, link, e.error_code()))();
+					return;
+				}
 
 				if (false == is_global_handler)
 				{
