@@ -49,7 +49,7 @@ private:
 	Log::Logger	log;
 	Timer 		log_timer;
 	Timer 		execute_timer;
-	ThreadPool 	thread_pool;
+	//ThreadPool 	thread_pool;
 	std::atomic_int	execute_count;
 	
 	std::string host;
@@ -57,7 +57,7 @@ private:
 
 public :
 	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
-	LinkManager() : log_timer(GetIOService()), execute_timer(GetIOService()), thread_pool(30), execute_count(0), host(""), port(0)
+	LinkManager() : log_timer(GetIOService()), execute_timer(GetIOService()), /*thread_pool(30), */execute_count(0), host(""), port(0)
 	{
 		Network::Tcp::LinkManager<SESSION_T>::_name = "Gamnet::Test::LinkManager";
 
@@ -94,32 +94,32 @@ public :
 					break;
 				}
 
-				thread_pool.PostTask([this]() {
-					std::shared_ptr<Network::Link> link = this->Create();
-					if(nullptr == link)
-					{
-						LOG(ERR, "[link_manager:", this->_name, "] can not create link. connect fail(pool_size:", this->Available(), ", host:", this->host, ", port:", this->port);
-						return;
-					}
+				//thread_pool.PostTask([this]() {
+				std::shared_ptr<Network::Link> link = this->Create();
+				if(nullptr == link)
+				{
+					LOG(ERR, "[link_manager:", this->_name, "] can not create link. connect fail(pool_size:", this->Available(), ", host:", this->host, ", port:", this->port);
+					return;
+				}
 
-					std::shared_ptr<SESSION_T> session = this->session_pool.Create();
-					if(nullptr == session)
-					{
-						LOG(ERR, "[link_manager:", this->_name, "] can not create session. connect fail(pool_size:", this->Available(), ", host:", this->host, ", port:", this->port);
-						return;
-					}
+				std::shared_ptr<SESSION_T> session = this->session_pool.Create();
+				if(nullptr == session)
+				{
+					LOG(ERR, "[link_manager:", this->_name, "] can not create session. connect fail(pool_size:", this->Available(), ", host:", this->host, ", port:", this->port);
+					return;
+				}
 	
-					link->session = session;
+				link->session = session;
 
-					Network::Tcp::LinkManager<SESSION_T>::session_manager.Add(session->session_key, session);
+				Network::Tcp::LinkManager<SESSION_T>::session_manager.Add(session->session_key, session);
 
-					session->strand.wrap(std::bind(&Session::OnCreate, session))();
-					session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
+				session->strand.wrap(std::bind(&Session::OnCreate, session))();
+				session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 
-					link->Connect(this->host.c_str(), this->port, 5);
-					std::lock_guard<std::mutex> lo(this->_lock);
-					this->_links.insert(std::make_pair(link->link_key, link));
-				});
+				link->Connect(this->host.c_str(), this->port, 5);
+				std::lock_guard<std::mutex> lo(this->_lock);
+				this->_links.insert(std::make_pair(link->link_key, link));
+				//});
 
 				this->execute_count++;
 				if(this->execute_count >= execute_count)
@@ -266,10 +266,10 @@ public :
 					const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
 					try
 					{
-						thread_pool.PostTask([next_execute_info, session]() {
+						//thread_pool.PostTask([next_execute_info, session]() {
 							session->send_time = std::chrono::steady_clock::now();
 							next_execute_info->send_handler(session);
-						});
+						//});
 					}
 					catch (const Gamnet::Exception& e)
 					{
