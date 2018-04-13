@@ -21,7 +21,10 @@ void LinkManager::Listen(int port)
 	_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 	_acceptor.bind(_endpoint);
 	_acceptor.listen();
-	Accept();
+	for(int i=0; i<5; i++)
+	{
+		Accept();
+	}
 }
 
 bool LinkManager::Accept()
