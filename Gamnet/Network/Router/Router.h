@@ -48,9 +48,9 @@ namespace Gamnet { namespace Network { namespace Router {
 	}
 
 	template <class MSG>
-	void SendMsg(const Address& addr, const MSG& msg)
+	bool SendMsg(const Address& addr, const MSG& msg)
 	{
-		SendMsg(nullptr, addr, msg);
+		return SendMsg(nullptr, addr, msg);
 	}
 }}}
 

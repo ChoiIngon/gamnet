@@ -22,7 +22,8 @@ public :
 	LinkManager();
 	virtual ~LinkManager();
 
-	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose);
+	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose, int accept_queue_size = 5);
+	using Network::LinkManager::Connect;
 	void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose);
 	
 	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override;

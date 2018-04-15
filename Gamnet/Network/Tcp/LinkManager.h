@@ -55,10 +55,10 @@ public :
 	{
 	}
 
-	void Listen(int port, int max_session, int keepAliveTime)
+	void Listen(int port, int max_session, int keep_alive_time, int accept_queue_size)
 	{
 		session_pool.Capacity(max_session);
-		session_manager.Init(keepAliveTime);
+		session_manager.Init(keep_alive_time);
 
 		link_pool.Capacity(max_session);
 
@@ -68,7 +68,7 @@ public :
 		handlers[MsgID_CliSvr_HeartBeat_Req] = std::bind(&LinkManager::Recv_HeartBeat_Req, this, std::placeholders::_1, std::placeholders::_2);
 		handlers[MsgID_CliSvr_Close_Ntf] = std::bind(&LinkManager::Recv_Close_Ntf, this, std::placeholders::_1, std::placeholders::_2);
 
-		Network::LinkManager::Listen(port);
+		Network::LinkManager::Listen(port, accept_queue_size);
 	}
 
 	virtual std::shared_ptr<Network::Link> Create() override
@@ -84,7 +84,6 @@ public :
 
 	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
 	{
-
 	}
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
@@ -340,7 +339,7 @@ public :
 		Json::Value link;
 		link["capacity"] = (unsigned int)link_pool.Capacity();
 		link["available"] = (unsigned int)link_pool.Available();
-		link["running_count"] = (unsigned int)_links.size();
+		link["running_count"] = (unsigned int)Size();
 		root["link"] = link;
 		
 		Json::Value session;

@@ -71,6 +71,11 @@ void Link::Connect(const char* host, int port, int timeout)
 					boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 					self->socket.set_option(option);
 				}
+				if(false == self->link_manager->Add(self))
+				{
+					assert(!"duplicated link");
+					throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "[link_key:", self->link_key, "] duplicated link");
+				}
 				self->remote_address = self->socket.remote_endpoint().address();
 				self->AsyncRead();
 				self->link_manager->OnConnect(self);

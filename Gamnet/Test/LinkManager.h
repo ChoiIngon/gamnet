@@ -100,7 +100,7 @@ public :
 				std::shared_ptr<Network::Link> link = this->Create();
 				if(nullptr == link)
 				{
-					LOG(ERR, "[link_manager:", this->_name, "] can not create link. connect fail(link count:", this->_links.size(), "/", this->link_pool.Capacity(), ")");
+					LOG(ERR, "[link_manager:", this->_name, "] can not create link. connect fail(link count:", this->Size(), "/", this->link_pool.Capacity(), ")");
 					return;
 				}
 
@@ -119,9 +119,6 @@ public :
 				session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 
 				link->Connect(this->host.c_str(), this->port, 5);
-
-				std::lock_guard<std::mutex> lo(this->_lock);
-				this->_links.insert(std::make_pair(link->link_key, link));
 
 				this->cur_execute_count++;
 			}
@@ -412,7 +409,7 @@ public :
 	void OnLogTimerExpire()
 	{
 		log.Write(GAMNET_INF, "[Test] execute count..(", cur_execute_count, "/", max_execute_count, ")");
-		log.Write(GAMNET_INF, "[Test] link count..(active:", this->_links.size(), ", available:", this->link_pool.Available(), ", max:", this->link_pool.Capacity(), ")");
+		log.Write(GAMNET_INF, "[Test] link count..(active:", this->Size(), ", available:", this->link_pool.Available(), ", max:", this->link_pool.Capacity(), ")");
 		log.Write(GAMNET_INF, "[Test] session count..(active:", this->session_manager.Size(), ", available:", this->session_pool.Available(), ", max:", this->session_pool.Capacity(), ")");
 			
 		for (auto itr : execute_order)

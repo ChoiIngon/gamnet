@@ -13,19 +13,19 @@ namespace Gamnet { namespace Network {
 
 class LinkManager
 {
-protected:
-	std::string	_name;
 	std::mutex	_lock;
-	volatile bool _is_acceptable;
 	boost::asio::ip::tcp::acceptor _acceptor;
 	boost::asio::ip::tcp::endpoint _endpoint;
-
 	std::map<uint32_t, std::shared_ptr<Network::Link>> _links;
+	int _max_accept_size;
+	volatile int _cur_accept_size;
+protected:
+	std::string	_name;
 public :
 	LinkManager();
 	virtual ~LinkManager();
 
-	void Listen(int port);
+	bool Listen(int port, int accept_queue_size);
 	virtual std::shared_ptr<Link> Connect(const char* host, int port, int timeout);
 
 	virtual void OnAccept(const std::shared_ptr<Link>& link) {}
@@ -34,11 +34,14 @@ public :
 	virtual void OnClose(const std::shared_ptr<Link>& link, int reason) {}	
 
 	virtual std::shared_ptr<Link> Create() = 0;
+	bool Add(const std::shared_ptr<Link>& link);
 	void Remove(uint32_t linkKey);
+	size_t Size();
 private :
 	bool Accept();
 	void Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error);
 };
+
 }} /* namespace Gamnet */
 
 #endif /* NETWORK_LISTENER_H_ */

@@ -2,9 +2,9 @@
 
 namespace Gamnet { namespace Network { namespace Http {
 
-	void Listen(int port)
+	void Listen(int port, int accept_queue_size)
 	{
-		Singleton<LinkManager>::GetInstance().Listen(port);
+		Singleton<LinkManager>::GetInstance().Listen(port, accept_queue_size);
 		LOG(GAMNET_INF, "Gamnet::Http listener start(port:", port, ")");
 	}
 

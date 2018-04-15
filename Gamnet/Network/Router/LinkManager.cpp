@@ -17,7 +17,7 @@ LinkManager::LinkManager()
 LinkManager::~LinkManager() {
 }
 
-void LinkManager::Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose)
+void LinkManager::Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose, int accept_queue_size)
 {
 	LinkManager::onRouterAccept = onAccept;
 	LinkManager::onRouterClose = onClose;
@@ -46,7 +46,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	});
 
 	session_manager.Init(0);
-	Network::LinkManager::Listen(port);
+	Network::LinkManager::Listen(port, accept_queue_size);
 }
 
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
@@ -73,8 +73,6 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 	
 	link->Connect(host, port, timeout);
-	std::lock_guard<std::mutex> lo(this->_lock);
-	_links.insert(std::make_pair(link->link_key, link));
 }
 
 void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
@@ -107,8 +105,6 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 	session->strand.wrap(std::bind(&Session::OnCreate, session))();
 	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 	session->strand.wrap(std::bind(&Session::OnAccept, session))();
-	
-	
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)

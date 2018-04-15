@@ -1,10 +1,3 @@
-/*
- * Exception.h
- *
- *  Created on: Jun 5, 2014
- *      Author: kukuta
- */
-
 #ifndef __GAMNET_LIB_EXCEPTION_H_
 #define __GAMNET_LIB_EXCEPTION_H_
 

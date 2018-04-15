@@ -5,7 +5,6 @@ namespace Gamnet { namespace Network {
 
 LinkManager::LinkManager() :
 	_name("Gamnet::Network::LinkManager"),
-	_is_acceptable(true),
 	_acceptor(Singleton<boost::asio::io_service>::GetInstance())
 {
 }
@@ -14,17 +13,25 @@ LinkManager::~LinkManager()
 {
 }
 
-void LinkManager::Listen(int port)
+bool LinkManager::Listen(int port, int accept_queue_size)
 {
 	_endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port);
 	_acceptor.open(_endpoint.protocol());
 	_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 	_acceptor.bind(_endpoint);
 	_acceptor.listen();
-	for(int i=0; i<5; i++)
+
+	_max_accept_size = accept_queue_size;
+	for(int i=0; i<_max_accept_size; i++)
 	{
-		Accept();
+		if(false == Accept())
+		{
+			return false;
+		}
+		std::lock_guard<std::mutex> lo(_lock);
+		_cur_accept_size++;
 	}
+	return true;
 }
 
 bool LinkManager::Accept()
@@ -34,7 +41,7 @@ bool LinkManager::Accept()
 	{
 		LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create link. deny addtional connection");
 		std::lock_guard<std::mutex> lo(_lock);
-		_is_acceptable = false;
+		_cur_accept_size = std::max(_cur_accept_size-1, 0);
 		return false;
 	}
 
@@ -59,8 +66,11 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 
 			OnAccept(link);
 
-			std::lock_guard<std::mutex> lo(_lock);
-			_links.insert(std::make_pair(link->link_key, link));
+			if(false == Add(link))
+			{
+				assert(!"duplcated key");
+				link->Close(ErrorCode::AcceptFailError);
+			}
 		}
 		catch(const boost::system::system_error& e)
 		{
@@ -84,24 +94,40 @@ std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeo
 		return nullptr;
 	}
 
-	link->Connect(host, port, timeout);
 
-	std::lock_guard<std::mutex> lo(_lock);
-	_links.insert(std::make_pair(link->link_key, link));
+	link->Connect(host, port, timeout);
 	return link;
+}
+
+bool LinkManager::Add(const std::shared_ptr<Link>& link)
+{
+	std::lock_guard<std::mutex> lo(_lock);
+	return _links.insert(std::make_pair(link->link_key, link)).second;	
 }
 
 void LinkManager::Remove(uint32_t linkKey)
 {
 	std::lock_guard<std::mutex> lo(_lock);
 	_links.erase(linkKey);
-	if(false == _is_acceptable)
+	if(_cur_accept_size < _max_accept_size)
 	{
-		if(true == Accept())
+		for(int i=_cur_accept_size; i < _max_accept_size; i++)
 		{
-			_is_acceptable = true;
+			if(true == Accept())
+			{
+				_cur_accept_size++;
+			}
+			else
+			{
+				break;
+			}
 		}
 	}
 }
 
+size_t LinkManager::Size() 
+{
+	std::lock_guard<std::mutex> lo(_lock);
+	return _links.size();
+}
 }} 
