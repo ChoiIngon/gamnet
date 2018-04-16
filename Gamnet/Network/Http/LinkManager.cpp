@@ -9,7 +9,7 @@ namespace Gamnet { namespace Network { namespace Http {
 
 LinkManager::LinkManager() : link_pool(65535, LinkFactory(this))
 {
-	_name = "Gamnet::Network::Http::LinkManager";
+	name = "Gamnet::Network::Http::LinkManager";
 }
 
 LinkManager::~LinkManager() 

@@ -4,7 +4,7 @@
 namespace Gamnet { namespace Network {
 
 LinkManager::LinkManager() :
-	_name("Gamnet::Network::LinkManager"),
+	name("Gamnet::Network::LinkManager"),
 	_acceptor(Singleton<boost::asio::io_service>::GetInstance())
 {
 }
@@ -39,7 +39,7 @@ bool LinkManager::Accept()
 	std::shared_ptr<Link> link = Create();
 	if(nullptr == link)
 	{
-		LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create link. deny addtional connection");
+		LOG(GAMNET_ERR, "[link_manager:", name, "] can not create link. deny addtional connection");
 		std::lock_guard<std::mutex> lo(_lock);
 		_cur_accept_size = std::max(_cur_accept_size-1, 0);
 		return false;
@@ -90,7 +90,7 @@ std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeo
 	std::shared_ptr<Link> link = Create();
 	if(nullptr == link)
 	{
-		LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create link. connect fail(host:", host, ", port:", port, ", timeout:", timeout, ")");
+		LOG(GAMNET_ERR, "[link_manager:", name, "] can not create link. connect fail(host:", host, ", port:", port, ", timeout:", timeout, ")");
 		return nullptr;
 	}
 

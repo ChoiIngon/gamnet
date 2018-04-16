@@ -48,7 +48,7 @@ public :
 
 	LinkManager() : session_pool(), link_pool(65535, LinkFactory(this))
 	{
-		_name = "Gamnet::Network::Tcp::LinkManager";
+		name = "Gamnet::Network::Tcp::LinkManager";
 	}
 
 	virtual ~LinkManager()	
@@ -76,7 +76,7 @@ public :
 		std::shared_ptr<Link> link = link_pool.Create();
 		if(nullptr == link)
 		{
-			LOG(GAMNET_ERR, "[link_manager:", _name, "] can not create 'Tcp::Link' instance");
+			LOG(GAMNET_ERR, "[link_manager:", name, "] can not create 'Tcp::Link' instance");
 			return nullptr;
 		}
 		return link;
@@ -320,7 +320,7 @@ public :
 	{
 		Json::Value root;
 
-		root["name"] = _name;
+		root["name"] = name;
 
 		time_t logtime_;
 		struct tm when;

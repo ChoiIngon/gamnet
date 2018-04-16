@@ -60,7 +60,7 @@ public :
 	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 	LinkManager() : log_timer(GetIOService()), execute_timer(GetIOService()), cur_execute_count(0), max_execute_count(0), host(""), port(0)
 	{
-		Network::Tcp::LinkManager<SESSION_T>::_name = "Gamnet::Test::LinkManager";
+		this->name = "Gamnet::Test::LinkManager";
 
 		RegisterSendHandler("__connect__", std::bind(&LinkManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1));
 		RegisterRecvHandler("__connect__", (uint32_t)Network::Tcp::LinkManager<SESSION_T>::MsgID_SvrCli_Connect_Ans, std::bind(&LinkManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2), 1);
@@ -100,14 +100,14 @@ public :
 				std::shared_ptr<Network::Link> link = this->Create();
 				if(nullptr == link)
 				{
-					LOG(ERR, "[link_manager:", this->_name, "] can not create link. connect fail(link count:", this->Size(), "/", this->link_pool.Capacity(), ")");
+					LOG(ERR, "[link_manager:", this->name, "] can not create link. connect fail(link count:", this->Size(), "/", this->link_pool.Capacity(), ")");
 					return;
 				}
 
 				std::shared_ptr<SESSION_T> session = this->session_pool.Create();
 				if(nullptr == session)
 				{
-					LOG(ERR, "[link_manager:", this->_name, "] can not create session. connect fail(session count:", this->session_manager.Size(), "/", this->session_pool.Capacity(), ")");
+					LOG(ERR, "[link_manager:", this->name, "] can not create session. connect fail(session count:", this->session_manager.Size(), "/", this->session_pool.Capacity(), ")");
 					return;
 				}
 	

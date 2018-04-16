@@ -92,7 +92,7 @@ void Link::Connect(const char* host, int port, int timeout)
 	{
 		timer.AutoReset(false);
 		timer.SetTimer(timeout*1000, strand.wrap([this]() {
-			Log::Write(GAMNET_WRN, "[link_key:", link_key, "] connect timeout(ip:", remote_address.to_string(), ")");
+			Log::Write(GAMNET_WRN, "[", link_manager->name, ", link_key:", link_key, "] connect timeout(ip:", remote_address.to_string(), ")");
 			Close(ErrorCode::ConnectTimeoutError);
 		}));
 	}

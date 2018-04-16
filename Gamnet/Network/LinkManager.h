@@ -19,8 +19,8 @@ class LinkManager
 	std::map<uint32_t, std::shared_ptr<Network::Link>> _links;
 	int _max_accept_size;
 	volatile int _cur_accept_size;
-protected:
-	std::string	_name;
+public :
+	std::string	name;
 public :
 	LinkManager();
 	virtual ~LinkManager();

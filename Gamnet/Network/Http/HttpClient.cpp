@@ -5,6 +5,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+
 #include "../../Log/Log.h"
 struct curl_slist;
 
@@ -238,13 +239,14 @@ bool HttpClient::Delete(const char* path, const char* param, std::function<void(
 			path_param = path;
 		}
 		httpCode = HttpRequest(path_param);
+		callback(httpCode, resData_.c_str());
 	}
 	catch(const Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
-	callback(httpCode, resData_.c_str());
+	
 	return true;
 }
 
@@ -256,7 +258,7 @@ int HttpClient::HttpRequest(const std::string& path)
 	try {
 		if(NULL == curl_)
 		{
-			throw Exception(500, "curl lib isn't inited");
+			throw GAMNET_EXCEPTION(500, "curl lib isn't inited");
 		}
 
 		for(auto itr : mapHeader_)
@@ -269,18 +271,18 @@ int HttpClient::HttpRequest(const std::string& path)
 		error_code = curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, header_list);
 		if(CURLE_OK != error_code)
 		{
-			throw Exception(error_code, "set header error(error_code:", error_code,")");
+			throw GAMNET_EXCEPTION(500, "set header error(error_code:", error_code,")");
 		}
 
 		error_code = curl_easy_setopt(curl_, CURLOPT_CONNECTTIMEOUT, 5);
 		if(CURLE_OK != error_code)
 		{
-			throw Exception(500, "set connect timeout option error(error_code:", error_code,")");
+			throw GAMNET_EXCEPTION(500, "set connect timeout option error(error_code:", error_code,")");
 		}
 		error_code = curl_easy_setopt(curl_, CURLOPT_NOSIGNAL, 1);
 		if(CURLE_OK != error_code)
 		{
-			throw Exception(500, "set no signal option error(error_code:", error_code,")");
+			throw GAMNET_EXCEPTION(500, "set no signal option error(error_code:", error_code,")");
 		}
 
 		std::string url = host_;
@@ -291,7 +293,7 @@ int HttpClient::HttpRequest(const std::string& path)
 		error_code = curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 		if(CURLE_OK != error_code)
 		{
-			throw Exception(500, "set url error(error_code:", error_code, ")");
+			throw GAMNET_EXCEPTION(500, "set url error(error_code:", error_code, ")");
 		}
 
 		/*
@@ -310,27 +312,29 @@ int HttpClient::HttpRequest(const std::string& path)
 		error_code = curl_easy_setopt(curl_, CURLOPT_WRITEDATA, (void *)this);
 		if(CURLE_OK != error_code)
 		{
-			throw Exception(500, "set callback arg error(error_code:", error_code, ")");
+			throw GAMNET_EXCEPTION(500, "set callback arg error(error_code:", error_code, ")");
 		}
 
 		error_code = curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, Callback);
 		if(CURLE_OK != error_code)
 		{
-			throw Exception(500, "set callback function error(error_code:", error_code, ")");
+			throw GAMNET_EXCEPTION(500, "set callback function error(error_code:", error_code, ")");
 		}
 
+		//int errorCount = 0;
 		while(true)
 		{
 			error_code = curl_easy_perform(curl_);
 			if(CURLE_OK != error_code)
 			{
-				throw Exception(500, "perform http request error(error_code:", error_code, ")");
+				//LOG(ERR,"perform http request error(error_code:", error_code, ", error_count:", ++errorCount, ")");
+				continue;
 			}
 
 			error_code = curl_easy_getinfo(curl_, CURLINFO_HTTP_CODE, &_httpCode);
 			if(CURLE_OK != error_code)
 			{
-				throw Exception(500, "get return error code error(error_code:", error_code, ")");
+				throw GAMNET_EXCEPTION(500, "get return error code error(error_code:", error_code, ")");
 			}
 
 			if(3 == _httpCode / 100)

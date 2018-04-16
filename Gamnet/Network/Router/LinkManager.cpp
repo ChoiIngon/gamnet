@@ -10,7 +10,7 @@ std::mutex LinkManager::lock;
 
 LinkManager::LinkManager()
 {
-	_name = "Gamnet::Network::Router::LinkManager";
+	name = "Gamnet::Network::Router::LinkManager";
 	_cast_group = Tcp::CastGroup::Create();
 }
 
