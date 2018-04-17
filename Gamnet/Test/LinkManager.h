@@ -50,7 +50,8 @@ private:
 	Timer 		log_timer;
 	Timer 		execute_timer;
 	//ThreadPool 	thread_pool;
-	std::atomic_int	cur_execute_count;
+	std::atomic_int	begin_execute_count;
+	std::atomic_int	finish_execute_count;
 	int 			max_execute_count;
 	
 	std::string host;
@@ -58,7 +59,7 @@ private:
 
 public :
 	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
-	LinkManager() : log_timer(GetIOService()), execute_timer(GetIOService()), cur_execute_count(0), max_execute_count(0), host(""), port(0)
+	LinkManager() : log_timer(GetIOService()), /*execute_timer(GetIOService()), */begin_execute_count(0), finish_execute_count(0), max_execute_count(0), host(""), port(0)
 	{
 		this->name = "Gamnet::Test::LinkManager";
 
@@ -85,64 +86,55 @@ public :
 
 		this->host = host;
 		this->port = port;
-		this->cur_execute_count = 0;
+		this->begin_execute_count = 0;
+		this->finish_execute_count = 0;
 		this->max_execute_count = execute_count;
 
 		LOG(GAMNET_INF, "[Test] test start...");
 		execute_timer.SetTimer(interval, [this, session_count]() {
-			for(size_t i=0; i<session_count && this->cur_execute_count < this->max_execute_count; i++)
+			for(size_t i=0; i<session_count && this->begin_execute_count < this->max_execute_count; i++)
 			{
-				if(this->session_manager.Size() >= session_count || this->session_pool.Available() == 0)
+				if(this->Size() >= session_count || this->link_pool.Available() == 0)
 				{
 					break;
 				}
 
-				std::shared_ptr<Network::Link> link = this->Create();
-				if(nullptr == link)
+				std::shared_ptr<Network::Link> link = this->Connect(this->host.c_str(), this->port, 5);
+				if (nullptr == link)
 				{
 					LOG(ERR, "[link_manager:", this->name, "] can not create link. connect fail(link count:", this->Size(), "/", this->link_pool.Capacity(), ")");
 					return;
 				}
 
-				std::shared_ptr<SESSION_T> session = this->session_pool.Create();
-				if(nullptr == session)
-				{
-					LOG(ERR, "[link_manager:", this->name, "] can not create session. connect fail(session count:", this->session_manager.Size(), "/", this->session_pool.Capacity(), ")");
-					return;
-				}
-	
-				link->session = session;
-
-				this->session_manager.Add(session->session_key, session);
-
-				session->strand.wrap(std::bind(&Session::OnCreate, session))();
-				session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
-
-				link->Connect(this->host.c_str(), this->port, 5);
-
-				this->cur_execute_count++;
+				this->begin_execute_count++;
 			}
 
-			if(this->cur_execute_count < this->max_execute_count)
+			if(this->begin_execute_count < this->max_execute_count)
 			{
 				this->execute_timer.Resume();
 			}
 		});
 
 		log_timer.SetTimer(3000, std::bind(&LinkManager<SESSION_T>::OnLogTimerExpire, this));
-
-		CreateThreadPool(std::thread::hardware_concurrency() * 2);
+		Test::CreateThreadPool(std::thread::hardware_concurrency());
 	}
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
-		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if (nullptr == link->session)
+		std::shared_ptr<SESSION_T> session = session_pool.Create();
+		if (nullptr == session)
 		{
 			link->Close(ErrorCode::InvalidSessionError);
+			LOG(ERR, "[link_manager:", this->name, "] can not create session. connect fail(session count:", this->session_manager.Size(), "/", this->session_pool.Capacity(), ")");
 			return;
 		}
 
+		link->session = session;
+
+		this->session_manager.Add(session->session_key, session);
+
+		session->strand.wrap(std::bind(&Session::OnCreate, session))();
+		session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
 		session->strand.wrap([this, session] () {
 			if (0 < this->execute_order.size())
 			{
@@ -174,6 +166,7 @@ public :
 		session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
 		session->strand.wrap(std::bind(&Session::OnDestroy, session))();
 		this->session_manager.Remove(session->session_key);
+		finish_execute_count++;
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
@@ -237,10 +230,8 @@ public :
 					const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
 					try
 					{
-						//thread_pool.PostTask([next_execute_info, session]() {
-							session->send_time = std::chrono::steady_clock::now();
-							next_execute_info->send_handler(session);
-						//});
+						session->send_time = std::chrono::steady_clock::now();
+						next_execute_info->send_handler(session);
 					}
 					catch (const Gamnet::Exception& e)
 					{
@@ -408,7 +399,7 @@ public :
 
 	void OnLogTimerExpire()
 	{
-		log.Write(GAMNET_INF, "[Test] execute count..(", cur_execute_count, "/", max_execute_count, ")");
+		log.Write(GAMNET_INF, "[Test] execute count..(", begin_execute_count, "/", max_execute_count, ")");
 		log.Write(GAMNET_INF, "[Test] link count..(active:", this->Size(), ", available:", this->link_pool.Available(), ", max:", this->link_pool.Capacity(), ")");
 		log.Write(GAMNET_INF, "[Test] session count..(active:", this->session_manager.Size(), ", available:", this->session_pool.Available(), ", max:", this->session_pool.Capacity(), ")");
 			
@@ -424,13 +415,13 @@ public :
 			}
 		}
 
-		if(cur_execute_count < max_execute_count)
+		if(finish_execute_count < max_execute_count)
 		{
 			log_timer.Resume();
 		}
 		else
 		{
-			log.Write(GAMNET_INF, "[Test] test finished..(", cur_execute_count, "/", max_execute_count, ")");
+			log.Write(GAMNET_INF, "[Test] test finished..(", finish_execute_count, "/", max_execute_count, ")");
 		}
 	}
 };

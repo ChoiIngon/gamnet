@@ -62,14 +62,15 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost
 			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 			link->socket.set_option(option);
 			link->remote_address = link->socket.remote_endpoint().address();
-			link->AsyncRead();
-
+			
 			OnAccept(link);
+			
+			link->AsyncRead();
 
 			if(false == Add(link))
 			{
 				assert(!"duplcated key");
-				link->Close(ErrorCode::AcceptFailError);
+				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "[link_key:", link->link_key, "] duplicated link");
 			}
 		}
 		catch(const boost::system::system_error& e)
