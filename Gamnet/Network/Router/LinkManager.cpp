@@ -41,7 +41,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 		if(NULL != packet) {
 			MsgRouter_HeartBeat_Ntf ntf;
 			_cast_group->SendMsg(ntf);
-			LOG(DEV, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
+			LOG(GAMNET_INF, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
 		}
 	});
 
