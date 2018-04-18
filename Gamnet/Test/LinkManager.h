@@ -121,7 +121,7 @@ public :
 
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
 	{
-		std::shared_ptr<SESSION_T> session = session_pool.Create();
+		std::shared_ptr<SESSION_T> session = this->session_pool.Create();
 		if (nullptr == session)
 		{
 			link->Close(ErrorCode::InvalidSessionError);
