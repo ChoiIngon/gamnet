@@ -49,16 +49,21 @@ class Timer
 
 	void OnExpire(const boost::system::error_code& ec)
 	{
-		std::lock_guard<std::mutex> lo(lock_);
 		if (0 != ec)
 		{
 			return;
 		}
-		if (nullptr == entry_)
+
+		std::shared_ptr<TimerEntry> entry = entry_;
 		{
-			return;
+			std::lock_guard<std::mutex> lo(lock_);
+			if (nullptr == entry)
+			{
+				return;
+			}
 		}
-		entry_->OnExpire();
+		entry->OnExpire();
+		
 		if(true == auto_reset_)
 		{
 			Resume();
@@ -86,7 +91,7 @@ public :
 	*/
 	template <class FUNCTOR>
 	Timer(long interval, FUNCTOR functor) :
-		entry_(NULL), interval_(interval), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
+		entry_(nullptr), interval_(interval), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
 	{
 		SetTimer(interval, functor);
 	}
@@ -99,7 +104,10 @@ public :
 	bool SetTimer(int interval, FUNCTOR functor)
 	{
 		interval_ = interval;
-		entry_ = std::shared_ptr<TimerEntryT<FUNCTOR>>(new TimerEntryT<FUNCTOR>(functor));
+		{
+			std::lock_guard<std::mutex> lo(lock_);
+			entry_ = std::shared_ptr<TimerEntryT<FUNCTOR>>(new TimerEntryT<FUNCTOR>(functor));
+		}
 		deadline_timer_.expires_from_now(boost::posix_time::milliseconds(interval_));
 		deadline_timer_.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
 
@@ -111,9 +119,12 @@ public :
      */
 	bool Resume()
 	{
-		if(nullptr == entry_)
 		{
-			return false;
+			std::lock_guard<std::mutex> lo(lock_);
+			if(nullptr == entry_)
+			{
+				return false;
+			}
 		}
 		deadline_timer_.expires_at(deadline_timer_.expires_at() + boost::posix_time::milliseconds(interval_));
 		deadline_timer_.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
@@ -127,8 +138,8 @@ public :
 
 	void Cancel()
 	{
-		std::lock_guard<std::mutex> lo(lock_);
 		deadline_timer_.cancel();
+		std::lock_guard<std::mutex> lo(lock_);
 		entry_ = nullptr;
 	}
 

@@ -49,7 +49,7 @@ private:
 	Log::Logger	log;
 	Timer 		log_timer;
 	Timer 		execute_timer;
-	//ThreadPool 	thread_pool;
+	
 	std::atomic_int	begin_execute_count;
 	std::atomic_int	finish_execute_count;
 	int 			max_execute_count;
@@ -59,7 +59,7 @@ private:
 
 public :
 	std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
-	LinkManager() : log_timer(GetIOService()), /*execute_timer(GetIOService()), */begin_execute_count(0), finish_execute_count(0), max_execute_count(0), host(""), port(0)
+	LinkManager() : log_timer(GetIOService()), begin_execute_count(0), finish_execute_count(0), max_execute_count(0), host(""), port(0)
 	{
 		this->name = "Gamnet::Test::LinkManager";
 
@@ -90,7 +90,7 @@ public :
 		this->finish_execute_count = 0;
 		this->max_execute_count = execute_count;
 
-		LOG(GAMNET_INF, "[Test] test start...");
+		execute_timer.AutoReset(true);
 		execute_timer.SetTimer(interval, [this, session_count]() {
 			for(size_t i=0; i<session_count && this->begin_execute_count < this->max_execute_count; i++)
 			{
@@ -103,18 +103,19 @@ public :
 				if (nullptr == link)
 				{
 					LOG(ERR, "[link_manager:", this->name, "] can not create link. connect fail(link count:", this->Size(), "/", this->link_pool.Capacity(), ")");
-					return;
+					break;
 				}
 
 				this->begin_execute_count++;
 			}
 
-			if(this->begin_execute_count < this->max_execute_count)
+			if(this->begin_execute_count >= this->max_execute_count)
 			{
-				this->execute_timer.Resume();
+				this->execute_timer.Cancel();
 			}
 		});
 
+		log_timer.AutoReset(true);
 		log_timer.SetTimer(3000, std::bind(&LinkManager<SESSION_T>::OnLogTimerExpire, this));
 		Test::CreateThreadPool(std::thread::hardware_concurrency());
 	}
@@ -415,6 +416,12 @@ public :
 			}
 		}
 
+		if(finish_execute_count >= max_execute_count)
+		{
+			log_timer.Cancel();
+			log.Write(GAMNET_INF, "[Test] test finished..(", finish_execute_count, "/", max_execute_count, ")");
+		}
+		/*
 		if(finish_execute_count < max_execute_count)
 		{
 			log_timer.Resume();
@@ -423,6 +430,7 @@ public :
 		{
 			log.Write(GAMNET_INF, "[Test] test finished..(", finish_execute_count, "/", max_execute_count, ")");
 		}
+		*/
 	}
 };
 

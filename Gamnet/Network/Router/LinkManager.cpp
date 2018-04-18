@@ -38,7 +38,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	_heartbeat_timer.AutoReset(true);
 	_heartbeat_timer.SetTimer(60000, [this] () {
 		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
-		if(NULL != packet) {
+		if(nullptr != packet) {
 			MsgRouter_HeartBeat_Ntf ntf;
 			_cast_group->SendMsg(ntf);
 			LOG(GAMNET_INF, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
@@ -136,4 +136,22 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const st
 	session->strand.wrap(std::bind(&Tcp::Dispatcher<Session>::OnRecvMsg, &Singleton<Tcp::Dispatcher<Session>>::GetInstance(), session, packet))();
 }
 
+Json::Value LinkManager::State()
+{
+	Json::Value root;
+	root["name"] = name;
+
+	Json::Value link;
+	link["max_count"] = (unsigned int)link_pool.Capacity();
+	link["idle_count"] = (unsigned int)link_pool.Available();
+	link["active_count"] = (unsigned int)Size();
+	root["link"] = link;
+
+	Json::Value session;
+	session["max_count"] = (unsigned int)session_pool.Capacity();
+	session["idle_count"] = (unsigned int)session_pool.Available();
+	session["active_count"] = (unsigned int)session_manager.Size();
+	root["session"] = session;
+	return root;
+}
 }}}

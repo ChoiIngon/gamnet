@@ -30,6 +30,8 @@ public :
 	virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override;
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override;
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override;
+
+	Json::Value State();
 };
 
 }}}

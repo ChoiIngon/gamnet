@@ -14,7 +14,7 @@ boost::asio::io_service& GetIOService()
 
 void CreateThreadPool(int threadCount)
 {
-	Log::Write(GAMNET_INF, "Gamnet server starts..");
+	LOG(GAMNET_INF, "[Test] test start...");
 	for (int i = 0; i<threadCount; i++)
 	{
 		workers_.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &io_service_)));

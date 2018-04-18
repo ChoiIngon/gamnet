@@ -321,7 +321,7 @@ public :
 		Json::Value root;
 
 		root["name"] = name;
-
+/*
 		time_t logtime_;
 		struct tm when;
 		time(&logtime_);
@@ -335,17 +335,17 @@ public :
 		snprintf(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
 #endif
 		root["date_time"] = date_time;
-	
+*/	
 		Json::Value link;
-		link["capacity"] = (unsigned int)link_pool.Capacity();
-		link["available"] = (unsigned int)link_pool.Available();
-		link["running_count"] = (unsigned int)Size();
+		link["max_count"] = (unsigned int)link_pool.Capacity();
+		link["idle_count"] = (unsigned int)link_pool.Available();
+		link["active_count"] = (unsigned int)Size();
 		root["link"] = link;
 		
 		Json::Value session;
-		session["capacity"] = (unsigned int)session_pool.Capacity();
-		session["available"] = (unsigned int)session_pool.Available();
-		session["running_count"] = (unsigned int)session_manager.Size();
+		session["max_count"] = (unsigned int)session_pool.Capacity();
+		session["idle_count"] = (unsigned int)session_pool.Available();
+		session["active_count"] = (unsigned int)session_manager.Size();
 		root["session"] = session;
 
 #ifdef _DEBUG
