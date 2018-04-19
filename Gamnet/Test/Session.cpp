@@ -24,7 +24,7 @@ void CreateThreadPool(int threadCount)
 Session::Session() : 
 	Network::Tcp::Session(io_service_), 
 	server_session_key(0),
-	access_token(""),
+	server_session_token(""),
 	test_seq(-1), 
 	is_pause(false) 
 {
@@ -40,7 +40,7 @@ bool Session::Init()
 		return false;
 	}
 	server_session_key = 0;
-	access_token = "";
+	server_session_token = "";
 	test_seq = 0;
 	is_pause = false;
 	

@@ -9,9 +9,8 @@ void CreateThreadPool(int threadCount);
 
 class Session : public Network::Tcp::Session {
 public:
-	//std::recursive_mutex lock;
 	uint32_t server_session_key;
-	std::string access_token;
+	std::string server_session_token;
 	int test_seq;
 	bool is_pause;
 	std::chrono::time_point<std::chrono::steady_clock> send_time;
