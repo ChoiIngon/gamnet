@@ -134,22 +134,28 @@ public :
 
 		this->session_manager.Add(session->session_key, session);
 
-		session->strand.wrap(std::bind(&Session::OnCreate, session))();
-		session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
-		session->strand.wrap([this, session] () {
-			if (0 < this->execute_order.size())
+		session->strand.wrap([this, session, link] () {
+			try {
+				session->OnCreate();
+				session->AttachLink(link);
+				if (0 < this->execute_order.size())
+				{
+					if (0 == session->test_seq)
+					{
+						const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
+						session->send_time = std::chrono::steady_clock::now();
+						info->send_handler(session);
+						info->execute_count++;
+					}
+					else
+					{
+						this->Send_Reconnect_Req(session);
+					}
+				}
+			}
+			catch (const Exception& e)
 			{
-				if (0 == session->test_seq)
-				{
-					const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
-					session->send_time = std::chrono::steady_clock::now();
-					info->send_handler(session);
-					info->execute_count++;
-				}
-				else
-				{
-					this->Send_Reconnect_Req(session);
-				}
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 			}
 		})();
 	}
@@ -163,9 +169,18 @@ public :
 			return;
 		}
 		
-		session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
-		session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
-		session->strand.wrap(std::bind(&Session::OnDestroy, session))();
+		session->strand.wrap([session, reason]() {
+			try {
+				session->OnClose(reason);
+				session->AttachLink(nullptr);
+				session->OnDestroy();
+			}
+			catch (const Exception& e)
+			{
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+			}
+		})();
+		
 		this->session_manager.Remove(session->session_key);
 		finish_execute_count++;
 	}

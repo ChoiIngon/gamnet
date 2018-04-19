@@ -197,9 +197,26 @@ void SessionManager::OnTimerExpire()
 		std::shared_ptr<Link> link = session->link;
 		if (nullptr != link)
 		{
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::IdleTimeoutError))();
+			link->strand.wrap([link] () {
+				try {
+					link->Close(ErrorCode::IdleTimeoutError);
+				}
+				catch (const Exception& e)
+				{
+					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+				}
+			})(); 
 		}
-		session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
+
+		session->strand.wrap([session]() {
+			try {
+				session->OnDestroy();
+			}
+			catch (const Exception& e)
+			{
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+			}
+		})(); 
 	}
 }
 

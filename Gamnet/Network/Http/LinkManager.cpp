@@ -40,9 +40,17 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 
 	link->session = session;
 	
-	session->strand.wrap(std::bind(&Session::OnCreate, session))();
-	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
-	session->strand.wrap(std::bind(&Session::OnAccept, session))();
+	session->strand.wrap([session, link]() {
+		try {
+			session->OnCreate();
+			session->AttachLink(link);
+			session->OnAccept();
+		}
+		catch (const Exception& e)
+		{
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
+	})();
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
@@ -54,9 +62,17 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 		return;
 	}
 	
-	session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
-	session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
-	session->strand.wrap(std::bind(&Session::OnDestroy, session))();
+	session->strand.wrap([session, reason]() {
+		try {
+			session->OnClose(reason);
+			session->AttachLink(nullptr);
+			session->OnDestroy();
+		}
+		catch (const Exception& e)
+		{
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
+	})();
 }
 
 

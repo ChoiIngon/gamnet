@@ -69,8 +69,16 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 
 	session_manager.Add(session->session_key, session);
 
-	session->strand.wrap(std::bind(&Session::OnCreate, session))();
-	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
+	session->strand.wrap([session, link] () {
+		try {
+			session->OnCreate();
+			session->AttachLink(link);
+		}
+		catch (const Exception& e)
+		{
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
+	})();
 	
 	link->Connect(host, port, timeout);
 }
@@ -84,7 +92,15 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 		return;
 	}
 	
-	session->strand.wrap(std::bind(&Session::OnConnect, session))();
+	session->strand.wrap([session] () {
+		try {
+			session->OnConnect();
+		}
+		catch (const Exception& e)
+		{
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		};
+	})(); 
 	_cast_group->AddSession(session);
 }
 
@@ -102,9 +118,17 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 
 	session_manager.Add(session->session_key, session);
 
-	session->strand.wrap(std::bind(&Session::OnCreate, session))();
-	session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
-	session->strand.wrap(std::bind(&Session::OnAccept, session))();
+	session->strand.wrap([session, link] () {
+		try {
+			session->OnCreate();
+			session->AttachLink(link);
+			session->OnAccept();
+		}
+		catch (const Exception& e)
+		{
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
+	})();
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
@@ -114,12 +138,20 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	{
 		return;
 	}
-	session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
-	session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
-	session->strand.wrap(std::bind(&Session::OnDestroy, session))();
+
+	session->strand.wrap([session, reason]() {
+		try {
+			session->OnClose(reason);
+			session->AttachLink(nullptr);
+			session->OnDestroy();
+		}
+		catch (const Exception& e)
+		{
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
+	})();
 
 	session_manager.Remove(session->session_key);
-
 	_cast_group->DelSession(session);
 }
 

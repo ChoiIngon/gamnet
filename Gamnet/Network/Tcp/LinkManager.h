@@ -94,8 +94,16 @@ public :
 			return;
 		}
 
-		session->strand.wrap(std::bind(&Session::OnClose, session, reason))();
-		session->strand.wrap(std::bind(&Session::AttachLink, session, nullptr))();
+		session->strand.wrap([session, reason] () {
+			try {
+				session->OnClose(reason);
+				session->AttachLink(nullptr);
+			}
+			catch (const Exception& e)
+			{
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+			}
+		})();
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
@@ -149,12 +157,23 @@ public :
 			LOG(WRN, "can not find session(session_key:", session_key, ")");
 			return;
 		}
+		
 		std::shared_ptr<Network::Link> link = session->link;
 		if(nullptr != link)
 		{
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 		}
-		session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
+		
+		session->strand.wrap([session](){
+			try {
+				session->OnDestroy();
+			}
+			catch (const Exception& e)
+			{
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+			}
+		})(); 
+		
 		session_manager.Remove(session_key);
 	}
 
@@ -184,10 +203,18 @@ public :
 
 			session_manager.Add(session->session_key, session);
 
-			session->strand.wrap(std::bind(&Session::OnCreate, session))();
-			session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
-			session->strand.wrap(std::bind(&Session::OnAccept, session))();
-
+			session->strand.wrap([session, link] () {
+				try {
+					session->OnCreate();
+					session->AttachLink(link);
+					session->OnAccept();
+				}
+				catch(const Exception& e)
+				{
+					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+				}
+			})();
+			
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
 			LOG(DEV, "[link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
@@ -251,8 +278,17 @@ public :
 			}
 			
 			link->session = session;
-			session->strand.wrap(std::bind(&Session::AttachLink, session, link))();
-			session->strand.wrap(std::bind(&Session::OnAccept, session))();
+
+			session->strand.wrap([session, link]() {
+				try {
+					session->AttachLink(link);
+					session->OnAccept();
+				}
+				catch (const Exception& e)
+				{
+					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+				}
+			})();
 		}
 		catch (const Exception& e)
 		{
@@ -312,30 +348,24 @@ public :
 			return;
 		}
 
-		session->strand.wrap(boost::bind(&Session::OnDestroy, session))();
+		session->strand.wrap([session] () {
+			try {
+				session->OnDestroy();
+			}
+			catch (const Exception& e)
+			{
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+			}
+		})();
+
 		session_manager.Remove(session->session_key);
 	}
 
 	Json::Value State()
 	{
 		Json::Value root;
-
 		root["name"] = name;
-/*
-		time_t logtime_;
-		struct tm when;
-		time(&logtime_);
 
-		char date_time[22] = { 0 };
-#ifdef _WIN32
-		localtime_s(&when, &logtime_);
-		_snprintf_s(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
-#else
-		localtime_r(&logtime_, &when);
-		snprintf(date_time, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
-#endif
-		root["date_time"] = date_time;
-*/	
 		Json::Value link;
 		link["max_count"] = (unsigned int)link_pool.Capacity();
 		link["idle_count"] = (unsigned int)link_pool.Available();
