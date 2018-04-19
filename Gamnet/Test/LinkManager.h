@@ -123,10 +123,10 @@ namespace Gamnet {
 			
 			virtual std::shared_ptr<Network::Link> Create() override
 			{
-				std::shared_ptr<Network::Link> link = link_pool.Create();
+				std::shared_ptr<Network::Link> link = this->link_pool.Create();
 				if (nullptr == link)
 				{
-					LOG(GAMNET_ERR, "[link_manager:", name, "] can not create 'Tcp::Link' instance");
+					LOG(GAMNET_ERR, "[link_manager:", this->name, "] can not create 'Test::Link' instance");
 					return nullptr;
 				}
 
