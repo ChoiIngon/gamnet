@@ -26,7 +26,8 @@ Session::Session() :
 	server_session_key(0),
 	server_session_token(""),
 	test_seq(-1), 
-	is_pause(false) 
+	is_pause(false),
+	is_connected(false)
 {
 }
 
@@ -43,7 +44,8 @@ bool Session::Init()
 	server_session_token = "";
 	test_seq = 0;
 	is_pause = false;
-	
+	is_connected = false;
+
 	return true;
 }
 

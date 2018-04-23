@@ -13,6 +13,7 @@ public:
 	std::string server_session_token;
 	int test_seq;
 	bool is_pause;
+	bool is_connected;
 	std::chrono::time_point<std::chrono::steady_clock> send_time;
 
 	Session();

@@ -178,9 +178,9 @@ public :
 	}
 
 	template <class FUNC, class FACTORY>
-	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
+	bool RegisterHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
 	{
-		return Singleton<Dispatcher<SESSION_T>>::GetInstance().RegisterHandler(msg_id, func, factory);
+		return Singleton<Dispatcher<SESSION_T>>::GetInstance().RegisterHandler(msg_id, name, func, factory);
 	}
 
 	void Recv_Connect_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) 
@@ -384,6 +384,7 @@ public :
 		{
 			Json::Value statistics;
 			statistics["msg_id"] = (unsigned int)itr.second->msg_id;
+			statistics["msg_name"] = (const char*)itr.second->name;
 			statistics["begin_count"] = (unsigned int)itr.second->begin_count;
 			statistics["finish_count"] = (unsigned int)itr.second->finish_count;
 			statistics["elapsed_time"] = (unsigned int)itr.second->elapsed_time;

@@ -138,6 +138,16 @@ namespace Gamnet {
 				}
 				
 				link->session = session;
+				session->strand.wrap([session, link]() {
+					try {
+						session->OnCreate();
+						session->AttachLink(link);
+					}
+					catch (const Exception& e)
+					{
+						LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+					}
+				})();
 				return link;
 			}
 
@@ -153,10 +163,8 @@ namespace Gamnet {
 				
 				this->session_manager.Add(session->session_key, session);
 
-				session->strand.wrap([this, session, link]() {
+				session->strand.wrap([this, session]() {
 					try {
-						session->OnCreate();
-						session->AttachLink(link);
 						if (0 < this->execute_order.size())
 						{
 							if (0 == session->test_seq)
@@ -190,7 +198,10 @@ namespace Gamnet {
 
 				session->strand.wrap([session, reason]() {
 					try {
-						session->OnClose(reason);
+						if(true == session->is_connected)
+						{
+							session->OnClose(reason);
+						}
 						session->AttachLink(nullptr);
 						session->OnDestroy();
 					}
@@ -364,6 +375,7 @@ namespace Gamnet {
 
 				session->server_session_key = ans["session_key"].asUInt();
 				session->server_session_token = ans["session_token"].asString();
+				session->is_connected = true;
 				session->OnConnect();
 			}
 
@@ -412,6 +424,7 @@ namespace Gamnet {
 					session->link->strand.wrap(std::bind(&Network::Link::Close, session->link, ans["error_code"].asInt()))();
 					return;
 				}
+				session->is_connected = true;
 				session->OnConnect();
 				session->Resume();
 			}

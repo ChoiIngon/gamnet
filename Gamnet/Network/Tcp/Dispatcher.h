@@ -50,6 +50,7 @@ public :
 		HandlerCallStatistics() : msg_id(0), begin_count(0), finish_count(0), elapsed_time(0) {
 		}
 		unsigned int msg_id;
+		const char* name;
 		std::atomic_int begin_count;
 		std::atomic_int finish_count;
 		std::atomic<uint64_t> elapsed_time;
@@ -61,7 +62,7 @@ public:
 	~Dispatcher() {}
 
 	template <class FUNC, class FACTORY>
-	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
+	bool RegisterHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
 	{
 		HandlerFunction handlerFunction(factory, static_cast<function_type>(func));
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)
@@ -72,6 +73,7 @@ public:
 #ifdef _DEBUG
 		std::shared_ptr<HandlerCallStatistics> statistics = std::shared_ptr<HandlerCallStatistics>(new HandlerCallStatistics());
 		statistics->msg_id = msg_id;
+		statistics->name = name;
 		mapHandlerCallStatistics_.insert(std::make_pair(msg_id, statistics));
 #endif
 		return true;
