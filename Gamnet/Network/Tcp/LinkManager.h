@@ -121,18 +121,20 @@ public :
 		}
 
 		tcpLink->msg_seq = msgSEQ;
-		
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		if (nullptr != session)
+		{
+			session->expire_time = ::time(nullptr);
+		}
+
 		if(MSG_ID::MsgID_Max <= msgID)
 		{
-			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 			if(nullptr == session)
 			{
 				LOG(ERR, "[link_key:", link->link_key, "] invalid session");
 				link->Close(ErrorCode::NullPointerError);
 				return;
 			}
-
-			session->expire_time = ::time(nullptr);
 			session->strand.wrap(std::bind(&Dispatcher<SESSION_T>::OnRecvMsg, &Singleton<Dispatcher<SESSION_T>>::GetInstance(), session, packet))();
 		}
 		else
