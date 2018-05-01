@@ -11,12 +11,16 @@ namespace Gamnet {
 	{
 		std::list<std::function<R(ARGS...)>> funcs; 
 	public :
-		void operator () (const ARGS... args)
+		typedef typename std::list<std::function<R(ARGS...)>>::iterator iterator;
+
+		R operator () (const ARGS... args)
 		{
+			R result;
 			for(auto func : funcs)
 			{
-				func(args...);
+				result = func(args...);
 			}
+			return result;
 		}		
 	
 		Delegate<R(ARGS...)>& operator += (std::function<R(ARGS...)> const& arg) 
@@ -46,7 +50,15 @@ namespace Gamnet {
 			return *this;
 		}
 	
-		void Clear()
+		iterator begin() noexcept
+		{
+			return funcs.begin();
+		}
+		iterator end() noexcept
+		{
+			return funcs.end();
+		}
+		void clear()
 		{
 			funcs.clear();
 		}

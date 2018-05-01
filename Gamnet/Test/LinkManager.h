@@ -151,7 +151,7 @@ namespace Gamnet {
 				return link;
 			}
 
-			virtual void OnConnect(const std::shared_ptr<Network::Link>& link)
+			virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override
 			{
 				std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 				if (nullptr == session)
@@ -187,7 +187,7 @@ namespace Gamnet {
 				})();
 			}
 
-			virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason)
+			virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 			{
 				Send_Close_Ntf(link);
 				std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
@@ -215,7 +215,7 @@ namespace Gamnet {
 				finish_execute_count++;
 			}
 
-			virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
+			virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 			{
 				const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
 				const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
