@@ -682,7 +682,6 @@ namespace Gamnet
 			packet.msg_seq = ++_msg_seq;
 			packet.msg_id = MsgID_Connect_Req;
 			packet.reliable = false;
-			Debug.Log(LogHeader.Function + "send connect req()");
 			SendMsg(packet);
 		}
 		const uint MsgID_Connect_Ans		= 0001;
@@ -704,11 +703,11 @@ namespace Gamnet
 				Msg_Connect_Ans ans = JsonUtility.FromJson<Msg_Connect_Ans>(json);
 				if(0 != ans.error_code)
 				{
-					Debug.LogError (LogHeader.Function + "connect fail(error_code:" + ans.error_code +")");
+					Debug.LogError ("[ConnectHandler.OnRecvMsgrecv] connect fail(error_code:" + ans.error_code +")");
 					session.Error(new Gamnet.Exception(ErrorCode.ConnectFailError, "connect fail(error_code:" + ans.error_code +")"));
 					return;
 				}
-				Debug.Log(LogHeader.Function + "recv connect ans(session_key:" + ans.session_key + ", session_token:" + ans.session_token + ")");
+				Debug.Log("[ConnectHandler.OnRecvMsgrecv] connect ans(session_key:" + ans.session_key + ", session_token:" + ans.session_token + ")");
 				session._session_key = ans.session_key;
 				session._session_token = ans.session_token;
                 session._connect_complete = true;
