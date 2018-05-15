@@ -63,6 +63,7 @@ public class UnityClient : MonoBehaviour {
 
 			Log("MsgCliSvr_Login_Req(user_id:" + req.user_id + ")");
             session.SendMsg(req);
+            session.Pause();
 		};
 		session.onResume += () => {
             Log("UnityClient.onResume");
