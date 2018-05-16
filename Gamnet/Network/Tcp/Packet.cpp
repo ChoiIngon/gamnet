@@ -12,34 +12,32 @@
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
-Packet::Packet() : Buffer(Buffer::MAX_SIZE)
-{
-}
+	static Pool<Packet, std::mutex, Packet::Init> packetPool_(65535);
+	std::shared_ptr<Packet> Packet::Create()
+	{
+		return packetPool_.Create();
+	}
+	
+	Packet::Packet() : Buffer(Buffer::MAX_SIZE)
+	{
+	}
 
-Packet::~Packet()
-{
-}
+	Packet::~Packet()
+	{
+	}
 
-uint16_t Packet::GetLength() const
-{
-	return *((uint16_t*)(data + readCursor_ + OFFSET_LENGTH));
-}
+	uint16_t Packet::GetLength() const
+	{
+		return *((uint16_t*)(data + readCursor_ + OFFSET_LENGTH));
+	}
 
-uint32_t Packet::GetSEQ() const
-{
-	return *((uint32_t*)(data + readCursor_ + OFFSET_MSGSEQ));
-}
+	uint32_t Packet::GetSEQ() const
+	{
+		return *((uint32_t*)(data + readCursor_ + OFFSET_MSGSEQ));
+	}
 
-uint32_t Packet::GetID() const
-{
-	return  *((uint32_t*)(data + readCursor_ + OFFSET_MSGID));
-}
-
-static Pool<Packet, std::mutex, Packet::Init> packetPool_(65535);
-
-
-std::shared_ptr<Packet> Packet::Create()
-{
-	return packetPool_.Create();
-}
+	uint32_t Packet::GetID() const
+	{
+		return  *((uint32_t*)(data + readCursor_ + OFFSET_MSGID));
+	}
 }}}

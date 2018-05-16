@@ -37,16 +37,16 @@ private :
 		}
 		~AnswerWatingSessionManager() {}
 
-		bool AddSession(uint64_t msg_seq, std::shared_ptr<Network::Tcp::Session> session)
+		bool AddSession(uint64_t recv_seq, std::shared_ptr<Network::Tcp::Session> session)
 		{
 			std::lock_guard<std::mutex> lo(lock_);
-			return mapSession_.insert(std::make_pair(msg_seq, std::make_pair(time(NULL), session))).second;
+			return mapSession_.insert(std::make_pair(recv_seq, std::make_pair(time(NULL), session))).second;
 		}
 
-		std::shared_ptr<Network::Tcp::Session> FindSession(uint64_t msg_seq)
+		std::shared_ptr<Network::Tcp::Session> FindSession(uint64_t recv_seq)
 		{
 			std::lock_guard<std::mutex> lo(lock_);
-			auto itr = mapSession_.find(msg_seq);
+			auto itr = mapSession_.find(recv_seq);
 			if(mapSession_.end() == itr)
 			{
 				return NULL;

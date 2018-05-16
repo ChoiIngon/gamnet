@@ -18,7 +18,7 @@ public class UnityClient : MonoBehaviour {
     public Button pause;
 	public InputField host;
     public ScrollRect scrollRect;
-
+    public GameObject go;
     public Text logText;
     private int lineCount = 0;
     public int lineLimit = 1000;
@@ -109,7 +109,7 @@ public class UnityClient : MonoBehaviour {
 
 	IEnumerator SendHeartBeat() {
 		while (true) {
-			if (Gamnet.Session.ConnectionState.Connected == session.state)
+			//if (Gamnet.Session.ConnectionState.Connected == session.state)
 			{
 				MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
 				ntf.msg_seq = msg_seq++;

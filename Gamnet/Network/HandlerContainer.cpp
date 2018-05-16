@@ -32,9 +32,9 @@ std::shared_ptr<IHandler> HandlerContainer::Find(uint32_t msg_id)
 	return handler;
 }
 
-void HandlerContainer::Register(uint32_t msg_seq, std::shared_ptr<IHandler> handler)
+void HandlerContainer::Register(uint32_t recv_seq, std::shared_ptr<IHandler> handler)
 {
-	mapHandler_[msg_seq] = handler;
+	mapHandler_[recv_seq] = handler;
 }
 
 }} /* namespace Gamnet */

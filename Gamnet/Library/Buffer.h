@@ -11,11 +11,14 @@
 
 namespace Gamnet {
 
-    struct Buffer
+    class Buffer
     {
+	public :
     	static std::shared_ptr<Buffer> Create();
 		static void Swap(const std::shared_ptr<Buffer>& lhs, const std::shared_ptr<Buffer>& rhs);
     	static int MAX_SIZE;
+
+	public :
     	struct Init
 		{
     		Buffer* operator() (Buffer* buffer)
@@ -24,14 +27,16 @@ namespace Gamnet {
 				return buffer;
 			}
 		};
-        size_t writeCursor_;
-        size_t readCursor_;
-        size_t bufSize_;
-
-        char* data;
-
+        
+	public :
         Buffer(size_t size = Buffer::MAX_SIZE);
         virtual ~Buffer();
+
+		size_t writeCursor_;
+		size_t readCursor_;
+		size_t bufSize_;
+
+		char* data;
 
         void Append(const char* buf, size_t size);
         /**

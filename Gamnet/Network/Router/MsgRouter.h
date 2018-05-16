@@ -57,10 +57,10 @@ struct Address {
 	std::string	service_name;
 	ROUTER_CAST_TYPE	cast_type;
 	uint32_t	id;
-	uint64_t	msg_seq;
+	uint64_t	recv_seq;
 	Address()	{
 		id = 0;
-		msg_seq = 0;
+		recv_seq = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
@@ -86,7 +86,7 @@ struct Address {
 		std::memcpy(*_buf_, service_name.c_str(), service_name.length()); (*_buf_) += service_name.length();
 		if(false == ROUTER_CAST_TYPE_Serializer::Store(_buf_, cast_type)) { return false; }
 		std::memcpy(*_buf_, &id, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
-		std::memcpy(*_buf_, &msg_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &recv_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -103,7 +103,7 @@ struct Address {
 		service_name.assign((char*)*_buf_, service_name_length); (*_buf_) += service_name_length; nSize -= service_name_length;
 		if(false == ROUTER_CAST_TYPE_Serializer::Load(cast_type, _buf_, nSize)) { return false; }
 		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&id, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&msg_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&recv_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
 		return true;
 	}
 }; //Address
@@ -278,10 +278,10 @@ struct MsgRouter_SetAddress_Ntf_Serializer {
 };
 struct MsgRouter_SendMsg_Ntf {
 	enum { MSG_ID = 4 }; 
-	uint32_t	msg_seq;
+	uint32_t	recv_seq;
 	std::string	buffer;
 	MsgRouter_SendMsg_Ntf()	{
-		msg_seq = 0;
+		recv_seq = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
@@ -300,7 +300,7 @@ struct MsgRouter_SendMsg_Ntf {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &msg_seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
+		std::memcpy(*_buf_, &recv_seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		size_t buffer_size = buffer.length();
 		std::memcpy(*_buf_, &buffer_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, buffer.c_str(), buffer.length()); (*_buf_) += buffer.length();
@@ -314,7 +314,7 @@ struct MsgRouter_SendMsg_Ntf {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&msg_seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&recv_seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t buffer_length = 0; std::memcpy(&buffer_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(nSize < buffer_length) { return false; }

@@ -12,7 +12,6 @@ class Link : public std::enable_shared_from_this<Link>
 {
 public :
 	static std::atomic<uint32_t> link_key_generator;
-private :
 	std::shared_ptr<Buffer> 			read_buffer;
 	std::deque<std::shared_ptr<Buffer>>	send_buffers;
 public:
@@ -51,10 +50,12 @@ public :
 	void Close(int reason);
 		
 	void AsyncRead();
+
+	void FlushSend();
 protected :
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) = 0;
-private :
-	void FlushSend();
+	virtual void OnSend(const boost::system::error_code& ec, std::size_t transferredBytes);
+	
 };
 
 }}

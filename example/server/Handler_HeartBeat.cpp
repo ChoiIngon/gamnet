@@ -26,8 +26,8 @@ void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const 
 		{
 			throw Gamnet::Exception(GAMNET_ERRNO(ErrorCode::MessageSeqOmmitError), "(recv:", ntf.msg_seq, ", expect:", session->ack_seq + 1, ")");
 		}
-		session->ack_seq = ntf.msg_seq;
 	*/
+		session->ack_seq = ntf.msg_seq;
 	}
 	catch(const Gamnet::Exception& e)
 	{
@@ -37,7 +37,8 @@ void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const 
 		Gamnet::Network::Tcp::SendMsg(session, ntfToCli);
 	}
 	MsgSvrCli_HeartBeat_Ntf ntfToCli;
-	LOG(DEV, "MsgSvrCli_HeartBeat_Ntf(session_key:", session->session_key, ", msg_seq:", ntf.msg_seq, ")");
+	ntfToCli.msg_seq = session->ack_seq;
+	LOG(DEV, "MsgSvrCli_HeartBeat_Ntf(session_key:", session->session_key, ", msg_seq:", ntfToCli.msg_seq, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ntfToCli);
 }
 

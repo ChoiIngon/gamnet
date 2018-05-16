@@ -35,25 +35,20 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	template <class SESSION_T, class MSG>
-	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg)
+	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = true)
 	{
-		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
-		if(nullptr == link)
-		{
-			LOG(GAMNET_ERR, "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
-		}
 		std::shared_ptr<Packet> packet = Packet::Create();
-		if(nullptr == packet)
+		if (nullptr == packet)
 		{
 			LOG(GAMNET_ERR, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
-		if(false == packet->Write<MSG>(link->msg_seq, msg))
+		if (false == packet->Write<MSG>(++session->send_seq, msg))
 		{
 			LOG(GAMNET_ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
+		packet->reliable = reliable;
 		return session->AsyncSend(packet);
 	}
 

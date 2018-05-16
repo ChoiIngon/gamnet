@@ -110,32 +110,46 @@ public :
 	{
 		const std::shared_ptr<Packet>& packet = std::static_pointer_cast<Packet>(buffer);
 			
-		uint32_t msgSEQ = packet->GetSEQ();
 		uint32_t msgID = packet->GetID();
 
-		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
-		if(msgSEQ <= tcpLink->msg_seq)
-		{
-			LOG(WRN, "[link_key:", link->link_key, "] discard message(msg_id:", packet->GetID(), ", received msg_seq:", msgSEQ, ", expected msg_seq:", tcpLink->msg_seq + 1, ")");
-			return;
-		}
-
-		tcpLink->msg_seq = msgSEQ;
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if (nullptr != session)
-		{
-			session->expire_time = ::time(nullptr);
-		}
-
+		LOG(DEV, "[link_key:", link->link_key, "] recv message(msg_id:", msgID, ", received msg_seq:", msgSEQ, ")");
 		if(MSG_ID::MsgID_Max <= msgID)
 		{
-			if(nullptr == session)
+			uint32_t msgSEQ = packet->GetSEQ();
+			std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
+			if (msgSEQ <= tcpLink->recv_seq)
+			{
+				LOG(WRN, "[link_key:", link->link_key, "] discard message(msg_id:", packet->GetID(), ", received msg_seq:", msgSEQ, ", expected msg_seq:", tcpLink->recv_seq + 1, ")");
+				return;
+			}
+
+			if (nullptr == link->session)
 			{
 				LOG(ERR, "[link_key:", link->link_key, "] invalid session");
 				link->Close(ErrorCode::NullPointerError);
 				return;
 			}
+
+			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+			session->expire_time = ::time(nullptr);
+
+			if (msgSEQ >= session->send_seq)
+			{
+				while (0 < session->send_packets.size())
+				{
+					const std::shared_ptr<Packet>& sendPacket = session->send_packets.front();
+					if (msgSEQ < sendPacket->GetSEQ())
+					{
+						break;
+					}
+					LOG(DEV, "remove send packet(msg_seq:", sendPacket->GetSEQ(), ")");
+					session->send_packets.pop_front();
+				}
+				session->send_seq = msgSEQ;
+			}
+
 			session->strand.wrap(std::bind(&Dispatcher<SESSION_T>::OnRecvMsg, &Singleton<Dispatcher<SESSION_T>>::GetInstance(), session, packet))();
+			tcpLink->recv_seq = msgSEQ;
 		}
 		else
 		{
@@ -201,6 +215,7 @@ public :
 				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
 			}
 
+			session->send_seq = 1;
 			link->session = session;
 
 			session_manager.Add(session->session_key, session);
@@ -227,20 +242,21 @@ public :
 			ans["error_code"] = e.error_code();
 		}
 
-		Json::StyledWriter writer;
+		std::shared_ptr<Packet> ans_packet = Packet::Create();
+		if (nullptr == ans_packet)
+		{
+			return;
+		}
+
+		Json::FastWriter writer;
 		std::string str = writer.write(ans);
 
 		Packet::Header header;
 		header.msg_id = MSG_ID::MsgID_SvrCli_Connect_Ans;
-		header.msg_seq = 1;
+		header.recv_seq = 1;
 		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
 
-		std::shared_ptr<Packet> ans_packet = Packet::Create();
-		if(nullptr == ans_packet)
-		{
-			return;
-		}
-		ans_packet->Write(header, str.c_str(), str.length()+1);
+		ans_packet->Write(header, str.c_str());
 		link->AsyncSend(ans_packet);
 	}
 
@@ -280,6 +296,10 @@ public :
 			}
 			
 			link->session = session;
+			for(const std::shared_ptr<Packet>& packet : session->send_packets)
+			{
+				link->send_buffers.push_back(packet);
+			}
 
 			session->strand.wrap([session, link]() {
 				try {
@@ -304,7 +324,7 @@ public :
 
 		Packet::Header header;
 		header.msg_id = MSG_ID::MsgID_SvrCli_Reconnect_Ans;
-		header.msg_seq = std::static_pointer_cast<Tcp::Link>(link)->msg_seq;
+		header.recv_seq = std::static_pointer_cast<Tcp::Link>(link)->recv_seq;
 		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
 
 		std::shared_ptr<Packet> ans_packet = Packet::Create();
@@ -312,30 +332,71 @@ public :
 		{
 			return;
 		}
-		ans_packet->Write(header, str.c_str(), str.length()+1);
+		ans_packet->Write(header, str.c_str());
+		link->send_buffers.push_back(ans_packet);
+		link->FlushSend();
+		//link->AsyncSend(ans_packet);
+	}
+
+	void Send_HeartBeat_Ntf(const std::shared_ptr<Network::Link>& link)
+	{
+		if (nullptr == link->session)
+		{
+			return;
+		}
+
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+
+		std::shared_ptr<Packet> packet = Packet::Create();
+		if (nullptr == packet)
+		{
+			return;
+		}
+
+		Json::Value ans;
+		ans["error_code"] = 0;
+		ans["msg_seq"] = std::static_pointer_cast<Tcp::Link>(link)->recv_seq;
+
+		Json::FastWriter writer;
+		std::string str = writer.write(ans);
+
+		Packet::Header header;
+		header.msg_id = MSG_ID::MsgID_SvrCli_HeartBeat_Ntf;
+		header.msg_seq = ++session->send_seq;
+		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length() + 1);
+
+		ans_packet->Write(header, str.c_str());
 		link->AsyncSend(ans_packet);
 	}
 
 	void Recv_HeartBeat_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
-		Json::Value ans;
-		ans["error_code"] = 0;
-		ans["msg_seq"] = std::static_pointer_cast<Tcp::Link>(link)->msg_seq;
-
-		Json::StyledWriter writer;
-		std::string str = writer.write(ans);
-
-		Packet::Header header;
-		header.msg_id = MSG_ID::MsgID_SvrCli_HeartBeat_Ans;
-		header.msg_seq = std::static_pointer_cast<Tcp::Link>(link)->msg_seq;
-		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
-
-		std::shared_ptr<Packet> ans_packet = Packet::Create();
-		if(nullptr == ans_packet)
+		if(nullptr == link->session)
 		{
 			return;
 		}
-		ans_packet->Write(header, str.c_str(), str.length()+1);
+
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+
+		std::shared_ptr<Packet> ans_packet = Packet::Create();
+		if (nullptr == ans_packet)
+		{
+			return;
+		}
+
+		Json::Value ans;
+		ans["error_code"] = 0;
+		ans["msg_seq"] = std::static_pointer_cast<Tcp::Link>(link)->recv_seq;
+
+		Json::FastWriter writer;
+		std::string str = writer.write(ans);
+
+		Packet::Header header;
+		header.msg_id = MSG_ID::MsgID_SvrCli_HeartBeat_Ntf;
+		header.msg_seq = ++session->send_seq;
+		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
+				
+		ans_packet->Write(header, str.c_str());
 		link->AsyncSend(ans_packet);
 	}
 

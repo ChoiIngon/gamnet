@@ -21,7 +21,7 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Uni::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
+bool RouterCasterImpl_Uni::SendMsg(uint64_t recv_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	std::shared_ptr<Session> router_session = FindSession(addr);
 	if(NULL == router_session)
@@ -30,7 +30,7 @@ bool RouterCasterImpl_Uni::SendMsg(uint64_t msg_seq, const std::shared_ptr<Netwo
 	}
 	if(NULL != network_session)
 	{
-		router_session->watingSessionManager_.AddSession(msg_seq, network_session);
+		router_session->watingSessionManager_.AddSession(recv_seq, network_session);
 	}
 	router_session->AsyncSend(buf, len);
 	return true;
@@ -76,7 +76,7 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, const std::sha
 	return true;
 }
 
-bool RouterCasterImpl_Multi::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
+bool RouterCasterImpl_Multi::SendMsg(uint64_t recv_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	auto itr = mapRouteTable.find(addr.service_name);
 	if(mapRouteTable.end() == itr)
@@ -89,7 +89,7 @@ bool RouterCasterImpl_Multi::SendMsg(uint64_t msg_seq, const std::shared_ptr<Net
 	{
 		if(NULL != network_session)
 		{
-			s->watingSessionManager_.AddSession(msg_seq, network_session);
+			s->watingSessionManager_.AddSession(recv_seq, network_session);
 		}
 		s->AsyncSend(buf, len);
 	}
@@ -136,7 +136,7 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Any::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
+bool RouterCasterImpl_Any::SendMsg(uint64_t recv_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	auto itr = mapRouteTable.find(addr.service_name);
 	if(mapRouteTable.end() == itr)
@@ -156,7 +156,7 @@ bool RouterCasterImpl_Any::SendMsg(uint64_t msg_seq, const std::shared_ptr<Netwo
 	std::shared_ptr<Session> router_session = arrSession[pairSessionArray.first++ % arrSession.size()];
 	if(NULL != network_session)
 	{
-		router_session->watingSessionManager_.AddSession(msg_seq, network_session);
+		router_session->watingSessionManager_.AddSession(recv_seq, network_session);
 	}
 
 	router_session->AsyncSend(buf, len);
@@ -187,7 +187,7 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 
 RouterCaster::RouterCaster() 
 {
-	msg_seq = 1;
+	recv_seq = 1;
 	arrCasterImpl_[ROUTER_CAST_TYPE::UNI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
 	arrCasterImpl_[ROUTER_CAST_TYPE::MULTI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
 	arrCasterImpl_[ROUTER_CAST_TYPE::ANY_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Any());
@@ -210,10 +210,10 @@ bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session>
 bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	MsgRouter_SendMsg_Ntf ntf;
-	ntf.msg_seq = addr.msg_seq;
+	ntf.recv_seq = addr.recv_seq;
 	if(NULL != network_session)
 	{
-		ntf.msg_seq = msg_seq++;
+		ntf.recv_seq = recv_seq++;
 	}
 	ntf.buffer.assign(buf, len);
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
@@ -231,7 +231,7 @@ bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network
 		return false;
 	}
 	std::lock_guard<std::mutex> lo(lock_);
-	return arrCasterImpl_[(int)addr.cast_type]->SendMsg(ntf.msg_seq, network_session, addr, packet->ReadPtr(), packet->Size());
+	return arrCasterImpl_[(int)addr.cast_type]->SendMsg(ntf.recv_seq, network_session, addr, packet->ReadPtr(), packet->Size());
 }
 
 bool RouterCaster::UnregisterAddress(const Address& addr)

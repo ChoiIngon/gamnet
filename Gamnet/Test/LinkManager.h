@@ -344,7 +344,7 @@ namespace Gamnet {
 
 				Network::Tcp::Packet::Header header;
 				header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Connect_Req;
-				header.msg_seq = ++link->msg_seq;
+				header.msg_seq = ++link->recv_seq;
 				header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 				std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
@@ -352,7 +352,7 @@ namespace Gamnet {
 				{
 					throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
 				}
-				req_packet->Write(header, nullptr, 0);
+				req_packet->Write(header, nullptr);
 
 				session->AsyncSend(req_packet);
 			}
@@ -388,6 +388,12 @@ namespace Gamnet {
 					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
 				}
 
+				std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
+				if (nullptr == req_packet)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
+				}
+
 				Json::Value req;
 				req["session_key"] = session->server_session_key;
 				req["session_token"] = session->server_session_token;
@@ -397,15 +403,10 @@ namespace Gamnet {
 
 				Network::Tcp::Packet::Header header;
 				header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Reconnect_Req;
-				header.msg_seq = ++link->msg_seq;
+				header.msg_seq = ++link->recv_seq;
 				header.length = (uint16_t)(Network::Tcp::Packet::HEADER_SIZE + str.length() + 1);
-
-				std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
-				if (nullptr == req_packet)
-				{
-					throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
-				}
-				req_packet->Write(header, str.c_str(), str.length() + 1);
+								
+				req_packet->Write(header, str.c_str());
 				session->AsyncSend(req_packet);
 			}
 
@@ -432,7 +433,7 @@ namespace Gamnet {
 			{
 				Network::Tcp::Packet::Header header;
 				header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Close_Ntf;
-				header.msg_seq = ++std::static_pointer_cast<Network::Tcp::Link>(link)->msg_seq;
+				header.msg_seq = ++std::static_pointer_cast<Network::Tcp::Link>(link)->recv_seq;
 				header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 				std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
@@ -441,7 +442,7 @@ namespace Gamnet {
 					LOG(GAMNET_ERR, "can not create packet");
 					return;
 				}
-				req_packet->Write(header, nullptr, 0);
+				req_packet->Write(header, nullptr);
 				link->AsyncSend(req_packet);
 			}
 

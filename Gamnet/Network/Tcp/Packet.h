@@ -1,10 +1,3 @@
-/*
- * Packet.h
- *
- *  Created on: 2012. 8. 16.
- *      Author: jjaehuny
- */
-
 #ifndef GAMNET_NETWORK_TCP_PACKET_H_
 #define GAMNET_NETWORK_TCP_PACKET_H_
 
@@ -17,7 +10,18 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 class Packet : public Buffer
 {
-public:
+public :
+	static std::shared_ptr<Packet> Create();
+	template <class MSG>
+	static bool Load(MSG& msg, std::shared_ptr<Packet> packet)
+	{
+		if (false == packet->Read(msg))
+		{
+			return false;
+		}
+		return true;
+	}
+public :
 	enum
 	{
 		OFFSET_LENGTH = 0,
@@ -32,24 +36,27 @@ public:
 		Packet* operator() (Packet* packet)
 		{
 			packet->Clear();
+			packet->reliable = false;
 			return packet;
 		}
 	};
 
 public :
 	struct Header {
-		uint16_t length;
 		uint32_t msg_id;
 		uint32_t msg_seq;
+		uint16_t length;
 	};
 
 	Packet();
 	virtual ~Packet();
 
-	uint16_t GetLength() const;
+	bool reliable;
+
 	uint32_t GetSEQ() const;
 	uint32_t GetID() const;
-
+	uint16_t GetLength() const;
+	
 	/*
 	 * byte stream -> Msg
 	 */
@@ -66,7 +73,7 @@ public :
 	}
 
 	template <class MSG>
-	bool Write(uint32_t msg_seq, const MSG& msg)
+	bool Write(uint32_t recv_seq, const MSG& msg)
 	{
 		Clear();
 		uint16_t total_length = (uint16_t)(msg.Size() + HEADER_SIZE);
@@ -84,7 +91,7 @@ public :
 		}
 
 		(*(uint16_t*)(data + OFFSET_LENGTH)) = total_length;
-		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = msg_seq;
+		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = recv_seq;
 		(*(uint32_t*)(data + OFFSET_MSGID)) = msg_id;
 		char* pBuf = data + HEADER_SIZE;
 		if(false == msg.Store(&pBuf))
@@ -94,40 +101,33 @@ public :
 		this->writeCursor_ += total_length;
 		return true;
 	}
-	bool Write(const Header& header, const char* buf, size_t length)
+	bool Write(const Header& header, const char* buf)
 	{
 		Clear();
-		uint16_t total_length = (uint16_t)(length + HEADER_SIZE);
-		if(Capacity() <= total_length)
+		if(HEADER_SIZE > header.length)
 		{
-			LOG(GAMNET_WRN, "packet max capacity over(msg_id:", header.msg_id, ", size:", total_length, ")");
+			LOG(GAMNET_WRN, "invalid header length");
+			return false;
+		}
+		if(Capacity() <= header.length)
+		{
+			LOG(GAMNET_WRN, "packet max capacity over(msg_id:", header.msg_id, ", size:", header.length, ")");
 			return false;
 		}
 
-		if((uint16_t)Available() < total_length)
+		if((uint16_t)Available() < header.length)
 		{
-			Resize(total_length);
+			Resize(header.length);
 		}
 
-		(*(uint16_t*)(data + OFFSET_LENGTH)) = total_length;
+		(*(uint16_t*)(data + OFFSET_LENGTH)) = header.length;
 		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = header.msg_seq;
 		(*(uint32_t*)(data + OFFSET_MSGID)) = header.msg_id;
-		if(0 < length)
+		if(0 < header.length - HEADER_SIZE)
 		{
-			std::memcpy(data + HEADER_SIZE, buf, length);
+			std::memcpy(data + HEADER_SIZE, buf, header.length - HEADER_SIZE);
 		}
-		this->writeCursor_ += total_length;
-		return true;
-	}
-
-	static std::shared_ptr<Packet> Create();
-	template <class MSG>
-	static bool Load(MSG& msg, std::shared_ptr<Packet> packet)
-	{
-		if(false == packet->Read(msg))
-		{
-			return false;
-		}
+		this->writeCursor_ += header.length;
 		return true;
 	}
 };

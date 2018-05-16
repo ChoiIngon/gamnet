@@ -165,13 +165,9 @@ namespace Gamnet
 		private uint 	_session_key = 0;
 		private string 	_session_token = "";
 
-		private uint _msg_seq = 0;
-		public uint msg_seq {
-			get {
-				return _msg_seq;
-			}
-		}
-
+		private uint _send_seq = 0;
+        private uint _recv_seq = 0;
+		
 		public Action onConnect;
 		public Action onReconnect;
         public Action onResume;
@@ -252,7 +248,8 @@ namespace Gamnet
 				_socket = null;
 				_endpoint = null;
 				_timer = null;
-				_msg_seq = 0;
+				_send_seq = 0;
+                _recv_seq = 0;
                 _state = ConnectionState.OnConnecting;
 				_connect_timeout = timeout_sec * 1000;
 
@@ -429,30 +426,40 @@ namespace Gamnet
 				}
 
 				uint msgID = BitConverter.ToUInt32(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_MSGID);
-				
-				_recv_buff.read_index += Packet.HEADER_SIZE;
-				_timeout_monitor.UnsetTimeout(msgID);
+				uint msgSEQ = BitConverter.ToUInt32(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_MSGSEQ);
 
-                try
+                if (msgSEQ > _recv_seq)
                 {
-                    if (false == _handlers.ContainsKey(msgID))
+                    _recv_buff.read_index += Packet.HEADER_SIZE;
+                    _timeout_monitor.UnsetTimeout(msgID);
+
+                    try
                     {
-                        Debug.LogWarning("[Session.OnReceive] can't find registered msg(id:" + msgID + ")");
-                        throw new Gamnet.Exception(ErrorCode.UnhandledMsgError, "can't find registered msg(id:" + msgID + ")");
-                    }
+                        if (false == _handlers.ContainsKey(msgID))
+                        {
+                            Debug.LogWarning("[Session.OnReceive] can't find registered msg(id:" + msgID + ")");
+                            throw new Gamnet.Exception(ErrorCode.UnhandledMsgError, "can't find registered msg(id:" + msgID + ")");
+                        }
 
-                    IMsgHandler handler = _handlers[msgID];
-                    handler.OnRecvMsg(_recv_buff);
+                        IMsgHandler handler = _handlers[msgID];
+                        handler.OnRecvMsg(_recv_buff);
+                    }
+                    catch (Gamnet.Exception e)
+                    {
+                        Debug.LogError("[Session.OnReceive] " + e.ToString());
+                        Error(e);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError("[Session.OnReceive] " + e.ToString());
+                        Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.ToString()));
+                    }
+                    _recv_seq = msgSEQ;
                 }
-                catch (Gamnet.Exception e)
+
+                if (msgSEQ > _send_seq)
                 {
-                    Debug.LogError("[Session.OnReceive] " + e.ToString());
-                    Error(e);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError("[Session.OnReceive] " + e.ToString());
-                    Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.ToString()));
+                    _send_seq = msgSEQ;
                 }
 				_recv_buff.read_index += packetLength - Packet.HEADER_SIZE;
 			}
@@ -546,13 +553,13 @@ namespace Gamnet
 
                 Gamnet.Packet packet = new Gamnet.Packet();
 				packet.length = packetLength;
-				packet.msg_seq = ++_msg_seq;
+				packet.msg_seq = ++_send_seq;
 				packet.msg_id = msgID;
 				packet.reliable = handOverRelility;
 				packet.Append(ms);
 
 				SendMsg(packet);
-				if (0 == msg_seq % 10 && ConnectionState.Connected == _state)
+				if (0 == _send_seq % 30 && ConnectionState.Connected == _state)
 				{
 					Send_HeartBeat_Req ();
 				}
@@ -679,7 +686,7 @@ namespace Gamnet
 		{
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = Packet.HEADER_SIZE;
-			packet.msg_seq = ++_msg_seq;
+			packet.msg_seq = ++_send_seq;
 			packet.msg_id = MsgID_Connect_Req;
 			packet.reliable = false;
 			SendMsg(packet);
@@ -733,7 +740,7 @@ namespace Gamnet
 
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.length = (ushort)(Packet.HEADER_SIZE + data.Length);
-            packet.msg_seq = _msg_seq;
+            packet.msg_seq = ++_send_seq;
             packet.msg_id = MsgID_Reconnect_Req;
             packet.reliable = false;
             packet.Append(data);
@@ -803,7 +810,7 @@ namespace Gamnet
             Reconnect();
 			Gamnet.Packet packet = new Gamnet.Packet ();
 			packet.length = Packet.HEADER_SIZE;
-			packet.msg_seq = ++_msg_seq;
+			packet.msg_seq = ++_send_seq;
 			packet.msg_id = MsgID_HeartBeat_Req;
 			packet.reliable = true;
 			//Debug.Log("[Session.Send_HeartBeat_Req] send heartbeat req(msg_seq:" + packet.msg_seq + ")");
@@ -860,10 +867,10 @@ namespace Gamnet
             }
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.length = Packet.HEADER_SIZE;
-            packet.msg_seq = ++_msg_seq;
+            packet.msg_seq = ++_send_seq;
             packet.msg_id = MsgID_Close_Ntf;
             packet.reliable = false;
-			Debug.Log("[Session.Send_Close_Ntf] msg_seq:" + _msg_seq);
+			Debug.Log("[Session.Send_Close_Ntf] msg_seq:" + _send_seq);
 			SendMsg(packet);
         }
     }

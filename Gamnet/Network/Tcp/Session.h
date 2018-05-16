@@ -15,6 +15,9 @@ public :
 	virtual ~Session();
 
 	virtual bool Init() override;
+
+	uint32_t send_seq;
+	std::deque<std::shared_ptr<Packet>>	send_packets;
 };
 }}}
 #endif /* NETWORK_SESSION_H_ */
