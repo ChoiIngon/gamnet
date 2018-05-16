@@ -108,21 +108,17 @@ public :
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
+		if(nullptr != link->session)
+		{
+			link->session->expire_time = ::time(nullptr);
+		}			
+
 		const std::shared_ptr<Packet>& packet = std::static_pointer_cast<Packet>(buffer);
 			
 		uint32_t msgID = packet->GetID();
 
-		LOG(DEV, "[link_key:", link->link_key, "] recv message(msg_id:", msgID, ", received msg_seq:", msgSEQ, ")");
 		if(MSG_ID::MsgID_Max <= msgID)
 		{
-			uint32_t msgSEQ = packet->GetSEQ();
-			std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
-			if (msgSEQ <= tcpLink->recv_seq)
-			{
-				LOG(WRN, "[link_key:", link->link_key, "] discard message(msg_id:", packet->GetID(), ", received msg_seq:", msgSEQ, ", expected msg_seq:", tcpLink->recv_seq + 1, ")");
-				return;
-			}
-
 			if (nullptr == link->session)
 			{
 				LOG(ERR, "[link_key:", link->link_key, "] invalid session");
@@ -131,25 +127,7 @@ public :
 			}
 
 			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-			session->expire_time = ::time(nullptr);
-
-			if (msgSEQ >= session->send_seq)
-			{
-				while (0 < session->send_packets.size())
-				{
-					const std::shared_ptr<Packet>& sendPacket = session->send_packets.front();
-					if (msgSEQ < sendPacket->GetSEQ())
-					{
-						break;
-					}
-					LOG(DEV, "remove send packet(msg_seq:", sendPacket->GetSEQ(), ")");
-					session->send_packets.pop_front();
-				}
-				session->send_seq = msgSEQ;
-			}
-
 			session->strand.wrap(std::bind(&Dispatcher<SESSION_T>::OnRecvMsg, &Singleton<Dispatcher<SESSION_T>>::GetInstance(), session, packet))();
-			tcpLink->recv_seq = msgSEQ;
 		}
 		else
 		{
@@ -242,8 +220,8 @@ public :
 			ans["error_code"] = e.error_code();
 		}
 
-		std::shared_ptr<Packet> ans_packet = Packet::Create();
-		if (nullptr == ans_packet)
+		std::shared_ptr<Packet> packet = Packet::Create();
+		if (nullptr == packet)
 		{
 			return;
 		}
@@ -253,11 +231,11 @@ public :
 
 		Packet::Header header;
 		header.msg_id = MSG_ID::MsgID_SvrCli_Connect_Ans;
-		header.recv_seq = 1;
+		header.msg_seq = 1;
 		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
 
-		ans_packet->Write(header, str.c_str());
-		link->AsyncSend(ans_packet);
+		packet->Write(header, str.c_str());
+		link->AsyncSend(packet);
 	}
 
 	void Recv_Reconnect_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
@@ -324,16 +302,16 @@ public :
 
 		Packet::Header header;
 		header.msg_id = MSG_ID::MsgID_SvrCli_Reconnect_Ans;
-		header.recv_seq = std::static_pointer_cast<Tcp::Link>(link)->recv_seq;
+		header.msg_seq = std::static_pointer_cast<Tcp::Link>(link)->recv_seq;
 		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
 
-		std::shared_ptr<Packet> ans_packet = Packet::Create();
-		if(nullptr == ans_packet)
+		std::shared_ptr<Packet> packet = Packet::Create();
+		if(nullptr == packet)
 		{
 			return;
 		}
-		ans_packet->Write(header, str.c_str());
-		link->send_buffers.push_back(ans_packet);
+		packet->Write(header, str.c_str());
+		link->send_buffers.push_back(packet);
 		link->FlushSend();
 		//link->AsyncSend(ans_packet);
 	}
@@ -365,8 +343,8 @@ public :
 		header.msg_seq = ++session->send_seq;
 		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length() + 1);
 
-		ans_packet->Write(header, str.c_str());
-		link->AsyncSend(ans_packet);
+		packet->Write(header, str.c_str());
+		link->AsyncSend(packet);
 	}
 
 	void Recv_HeartBeat_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
@@ -378,8 +356,8 @@ public :
 
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 
-		std::shared_ptr<Packet> ans_packet = Packet::Create();
-		if (nullptr == ans_packet)
+		std::shared_ptr<Packet> packet = Packet::Create();
+		if (nullptr == packet)
 		{
 			return;
 		}
@@ -396,8 +374,8 @@ public :
 		header.msg_seq = ++session->send_seq;
 		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
 				
-		ans_packet->Write(header, str.c_str());
-		link->AsyncSend(ans_packet);
+		packet->Write(header, str.c_str());
+		link->AsyncSend(packet);
 	}
 
 	void Recv_Close_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)

@@ -89,44 +89,11 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				if(RELIABLE_PACKET_QUEUE_SIZE > tcpSession->send_packets.size())
 				{
 					tcpSession->send_packets.push_back(packet);
-					if (0 == tcpSession->send_packets.size() % 10)
-					{
-						Send_HeartBeat_Ntf();
-					}
 				}
 			}			
 		}
 
 		send_buffers.pop_front();
 		FlushSend();
-	}
-
-	void Link::Send_HeartBeat_Ntf()
-	{
-		if (nullptr == session)
-		{
-			return;
-		}
-
-		Json::Value ans;
-		ans["error_code"] = 0;
-		ans["msg_seq"] = recv_seq;
-
-		std::shared_ptr<Packet> packet = Packet::Create();
-		if (nullptr == packet)
-		{
-			return;
-		}
-
-		Json::FastWriter writer;
-		std::string str = writer.write(ans);
-
-		Packet::Header header;
-		header.msg_id = MSG_ID::MsgID_SvrCli_HeartBeat_Ntf;
-		header.msg_seq = ++std::static_pointer_cast<Session>(session)->send_seq;
-		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length() + 1);
-
-		packet->Write(header, str.c_str());
-		AsyncSend(packet);
 	}
 }}}

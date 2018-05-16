@@ -27,6 +27,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	RegisterHandler(MsgRouter_SetAddress_Ntf::MSG_ID,	"MsgRouter_SetAddress_Ntf", &RouterHandler::Recv_SetAddress_Ntf, new Network::HandlerStatic<RouterHandler>());
 	RegisterHandler(MsgRouter_SendMsg_Ntf::MSG_ID,		"MsgRouter_SendMsg_Ntf", &RouterHandler::Recv_SendMsg_Ntf, new Network::HandlerStatic<RouterHandler>());
 	RegisterHandler(MsgRouter_HeartBeat_Ntf::MSG_ID,	"MsgRouter_HeartBeat_Ntf", &RouterHandler::Recv_HeartBeat_Ntf, new Network::HandlerStatic<RouterHandler>());
+
 	local_address.service_name = service_name;
 	local_address.cast_type = ROUTER_CAST_TYPE::UNI_CAST;
 	local_address.id = Network::Tcp::GetLocalAddress().to_v4().to_ulong();

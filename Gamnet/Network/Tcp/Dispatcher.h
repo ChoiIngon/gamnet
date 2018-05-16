@@ -13,9 +13,9 @@
 #include <atomic>
 #include <set>
 #include "Packet.h"
+#include "Link.h"
 #include "../Handler.h"
 #include "../HandlerFactory.h"
-#include "../Link.h"
 #include "../../Log/Log.h"
 #ifdef _DEBUG
 #include <chrono>
@@ -81,6 +81,14 @@ public:
 
 	void OnRecvMsg(const std::shared_ptr<SESSION_T> session, const std::shared_ptr<Packet> packet)
 	{
+		uint32_t msgSEQ = packet->GetSEQ();
+		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
+		if (msgSEQ <= link->recv_seq)
+		{
+			LOG(WRN, "[link_key:", link->link_key, "] discard message(msg_id:", packet->GetID(), ", received msg_seq:", msgSEQ, ", expected msg_seq:", link->recv_seq + 1, ")");
+			return;
+		}
+
 		const unsigned int msg_id = packet->GetID();
 		auto itr = mapHandlerFunction_.find(msg_id);
 		if(itr == mapHandlerFunction_.end())
@@ -114,13 +122,25 @@ public:
 		catch (const std::exception& e)
 		{
 			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
-			std::shared_ptr<Network::Link> link = session->link;
-			if(nullptr != link)
-			{
-				link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::UndefinedError))();
-			}
+			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::UndefinedError))();
 			return;
 		}
+
+		if (msgSEQ >= session->send_seq)
+		{
+			while (0 < session->send_packets.size())
+			{
+				const std::shared_ptr<Packet>& sendPacket = session->send_packets.front();
+				if (msgSEQ < sendPacket->GetSEQ())
+				{
+					break;
+				}
+				LOG(DEV, "remove send packet(msg_seq:", sendPacket->GetSEQ(), ")");
+				session->send_packets.pop_front();
+			}
+			session->send_seq = msgSEQ;
+		}
+		link->recv_seq = msgSEQ;
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
