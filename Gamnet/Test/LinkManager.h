@@ -344,7 +344,7 @@ namespace Gamnet {
 
 				Network::Tcp::Packet::Header header;
 				header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Connect_Req;
-				header.msg_seq = ++link->recv_seq;
+				header.msg_seq = 0; // ++link->recv_seq;
 				header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 				std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
@@ -403,7 +403,7 @@ namespace Gamnet {
 
 				Network::Tcp::Packet::Header header;
 				header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Reconnect_Req;
-				header.msg_seq = ++link->recv_seq;
+				header.msg_seq = 0; // ++link->recv_seq;
 				header.length = (uint16_t)(Network::Tcp::Packet::HEADER_SIZE + str.length() + 1);
 								
 				req_packet->Write(header, str.c_str());
@@ -433,7 +433,7 @@ namespace Gamnet {
 			{
 				Network::Tcp::Packet::Header header;
 				header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Close_Ntf;
-				header.msg_seq = ++std::static_pointer_cast<Network::Tcp::Link>(link)->recv_seq;
+				header.msg_seq = 0; // ++std::static_pointer_cast<Network::Tcp::Link>(link)->recv_seq;
 				header.length = Network::Tcp::Packet::HEADER_SIZE;
 
 				std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();

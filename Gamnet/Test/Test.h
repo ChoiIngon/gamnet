@@ -34,23 +34,16 @@ namespace Gamnet { namespace Test {
 	template <class SESSION_T, class MSG>
 	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg)
 	{
-		std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
-		if(nullptr == link)
-		{
-			LOG(ERR, "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
-		}
-
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
 		{
-			LOG(ERR, "[link_key:", link->link_key, ", session_key:", session->session_key, "] fail to create packet instance(msg_id:", MSG::MSG_ID, ")");
+			LOG(ERR, "[session_key:", session->session_key, "] fail to create packet instance(msg_id:", MSG::MSG_ID, ")");
 			return false;			
 		}
 
-		if (false == packet->Write(++link->recv_seq, msg))
+		if (false == packet->Write(++session->send_seq, msg))
 		{
-			LOG(ERR, "[link_key:", link->link_key, ", session_key:", session->session_key, "] fail to serialize message(msg_id:", MSG::MSG_ID, ")");
+			LOG(ERR, "[session_key:", session->session_key, "] fail to serialize message(msg_id:", MSG::MSG_ID, ")");
 			return false;			
 		}
 		

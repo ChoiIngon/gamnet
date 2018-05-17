@@ -23,7 +23,7 @@ bool Session::Init()
 
 	session_token = Session::GenerateSessionToken(session_key);
 
-	//recv_seq = 0;
+	recv_seq = 0;
 	send_seq = 0;
 	//recv_packets.clear();
 	send_packets.clear();

@@ -19,7 +19,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return false;
 		}
 
-		recv_seq = 0;
+//		recv_seq = 0;
 		recv_packet = Packet::Create();
 		if(nullptr == recv_packet)
 		{
@@ -66,7 +66,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			link_manager->OnRecvMsg(shared_from_this(), packet);
 		}
 	}
-
+	/*
 	void Link::OnSend(const boost::system::error_code& ec, std::size_t transferredBytes)
 	{
 		if (0 != ec)
@@ -88,6 +88,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				std::shared_ptr<Session> tcpSession = std::static_pointer_cast<Session>(session);
 				if(RELIABLE_PACKET_QUEUE_SIZE > tcpSession->send_packets.size())
 				{
+					LOG(DEV, "[link_key:", link_key, "] send complete(msg_seq:", packet->GetSEQ(), ", msg_id:", packet->GetID(), ")");
 					tcpSession->send_packets.push_back(packet);
 				}
 			}			
@@ -96,4 +97,5 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		send_buffers.pop_front();
 		FlushSend();
 	}
+	*/
 }}}

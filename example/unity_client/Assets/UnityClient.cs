@@ -67,8 +67,13 @@ public class UnityClient : MonoBehaviour {
 		};
 		session.onResume += () => {
             Log("UnityClient.onResume");
+            Debug.Log("UnityClient.onResume");
         };
-		session.onError += (Gamnet.Exception e) => {
+        session.onClose += () => {
+            Log("UnityClient.onClose");
+            Debug.Log("UnityClient.onClose");
+        };
+        session.onError += (Gamnet.Exception e) => {
 			Log(e.ToString());
 			if(TimeoutError == e.ErrorCode)
 			{

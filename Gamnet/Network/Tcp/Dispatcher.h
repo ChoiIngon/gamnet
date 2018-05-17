@@ -82,19 +82,20 @@ public:
 	void OnRecvMsg(const std::shared_ptr<SESSION_T> session, const std::shared_ptr<Packet> packet)
 	{
 		uint32_t msgSEQ = packet->GetSEQ();
-		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
-		if (msgSEQ <= link->recv_seq)
+		if (msgSEQ <= session->recv_seq)
 		{
-			LOG(WRN, "[link_key:", link->link_key, "] discard message(msg_id:", packet->GetID(), ", received msg_seq:", msgSEQ, ", expected msg_seq:", link->recv_seq + 1, ")");
+			LOG(WRN, "[session_key:", session->session_key, "] discard message(msg_id:", packet->GetID(), ", received msg_seq:", msgSEQ, ", expected msg_seq:", session->recv_seq + 1, ")");
 			return;
 		}
+
+		LOG(DEV, "[session_key:", session->session_key, "] recv message(msg_id:", packet->GetID(), ", received msg_seq:", msgSEQ, ", expected msg_seq:", session->recv_seq + 1, ")");
+		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
 
 		const unsigned int msg_id = packet->GetID();
 		auto itr = mapHandlerFunction_.find(msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
 			LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
-			std::shared_ptr<Network::Link> link = session->link;
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
 			return ;
 		}
@@ -104,7 +105,6 @@ public:
 		if(NULL == handler)
 		{
 			LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
-			std::shared_ptr<Network::Link> link = session->link;
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
 			return;
 		}
@@ -126,7 +126,7 @@ public:
 			return;
 		}
 
-		if (msgSEQ >= session->send_seq)
+		if (msgSEQ > session->send_seq)
 		{
 			while (0 < session->send_packets.size())
 			{
@@ -135,12 +135,12 @@ public:
 				{
 					break;
 				}
-				LOG(DEV, "remove send packet(msg_seq:", sendPacket->GetSEQ(), ")");
+				LOG(DEV, "remove send packet(msg_seq:", sendPacket->GetSEQ(), ", msg_id:", sendPacket->GetID(), ")");
 				session->send_packets.pop_front();
 			}
 			session->send_seq = msgSEQ;
 		}
-		link->recv_seq = msgSEQ;
+		session->recv_seq = msgSEQ;
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{

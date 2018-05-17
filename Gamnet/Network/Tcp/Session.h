@@ -9,6 +9,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 class Session : public Network::Session
 {
+public:
+	enum {
+		RELIABLE_PACKET_QUEUE_SIZE = 50
+	};
 public :
 	Session();
 	Session(boost::asio::io_service& ioService);
@@ -16,6 +20,7 @@ public :
 
 	virtual bool Init() override;
 
+	uint32_t recv_seq;
 	uint32_t send_seq;
 	std::deque<std::shared_ptr<Packet>>	send_packets;
 };

@@ -43,12 +43,22 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			LOG(GAMNET_ERR, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
+
+		packet->reliable = reliable;
 		if (false == packet->Write<MSG>(++session->send_seq, msg))
 		{
 			LOG(GAMNET_ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
+		}	
+
+		if (true == reliable)
+		{
+			if (Session::RELIABLE_PACKET_QUEUE_SIZE > session->send_packets.size())
+			{
+				LOG(DEV, "[session_key:", session->session_key, "] send complete(msg_seq:", packet->GetSEQ(), ", msg_id:", packet->GetID(), ")");
+				session->send_packets.push_back(packet);
+			}
 		}
-		packet->reliable = reliable;
 		return session->AsyncSend(packet);
 	}
 

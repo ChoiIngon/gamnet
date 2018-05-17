@@ -233,6 +233,7 @@ void Link::Close(int reason)
 {
 	if (true == socket.is_open())
 	{
+		LOG(DEV, "[link_key:", link_key, "] reason:", reason);
 		try
 		{
 			link_manager->OnClose(shared_from_this(), reason);
