@@ -253,10 +253,6 @@ namespace Gamnet {
 							{
 								session->recv_seq = packet->msg_seq;
 							}
-							if(true == packet->reliable)
-							{
-								Send_ReliableAck_Ntf(session);
-							}
 						}
 						catch (const Exception& e)
 						{
@@ -293,6 +289,11 @@ namespace Gamnet {
 								return;
 							}
 							next_execute_info->execute_count++;
+						}
+
+						if(true == packet->reliable)
+						{
+							Send_ReliableAck_Ntf(session);
 						}
 					}
 				})();
