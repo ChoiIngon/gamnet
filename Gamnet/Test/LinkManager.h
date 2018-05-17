@@ -230,16 +230,15 @@ namespace Gamnet {
 					if (session->test_seq < (int)this->execute_order.size())
 					{
 						bool is_global_handler = false;
-						uint32_t msg_id = packet->GetID();
 
 						const std::shared_ptr<TestExecuteInfo>& execute_info = this->execute_order[session->test_seq];
-						auto itr = execute_info->recv_handlers.find(msg_id);
+						auto itr = execute_info->recv_handlers.find(packet->msg_id);
 						if (execute_info->recv_handlers.end() == itr)
 						{
-							itr = this->execute_order[0]->recv_handlers.find(msg_id);
+							itr = this->execute_order[0]->recv_handlers.find(packet->msg_id);
 							if (this->execute_order[0]->recv_handlers.end() == itr)
 							{
-								LOG(GAMNET_WRN, "can't find handler function(msg_id:", msg_id, ")");
+								LOG(GAMNET_WRN, "can't find handler function(msg_id:", packet->msg_id, ")");
 								link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::InvalidHandlerError))();
 								return;
 							}
@@ -250,6 +249,14 @@ namespace Gamnet {
 						RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
 						try {
 							handler(session, packet);
+							if(session->recv_seq < packet->msg_seq)
+							{
+								session->recv_seq = packet->msg_seq;
+							}
+							if(true == packet->reliable)
+							{
+								Send_ReliableAck_Ntf(session);
+							}
 						}
 						catch (const Exception& e)
 						{
@@ -336,25 +343,14 @@ namespace Gamnet {
 
 			void Send_Connect_Req(const std::shared_ptr<SESSION_T>& session)
 			{
-				std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
-				if (nullptr == link)
-				{
-					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
-				}
-
-				Network::Tcp::Packet::Header header;
-				header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Connect_Req;
-				header.msg_seq = 0; // ++link->recv_seq;
-				header.length = Network::Tcp::Packet::HEADER_SIZE;
-
-				std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
-				if (nullptr == req_packet)
+				std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+				if (nullptr == packet)
 				{
 					throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
 				}
-				req_packet->Write(header, nullptr);
+				packet->Write(Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Connect_Req, nullptr, 0);
 
-				session->AsyncSend(req_packet);
+				session->AsyncSend(packet);
 			}
 
 			void Recv_Connect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
@@ -388,8 +384,8 @@ namespace Gamnet {
 					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
 				}
 
-				std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
-				if (nullptr == req_packet)
+				std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+				if (nullptr == packet)
 				{
 					throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
 				}
@@ -398,16 +394,11 @@ namespace Gamnet {
 				req["session_key"] = session->server_session_key;
 				req["session_token"] = session->server_session_token;
 
-				Json::StyledWriter writer;
+				Json::FastWriter writer;
 				std::string str = writer.write(req);
 
-				Network::Tcp::Packet::Header header;
-				header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Reconnect_Req;
-				header.msg_seq = 0; // ++link->recv_seq;
-				header.length = (uint16_t)(Network::Tcp::Packet::HEADER_SIZE + str.length() + 1);
-								
-				req_packet->Write(header, str.c_str());
-				session->AsyncSend(req_packet);
+				packet->Write(Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Reconnect_Req, str.c_str(), str.length());
+				session->AsyncSend(packet);
 			}
 
 			void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
@@ -425,25 +416,49 @@ namespace Gamnet {
 					session->link->strand.wrap(std::bind(&Network::Link::Close, session->link, ans["error_code"].asInt()))();
 					return;
 				}
+
 				session->is_connected = true;
 				session->OnConnect();
 				session->Resume();
 			}
+
+			void Send_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session)
+			{
+				std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
+				if (nullptr == link)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
+				}
+
+				std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+				if (nullptr == packet)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
+				}
+
+				Json::Value ntf;
+				ntf["ack_seq"] = session->recv_seq;
+
+				Json::FastWriter writer;
+				std::string str = writer.write(ntf);
+
+				packet->Write(Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_ReliableAck_Ntf, str.c_str(), str.length());
+				session->AsyncSend(packet);
+			}
+
 			void Send_Close_Ntf(const std::shared_ptr<Network::Link>& link)
 			{
-				Network::Tcp::Packet::Header header;
-				header.msg_id = Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Close_Ntf;
-				header.msg_seq = 0; // ++std::static_pointer_cast<Network::Tcp::Link>(link)->recv_seq;
-				header.length = Network::Tcp::Packet::HEADER_SIZE;
-
-				std::shared_ptr<Network::Tcp::Packet> req_packet = Network::Tcp::Packet::Create();
-				if (nullptr == req_packet)
+				std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+				if (nullptr == packet)
 				{
 					LOG(GAMNET_ERR, "can not create packet");
 					return;
 				}
-				req_packet->Write(header, nullptr);
-				link->AsyncSend(req_packet);
+				if(false == packet->Write(Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Close_Ntf, nullptr, 0))
+				{
+					return;
+				}
+				link->AsyncSend(packet);
 			}
 
 			void OnLogTimerExpire()
@@ -469,16 +484,6 @@ namespace Gamnet {
 					log_timer.Cancel();
 					log.Write(GAMNET_INF, "[Test] test finished..(", finish_execute_count, "/", max_execute_count, ")");
 				}
-				/*
-				if(finish_execute_count < max_execute_count)
-				{
-				log_timer.Resume();
-				}
-				else
-				{
-				log.Write(GAMNET_INF, "[Test] test finished..(", finish_execute_count, "/", max_execute_count, ")");
-				}
-				*/
 			}
 		};
 

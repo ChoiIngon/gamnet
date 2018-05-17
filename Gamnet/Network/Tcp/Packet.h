@@ -38,18 +38,15 @@ public :
 		Packet* operator() (Packet* packet)
 		{
 			packet->Clear();
+			packet->length = 0;
+			packet->msg_seq = 0;
+			packet->msg_id = 0;
 			packet->reliable = false;
 			return packet;
 		}
 	};
 
 public :
-	struct Header {
-		uint32_t msg_id;
-		uint32_t msg_seq;
-		uint16_t length;
-	};
-
 	Packet();
 	virtual ~Packet();
 
@@ -58,17 +55,17 @@ public :
 	uint32_t msg_id;
 	bool reliable;
 
-	uint32_t GetSEQ() const;
-	uint32_t GetID() const;
-	uint16_t GetLength() const;
-	
 	/*
 	 * byte stream -> Msg
 	 */
 	template <class MSG>
 	bool Read(MSG& msg)
 	{
-		size_t bodyLength = GetLength() - HEADER_SIZE;
+		if(false == ReadHeader())
+		{
+			return false;
+		}
+		size_t bodyLength = length - HEADER_SIZE;
 		const char* pBuf = ReadPtr() + HEADER_SIZE;
 		if(false == msg.Load(&pBuf, bodyLength))
 		{
@@ -76,7 +73,6 @@ public :
 		}
 		return true;
 	}
-
 	template <class MSG>
 	bool Write(const MSG& msg)
 	{
@@ -97,36 +93,24 @@ public :
 		this->writeCursor_ += length;
 		return true;
 	}
-	bool Write(const Header& header, const char* buf)
+	bool Write(uint32_t msgID, const char* buf, size_t bytes)
 	{
 		Clear();
-		if(HEADER_SIZE > header.length)
+		length = (uint16_t)(HEADER_SIZE + bytes);
+		msg_id = msgID;
+
+		if (false == WriteHeader())
 		{
-			LOG(GAMNET_WRN, "invalid header length");
-			return false;
-		}
-		if(Capacity() <= header.length)
-		{
-			LOG(GAMNET_WRN, "packet max capacity over(msg_id:", header.msg_id, ", size:", header.length, ")");
 			return false;
 		}
 
-		if((uint16_t)Available() < header.length)
+		if(nullptr != buf && 0 < bytes)
 		{
-			Resize(header.length);
+			std::memcpy(data + HEADER_SIZE, buf, bytes);
 		}
-
-		(*(uint16_t*)(data + OFFSET_LENGTH)) = header.length;
-		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = header.msg_seq;
-		(*(uint32_t*)(data + OFFSET_MSGID)) = header.msg_id;
-		if(0 < header.length - HEADER_SIZE)
-		{
-			std::memcpy(data + HEADER_SIZE, buf, header.length - HEADER_SIZE);
-		}
-		this->writeCursor_ += header.length;
+		this->writeCursor_ += length;
 		return true;
 	}
-
 	bool WriteHeader();
 	bool ReadHeader();
 };

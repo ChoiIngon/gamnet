@@ -26,21 +26,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 	}
 
-	uint16_t Packet::GetLength() const
-	{
-		return *((uint16_t*)(data + readCursor_ + OFFSET_LENGTH));
-	}
-
-	uint32_t Packet::GetSEQ() const
-	{
-		return *((uint32_t*)(data + readCursor_ + OFFSET_MSGSEQ));
-	}
-
-	uint32_t Packet::GetID() const
-	{
-		return  *((uint32_t*)(data + readCursor_ + OFFSET_MSGID));
-	}
-
 	bool Packet::WriteHeader()
 	{
 		if (Capacity() <= length)

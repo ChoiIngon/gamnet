@@ -34,22 +34,22 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		recv_packet->Append(buffer->ReadPtr(), buffer->Size());
 		while (Packet::HEADER_SIZE <= (int)recv_packet->Size())
 		{
-			uint16_t totalLength = recv_packet->GetLength();
-			if (Packet::HEADER_SIZE > totalLength)
+			recv_packet->ReadHeader();
+			if (Packet::HEADER_SIZE > recv_packet->length)
 			{
-				LOG(GAMNET_ERR, "buffer underflow(read size:", totalLength, ")");
+				LOG(GAMNET_ERR, "buffer underflow(read size:", recv_packet->length, ")");
 				Close(ErrorCode::BufferUnderflowError);
 				return;
 			}
 
-			if (totalLength >= recv_packet->Capacity())
+			if (recv_packet->length >= recv_packet->Capacity())
 			{
-				LOG(GAMNET_ERR, "buffer overflow(read size:", totalLength, ")");
+				LOG(GAMNET_ERR, "buffer overflow(read size:", recv_packet->length, ")");
 				Close(ErrorCode::BufferOverflowError);
 				return;
 			}
 
-			if (totalLength > (uint16_t)recv_packet->Size())
+			if (recv_packet->length > (uint16_t)recv_packet->Size())
 			{
 				break;
 			}
@@ -62,40 +62,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				Close(ErrorCode::NullPacketError);
 				return;
 			}
-			recv_packet->Append(packet->ReadPtr() + totalLength, packet->Size() - totalLength);
+			recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
 			link_manager->OnRecvMsg(shared_from_this(), packet);
 		}
 	}
-	/*
-	void Link::OnSend(const boost::system::error_code& ec, std::size_t transferredBytes)
-	{
-		if (0 != ec)
-		{
-			Close(ErrorCode::SendMsgFailError);
-			return;
-		}
-
-		if (true == send_buffers.empty())
-		{
-			return;
-		}
-
-		if(nullptr != session)
-		{
-			std::shared_ptr<Packet> packet = std::static_pointer_cast<Packet>(send_buffers.front());
-			if(true == packet->reliable)
-			{
-				std::shared_ptr<Session> tcpSession = std::static_pointer_cast<Session>(session);
-				if(RELIABLE_PACKET_QUEUE_SIZE > tcpSession->send_packets.size())
-				{
-					LOG(DEV, "[link_key:", link_key, "] send complete(msg_seq:", packet->GetSEQ(), ", msg_id:", packet->GetID(), ")");
-					tcpSession->send_packets.push_back(packet);
-				}
-			}			
-		}
-
-		send_buffers.pop_front();
-		FlushSend();
-	}
-	*/
 }}}

@@ -12,11 +12,9 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 		virtual bool Init() override;
 		
-		//uint32_t recv_seq;
 		std::shared_ptr<Packet> recv_packet;
 	protected :
 		virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
-		//virtual void OnSend(const boost::system::error_code& ec, std::size_t transferredBytes) override;
 	};
 }}}
 

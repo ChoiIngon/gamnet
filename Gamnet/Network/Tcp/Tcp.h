@@ -56,7 +56,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		{
 			if (Session::RELIABLE_PACKET_QUEUE_SIZE > session->send_packets.size())
 			{
-				LOG(DEV, "[session_key:", session->session_key, "] send complete(msg_seq:", packet->GetSEQ(), ", msg_id:", packet->GetID(), ")");
 				session->send_packets.push_back(packet);
 			}
 		}

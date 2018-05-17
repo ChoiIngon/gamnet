@@ -362,10 +362,9 @@ namespace Gamnet
 				_socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
 				_socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
                 _timer.Stop ();
-
-                Debug.Log("[Session.Callback_Reconnect] before trying to receive");
+                
                 Receive();
-                Debug.Log("[Session.Callback_Reconnect] after trying to receive");
+                
                 _state = ConnectionState.Connected;
 
 				lock (_sync_obj) {
@@ -610,7 +609,7 @@ namespace Gamnet
             lock (_sync_obj) {
 				_send_queue.Add(packet);
 				if (ConnectionState.Connected == _state && 1 == _send_queue.Count - _send_queue_idx) {
-                    //Debug.Log("begin send 1(msg_seq:" + _send_queue[_send_queue_idx].msg_seq + ", msg_id:" + _send_queue[_send_queue_idx].msg_id + ", length:" + _send_queue[_send_queue_idx].length + ")");
+                    //Debug.Log("begin send 1(msg_seq:" + _send_queue[_send_queue_idx].msg_seq + ", msg_id:" + _send_queue[_send_queue_idx].msg_id + ")");
                     _socket.BeginSend(_send_queue[_send_queue_idx].data, 0, _send_queue[_send_queue_idx].Size(), 0, new AsyncCallback(Callback_SendMsg), packet);
 				}
             }
@@ -651,15 +650,18 @@ namespace Gamnet
 
 		void RemoveSentPacket(uint msg_seq) {
 			lock (_sync_obj) {
-				//Debug.Log ("remove msg(msg_seq:" + msg_seq + ")");
 				while (0 < _send_queue.Count) {
 					if (_send_queue [0].msg_seq > msg_seq) {
 						break;
 					}
-					_send_queue.RemoveAt (0);
-					_send_queue_idx--;
-				}
-			}
+                    if (true == _send_queue[0].reliable)
+                    {
+                        _send_queue_idx--;
+                    }
+                    _send_queue.RemoveAt(0);
+                }
+                
+            }
 		}
 		void SetConnectTimeout() {
 			_timer = new System.Timers.Timer();

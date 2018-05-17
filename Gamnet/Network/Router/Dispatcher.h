@@ -42,7 +42,7 @@ public:
 
 	void OnRecvMsg(const Address& from, const std::shared_ptr<Network::Tcp::Packet>& packet)
 	{
-		const unsigned int msg_id = packet->GetID();
+		const unsigned int msg_id = packet->msg_id;
 		auto itr = mapHandlerFunction_.find(msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{

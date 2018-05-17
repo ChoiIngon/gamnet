@@ -117,10 +117,7 @@ public :
 		}			
 
 		const std::shared_ptr<Packet>& packet = std::static_pointer_cast<Packet>(buffer);
-			
-		uint32_t msgID = packet->GetID();
-
-		if(MSG_ID::MsgID_Max <= msgID)
+		if(MSG_ID::MsgID_Max <= packet->msg_id)
 		{
 			if (nullptr == link->session)
 			{
@@ -134,9 +131,9 @@ public :
 		}
 		else
 		{
-			if(nullptr != handlers[msgID])
+			if(nullptr != handlers[packet->msg_id])
 			{
-				handlers[msgID](link, buffer);
+				handlers[packet->msg_id](link, buffer);
 			}
 		}
 	}
@@ -232,12 +229,7 @@ public :
 		Json::FastWriter writer;
 		std::string str = writer.write(ans);
 
-		Packet::Header header;
-		header.msg_id = MSG_ID::MsgID_SvrCli_Connect_Ans;
-		header.msg_seq = 0;// 1;
-		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
-
-		packet->Write(header, str.c_str());
+		packet->Write(MSG_ID::MsgID_SvrCli_Connect_Ans, str.c_str(), str.length());
 		link->AsyncSend(packet);
 	}
 
@@ -284,7 +276,7 @@ public :
 			{
 				link->send_buffers.push_back(packet);
 			}
-			session->send_packets.clear();
+			
 			session->strand.wrap([session, link]() {
 				try {
 					session->AttachLink(link);
@@ -303,23 +295,18 @@ public :
 		}
 
 		LOG(DEV, "[link_key:", link->link_key, "] error_code:", ans["error_code"].asUInt());
-		Json::StyledWriter writer;
+		Json::FastWriter writer;
 		std::string str = writer.write(ans);
-
-		Packet::Header header;
-		header.msg_id = MSG_ID::MsgID_SvrCli_Reconnect_Ans;
-		header.msg_seq = 0;// std::static_pointer_cast<Tcp::Link>(link)->recv_seq;
-		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
 
 		std::shared_ptr<Packet> packet = Packet::Create();
 		if(nullptr == packet)
 		{
 			return;
 		}
-		packet->Write(header, str.c_str());
+
+		packet->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
 		link->send_buffers.push_back(packet);
 		link->FlushSend();
-		//link->AsyncSend(ans_packet);
 	}
 
 	void Recv_HeartBeat_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
@@ -344,12 +331,7 @@ public :
 		Json::FastWriter writer;
 		std::string str = writer.write(ans);
 
-		Packet::Header header;
-		header.msg_id = MSG_ID::MsgID_SvrCli_HeartBeat_Ans;
-		header.msg_seq = 0; // ++session->send_seq;
-		header.length = (uint16_t)(Packet::HEADER_SIZE + str.length()+1);
-				
-		packet->Write(header, str.c_str());
+		packet->Write(MSG_ID::MsgID_SvrCli_HeartBeat_Ans, str.c_str(), str.length());
 		link->AsyncSend(packet);
 	}
 
@@ -375,11 +357,10 @@ public :
 			while (0 < session->send_packets.size())
 			{
 				const std::shared_ptr<Packet>& sendPacket = session->send_packets.front();
-				if (ackSEQ < sendPacket->GetSEQ())
+				if (ackSEQ < sendPacket->msg_seq)
 				{
 					break;
 				}
-				LOG(DEV, "remove send packet(msg_seq:", sendPacket->GetSEQ(), ", msg_id:", sendPacket->GetID(), ")");
 				session->send_packets.pop_front();
 			}
 		})();
