@@ -64,7 +64,10 @@ public :
 
 		link_pool.Capacity(max_session);
 
-		handlers[0] = nullptr;
+		for(int i=0; i<MsgID_Max; i++)
+		{
+			handlers[i] = nullptr;
+		}
 		handlers[MsgID_CliSvr_Connect_Req] = std::bind(&LinkManager::Recv_Connect_Req, this, std::placeholders::_1, std::placeholders::_2);
 		handlers[MsgID_CliSvr_Reconnect_Req] = std::bind(&LinkManager::Recv_Reconnect_Req, this, std::placeholders::_1, std::placeholders::_2);
 		handlers[MsgID_CliSvr_HeartBeat_Req] = std::bind(&LinkManager::Recv_HeartBeat_Req, this, std::placeholders::_1, std::placeholders::_2);
@@ -116,7 +119,7 @@ public :
 			link->session->expire_time = ::time(nullptr);
 		}			
 
-		const std::shared_ptr<Packet>& packet = std::static_pointer_cast<Packet>(buffer);
+		const std::shared_ptr<Packet> packet = std::static_pointer_cast<Packet>(buffer);
 		if(MSG_ID::MsgID_Max <= packet->msg_id)
 		{
 			if (nullptr == link->session)
@@ -131,6 +134,7 @@ public :
 		}
 		else
 		{
+			LOG(DEV, "msg_id:", packet->msg_id);
 			if(nullptr != handlers[packet->msg_id])
 			{
 				handlers[packet->msg_id](link, buffer);
@@ -337,6 +341,7 @@ public :
 
 	void Recv_ReliableAck_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
+		//LOG(DEV, "[link_key:", link->link_key, "]");
 		if (nullptr == link->session)
 		{
 			return;

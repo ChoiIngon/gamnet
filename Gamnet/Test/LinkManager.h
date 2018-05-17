@@ -444,6 +444,7 @@ namespace Gamnet {
 
 				packet->Write(Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_ReliableAck_Ntf, str.c_str(), str.length());
 				session->AsyncSend(packet);
+				LOG(DEV, "[link_key:", link->link_key, "]");
 			}
 
 			void Send_Close_Ntf(const std::shared_ptr<Network::Link>& link)
@@ -456,9 +457,11 @@ namespace Gamnet {
 				}
 				if(false == packet->Write(Network::Tcp::LinkManager<SESSION_T>::MsgID_CliSvr_Close_Ntf, nullptr, 0))
 				{
+					LOG(GAMNET_ERR, "fail to serialize packet");
 					return;
 				}
 				link->AsyncSend(packet);
+				LOG(DEV, "[link_key:", link->link_key, "]");
 			}
 
 			void OnLogTimerExpire()

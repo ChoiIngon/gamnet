@@ -21,25 +21,20 @@ namespace Gamnet { namespace Network { namespace Router {
 	template <class MSG>
 	bool SendMsg(const std::shared_ptr<Network::Tcp::Session>& session, const Address& addr, const MSG& msg)
 	{
-		uint32_t recv_seq = 0;
+		/*
+		uint32_t msg_seq = 0;
 		if(nullptr != session)
 		{
-			std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
-			if(nullptr == link)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-			}
-
-			recv_seq = link->recv_seq;
+			msg_seq = session->send_seq;
 		}
-
+		*/
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 
-		if(false == packet->Write(recv_seq, msg))
+		if(false == packet->Write(msg))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}

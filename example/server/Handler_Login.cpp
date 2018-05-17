@@ -55,7 +55,6 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 			item.item_seq = Gamnet::Random::Range(1, 99999);
 			user_data.items.push_back(item);
 		}
-		Sleep(5000);
 		ans.user_data = user_data;
 	}
 	catch(const Gamnet::Exception& e)

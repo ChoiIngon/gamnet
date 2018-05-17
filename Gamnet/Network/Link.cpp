@@ -162,31 +162,28 @@ void Link::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 	})(buffer);
 }
 
-void Link::OnSend(const boost::system::error_code& ec, std::size_t transferredBytes)
-{
-	if (0 != ec)
-	{
-		LOG(ERR, "[link_key:", link_key, "] send error(error_code:", ec.value(), ", message:", ec.message(), ")");
-		Close(ec.value());
-		return;
-	}
-
-	if (true == send_buffers.empty())
-	{
-		return;
-	}
-
-	send_buffers.pop_front();
-	FlushSend();
-}
-
 void Link::FlushSend()
 {
 	if(false == send_buffers.empty())
 	{
 		auto self(shared_from_this());
 		const std::shared_ptr<Buffer> buffer = send_buffers.front();
-		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), std::bind(&Link::OnSend, self, std::placeholders::_1, std::placeholders::_2));
+		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()),
+			strand.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
+				if (0 != ec)
+				{
+					self->Close(ErrorCode::Success); // no error, just closed socket
+					return;
+				}
+
+				if (true == self->send_buffers.empty())
+				{
+					return;
+				}
+				self->send_buffers.pop_front();
+				self->FlushSend();
+			}
+		));
 	}
 }
 
