@@ -40,4 +40,35 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 		return  *((uint32_t*)(data + readCursor_ + OFFSET_MSGID));
 	}
+
+	bool Packet::WriteHeader()
+	{
+		if (Capacity() <= length)
+		{
+			LOG(GAMNET_WRN, "packet max capacity over(msg_id:", msg_id, ", size:", length, ")");
+			return false;
+		}
+
+		if ((uint16_t)Available() < length)
+		{
+			Resize(length);
+		}
+
+		(*(uint16_t*)(data + OFFSET_LENGTH)) = length;
+		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = msg_seq;
+		(*(uint32_t*)(data + OFFSET_MSGID)) = msg_id;
+		(*(uint8_t*)(data + OFFSET_RELIABLE)) = reliable;
+		(*(uint8_t*)(data + OFFSET_RESERVED)) = 0;
+
+		return true;
+	}
+
+	bool Packet::ReadHeader()
+	{
+		length = *((uint16_t*)(data + readCursor_ + OFFSET_LENGTH));
+		msg_seq = *((uint32_t*)(data + readCursor_ + OFFSET_MSGSEQ));
+		msg_id = *((uint32_t*)(data + readCursor_ + OFFSET_MSGID));
+		reliable = *((uint8_t*)(data + readCursor_ + OFFSET_RELIABLE));
+		return true;
+	}
 }}}

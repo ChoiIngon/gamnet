@@ -25,7 +25,7 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 	}
 
 	Address addr = session->address;
-	addr.recv_seq = ntf.recv_seq;
+	addr.msg_seq = ntf.msg_seq;
 	std::shared_ptr<Network::Tcp::Packet> session_packet = Network::Tcp::Packet::Create();
 	if(nullptr == session_packet)
 	{

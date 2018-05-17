@@ -38,15 +38,19 @@ public:
 			LOG(GAMNET_ERR, "fail to create packet instance(castgroup_seq:", group_seq, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
-		if (false == packet->Write<MSG>(0, msg))
+
+		if (false == packet->Write(msg))
 		{
 			LOG(GAMNET_ERR, "fail to serialize message(castgroup_seq:", group_seq, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
+
 		std::lock_guard<std::mutex> lo(lock);
 		for (const auto itr : sessions)
 		{
 			const std::shared_ptr<Session>& session = itr.second;
+			packet->msg_seq = ++session->send_seq;
+			packet->WriteHeader();
 			session->AsyncSend(packet);
 		}
 		return true;

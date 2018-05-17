@@ -27,7 +27,9 @@ public :
 		OFFSET_LENGTH = 0,
 		OFFSET_MSGSEQ = 2,
 		OFFSET_MSGID = 6,
-		HEADER_SIZE = 10,
+		OFFSET_RELIABLE = 10,
+		OFFSET_RESERVED = 11,
+		HEADER_SIZE = 12,
 		MAX_LENGTH = 16384
 	};
 
@@ -51,6 +53,9 @@ public :
 	Packet();
 	virtual ~Packet();
 
+	uint16_t length; // header + data length
+	uint32_t msg_seq;
+	uint32_t msg_id;
 	bool reliable;
 
 	uint32_t GetSEQ() const;
@@ -73,32 +78,23 @@ public :
 	}
 
 	template <class MSG>
-	bool Write(uint32_t recv_seq, const MSG& msg)
+	bool Write(const MSG& msg)
 	{
 		Clear();
-		uint16_t total_length = (uint16_t)(msg.Size() + HEADER_SIZE);
-		uint32_t msg_id = MSG::MSG_ID;
+		length = (uint16_t)(HEADER_SIZE + msg.Size());
+		msg_id = MSG::MSG_ID;
 		
-		if(Capacity() <= total_length)
+		if(false == WriteHeader())
 		{
-			LOG(GAMNET_WRN, "packet max capacity over(msg_id:", msg_id, ", size:", total_length, ")");
 			return false;
 		}
-
-		if((uint16_t)Available() < total_length)
-		{
-			Resize(total_length);
-		}
-
-		(*(uint16_t*)(data + OFFSET_LENGTH)) = total_length;
-		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = recv_seq;
-		(*(uint32_t*)(data + OFFSET_MSGID)) = msg_id;
+		
 		char* pBuf = data + HEADER_SIZE;
 		if(false == msg.Store(&pBuf))
 		{
 			return false;
 		}
-		this->writeCursor_ += total_length;
+		this->writeCursor_ += length;
 		return true;
 	}
 	bool Write(const Header& header, const char* buf)
@@ -130,6 +126,9 @@ public :
 		this->writeCursor_ += header.length;
 		return true;
 	}
+
+	bool WriteHeader();
+	bool ReadHeader();
 };
 
 }}}

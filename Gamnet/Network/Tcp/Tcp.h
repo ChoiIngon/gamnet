@@ -44,12 +44,13 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return false;
 		}
 
+		packet->msg_seq = ++session->send_seq;
 		packet->reliable = reliable;
-		if (false == packet->Write<MSG>(++session->send_seq, msg))
+		if(false == packet->Write(msg))
 		{
 			LOG(GAMNET_ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
-		}	
+		}
 
 		if (true == reliable)
 		{

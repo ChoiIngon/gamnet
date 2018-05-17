@@ -11,12 +11,14 @@ namespace Gamnet
 		public const int OFFSET_LENGTH = 0;
 		public const int OFFSET_MSGSEQ = 2;
 		public const int OFFSET_MSGID = 6;
-		public const int HEADER_SIZE = 10;
+        public const int OFFSET_RELIABLE = 10;
+        public const int OFFSET_RESERVED = 11;
+		public const int HEADER_SIZE = 12;
 
 		private ushort 	_length;
 		private uint 	_msg_seq;
 		private uint 	_msg_id;
-		public bool 	reliable;
+		private bool 	_reliable;
 
 		public ushort length {
 			set {
@@ -48,19 +50,31 @@ namespace Gamnet
 				return _msg_id;
 			}
 		}
+        public bool reliable {
+            set
+            {
+                byte[] buf_reliable = BitConverter.GetBytes(value);
+                System.Buffer.BlockCopy(buf_reliable, 0, data, OFFSET_RELIABLE, 1);
+                _reliable = value;
+            }
+            get
+            {
+                return _reliable;
+            }
+        }
 
 		public Packet() {
 			_length = 0;
 			_msg_seq = 0;
 			_msg_id = 0;
-			reliable = false;
+			_reliable = false;
 			write_index = HEADER_SIZE;
 		}
 		public Packet(Packet src) : base(src) {
 			_length = src._length;
 			_msg_seq = src._msg_seq;
 			_msg_id = src._msg_id;
-			reliable = src.reliable;
+			_reliable = src._reliable;
 		}
 	}
 	public class TimeoutMonitor

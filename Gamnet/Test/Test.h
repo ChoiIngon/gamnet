@@ -41,7 +41,9 @@ namespace Gamnet { namespace Test {
 			return false;			
 		}
 
-		if (false == packet->Write(++session->send_seq, msg))
+		packet->msg_seq = ++session->send_seq;
+		packet->reliable = false;
+		if (false == packet->Write(msg))
 		{
 			LOG(ERR, "[session_key:", session->session_key, "] fail to serialize message(msg_id:", MSG::MSG_ID, ")");
 			return false;			

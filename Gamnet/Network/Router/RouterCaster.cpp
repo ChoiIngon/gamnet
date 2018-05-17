@@ -210,18 +210,21 @@ bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session>
 bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
 {
 	MsgRouter_SendMsg_Ntf ntf;
-	ntf.recv_seq = addr.recv_seq;
-	if(NULL != network_session)
+	ntf.msg_seq = addr.msg_seq;
+	if(nullptr != network_session)
 	{
-		ntf.recv_seq = recv_seq++;
+		ntf.msg_seq = recv_seq++;
 	}
 	ntf.buffer.assign(buf, len);
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
-	if(NULL == packet)
+	if(nullptr == packet)
 	{
 		return false;
 	}
-	if(false == packet->Write(0, ntf))
+
+	packet->reliable = false;
+	packet->msg_seq = ++network_session->send_seq;
+	if(false == packet->Write(ntf))
 	{
 		return false;
 	}
@@ -231,7 +234,7 @@ bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network
 		return false;
 	}
 	std::lock_guard<std::mutex> lo(lock_);
-	return arrCasterImpl_[(int)addr.cast_type]->SendMsg(ntf.recv_seq, network_session, addr, packet->ReadPtr(), packet->Size());
+	return arrCasterImpl_[(int)addr.cast_type]->SendMsg(ntf.msg_seq, network_session, addr, packet->ReadPtr(), packet->Size());
 }
 
 bool RouterCaster::UnregisterAddress(const Address& addr)

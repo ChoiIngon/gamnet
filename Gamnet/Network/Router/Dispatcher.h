@@ -61,10 +61,10 @@ public:
 				return ;
 			}
 
-			std::shared_ptr<Network::Tcp::Session> network_session = router_session->watingSessionManager_.FindSession(from.recv_seq);
+			std::shared_ptr<Network::Tcp::Session> network_session = router_session->watingSessionManager_.FindSession(from.msg_seq);
 			if(nullptr == network_session)
 			{
-				LOG(GAMNET_ERR, "can't find session(msg_seq:", from.recv_seq, ")");
+				LOG(GAMNET_ERR, "can't find session(msg_seq:", from.msg_seq, ")");
 				return;
 			}
 
@@ -74,7 +74,7 @@ public:
 					std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
 					if(NULL == handler)
 					{
-						LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.recv_seq, ", msg_id:", msg_id, ")");
+						LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
 						return ;
 					}
 					try {
@@ -93,7 +93,7 @@ public:
 			std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(NULL, msg_id);
 			if(NULL == handler)
 			{
-				LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.recv_seq, ", msg_id:", msg_id, ")");
+				LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
 				return ;
 			}
 
