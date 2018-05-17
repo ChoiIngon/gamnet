@@ -18,15 +18,17 @@ class LinkManager : public Network::LinkManager
 {
 public :
 	enum MSG_ID {
-		MsgID_CliSvr_Connect_Req = 1,
-		MsgID_SvrCli_Connect_Ans = 1,
-		MsgID_CliSvr_Reconnect_Req = 2,
-		MsgID_SvrCli_Reconnect_Ans = 2,
-		MsgID_CliSvr_HeartBeat_Req = 3,
-		MsgID_SvrCli_HeartBeat_Ans = 3,
-		MsgID_SvrCli_Kickout_Ntf = 4,
-		MsgID_CliSvr_Close_Ntf = 5,
-		MsgID_Max = 6
+		MsgID_CliSvr_Connect_Req		= 1,
+		MsgID_SvrCli_Connect_Ans		= 1,
+		MsgID_CliSvr_Reconnect_Req		= 2,
+		MsgID_SvrCli_Reconnect_Ans		= 2,
+		MsgID_CliSvr_HeartBeat_Req		= 3,
+		MsgID_SvrCli_HeartBeat_Ans		= 3,
+		MsgID_CliSvr_ReliableAck_Ntf	= 4,
+		MsgID_SvrCli_ReliableAck_Ntf	= 4,
+		MsgID_SvrCli_Kickout_Ntf		= 5,
+		MsgID_CliSvr_Close_Ntf			= 6,
+		MsgID_Max						= 7
 	};
 private :
 	struct LinkFactory {
@@ -66,6 +68,7 @@ public :
 		handlers[MsgID_CliSvr_Connect_Req] = std::bind(&LinkManager::Recv_Connect_Req, this, std::placeholders::_1, std::placeholders::_2);
 		handlers[MsgID_CliSvr_Reconnect_Req] = std::bind(&LinkManager::Recv_Reconnect_Req, this, std::placeholders::_1, std::placeholders::_2);
 		handlers[MsgID_CliSvr_HeartBeat_Req] = std::bind(&LinkManager::Recv_HeartBeat_Req, this, std::placeholders::_1, std::placeholders::_2);
+		handlers[MsgID_CliSvr_ReliableAck_Ntf] = std::bind(&LinkManager::Recv_ReliableAck_Ntf, this, std::placeholders::_1, std::placeholders::_2);
 		handlers[MsgID_CliSvr_Close_Ntf] = std::bind(&LinkManager::Recv_Close_Ntf, this, std::placeholders::_1, std::placeholders::_2);
 
 		Network::LinkManager::Listen(port, accept_queue_size);
@@ -350,6 +353,37 @@ public :
 		link->AsyncSend(packet);
 	}
 
+	void Recv_ReliableAck_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
+	{
+		if (nullptr == link->session)
+		{
+			return;
+		}
+
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		std::string json = std::string(buffer->ReadPtr() + Packet::HEADER_SIZE, buffer->Size());
+		Json::Value ntf;
+		Json::Reader reader;
+		if (false == reader.parse(json, ntf))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", link->link_key, "] message format error(data:", json, ")");
+		}
+
+		uint32_t ackSEQ = ntf["ack_seq"].asUInt();
+
+		session->strand.wrap([session, ackSEQ](){
+			while (0 < session->send_packets.size())
+			{
+				const std::shared_ptr<Packet>& sendPacket = session->send_packets.front();
+				if (ackSEQ < sendPacket->GetSEQ())
+				{
+					break;
+				}
+				LOG(DEV, "remove send packet(msg_seq:", sendPacket->GetSEQ(), ", msg_id:", sendPacket->GetID(), ")");
+				session->send_packets.pop_front();
+			}
+		})();
+	}
 	void Recv_Close_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
 		LOG(DEV, "[link_key:", link->link_key, "]");

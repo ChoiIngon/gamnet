@@ -126,6 +126,7 @@ public:
 			return;
 		}
 
+		/*
 		if (msgSEQ > session->send_seq)
 		{
 			while (0 < session->send_packets.size())
@@ -140,6 +141,7 @@ public:
 			}
 			session->send_seq = msgSEQ;
 		}
+		*/
 		session->recv_seq = msgSEQ;
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)

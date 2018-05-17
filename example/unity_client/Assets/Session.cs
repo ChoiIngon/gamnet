@@ -245,10 +245,10 @@ namespace Gamnet
         }
 
 		public Session() {
-			_handlers.Add (MsgID_Connect_Ans, new ConnectHandler (this));
-			_handlers.Add (MsgID_Reconnect_Ans, new ReconnectHandler (this));
-			_handlers.Add (MsgID_HeartBeat_Ans, new HeartBeatHandler (this));
-			_handlers.Add (MsgID_Kickout_Ntf, new KickoutHandler (this));
+			_handlers.Add (MsgID_SvrCli_Connect_Ans, new ConnectHandler (this));
+			_handlers.Add (MsgID_SvrCli_Reconnect_Ans, new ReconnectHandler (this));
+			_handlers.Add (MsgID_SvrCli_HeartBeat_Ans, new HeartBeatHandler (this));
+			_handlers.Add (MsgID_SvrCli_Kickout_Ntf, new KickoutHandler (this));
 		}
 		public void Connect(string host, int port, int timeout_sec = 60) {
             try {
@@ -430,7 +430,11 @@ namespace Gamnet
 			while (_recv_buff.Size() >= Packet.HEADER_SIZE)
 			{
 				ushort packetLength = BitConverter.ToUInt16(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_LENGTH);
-				if (packetLength > Gamnet.Buffer.BUFFER_SIZE) {
+                uint msgID = BitConverter.ToUInt32(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_MSGID);
+                uint msgSEQ = BitConverter.ToUInt32(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_MSGSEQ);
+                bool reliable = BitConverter.ToBoolean(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_RELIABLE);
+
+                if (packetLength > Gamnet.Buffer.BUFFER_SIZE) {
 					Debug.LogError ("[Session.OnReceive] The packet length is greater than the buffer max length.");
 					Error(new Gamnet.Exception(ErrorCode.UndefinedError, "The packet length is greater than the buffer max length."));
                     return;
@@ -440,8 +444,6 @@ namespace Gamnet
 					return;
 				}
 
-				uint msgID = BitConverter.ToUInt32(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_MSGID);
-				uint msgSEQ = BitConverter.ToUInt32(_recv_buff.data, _recv_buff.read_index + Packet.OFFSET_MSGSEQ);
                 _recv_buff.read_index += Packet.HEADER_SIZE;
                 
                 _timeout_monitor.UnsetTimeout(msgID);
@@ -461,6 +463,10 @@ namespace Gamnet
                         {
                             handler.OnRecvMsg(_recv_buff);
                             _recv_seq = msgSEQ;
+                            if(true == reliable)
+                            {
+                                Send_ReliableAck_Ntf(_recv_seq);
+                            }
                         }
                     }
                     else
@@ -478,12 +484,7 @@ namespace Gamnet
                     Debug.LogError("[Session.OnReceive] " + e.ToString());
                     Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.ToString()));
                 }
-                
-
-                if (msgSEQ > _send_seq)
-                {
-                    _send_seq = msgSEQ;
-                }
+               
 				_recv_buff.read_index += packetLength - Packet.HEADER_SIZE;
 			}
 		}
@@ -715,29 +716,42 @@ namespace Gamnet
 			}
         }
 			
-		const uint MsgID_Connect_Req		= 0001;
-		void Send_Connect_Req()
+		const uint MsgID_CliSvr_Connect_Req = 0001;
+        const uint MsgID_SvrCli_Connect_Ans = 0001;
+        const uint MsgID_CliSvr_Reconnect_Req = 0002;
+        const uint MsgID_SvrCli_Reconnect_Ans = 0002;
+        const uint MsgID_CliSvr_HeartBeat_Req = 0003;
+        const uint MsgID_SvrCli_HeartBeat_Ans = 0003;
+        const uint MsgID_CliSvr_ReliableAck_Ntf	= 4;
+		const uint MsgID_SvrCli_ReliableAck_Ntf	= 4;
+		const uint MsgID_SvrCli_Kickout_Ntf		= 5;
+		const uint MsgID_CliSvr_Close_Ntf			= 6;
+		const uint MsgID_Max						= 7;
+
+        void Send_Connect_Req()
 		{
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = Packet.HEADER_SIZE;
             packet.msg_seq = 0; // ++_send_seq;
-			packet.msg_id = MsgID_Connect_Req;
+			packet.msg_id = MsgID_CliSvr_Connect_Req;
 			packet.reliable = false;
 			SendMsg(packet);
 		}
-		const uint MsgID_Connect_Ans		= 0001;
-		[System.Serializable] 
-		class Msg_Connect_Ans { 
-			public int error_code = 0;
-			public uint session_key = 0; 
-			public string session_token = "";
-		}
 
-		public class ConnectHandler : IMsgHandler {
-			private Session session;
+        [System.Serializable]
+        class Msg_Connect_Ans
+        {
+            public int error_code = 0;
+            public uint session_key = 0;
+            public string session_token = "";
+        }
+        public class ConnectHandler : IMsgHandler {
+            private Session session;
+
 			public ConnectHandler(Session session) {
 				this.session = session;
 			}
+
 			public override void OnRecvMsg (System.IO.MemoryStream buffer)
 			{
 				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)(buffer.Length - buffer.Position));
@@ -757,8 +771,7 @@ namespace Gamnet
 				session._event_queue.Add(evt); // already locked
 			}
 		}
-
-		const uint MsgID_Reconnect_Req 	= 0002;
+        		
 		[System.Serializable] 
 		class Msg_Reconnect_Req { 
 			public uint session_key = 0; 
@@ -775,7 +788,7 @@ namespace Gamnet
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.length = (ushort)(Packet.HEADER_SIZE + data.Length);
             packet.msg_seq = 0;// ++_send_seq;
-            packet.msg_id = MsgID_Reconnect_Req;
+            packet.msg_id = MsgID_CliSvr_Reconnect_Req;
             packet.reliable = false;
             packet.Append(data);
 
@@ -792,7 +805,7 @@ namespace Gamnet
 				_send_queue.Add(itr);
 			}
 		}
-		const uint MsgID_Reconnect_Ans                = 0002;
+		
 		[System.Serializable] 
 		class Msg_Reconnect_Ans {
 			public int error_code = 0;
@@ -838,19 +851,19 @@ namespace Gamnet
 				session._disconnectState = DisconnectState.Invalid;
 			}
 		}
-		const uint MsgID_HeartBeat_Req                = 0003;
+		
 		void Send_HeartBeat_Req()
 		{
             Reconnect();
 			Gamnet.Packet packet = new Gamnet.Packet ();
 			packet.length = Packet.HEADER_SIZE;
             packet.msg_seq = 0; // ++_send_seq;
-			packet.msg_id = MsgID_HeartBeat_Req;
-			packet.reliable = true;
+			packet.msg_id = MsgID_CliSvr_HeartBeat_Req;
+			packet.reliable = false;
 			//Debug.Log("[Session.Send_HeartBeat_Req] send heartbeat req(msg_seq:" + packet.msg_seq + ")");
 			SendMsg (packet);
 		}
-		const uint MsgID_HeartBeat_Ans                = 0003;
+		
 		[System.Serializable]
 		class Msg_HeartBeat_Ans {
 			public int error_code = 0;
@@ -874,8 +887,30 @@ namespace Gamnet
 				session.RemoveSentPacket(ans.msg_seq);
 			}
 		}
-		const uint MsgID_Kickout_Ntf 	                = 0004;
-		[System.Serializable]
+
+        [System.Serializable]
+        class Msg_ReliableAck_Ntf {
+            public uint ack_seq = 0;
+        }
+        void Send_ReliableAck_Ntf(uint msgSEQ)
+        {
+            Reconnect();
+            Msg_ReliableAck_Ntf ntf = new Msg_ReliableAck_Ntf();
+            ntf.ack_seq = msgSEQ;
+            string json = JsonUtility.ToJson(ntf);
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(json);
+
+            Gamnet.Packet packet = new Gamnet.Packet();
+            packet.length = (ushort)(Packet.HEADER_SIZE + data.Length);
+            packet.msg_seq = 0;// ++_send_seq;
+            packet.msg_id = MsgID_CliSvr_ReliableAck_Ntf;
+            packet.reliable = false;
+            packet.Append(data);
+
+            SendMsg(packet);
+        }
+
+        [System.Serializable]
 		class Msg_Kickout_Ntf {
 			public int error_code = 0;
 		}
@@ -892,7 +927,7 @@ namespace Gamnet
 				session.Close();
 			}
 		}
-        const uint MsgID_Close_Ntf = 0005;
+        
         void Send_Close_Ntf()
         {
             if (ConnectionState.Disconnected == _state)
@@ -902,11 +937,11 @@ namespace Gamnet
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.length = Packet.HEADER_SIZE;
             packet.msg_seq = 0; // ++_send_seq;
-            packet.msg_id = MsgID_Close_Ntf;
+            packet.msg_id = MsgID_CliSvr_Close_Ntf;
             packet.reliable = false;
 			Debug.Log("[Session.Send_Close_Ntf] msg_seq:" + _send_seq);
 			SendMsg(packet);
         }
-        const uint MsgID_Max = 0006;
+        
     }
 }
