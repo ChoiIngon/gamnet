@@ -3,6 +3,7 @@
 #ifndef GAMNET_GAMNET_H_
 #define GAMNET_GAMNET_H_
 
+#include "Network/Network.h"
 #include "Database/Database.h"
 #include "Library/Atomic.h"
 #include "Library/Base64.h"
@@ -20,7 +21,6 @@
 #include "Library/Timer.h"
 #include "Library/Variant.h"
 #include "Log/Log.h"
-#include "Network/Network.h"
 #include "Test/Test.h"
 
 namespace Gamnet {

@@ -1,6 +1,22 @@
 #include "Session.h"
 
+
+struct C {
+
+void f(int i)
+{
+	std::cout << i << std::endl;
+}
+};
+
 int main() {
+	Gamnet::Delegate<void(int)> delegate;
+
+	C c;
+	delegate += std::bind(&C::f, &c, std::placeholders::_1);
+	//delegate += std::bind(&C::f, &c, std::placeholders::_1);
+	delegate(10);
+
 	Gamnet::Log::ReadXml("config.xml");
 	LOG(INF, "Server Starts..");
 	LOG(INF, "build date:", __DATE__, " ", __TIME__);

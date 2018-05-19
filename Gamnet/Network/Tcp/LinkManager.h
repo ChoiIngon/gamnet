@@ -94,7 +94,7 @@ public :
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 	{
-		std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if(nullptr == session)
 		{
 			return;
@@ -161,7 +161,7 @@ public :
 			return;
 		}
 	
-		std::static_pointer_cast<Tcp::Session>(session)->handover_safe = false;
+		std::static_pointer_cast<SESSION_T>(session)->handover_safe = false;
 		
 		std::shared_ptr<Network::Link> link = session->link;
 		if(nullptr != link)
@@ -368,7 +368,7 @@ public :
 
 	void Recv_Close_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
-		std::shared_ptr<Tcp::Session> session = std::static_pointer_cast<Tcp::Session>(link->session);
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr != session)
 		{
 			session->handover_safe = false;
