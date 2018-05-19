@@ -20,6 +20,7 @@ public :
 
 	virtual bool Init() override;
 
+	bool handover_safe;
 	uint32_t recv_seq;
 	uint32_t send_seq;
 	std::deque<std::shared_ptr<Packet>>	send_packets;

@@ -15,48 +15,52 @@ void Session::OnCreate()
 	user_data.user_id = "";
 	user_data.user_seq = 0;
 	ack_seq = 0;
-	LOG(DEV, "UserSession, link_key:", (nullptr == link ? 0 : link->link_key), ", session_key:", session_key);
+	LOG(DEV, "[UserSession] session_key:", session_key);
 }
 
 void Session::OnAccept()
 {
-	LOG(DEV, "UserSession, link_key:", (nullptr == link ? 0 : link->link_key), ", session_key:", session_key);
+	assert(nullptr != link);
+	LOG(DEV, "[UserSession] session_key:", session_key, ", link_key:", link->link_key, ", link_manager:", link->link_manager->name);
 }
 
 void Session::OnClose(int reason)
 {
-	LOG(DEV, "UserSession, link_key:", (nullptr == link ? 0 : link->link_key), ", session_key:", session_key, ", error_code:", reason);
+	assert(nullptr != link);
+	LOG(DEV, "[UserSession] session_key:", session_key, ", link_key:", link->link_key, ", error_code:", reason);
 	Gamnet::Singleton<Manager_Session>::GetInstance().Remove(user_data.user_id);
 }
 
 void Session::OnDestroy()
 {
-	LOG(DEV, "UserSession, link_key:", (nullptr == link ? 0 : link->link_key), ", session_key:", session_key);
+	assert(nullptr == link);
+	LOG(DEV, "[UserSession] session_key:", session_key);
 }
 
 void TestSession::OnCreate()
 {
 	user_data.user_id = "";
 	user_data.user_seq = 0;
-	LOG(DEV, "TestSession, link_key:", (nullptr == link ? 0 : link->link_key), ", session_key:", session_key);
+	LOG(DEV, "[TestSession] session_key:", session_key);
 }
 
 void TestSession::OnConnect()
 {
 	host = remote_address->to_string();
-	LOG(DEV, "TestSession, link_key:", (nullptr == link ? 0 : link->link_key), ", session_key:", session_key, ", host:", host);
+	LOG(DEV, "[TestSession] session_key:", session_key, ", link_key:", link->link_key, ", link_manager:", link->link_manager->name);
 }
 
 void TestSession::OnClose(int reason)
 {
-	LOG(DEV, "TestSession, link_key:", (nullptr == link ? 0 : link->link_key), ", session_key:", session_key, ", error_code:", reason);
+	LOG(DEV, "[TestSession] session_key:", session_key, ", link_key:", link->link_key, ", error_code:", reason);
 	Gamnet::Singleton<Manager_Session>::GetInstance().Remove(user_data.user_id);
 }
 
 void TestSession::OnDestroy()
 {
-	LOG(DEV, "TestSession, link_key:", (nullptr == link ? 0 : link->link_key), ", session_key:", session_key);
+	LOG(DEV, "[TestSession] session_key:", session_key);
 }
+
 void TestSession::Reconnect()
 { 
 	{

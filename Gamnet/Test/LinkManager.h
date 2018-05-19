@@ -462,7 +462,6 @@ namespace Gamnet {
 					return;
 				}
 				link->AsyncSend(packet);
-				LOG(DEV, "[link_key:", link->link_key, "]");
 			}
 
 			void OnLogTimerExpire()

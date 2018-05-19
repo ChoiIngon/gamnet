@@ -25,6 +25,7 @@ bool Session::Init()
 
 	recv_seq = 0;
 	send_seq = 0;
+	handover_safe = false;
 	//recv_packets.clear();
 	send_packets.clear();
 	return true;

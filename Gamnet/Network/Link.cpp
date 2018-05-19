@@ -111,7 +111,7 @@ void Link::AsyncRead()
 
 			if(0 == readbytes)
 			{
-				self->Close(ErrorCode::Success);
+				self->Close(4);
 				return;
 			}
 
@@ -239,7 +239,14 @@ void Link::Close(int reason)
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 		}
 
-		socket.close();
+		try
+		{
+			socket.close();
+		}
+		catch (const boost::exception& e)
+		{
+			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, "socket close exception(link_key:", link_key, ")");
+		}		
 	}
 	link_manager->Remove(link_key);
 	session = nullptr;

@@ -59,7 +59,7 @@ public :
 
 	void Listen(int port, int max_session, int keep_alive_time, int accept_queue_size)
 	{
-		session_pool.Capacity(max_session);
+		session_pool.Capacity(65535);
 		session_manager.Init(keep_alive_time);
 
 		link_pool.Capacity(max_session);
@@ -94,22 +94,28 @@ public :
 
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 	{
-		std::shared_ptr<Network::Session> session = link->session;
+		std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 		if(nullptr == session)
 		{
 			return;
 		}
 
-		session->strand.wrap([session, reason] () {
+		session->strand.wrap([session, reason] (LinkManager* const link_manager) {
 			try {
 				session->OnClose(reason);
 				session->AttachLink(nullptr);
+
+				if(false == session->handover_safe)
+				{
+					session->OnDestroy();
+				}
+				link_manager->session_manager.Remove(session->session_key);
 			}
 			catch (const Exception& e)
 			{
 				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 			}
-		})();
+		})(this);
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
@@ -134,7 +140,6 @@ public :
 		}
 		else
 		{
-			LOG(DEV, "msg_id:", packet->msg_id);
 			if(nullptr != handlers[packet->msg_id])
 			{
 				handlers[packet->msg_id](link, buffer);
@@ -155,24 +160,14 @@ public :
 			LOG(WRN, "can not find session(session_key:", session_key, ")");
 			return;
 		}
+	
+		std::static_pointer_cast<Tcp::Session>(session)->handover_safe = false;
 		
 		std::shared_ptr<Network::Link> link = session->link;
 		if(nullptr != link)
 		{
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 		}
-		
-		session->strand.wrap([session](){
-			try {
-				session->OnDestroy();
-			}
-			catch (const Exception& e)
-			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-		})(); 
-		
-		session_manager.Remove(session_key);
 	}
 
 	template <class FUNC, class FACTORY>
@@ -370,28 +365,16 @@ public :
 			}
 		})();
 	}
+
 	void Recv_Close_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
-		LOG(DEV, "[link_key:", link->link_key, "]");
-		std::shared_ptr<Network::Session> session = link->session;
-		link->Close(ErrorCode::Success);
-		if(nullptr == session)
+		std::shared_ptr<Tcp::Session> session = std::static_pointer_cast<Tcp::Session>(link->session);
+		if (nullptr != session)
 		{
-			LOG(ERR, "[link_key:", link->link_key, "] null session");
-			return;
+			session->handover_safe = false;
 		}
-
-		session->strand.wrap([session] () {
-			try {
-				session->OnDestroy();
-			}
-			catch (const Exception& e)
-			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-		})();
-
-		session_manager.Remove(session->session_key);
+		
+		link->Close(ErrorCode::Success);
 	}
 
 	Json::Value State()
