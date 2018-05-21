@@ -52,7 +52,9 @@ public :
 	void AsyncRead();
 	void FlushSend();
 protected :
+	virtual void OnConnect(const boost::system::error_code& ec);
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) = 0;
+	virtual void OnSend(const boost::system::error_code& ec, std::size_t transferredBytes);
 };
 
 }}

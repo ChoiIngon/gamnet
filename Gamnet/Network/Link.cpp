@@ -53,39 +53,7 @@ void Link::Connect(const char* host, int port, int timeout)
 	auto self = shared_from_this();
 	assert(self);
 	socket.async_connect(endpoint_, strand.wrap([self](const boost::system::error_code& ec) {
-		self->timer.Cancel();
-
-		if(0 != ec)
-		{
-			self->Close(ErrorCode::ConnectFailError);
-			return;
-		}
-		else
-		{
-			try {
-				{
-					boost::asio::socket_base::linger option(true, 0);
-					self->socket.set_option(option);
-				}
-				{
-					boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
-					self->socket.set_option(option);
-				}
-				self->remote_address = self->socket.remote_endpoint().address();
-				self->link_manager->OnConnect(self);
-				self->AsyncRead();
-				if (false == self->link_manager->Add(self))
-				{
-					assert(!"duplicated link");
-					throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "[link_key:", self->link_key, "] duplicated link");
-				}
-			}
-			catch(const boost::system::system_error& e)
-			{
-				LOG(ERR, "[link_key:", self->link_key, "] connect fail(errno:", errno, ", errstr:", e.what(), ")");
-				self->Close(ErrorCode::UndefinedError);
-			}
-		}
+		self->OnConnect(ec);
 	}));
 
 	if(0 < timeout)
@@ -95,6 +63,43 @@ void Link::Connect(const char* host, int port, int timeout)
 			Log::Write(GAMNET_WRN, "[", link_manager->name, ", link_key:", link_key, "] connect timeout(ip:", remote_address.to_string(), ")");
 			Close(ErrorCode::ConnectTimeoutError);
 		}));
+	}
+}
+
+void Link::OnConnect(const boost::system::error_code& ec)
+{
+	timer.Cancel();
+
+	if (0 != ec)
+	{
+		Close(ErrorCode::ConnectFailError);
+		return;
+	}
+	else
+	{
+		try {
+			{
+				boost::asio::socket_base::linger option(true, 0);
+				socket.set_option(option);
+			}
+			{
+				boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+				socket.set_option(option);
+			}
+			remote_address = socket.remote_endpoint().address();
+			link_manager->OnConnect(shared_from_this());
+			AsyncRead();
+			if (false == link_manager->Add(shared_from_this()))
+			{
+				assert(!"duplicated link");
+				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "[link_key:", link_key, "] duplicated link");
+			}
+		}
+		catch (const boost::system::system_error& e)
+		{
+			LOG(ERR, "[link_key:", link_key, "] connect fail(errno:", errno, ", errstr:", e.what(), ")");
+			Close(ErrorCode::UndefinedError);
+		}
 	}
 }
 
@@ -170,21 +175,26 @@ void Link::FlushSend()
 		const std::shared_ptr<Buffer> buffer = send_buffers.front();
 		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()),
 			strand.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
-				if (0 != ec)
-				{
-					self->Close(ErrorCode::Success); // no error, just closed socket
-					return;
-				}
-
-				if (true == self->send_buffers.empty())
-				{
-					return;
-				}
-				self->send_buffers.pop_front();
-				self->FlushSend();
+				self->OnSend(ec, transferredBytes);
 			}
 		));
 	}
+}
+
+void Link::OnSend(const boost::system::error_code& ec, std::size_t transferredBytes)
+{
+	if (0 != ec)
+	{
+		Close(ErrorCode::Success); // no error, just closed socket
+		return;
+	}
+
+	if (true == send_buffers.empty())
+	{
+		return;
+	}
+	send_buffers.pop_front();
+	FlushSend();
 }
 
 int	Link::SyncSend(const std::shared_ptr<Buffer>& buffer)
