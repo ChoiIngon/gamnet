@@ -13,23 +13,23 @@
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
+enum MSG_ID {
+	MsgID_CliSvr_Connect_Req = 1,
+	MsgID_SvrCli_Connect_Ans = 1,
+	MsgID_CliSvr_Reconnect_Req = 2,
+	MsgID_SvrCli_Reconnect_Ans = 2,
+	MsgID_CliSvr_HeartBeat_Req = 3,
+	MsgID_SvrCli_HeartBeat_Ans = 3,
+	MsgID_CliSvr_ReliableAck_Ntf = 4,
+	MsgID_SvrCli_ReliableAck_Ntf = 4,
+	MsgID_SvrCli_Kickout_Ntf = 5,
+	MsgID_CliSvr_Close_Ntf = 6,
+	MsgID_Max = 7
+};
+
 template <class SESSION_T>
 class LinkManager : public Network::LinkManager
 {
-public :
-	enum MSG_ID {
-		MsgID_CliSvr_Connect_Req		= 1,
-		MsgID_SvrCli_Connect_Ans		= 1,
-		MsgID_CliSvr_Reconnect_Req		= 2,
-		MsgID_SvrCli_Reconnect_Ans		= 2,
-		MsgID_CliSvr_HeartBeat_Req		= 3,
-		MsgID_SvrCli_HeartBeat_Ans		= 3,
-		MsgID_CliSvr_ReliableAck_Ntf	= 4,
-		MsgID_SvrCli_ReliableAck_Ntf	= 4,
-		MsgID_SvrCli_Kickout_Ntf		= 5,
-		MsgID_CliSvr_Close_Ntf			= 6,
-		MsgID_Max						= 7
-	};
 private :
 	struct LinkFactory {
 		LinkManager* const link_manager;

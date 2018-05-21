@@ -14,7 +14,7 @@
   <!--
   <test host="ec2-13-124-15-7.ap-northeast-2.compute.amazonaws.com" port="20000" session_count="64" loop_count="100" interval="100">
   -->
-  <test host="127.0.0.1" port="20000" session_count="100" loop_count="1000" interval="500">
+  <test host="127.0.0.1" port="20000" session_count="300" loop_count="1000" interval="500">
 		<message name="Test_Login"/>
 		<message name="Test_HeartBeat"/> 
 	</test>

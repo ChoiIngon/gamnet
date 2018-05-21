@@ -185,6 +185,7 @@
     <ClCompile Include="Network\Tcp\Packet.cpp" />
     <ClCompile Include="Network\Tcp\Session.cpp" />
     <ClCompile Include="Network\Tcp\Tcp.cpp" />
+    <ClCompile Include="Test\Link.cpp" />
     <ClCompile Include="test\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -254,9 +255,11 @@
     <ClInclude Include="Network\Tcp\Packet.h" />
     <ClInclude Include="Network\Tcp\Session.h" />
     <ClInclude Include="Network\Tcp\Tcp.h" />
+    <ClInclude Include="Test\Link.h" />
     <ClInclude Include="Test\LinkManager.h" />
     <ClInclude Include="test\Session.h" />
     <ClInclude Include="test\Test.h" />
+    <ClInclude Include="Test\TestHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

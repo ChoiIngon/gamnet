@@ -47,7 +47,7 @@ public :
 	void AsyncSend(const std::shared_ptr<Buffer>& buffer);
 	int  SyncSend(const char* buf, int len);
 	int  SyncSend(const std::shared_ptr<Buffer>& buffer);
-	void Close(int reason);
+	virtual void Close(int reason);
 		
 	void AsyncRead();
 	void FlushSend();
