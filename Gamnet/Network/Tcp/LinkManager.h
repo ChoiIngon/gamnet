@@ -202,6 +202,7 @@ public :
 					session->OnCreate();
 					session->AttachLink(link);
 					session->OnAccept();
+					session->handover_safe = true;
 				}
 				catch(const Exception& e)
 				{
