@@ -3,7 +3,6 @@
 
 #include "../Network/Tcp/LinkManager.h"
 #include "../Library/ThreadPool.h"
-#include "Link.h"
 #include "Session.h"
 #include "TestHandler.h"
 
@@ -15,19 +14,10 @@
 
 namespace Gamnet {	namespace Test {
 	template <class SESSION_T>
-	class LinkManager : public Network::LinkManager
+	class LinkManager : public Network::Tcp::LinkManager<SESSION_T>
 	{
 		GAMNET_WHERE(SESSION_T, Session);
 
-		struct LinkFactory {
-			LinkManager* const link_manager;
-			LinkFactory(LinkManager* linkManager) : link_manager(linkManager) {}
-
-			Link* operator() ()
-			{
-				return new Link(link_manager);
-			}
-		};
 	public:
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
@@ -71,18 +61,17 @@ namespace Gamnet {	namespace Test {
 		
 	public:
 		TestHandler<SESSION_T> test_handler;
-		Network::SessionManager session_manager;
-		Pool<SESSION_T, std::mutex, Network::Session::InitFunctor> session_pool;
-		Pool<Link, std::mutex, Network::Link::InitFunctor> link_pool;
 		std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 
-		LinkManager() : log_timer(GetIOService()), begin_execute_count(0), finish_execute_count(0), max_execute_count(0), host(""), port(0), link_pool(65535, LinkFactory(this))
+		LinkManager() : log_timer(GetIOService()), begin_execute_count(0), finish_execute_count(0), max_execute_count(0), host(""), port(0)
 		{
 			this->name = "Gamnet::Test::LinkManager";
 
 			RegisterSendHandler("__connect__", std::bind(&TestHandler<SESSION_T>::Send_Connect_Req, &test_handler, std::placeholders::_1));
 			RegisterRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Connect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 1);
 			RegisterRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Reconnect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 1);
+			RegisterSendHandler("__close__", std::bind(&TestHandler<SESSION_T>::Send_Close_Req, &test_handler, std::placeholders::_1));
+			RegisterRecvHandler("__close__", (uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Close_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 1);
 		}
 
 		virtual ~LinkManager()
@@ -139,17 +128,17 @@ namespace Gamnet {	namespace Test {
 			
 		virtual std::shared_ptr<Network::Link> Create() override
 		{
-			std::shared_ptr<Network::Link> link = link_pool.Create();
+			std::shared_ptr<Network::Link> link = Network::Tcp::LinkManager<SESSION_T>::link_pool.Create();
 			if (nullptr == link)
 			{
-				LOG(GAMNET_ERR, "[link_manager:", name, "] can not create 'Test::Link' instance");
+				LOG(GAMNET_ERR, "[link_manager:", this->name, "] can not create 'Test::Link' instance");
 				return nullptr;
 			}
 
-			std::shared_ptr<SESSION_T> session = session_pool.Create();
+			std::shared_ptr<SESSION_T> session = Network::Tcp::LinkManager<SESSION_T>::session_pool.Create();
 			if (nullptr == session)
 			{
-				LOG(ERR, "[link_manager:", name, "] can not create session. connect fail(session count:", session_manager.Size(), "/", session_pool.Capacity(), ")");
+				LOG(ERR, "[link_manager:", this->name, "] can not create session. connect fail(session count:", Network::Tcp::LinkManager<SESSION_T>::session_manager.Size(), "/", Network::Tcp::LinkManager<SESSION_T>::session_pool.Capacity(), ")");
 				return nullptr;
 			}
 				
@@ -288,8 +277,8 @@ namespace Gamnet {	namespace Test {
 						session->test_seq += itr->second->increase_test_seq;
 						if (session->test_seq >= (int)this->execute_order.size())
 						{
-							this->test_handler.Send_Close_Ntf(session->link);
-							link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
+							this->test_handler.Send_Close_Req(session);
+							//link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 							return;
 						}
 

@@ -23,7 +23,8 @@ enum MSG_ID {
 	MsgID_CliSvr_ReliableAck_Ntf = 4,
 	MsgID_SvrCli_ReliableAck_Ntf = 4,
 	MsgID_SvrCli_Kickout_Ntf = 5,
-	MsgID_CliSvr_Close_Ntf = 6,
+	MsgID_CliSvr_Close_Req = 6,
+	MsgID_SvrCli_Close_Ans = 6,
 	MsgID_Max = 7
 };
 
@@ -72,7 +73,7 @@ public :
 		handlers[MsgID_CliSvr_Reconnect_Req] = std::bind(&LinkManager::Recv_Reconnect_Req, this, std::placeholders::_1, std::placeholders::_2);
 		handlers[MsgID_CliSvr_HeartBeat_Req] = std::bind(&LinkManager::Recv_HeartBeat_Req, this, std::placeholders::_1, std::placeholders::_2);
 		handlers[MsgID_CliSvr_ReliableAck_Ntf] = std::bind(&LinkManager::Recv_ReliableAck_Ntf, this, std::placeholders::_1, std::placeholders::_2);
-		handlers[MsgID_CliSvr_Close_Ntf] = std::bind(&LinkManager::Recv_Close_Ntf, this, std::placeholders::_1, std::placeholders::_2);
+		handlers[MsgID_CliSvr_Close_Req] = std::bind(&LinkManager::Recv_Close_Req, this, std::placeholders::_1, std::placeholders::_2);
 
 		Network::LinkManager::Listen(port, accept_queue_size);
 	}
@@ -108,8 +109,8 @@ public :
 				if(false == session->handover_safe)
 				{
 					session->OnDestroy();
+					link_manager->session_manager.Remove(session->session_key);
 				}
-				link_manager->session_manager.Remove(session->session_key);
 			}
 			catch (const Exception& e)
 			{
@@ -161,7 +162,9 @@ public :
 			return;
 		}
 	
-		std::static_pointer_cast<SESSION_T>(session)->handover_safe = false;
+		session->strand.wrap([session] () {
+			std::static_pointer_cast<SESSION_T>(session)->handover_safe = false;
+		})();
 		
 		std::shared_ptr<Network::Link> link = session->link;
 		if(nullptr != link)
@@ -367,15 +370,24 @@ public :
 		})();
 	}
 
-	void Recv_Close_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
+	void Recv_Close_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr != session)
 		{
-			session->handover_safe = false;
+			session->strand.wrap([session] () {
+				session->handover_safe = false;
+			})();
 		}
 		
-		link->Close(ErrorCode::Success);
+		std::shared_ptr<Packet> packet = Packet::Create();
+		if (nullptr == packet)
+		{
+			return;
+		}
+
+		packet->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);
+		link->AsyncSend(packet);
 	}
 
 	Json::Value State()

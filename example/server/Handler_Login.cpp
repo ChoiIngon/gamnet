@@ -56,6 +56,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 			user_data.items.push_back(item);
 		}
 		ans.user_data = user_data;
+		session->handover_safe = true;
 	}
 	catch(const Gamnet::Exception& e)
 	{

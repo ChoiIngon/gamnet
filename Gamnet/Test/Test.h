@@ -73,6 +73,7 @@ namespace Gamnet { namespace Test {
 				Singleton<LinkManager<SESSION_T>>::GetInstance().SetTestSequence(elmt.second.get<std::string>("<xmlattr>.name"));
 			}
 		}
+		Singleton<LinkManager<SESSION_T>>::GetInstance().SetTestSequence("__close__");
 		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host.c_str(), port, interval, session_count, session_count * loop_count);
 	}
 }}

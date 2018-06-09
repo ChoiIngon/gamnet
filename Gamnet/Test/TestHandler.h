@@ -114,7 +114,7 @@ namespace Gamnet { namespace Test {
 			//LOG(DEV, "[link_key:", link->link_key, "]");
 		}
 
-		void Send_Close_Ntf(const std::shared_ptr<Network::Link>& link)
+		void Send_Close_Req(const std::shared_ptr<SESSION_T>& session)
 		{
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
@@ -122,12 +122,22 @@ namespace Gamnet { namespace Test {
 				LOG(GAMNET_ERR, "can not create packet");
 				return;
 			}
-			if (false == packet->Write(Network::Tcp::MsgID_CliSvr_Close_Ntf, nullptr, 0))
+			if (false == packet->Write(Network::Tcp::MsgID_CliSvr_Close_Req, nullptr, 0))
 			{
 				LOG(GAMNET_ERR, "fail to serialize packet");
 				return;
 			}
-			link->AsyncSend(packet);
+			session->AsyncSend(packet);
+		}
+
+		void Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+		{
+			std::shared_ptr<Network::Link> link = session->link;
+			if(nullptr == link)
+			{
+				return;
+			}	
+			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 		}
 	};
 }}
