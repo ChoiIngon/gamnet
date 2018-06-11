@@ -39,20 +39,28 @@ public:
 			return false;
 		}
 
+		packet->reliable = false;
+		packet->msg_seq = 0;
+
 		if (false == packet->Write(msg))
 		{
 			LOG(GAMNET_ERR, "fail to serialize message(castgroup_seq:", group_seq, ", msg_id:", MSG::MSG_ID, ")");
 			return false;
 		}
 
-		std::lock_guard<std::mutex> lo(lock);
-		for (const auto itr : sessions)
+		std::list<std::shared_ptr<Session>> session_list;
 		{
-			const std::shared_ptr<Session>& session = itr.second;
-			packet->msg_seq = ++session->send_seq;
-			packet->WriteHeader();
-			session->AsyncSend(packet);
+			std::lock_guard<std::mutex> lo(lock);
+			for (const auto itr : sessions)
+			{
+				session_list.push_back(itr.second);
+			}
 		}
+		for (const auto session : session_list)
+		{
+			session->strand.wrap(std::bind(&Tcp::Session::AsyncSend, session, packet));
+		}
+
 		return true;
 	}
 

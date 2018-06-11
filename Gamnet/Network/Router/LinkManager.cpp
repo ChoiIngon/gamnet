@@ -38,12 +38,9 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 
 	_heartbeat_timer.AutoReset(true);
 	_heartbeat_timer.SetTimer(60000, [this] () {
-		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
-		if(nullptr != packet) {
-			MsgRouter_HeartBeat_Ntf ntf;
-			_cast_group->SendMsg(ntf);
-			LOG(GAMNET_INF, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
-		}
+		MsgRouter_HeartBeat_Ntf ntf;
+		_cast_group->SendMsg(ntf);
+		LOG(GAMNET_INF, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
 	});
 
 	session_manager.Init(0);

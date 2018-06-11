@@ -20,6 +20,7 @@ public :
 
 	virtual bool Init() override;
 
+	bool AsyncSend(const std::shared_ptr<Packet>& packet);
 	bool handover_safe;
 	uint32_t recv_seq;
 	uint32_t send_seq;

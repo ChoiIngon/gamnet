@@ -30,4 +30,17 @@ bool Session::Init()
 	send_packets.clear();
 	return true;
 }
+
+bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
+{
+	if (true == packet->reliable)
+	{
+		if (Session::RELIABLE_PACKET_QUEUE_SIZE > send_packets.size())
+		{
+			send_packets.push_back(packet);
+		}
+	}
+
+	return Network::Session::AsyncSend(packet);
+}
 }}}

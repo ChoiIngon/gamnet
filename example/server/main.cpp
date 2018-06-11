@@ -1,22 +1,6 @@
 #include "Session.h"
 
-
-struct C {
-
-void f(int i)
-{
-	std::cout << i << std::endl;
-}
-};
-
 int main() {
-	Gamnet::Delegate<void(int)> delegate;
-
-	C c;
-	delegate += std::bind(&C::f, &c, std::placeholders::_1);
-	//delegate += std::bind(&C::f, &c, std::placeholders::_1);
-	delegate(10);
-
 	Gamnet::Log::ReadXml("config.xml");
 	LOG(INF, "Server Starts..");
 	LOG(INF, "build date:", __DATE__, " ", __TIME__);
@@ -35,7 +19,7 @@ int main() {
 			}
 		);
 		/*
-		Gamnet::Network::Router::Connect("127.0.0.1", 43334, 60,
+		Gamnet::Network::Router::Connect("13.124.15.7", 20002, 60,
 			[](const Gamnet::Network::Router::Address& addr) {
 				LOG(DEV, "Router::OnConnect(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
 			},

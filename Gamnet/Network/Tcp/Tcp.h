@@ -52,13 +52,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return false;
 		}
 
-		if (true == reliable)
-		{
-			if (Session::RELIABLE_PACKET_QUEUE_SIZE > session->send_packets.size())
-			{
-				session->send_packets.push_back(packet);
-			}
-		}
 		return session->AsyncSend(packet);
 	}
 

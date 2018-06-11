@@ -122,7 +122,10 @@ public:
 			return;
 		}
 
-		session->recv_seq = packet->msg_seq;
+		if(true == packet->reliable)
+		{
+			session->recv_seq = packet->msg_seq;
+		}
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
