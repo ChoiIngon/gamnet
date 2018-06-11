@@ -14,26 +14,27 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 		}
 
-		if(NULL == Singleton<RouterCaster>::GetInstance().FindSession(session->address))
+		/*
+		if(nullptr == Singleton<RouterCaster>::GetInstance().FindSession(session->address))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, " receive a message from unregistered address(ip:", session->remote_address->to_string(), ", service_name:", session->address.service_name, ")");
 		}
+		*/
+
+		Address addr = session->address;
+		addr.msg_seq = ntf.msg_seq;
+		std::shared_ptr<Network::Tcp::Packet> session_packet = Network::Tcp::Packet::Create();
+		if (nullptr == session_packet)
+		{
+			LOG(GAMNET_ERR, "can not create packet");
+			return;
+		}
+		session_packet->Append(ntf.buffer.c_str(), ntf.buffer.length());
+		Singleton<Dispatcher>::GetInstance().OnRecvMsg(addr, session_packet);
 	}
 	catch(const Exception& e) {
 		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(", e.error_code(), ")");
-		return;
 	}
-
-	Address addr = session->address;
-	addr.msg_seq = ntf.msg_seq;
-	std::shared_ptr<Network::Tcp::Packet> session_packet = Network::Tcp::Packet::Create();
-	if(nullptr == session_packet)
-	{
-		LOG(GAMNET_ERR, "can not create packet");
-		return;
-	}
-	session_packet->Append(ntf.buffer.c_str(), ntf.buffer.length());
-	Singleton<Dispatcher>::GetInstance().OnRecvMsg(addr, session_packet);
 }
 void RouterHandler::Recv_SetAddress_Req(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 {

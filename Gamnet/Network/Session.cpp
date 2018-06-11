@@ -65,6 +65,7 @@ bool Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 	_link->AsyncSend(buffer);
 	return true;
 }
+
 bool Session::AsyncSend(const char* data, int length)
 {
 	std::shared_ptr<Link> _link = link;
