@@ -45,7 +45,8 @@ public class UnityClient : MonoBehaviour {
 					StopCoroutine(coroutine);
 				}
 				coroutine = null;
-			}
+                session.Pause();
+            }
 			else {
 				pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
 				pause_toggle = false;

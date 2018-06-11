@@ -10,10 +10,10 @@ namespace Gamnet { namespace Network {
 class LinkManager;
 class Link : public std::enable_shared_from_this<Link> 
 {
-public :
-	static std::atomic<uint32_t> link_key_generator;
 	std::shared_ptr<Buffer> 			read_buffer;
 	std::deque<std::shared_ptr<Buffer>>	send_buffers;
+public :
+	static std::atomic<uint32_t> link_key_generator;
 public:
 	struct InitFunctor
 	{
@@ -50,11 +50,12 @@ public :
 	virtual void Close(int reason);
 		
 	void AsyncRead();
-	void FlushSend();
 protected :
 	virtual void OnConnect(const boost::system::error_code& ec);
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) = 0;
 	virtual void OnSend(const boost::system::error_code& ec, std::size_t transferredBytes);
+private :
+	void FlushSend();
 };
 
 }}

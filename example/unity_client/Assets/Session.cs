@@ -245,10 +245,11 @@ namespace Gamnet
         }
 
 		public Session() {
-			_handlers.Add (MsgID_SvrCli_Connect_Ans, new ConnectHandler (this));
-			_handlers.Add (MsgID_SvrCli_Reconnect_Ans, new ReconnectHandler (this));
-			_handlers.Add (MsgID_SvrCli_HeartBeat_Ans, new HeartBeatHandler (this));
-			_handlers.Add (MsgID_SvrCli_Kickout_Ntf, new KickoutHandler (this));
+			_handlers.Add(MsgID_SvrCli_Connect_Ans, new ConnectHandler (this));
+			_handlers.Add(MsgID_SvrCli_Reconnect_Ans, new ReconnectHandler (this));
+			_handlers.Add(MsgID_SvrCli_HeartBeat_Ans, new HeartBeatHandler (this));
+			_handlers.Add(MsgID_SvrCli_Kickout_Ntf, new KickoutHandler (this));
+            _handlers.Add(MsgID_SvrCli_Close_Ans, new CloseHandler(this));
 		}
 		public void Connect(string host, int port, int timeout_sec = 60) {
             try {
@@ -498,9 +499,7 @@ namespace Gamnet
 
         public void Close() {
 			Debug.Log("[Session.Close]");
-            Send_Close_Ntf();
-            Disconnect();
-            _disconnectState = DisconnectState.Closed;
+            Send_Close_Req();
         }
 
         private void Disconnect()
@@ -727,7 +726,8 @@ namespace Gamnet
         const uint MsgID_CliSvr_ReliableAck_Ntf	= 4;
 		const uint MsgID_SvrCli_ReliableAck_Ntf	= 4;
 		const uint MsgID_SvrCli_Kickout_Ntf		= 5;
-		const uint MsgID_CliSvr_Close_Ntf			= 6;
+		const uint MsgID_CliSvr_Close_Req		= 6;
+        const uint MsgID_SvrCli_Close_Ans       = 6;
 		const uint MsgID_Max						= 7;
 
         void Send_Connect_Req()
@@ -930,7 +930,7 @@ namespace Gamnet
 			}
 		}
         
-        void Send_Close_Ntf()
+        void Send_Close_Req()
         {
             if (ConnectionState.Disconnected == _state)
             {
@@ -939,11 +939,23 @@ namespace Gamnet
             Gamnet.Packet packet = new Gamnet.Packet();
             packet.length = Packet.HEADER_SIZE;
             packet.msg_seq = 0; // ++_send_seq;
-            packet.msg_id = MsgID_CliSvr_Close_Ntf;
+            packet.msg_id = MsgID_CliSvr_Close_Req;
             packet.reliable = false;
-			Debug.Log("[Session.Send_Close_Ntf] msg_seq:" + _send_seq);
+			Debug.Log("[Session.Send_Close_Req]");
 			SendMsg(packet);
         }
-        
+
+        public class CloseHandler : IMsgHandler
+        {
+            private Session session;
+            public CloseHandler(Session session)
+            {
+                this.session = session;
+            }
+            public override void OnRecvMsg(System.IO.MemoryStream buffer)
+            {
+                session.Disconnect();
+            }
+        }
     }
 }

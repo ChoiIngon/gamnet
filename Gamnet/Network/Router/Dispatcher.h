@@ -70,7 +70,7 @@ public:
 
 			std::shared_ptr<Network::Link> link = network_session->link;
 			{
-				auto thread_safe_function = link->strand.wrap([network_session, handler_function, msg_id, from, packet](){
+				link->strand.wrap([network_session, handler_function, msg_id, from, packet](){
 					std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
 					if(NULL == handler)
 					{
@@ -84,17 +84,16 @@ public:
 					{
 						LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
 					}
-				});
-				thread_safe_function();
+				})();
 			}
 		}
 		else
 		{
-			std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(NULL, msg_id);
-			if(NULL == handler)
+			std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(nullptr, msg_id);
+			if(nullptr == handler)
 			{
 				LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
-				return ;
+				return;
 			}
 
 			try {

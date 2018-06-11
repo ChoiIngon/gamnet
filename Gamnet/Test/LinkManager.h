@@ -55,6 +55,7 @@ namespace Gamnet {	namespace Test {
 		std::atomic_int	begin_execute_count;
 		std::atomic_int	finish_execute_count;
 		int 			max_execute_count;
+		int				session_count;
 
 		std::string host;
 		int			port;
@@ -67,11 +68,26 @@ namespace Gamnet {	namespace Test {
 		{
 			this->name = "Gamnet::Test::LinkManager";
 
-			RegisterSendHandler("__connect__", std::bind(&TestHandler<SESSION_T>::Send_Connect_Req, &test_handler, std::placeholders::_1));
-			RegisterRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Connect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 1);
-			RegisterRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Reconnect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 1);
-			RegisterSendHandler("__close__", std::bind(&TestHandler<SESSION_T>::Send_Close_Req, &test_handler, std::placeholders::_1));
-			RegisterRecvHandler("__close__", (uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Close_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 1);
+			RegisterSendHandler("__connect__", 
+				std::bind(&TestHandler<SESSION_T>::Send_Connect_Req, &test_handler, std::placeholders::_1)
+			);
+			RegisterRecvHandler("__connect__", 
+				(uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, 
+				std::bind(&TestHandler<SESSION_T>::Recv_Connect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 
+				1
+			);
+			RegisterRecvHandler("__connect__", 
+				(uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, 
+				std::bind(&TestHandler<SESSION_T>::Recv_Reconnect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 
+				1
+			);
+			RegisterSendHandler("__close__", 
+				std::bind(&TestHandler<SESSION_T>::Send_Close_Req, &test_handler, std::placeholders::_1)
+			);
+			RegisterRecvHandler("__close__", 
+				(uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Close_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 
+				1
+			);
 		}
 
 		virtual ~LinkManager()
@@ -95,34 +111,14 @@ namespace Gamnet {	namespace Test {
 			this->begin_execute_count = 0;
 			this->finish_execute_count = 0;
 			this->max_execute_count = execute_count;
+			this->session_count = session_count;
 
 			execute_timer.AutoReset(true);
-			execute_timer.SetTimer(interval, [this, session_count]() {
-				for (size_t i = 0; i<session_count && this->begin_execute_count < this->max_execute_count; i++)
-				{
-					if (this->Size() >= session_count || this->link_pool.Available() == 0)
-					{
-						break;
-					}
-
-					std::shared_ptr<Network::Link> link = this->Connect(this->host.c_str(), this->port, 5);
-					if (nullptr == link)
-					{
-						LOG(ERR, "[link_manager:", this->name, "] can not create link. connect fail(link count:", this->Size(), "/", this->link_pool.Capacity(), ")");
-						break;
-					}
-
-					this->begin_execute_count++;
-				}
-
-				if (this->begin_execute_count >= this->max_execute_count)
-				{
-					this->execute_timer.Cancel();
-				}
-			});
+			execute_timer.SetTimer(interval, std::bind(&LinkManager<SESSION_T>::OnExecuteTimerExpire, this));
 
 			log_timer.AutoReset(true);
 			log_timer.SetTimer(3000, std::bind(&LinkManager<SESSION_T>::OnLogTimerExpire, this));
+
 			Test::CreateThreadPool(std::thread::hardware_concurrency());
 		}
 			
@@ -194,7 +190,6 @@ namespace Gamnet {	namespace Test {
 
 		virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 		{
-			//Send_Close_Ntf(link);
 			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 			if (nullptr == session)
 			{
@@ -265,6 +260,11 @@ namespace Gamnet {	namespace Test {
 						return;
 					}
 
+					if (true == packet->reliable)
+					{
+						this->test_handler.Send_ReliableAck_Ntf(session);
+					}
+
 					if (false == is_global_handler)
 					{
 						auto now = std::chrono::steady_clock::now();
@@ -278,7 +278,6 @@ namespace Gamnet {	namespace Test {
 						if (session->test_seq >= (int)this->execute_order.size())
 						{
 							this->test_handler.Send_Close_Req(session);
-							//link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 							return;
 						}
 
@@ -295,11 +294,6 @@ namespace Gamnet {	namespace Test {
 							return;
 						}
 						next_execute_info->execute_count++;
-					}
-
-					if(true == packet->reliable)
-					{
-						this->test_handler.Send_ReliableAck_Ntf(session);
 					}
 				}
 			})();
@@ -348,6 +342,30 @@ namespace Gamnet {	namespace Test {
 			execute_order.push_back(info);
 		}
 
+		void OnExecuteTimerExpire()
+		{
+			for (size_t i = 0; i<this->session_count && this->begin_execute_count < this->max_execute_count; i++)
+			{
+				if (this->Size() >= this->session_count || this->link_pool.Available() == 0)
+				{
+					break;
+				}
+
+				std::shared_ptr<Network::Link> link = this->Connect(this->host.c_str(), this->port, 5);
+				if (nullptr == link)
+				{
+					LOG(ERR, "[link_manager:", this->name, "] can not create link. connect fail(link count:", this->Size(), "/", this->link_pool.Capacity(), ")");
+					break;
+				}
+
+				this->begin_execute_count++;
+			}
+
+			if (this->begin_execute_count >= this->max_execute_count)
+			{
+				this->execute_timer.Cancel();
+			}
+		}
 		void OnLogTimerExpire()
 		{
 			log.Write(GAMNET_INF, "[Test] execute count..(", begin_execute_count, "/", max_execute_count, ")");

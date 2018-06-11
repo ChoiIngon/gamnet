@@ -277,7 +277,7 @@ public :
 			link->session = session;
 			for(const std::shared_ptr<Packet>& packet : session->send_packets)
 			{
-				link->send_buffers.push_back(packet);
+				link->AsyncSend(packet);
 			}
 			
 			session->strand.wrap([session, link]() {
@@ -308,8 +308,7 @@ public :
 		}
 
 		packet->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
-		link->send_buffers.push_back(packet);
-		link->FlushSend();
+		link->AsyncSend(packet);
 	}
 
 	void Recv_HeartBeat_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)

@@ -32,7 +32,6 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 		LOG(GAMNET_ERR, "can not create packet");
 		return;
 	}
-	session_packet->Clear();
 	session_packet->Append(ntf.buffer.c_str(), ntf.buffer.length());
 	Singleton<Dispatcher>::GetInstance().OnRecvMsg(addr, session_packet);
 }
