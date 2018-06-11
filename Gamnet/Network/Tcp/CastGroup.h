@@ -49,17 +49,11 @@ public:
 			return false;
 		}
 
-		std::list<std::shared_ptr<Session>> session_list;
+		std::lock_guard<std::mutex> lo(lock);
+		for (const auto itr : sessions)
 		{
-			std::lock_guard<std::mutex> lo(lock);
-			for (const auto itr : sessions)
-			{
-				session_list.push_back(itr.second);
-			}
-		}
-		for (const auto session : session_list)
-		{
-			session->strand.wrap(std::bind(&Tcp::Session::AsyncSend, session, packet));
+			std::shared_ptr<Session> session = itr.second;
+			session->strand.wrap(std::bind(&Tcp::Session::AsyncSend, session, packet))();
 		}
 
 		return true;
