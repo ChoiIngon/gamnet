@@ -1,6 +1,7 @@
 #ifndef GAMNET_NETWORK_TCP_CASTGROUP_H_
 #define GAMNET_NETWORK_TCP_CASTGROUP_H_
 
+#include <list>
 #include <map>
 #include <memory>
 #include <mutex>
