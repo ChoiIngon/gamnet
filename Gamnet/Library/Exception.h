@@ -35,6 +35,7 @@ public :
 		MessageSeqOmittedError		= 110,
 		BadLexicalCastError			= 120,
 		IdleTimeoutError			= 130,
+		DuplicateMessageIDError		= 140,
 		UndefinedError				= 999
 	};
 };

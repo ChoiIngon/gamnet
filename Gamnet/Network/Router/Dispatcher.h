@@ -26,8 +26,8 @@ public :
 	std::map<unsigned int, HandlerFunction> mapHandlerFunction_;
 
 public:
-	Dispatcher() {}
-	~Dispatcher() {}
+	Dispatcher();
+	~Dispatcher();
 
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
@@ -35,76 +35,12 @@ public:
 		HandlerFunction handlerFunction = { factory, (function_type)func };
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)
 		{
-			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::DuplicateMessageIDError, "duplicate handler(msg_id:", msg_id, ")");
 		}
 		return true;
 	}
 
-	void OnRecvMsg(const Address& from, const std::shared_ptr<Network::Tcp::Packet>& packet)
-	{
-		const unsigned int msg_id = packet->msg_id;
-		auto itr = mapHandlerFunction_.find(msg_id);
-		if(itr == mapHandlerFunction_.end())
-		{
-			LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
-			return ;
-		}
-
-		const HandlerFunction& handler_function = itr->second;
-
-		if(ROUTER_CAST_TYPE::UNI_CAST == from.cast_type && Network::IHandlerFactory::HANDLER_FACTORY_FIND == handler_function.factory_->GetFactoryType())
-		{
-			std::shared_ptr<Session> router_session = Singleton<RouterCaster>::GetInstance().FindSession(from);
-			if(nullptr == router_session)
-			{
-				LOG(GAMNET_ERR, "can't find registered address");
-				return ;
-			}
-
-			std::shared_ptr<Network::Tcp::Session> network_session = router_session->watingSessionManager_.FindSession(from.msg_seq);
-			if(nullptr == network_session)
-			{
-				LOG(GAMNET_ERR, "can't find session(msg_seq:", from.msg_seq, ")");
-				return;
-			}
-
-			std::shared_ptr<Network::Link> link = network_session->link;
-			{
-				link->strand.wrap([network_session, handler_function, msg_id, from, packet](){
-					std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
-					if(NULL == handler)
-					{
-						LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
-						return ;
-					}
-					try {
-						handler_function.function_(handler, from, packet);
-					}
-					catch (const std::exception& e)
-					{
-						LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
-					}
-				})();
-			}
-		}
-		else
-		{
-			std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(nullptr, msg_id);
-			if(nullptr == handler)
-			{
-				LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
-				return;
-			}
-
-			try {
-				handler_function.function_(handler, from, packet);
-			}
-			catch (const std::exception& e)
-			{
-				LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
-			}
-		}
-	}
+	void OnRecvMsg(const Address& from, const std::shared_ptr<Network::Tcp::Packet>& packet);
 };
 } /* namespace Router */
 } /* namespace Gamnet */

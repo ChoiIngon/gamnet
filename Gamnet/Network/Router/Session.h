@@ -13,54 +13,16 @@ private :
 	{
 	private :
 		std::mutex lock_;
-		std::map<uint64_t, std::pair<time_t, std::shared_ptr<Network::Tcp::Session>>> mapSession_;
+		std::map<uint64_t, std::pair<time_t, std::shared_ptr<Network::Tcp::Session>>> wait_sessions_;
 		Timer timer_;
 	public :
-		AnswerWatingSessionManager()
-		{
-			timer_.SetTimer(10000, [this](){
-				std::lock_guard<std::mutex> lo(this->lock_);
-				time_t now_ = time(NULL);
-				for(auto itr = this->mapSession_.begin(); itr != this->mapSession_.end();) {
-					std::pair<time_t, std::shared_ptr<Network::Session>> pair_ = itr->second;
-					if(pair_.first + 5 < now_)
-					{
-						Log::Write(GAMNET_ERR, "[Router] idle session timeout");
-						this->mapSession_.erase(itr++);
-				    }
-				    else {
-				        ++itr;
-				    }
-				}
-				this->timer_.Resume();
-			});
-		}
-		~AnswerWatingSessionManager() {}
+		AnswerWatingSessionManager();
+		~AnswerWatingSessionManager();
 
-		bool AddSession(uint64_t recv_seq, std::shared_ptr<Network::Tcp::Session> session)
-		{
-			std::lock_guard<std::mutex> lo(lock_);
-			return mapSession_.insert(std::make_pair(recv_seq, std::make_pair(time(NULL), session))).second;
-		}
-
-		std::shared_ptr<Network::Tcp::Session> FindSession(uint64_t recv_seq)
-		{
-			std::lock_guard<std::mutex> lo(lock_);
-			auto itr = mapSession_.find(recv_seq);
-			if(mapSession_.end() == itr)
-			{
-				return NULL;
-			}
-			std::shared_ptr<Network::Tcp::Session> session = itr->second.second;
-			mapSession_.erase(itr);
-			return session;
-		}
-
-		void Clear()
-		{
-			std::lock_guard<std::mutex> lo(lock_);
-			mapSession_.clear();
-		}
+		void Init();
+		bool AddSession(uint64_t recv_seq, std::shared_ptr<Network::Tcp::Session> session);
+		std::shared_ptr<Network::Tcp::Session> FindSession(uint64_t recv_seq);
+		void Clear();
 	};
 public:
 	/*

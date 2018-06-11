@@ -21,18 +21,14 @@ namespace Gamnet { namespace Network { namespace Router {
 	template <class MSG>
 	bool SendMsg(const std::shared_ptr<Network::Tcp::Session>& session, const Address& addr, const MSG& msg)
 	{
-		/*
-		uint32_t msg_seq = 0;
-		if(nullptr != session)
-		{
-			msg_seq = session->send_seq;
-		}
-		*/
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
+
+		packet->msg_seq = 0;
+		packet->reliable = false;
 
 		if(false == packet->Write(msg))
 		{

@@ -81,7 +81,7 @@ public:
 
 	void OnRecvMsg(const std::shared_ptr<SESSION_T> session, const std::shared_ptr<Packet> packet)
 	{
-		if (packet->msg_seq <= session->recv_seq)
+		if (true == packet->reliable && packet->msg_seq <= session->recv_seq)
 		{
 			LOG(WRN, "[session_key:", session->session_key, "] discard message(msg_id:", packet->msg_id, ", received msg_seq:", packet->msg_seq, ", expected msg_seq:", session->recv_seq + 1, ")");
 			return;
