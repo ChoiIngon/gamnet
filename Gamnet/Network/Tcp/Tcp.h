@@ -22,9 +22,9 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		boost::property_tree::ptree ptree_;
 		boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
 
-		int port = ptree_.get<int>("server.session.<xmlattr>.port");
-		int max_count = ptree_.get<int>("server.session.<xmlattr>.max_count");
-		int keep_alive = ptree_.get<int>("server.session.<xmlattr>.keep_alive");
+		int port = ptree_.get<int>("server.tcp.<xmlattr>.port");
+		int max_count = ptree_.get<int>("server.tcp.<xmlattr>.max_count");
+		int keep_alive = ptree_.get<int>("server.tcp.<xmlattr>.keep_alive");
 		Listen<SESSION_T>(port, max_count, keep_alive);
 	}
 
