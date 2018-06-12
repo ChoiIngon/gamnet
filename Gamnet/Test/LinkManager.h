@@ -124,17 +124,17 @@ namespace Gamnet {	namespace Test {
 			
 		virtual std::shared_ptr<Network::Link> Create() override
 		{
-			std::shared_ptr<Network::Link> link = Network::Tcp::LinkManager<SESSION_T>::link_pool.Create();
+			std::shared_ptr<Network::Link> link = this->link_pool.Create();
 			if (nullptr == link)
 			{
 				LOG(GAMNET_ERR, "[link_manager:", this->name, "] can not create 'Test::Link' instance");
 				return nullptr;
 			}
 
-			std::shared_ptr<SESSION_T> session = Network::Tcp::LinkManager<SESSION_T>::session_pool.Create();
+			std::shared_ptr<SESSION_T> session = this->session_pool.Create();
 			if (nullptr == session)
 			{
-				LOG(ERR, "[link_manager:", this->name, "] can not create session. connect fail(session count:", Network::Tcp::LinkManager<SESSION_T>::session_manager.Size(), "/", Network::Tcp::LinkManager<SESSION_T>::session_pool.Capacity(), ")");
+				LOG(ERR, "[link_manager:", this->name, "] can not create session. connect fail(session count:", this->session_manager.Size(), "/", this->session_pool.Capacity(), ")");
 				return nullptr;
 			}
 				

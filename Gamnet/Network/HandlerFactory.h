@@ -72,13 +72,13 @@ struct HandlerFind : public IHandlerFactory
 	HandlerFind() {};
 	virtual ~HandlerFind(){};
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_FIND; }
-	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer* container, uint32_t recv_seq)
+	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer* container, uint32_t msg_seq)
 	{
 		if(NULL == container)
 		{
 			return NULL;
 		}
-		return container->Find(recv_seq);
+		return container->Find(msg_seq);
 	}
 };
 
