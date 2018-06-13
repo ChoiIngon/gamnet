@@ -28,6 +28,10 @@ void Session::OnClose(int reason)
 {
 	assert(nullptr != link);
 	LOG(DEV, "[UserSession] session_key:", session_key, ", link_key:", link->link_key, ", error_code:", reason);
+	if(0 != reason)
+	{
+		LOG(ERR, "[UserSession] session_key:", session_key, ", link_key:", link->link_key, ", error_code:", reason);
+	}
 	Gamnet::Singleton<Manager_Session>::GetInstance().Remove(user_data.user_id);
 }
 

@@ -45,45 +45,47 @@ bool LinkManager::Accept()
 		return false;
 	}
 
-	_acceptor.async_accept(link->socket, link->strand.wrap(
-		boost::bind(&LinkManager::Callback_Accept, this, link, boost::asio::placeholders::error)
-	));
+	_acceptor.async_accept(link->socket, boost::bind(&LinkManager::Callback_Accept, this, link, boost::asio::placeholders::error));
 
 	return true;
 }
 
-void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error)
+void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& ec)
 {
 	Accept();
 
-	if(0 == error)
-	{
+	link->strand.wrap([this, link, ec] () {
 		try {
+			if(0 != ec)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::AcceptFailError, "link_key:", link->link_key, ", error_code:", ec.value());
+			}
+	
 			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 			link->socket.set_option(option);
+	
 			link->remote_address = link->socket.remote_endpoint().address();
-			
+				
 			OnAccept(link);
-			
-			link->AsyncRead();
-
+	
 			if(false == Add(link))
 			{
 				assert(!"duplcated key");
 				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "[link_key:", link->link_key, "] duplicated link");
 			}
+			link->AsyncRead();
+			return;
+		}
+		catch(const Exception& e)
+		{
+			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", e.error_code(), ")");
 		}
 		catch(const boost::system::system_error& e)
 		{
 			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
-			link->Close(ErrorCode::AcceptFailError);
 		}
-	}
-	else
-	{
-		LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", error, ")");
 		link->Close(ErrorCode::AcceptFailError);
-	}
+	})();
 }
 
 std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeout)

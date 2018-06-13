@@ -10,7 +10,7 @@
 namespace Gamnet { namespace Network { namespace Tcp {
 
 	template <class SESSION_T>
-	void Listen(int port, int max_session, int keep_alive, int accept_queue_size = 5)
+	void Listen(int port, int max_session, int keep_alive, int accept_queue_size = 7)
 	{
 		Singleton<LinkManager<SESSION_T>>::GetInstance().Listen(port, max_session, keep_alive, accept_queue_size);
 		LOG(GAMNET_INF, "Gamnet::Tcp listener start(port:", port, ", capacity:", max_session, ", keep alive time:", keep_alive, " sec)");

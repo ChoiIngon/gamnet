@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <server>
 	<log path="log" prefix="server" max_file_size="5">
-		<dev console="yes" file="yes" sys="no"/>
+		<dev console="no" file="no" sys="no"/>
 		<inf console="yes" file="yes" sys="no"/>
 		<wrn console="yes" file="yes" sys="no"/>
 		<err console="yes" file="yes" sys="no"/>
@@ -16,8 +16,10 @@
   -->
   <router name="LT_GAME" host="127.0.0.1" port="43334"/>
   
-  <test host="127.0.0.1" port="20000" session_count="1" loop_count="1" interval="500">
+  <test host="127.0.0.1" port="20000" session_count="300" loop_count="100" interval="1000">
+<!--
 		<message name="Test_Login"/>
 		<message name="Test_HeartBeat"/> 
+-->
 	</test>
 </server>

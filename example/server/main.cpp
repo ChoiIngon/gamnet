@@ -29,7 +29,7 @@ int main() {
 		);
 		
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
-		Gamnet::Run(std::thread::hardware_concurrency());
+		Gamnet::Run(30 /*std::thread::hardware_concurrency()*/);
 	}
 	catch(const Gamnet::Exception& e)
 	{

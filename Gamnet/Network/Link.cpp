@@ -49,6 +49,7 @@ void Link::Connect(const char* host, int port, int timeout)
 
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
 	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
+	remote_address = boost::asio::ip::address::from_string(host);
 
 	auto self = shared_from_this();
 	assert(self);
@@ -60,7 +61,7 @@ void Link::Connect(const char* host, int port, int timeout)
 	{
 		timer.AutoReset(false);
 		timer.SetTimer(timeout*1000, strand.wrap([this]() {
-			Log::Write(GAMNET_WRN, "[", link_manager->name, ", link_key:", link_key, "] connect timeout(ip:", remote_address.to_string(), ")");
+			LOG(GAMNET_WRN, "[", link_manager->name, ", link_key:", link_key, "] connect timeout(ip:", remote_address.to_string(), ")");
 			Close(ErrorCode::ConnectTimeoutError);
 		}));
 	}
@@ -68,39 +69,40 @@ void Link::Connect(const char* host, int port, int timeout)
 
 void Link::OnConnect(const boost::system::error_code& ec)
 {
-	timer.Cancel();
+	try {
+		timer.Cancel();
+		if (0 != ec)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "connect fail(errstr:", ec.message(), ", error_code:", ec.value(), ")");
+		} 
 
-	if (0 != ec)
-	{
-		Close(ErrorCode::ConnectFailError);
+		{
+			boost::asio::socket_base::linger option(true, 0);
+			socket.set_option(option);
+		}
+		{
+			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+			socket.set_option(option);
+		}
+		//remote_address = socket.remote_endpoint().address();
+		link_manager->OnConnect(shared_from_this());
+		if (false == link_manager->Add(shared_from_this()))
+		{
+			assert(!"duplicated link");
+			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+		}
+		AsyncRead();
 		return;
 	}
-	else
+	catch(const Exception& e)
 	{
-		try {
-			{
-				boost::asio::socket_base::linger option(true, 0);
-				socket.set_option(option);
-			}
-			{
-				boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
-				socket.set_option(option);
-			}
-			remote_address = socket.remote_endpoint().address();
-			link_manager->OnConnect(shared_from_this());
-			AsyncRead();
-			if (false == link_manager->Add(shared_from_this()))
-			{
-				assert(!"duplicated link");
-				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "[link_key:", link_key, "] duplicated link");
-			}
-		}
-		catch (const boost::system::system_error& e)
-		{
-			LOG(ERR, "[link_key:", link_key, "] connect fail(errno:", errno, ", errstr:", e.what(), ")");
-			Close(ErrorCode::UndefinedError);
-		}
+		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), ", link_key:", link_key, ", error_code:", e.error_code());
 	}
+	catch (const boost::system::system_error& e)
+	{
+		LOG(ERR, "[link_key:", link_key, "] connect fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
+	}
+	Close(ErrorCode::ConnectFailError);
 }
 
 void Link::AsyncRead()
