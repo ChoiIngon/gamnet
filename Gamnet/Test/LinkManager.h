@@ -121,7 +121,7 @@ namespace Gamnet {	namespace Test {
 
 			Test::CreateThreadPool(std::thread::hardware_concurrency());
 		}
-		/*	
+		
 		virtual std::shared_ptr<Network::Link> Create() override
 		{
 			std::shared_ptr<Network::Link> link = this->link_pool.Create();
@@ -151,45 +151,9 @@ namespace Gamnet {	namespace Test {
 			})();
 			return link;
 		}
-		*/
+		
 		virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override
 		{
-			std::shared_ptr<SESSION_T> session = this->session_pool.Create();
-			if (nullptr == session)
-			{
-				LOG(ERR, "[link_manager:", this->name, "] can not create session. connect fail(session count:", this->session_manager.Size(), "/", this->session_pool.Capacity(), ")");
-				return;
-			}
-				
-			link->session = session;
-			this->session_manager.Add(session->session_key, session);
-			session->strand.wrap([this, session, link]() {
-				try {
-					session->OnCreate();
-					session->AttachLink(link);
-					session->OnConnect();
-
-					if (0 < this->execute_order.size())
-					{
-						if (0 == session->test_seq)
-						{
-							const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
-							session->send_time = std::chrono::steady_clock::now();
-							info->send_handler(session);
-							info->execute_count++;
-						}
-						else
-						{
-							this->test_handler.Send_Reconnect_Req(session);
-						}
-					}
-				}
-				catch (const Exception& e)
-				{
-					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-				}
-			})();
-/*
 			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 			if (nullptr == session)
 			{
@@ -197,18 +161,21 @@ namespace Gamnet {	namespace Test {
 				LOG(ERR, "[link_manager:", this->name, "] can not create session. connect fail(session count:", this->session_manager.Size(), "/", this->session_pool.Capacity(), ")");
 				return;
 			}
-				
 
 			session->strand.wrap([this, session]() {
 				try {
 					if (0 < this->execute_order.size())
 					{
+						session->send_time = std::chrono::steady_clock::now();
 						if (0 == session->test_seq)
 						{
+							
 							const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
-							session->send_time = std::chrono::steady_clock::now();
-							info->send_handler(session);
+							
+							//info->send_handler(session);
 							info->execute_count++;
+							
+							this->test_handler.Send_Connect_Req(session);
 						}
 						else
 						{
@@ -221,7 +188,6 @@ namespace Gamnet {	namespace Test {
 					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 				}
 			})();
-*/
 		}
 
 		virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override

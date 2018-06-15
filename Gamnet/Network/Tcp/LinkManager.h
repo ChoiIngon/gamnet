@@ -93,6 +93,7 @@ public :
 	{
 	}
 
+	
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 	{
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
@@ -103,6 +104,10 @@ public :
 
 		session->strand.wrap([session, reason] (LinkManager* const link_manager) {
 			try {
+				if(nullptr == session->link)
+				{
+					return;
+				}
 				session->OnClose(reason);
 				session->AttachLink(nullptr);
 
@@ -118,6 +123,29 @@ public :
 			}
 		})(this);
 	}
+
+	void Recv_Close_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
+	{
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		if (nullptr != session)
+		{
+			session->strand.wrap([session]() {
+				session->handover_safe = false;
+			})();
+		}
+
+		OnClose(link, ErrorCode::Success);
+
+		std::shared_ptr<Packet> packet = Packet::Create();
+		if (nullptr == packet)
+		{
+			return;
+		}
+
+		packet->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);
+		link->AsyncSend(packet);
+	}
+
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
@@ -367,26 +395,6 @@ public :
 				session->send_packets.pop_front();
 			}
 		})();
-	}
-
-	void Recv_Close_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
-	{
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if (nullptr != session)
-		{
-			session->strand.wrap([session] () {
-				session->handover_safe = false;
-			})();
-		}
-		
-		std::shared_ptr<Packet> packet = Packet::Create();
-		if (nullptr == packet)
-		{
-			return;
-		}
-
-		packet->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);
-		link->AsyncSend(packet);
 	}
 
 	Json::Value State()

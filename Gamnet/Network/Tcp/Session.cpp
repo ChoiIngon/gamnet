@@ -43,4 +43,5 @@ bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 
 	return Network::Session::AsyncSend(packet);
 }
+
 }}}
