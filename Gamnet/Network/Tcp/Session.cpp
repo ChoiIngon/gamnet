@@ -35,10 +35,16 @@ bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 {
 	if (true == packet->reliable)
 	{
-		if (Session::RELIABLE_PACKET_QUEUE_SIZE > send_packets.size())
-		{
-			send_packets.push_back(packet);
-		}
+		this->strand.wrap([this, packet](){
+			packet->msg_seq = ++this->send_seq;
+			packet->WriteHeader();
+			if (Session::RELIABLE_PACKET_QUEUE_SIZE > send_packets.size())
+			{
+				send_packets.push_back(packet);
+			}
+			this->Network::Session::AsyncSend(packet);
+		})();
+		return true;
 	}
 
 	return Network::Session::AsyncSend(packet);

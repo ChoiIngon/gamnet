@@ -53,7 +53,7 @@ public:
 		for (const auto itr : sessions)
 		{
 			std::shared_ptr<Session> session = itr.second;
-			session->strand.wrap(std::bind(&Tcp::Session::AsyncSend, session, packet))();
+			session->AsyncSend(packet);
 		}
 
 		return true;

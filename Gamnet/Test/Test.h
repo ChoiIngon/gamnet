@@ -41,7 +41,7 @@ namespace Gamnet { namespace Test {
 			return false;			
 		}
 
-		packet->msg_seq = ++session->send_seq;
+		//packet->msg_seq = ++session->send_seq;
 		packet->reliable = false;
 		if (false == packet->Write(msg))
 		{

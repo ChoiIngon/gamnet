@@ -44,7 +44,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return false;
 		}
 
-		packet->msg_seq = ++session->send_seq;
+		//packet->msg_seq = ++session->send_seq;
 		packet->reliable = reliable;
 		if(false == packet->Write(msg))
 		{

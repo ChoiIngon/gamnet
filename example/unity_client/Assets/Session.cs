@@ -456,22 +456,18 @@ namespace Gamnet
                         throw new Gamnet.Exception(ErrorCode.UnhandledMsgError, "can't find registered msg(id:" + msgID + ")");
                     }
 
+					System.IO.MemoryStream ms = new System.IO.MemoryStream();
+					ms.Write(_recv_buff.data, _recv_buff.read_index, packetLength - Packet.HEADER_SIZE);
+					ms.Seek(0, System.IO.SeekOrigin.Begin);
                     IMsgHandler handler = _handlers[msgID];
-                    if (msgID > MsgID_Max)
+					handler.OnRecvMsg(ms);
+					if (msgID > MsgID_Max && true == reliable)
                     {
                         if (msgSEQ > _recv_seq)
                         {
-                            handler.OnRecvMsg(_recv_buff);
                             _recv_seq = msgSEQ;
-                            if(true == reliable)
-                            {
-                                Send_ReliableAck_Ntf(_recv_seq);
-                            }
+                            Send_ReliableAck_Ntf(_recv_seq);
                         }
-                    }
-                    else
-                    {
-                        handler.OnRecvMsg(_recv_buff);
                     }
                 }
                 catch (Gamnet.Exception e)
@@ -756,7 +752,8 @@ namespace Gamnet
 
 			public override void OnRecvMsg (System.IO.MemoryStream buffer)
 			{
-				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)(buffer.Length - buffer.Position));
+				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)buffer.Length);
+				Debug.Log (LogHeader.Function + "position:" + (int)buffer.Position + ", length:" + (int)(buffer.Length - buffer.Position) + ", json:" + json);
 				Msg_Connect_Ans ans = JsonUtility.FromJson<Msg_Connect_Ans>(json);
 				if(0 != ans.error_code)
 				{
@@ -821,7 +818,7 @@ namespace Gamnet
 				this.session = session;
 			}
 			public override void OnRecvMsg(System.IO.MemoryStream buffer) {
-				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)(buffer.Length - buffer.Position));
+				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)buffer.Length);
 				Msg_Reconnect_Ans ans = JsonUtility.FromJson<Msg_Reconnect_Ans>(json);
 				if(0 != ans.error_code)
 				{
@@ -877,7 +874,7 @@ namespace Gamnet
 				this.session = session;
 			}
 			public override void OnRecvMsg(System.IO.MemoryStream buffer) {
-				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)(buffer.Length - buffer.Position));
+				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)buffer.Length);
 				Msg_HeartBeat_Ans ans = JsonUtility.FromJson<Msg_HeartBeat_Ans>(json);
 				if(0 != ans.error_code)
 				{
@@ -922,7 +919,7 @@ namespace Gamnet
 				this.session = session;
 			}
 			public override void OnRecvMsg(System.IO.MemoryStream buffer) {
-				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)(buffer.Length - buffer.Position));
+				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)buffer.Length);
 				Msg_Kickout_Ntf ntf = JsonUtility.FromJson<Msg_Kickout_Ntf>(json);
 				Debug.Log("[Session.KickoutHandler.OnRecvMsg] recv kickout ntf(error_code:" + ntf.error_code + ")");
 				session.Error(new Gamnet.Exception(ErrorCode.DuplicateConnectionError));
