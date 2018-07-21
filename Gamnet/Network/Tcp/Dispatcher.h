@@ -91,7 +91,7 @@ public:
 		auto itr = mapHandlerFunction_.find(packet->msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
-			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
+			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->read_index, ")");
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
 			return ;
 		}
@@ -100,7 +100,7 @@ public:
 		std::shared_ptr<IHandler> handler = handler_function.factory_->GetHandler(&session->handler_container, packet->msg_id);
 		if(NULL == handler)
 		{
-			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->readCursor_, ")");
+			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->read_index, ")");
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
 			return;
 		}

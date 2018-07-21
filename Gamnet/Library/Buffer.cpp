@@ -10,27 +10,27 @@
 
 namespace Gamnet {
 
-int Buffer::MAX_SIZE = 0x0000ffff;
+//int Buffer::MAX_SIZE = 0x0000ffff;
 
 void Buffer::Swap(const std::shared_ptr<Buffer>& lhs, const std::shared_ptr<Buffer>& rhs)
 {
 	char* tmp_data = lhs->data;
-	size_t tmp_write = lhs->writeCursor_;
-	size_t tmp_read = lhs->readCursor_;
+	size_t tmp_write = lhs->write_index;
+	size_t tmp_read = lhs->read_index;
 	size_t tmp_size = lhs->bufSize_;
 
 	lhs->data = rhs->data;
-	lhs->writeCursor_ = rhs->writeCursor_;
-	lhs->readCursor_ = rhs->readCursor_;
+	lhs->write_index = rhs->write_index;
+	lhs->read_index = rhs->read_index;
 	lhs->bufSize_ = rhs->bufSize_;
 
 	rhs->data = tmp_data;
-	rhs->writeCursor_ = tmp_write;
-	rhs->readCursor_ = tmp_read;
+	rhs->write_index = tmp_write;
+	rhs->read_index = tmp_read;
 	rhs->bufSize_ = tmp_size;
 }
 
-Buffer::Buffer(size_t size) : writeCursor_(0), readCursor_(0), bufSize_(size), data(NULL)
+Buffer::Buffer(size_t size) : write_index(0), read_index(0), bufSize_(size), data(NULL)
 {
 	data = new char[bufSize_];
 	if(NULL == data)
@@ -51,7 +51,7 @@ Buffer::~Buffer()
 
 size_t Buffer::Available() const
 {
-	return bufSize_ - (writeCursor_ - readCursor_);
+	return bufSize_ - Size();
 }
 
 size_t Buffer::Capacity() const
@@ -61,22 +61,8 @@ size_t Buffer::Capacity() const
 
 void Buffer::Clear()
 {
-	writeCursor_ = 0;
-	readCursor_ = 0;
-}
-
-void Buffer::RemoveReadBuffer()
-{
-	if(0 >= readCursor_)
-	{
-		return;
-	}
-	if(0 < writeCursor_-readCursor_)
-	{
-		std::memcpy(data, data+readCursor_, writeCursor_ - readCursor_);
-	}
-	writeCursor_ -= readCursor_;
-    readCursor_ = 0;
+	write_index = 0;
+	read_index = 0;
 }
 
 void Buffer::Append(const char* buf, size_t size)
@@ -85,79 +71,99 @@ void Buffer::Append(const char* buf, size_t size)
 	{
 		return;
 	}
+
 	if(Available() < size)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "not enough space(need:", size," bytes, left:", Available(), " bytes)");
 	}
 
-	if(size > bufSize_ - writeCursor_)
+	if(size > bufSize_ - write_index)
 	{
 		RemoveReadBuffer();
 	}
 
-	std::memcpy(data+writeCursor_, buf, size);
-	writeCursor_ += size;
+	std::memcpy(WritePtr(), buf, size);
+	write_index += size;
 }
 
 void Buffer::Copy(const Buffer& buffer)
 {
-	readCursor_ = 0;
-	writeCursor_ = 0;
+	read_index = 0;
+	write_index = 0;
 	if(Available() < buffer.Size())
 	{
 		Resize(buffer.Size());
 	}
 	std::memcpy(data, buffer.ReadPtr(), buffer.Size());
-	writeCursor_ += buffer.Size();
+	write_index += buffer.Size();
 }
 
 void Buffer::Remove(uint16_t size)
 {
-	readCursor_ += size;
-	if(readCursor_ > writeCursor_)
+	read_index += size;
+	assert(read_index <= write_index);
+	if(read_index > write_index)
 	{
-		readCursor_ = writeCursor_;
+		read_index = write_index;
 	}
-	if(readCursor_ == writeCursor_)
+	if(read_index == write_index)
 	{
-		writeCursor_ = 0;
-		readCursor_ = 0;
+		write_index = 0;
+		read_index = 0;
 	}
+}
+
+void Buffer::RemoveReadBuffer()
+{
+	if (0 >= read_index)
+	{
+		return;
+	}
+	if (0 < Size())
+	{
+		std::memcpy(data, ReadPtr(), Size());
+	}
+	write_index -= read_index;
+	read_index = 0;
 }
 
 size_t Buffer::Size() const
 {
-	return writeCursor_ - readCursor_;
+	return write_index - read_index;
 }
 
 const char* Buffer::ReadPtr() const
 {
-	return data +readCursor_;
+	return data + read_index;
 }
 
 char* Buffer::WritePtr()
 {
+	/*
 	RemoveReadBuffer();
-	if(writeCursor_ >= bufSize_)
+	if(write_index >= bufSize_)
 	{
 		return NULL;
 	}
-	return data +writeCursor_;
+	*/
+	return data + write_index;
 }
 
 void Buffer::Resize(size_t size)
 {
 	char* oldBuf = data;
-	data = new char[size];
-	bufSize_ = size;
-	memset(data, 0, bufSize_);
-	if(0 < Size())
+	char* newBuf = new char[size];
+	if (0 < Size())
 	{
-		std::memcpy(data, oldBuf+readCursor_, Size());
+		std::memcpy(newBuf, ReadPtr(), Size());
 	}
 
-	writeCursor_ -= readCursor_;
-	readCursor_ = 0;
+	write_index -= read_index;
+	read_index = 0;
+
+	data = newBuf;
+	bufSize_ = size;
+	
 	delete [] oldBuf;
 }
 

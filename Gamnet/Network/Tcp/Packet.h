@@ -90,7 +90,7 @@ public :
 		{
 			return false;
 		}
-		this->writeCursor_ += length;
+		this->write_index += length;
 		return true;
 	}
 	bool Write(uint32_t msgID, const char* buf, size_t bytes)
@@ -108,7 +108,7 @@ public :
 		{
 			std::memcpy(data + HEADER_SIZE, buf, bytes);
 		}
-		this->writeCursor_ += length;
+		this->write_index += length;
 		return true;
 	}
 	bool WriteHeader();

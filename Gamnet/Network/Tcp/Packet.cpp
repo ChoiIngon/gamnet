@@ -39,21 +39,21 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			Resize(length);
 		}
 
-		(*(uint16_t*)(data + OFFSET_LENGTH)) = length;
-		(*(uint32_t*)(data + OFFSET_MSGSEQ)) = msg_seq;
-		(*(uint32_t*)(data + OFFSET_MSGID)) = msg_id;
-		(*(uint8_t*)(data + OFFSET_RELIABLE)) = reliable;
-		(*(uint8_t*)(data + OFFSET_RESERVED)) = 0;
+		(*(uint16_t*)(data + write_index + OFFSET_LENGTH)) = length;
+		(*(uint32_t*)(data + write_index + OFFSET_MSGSEQ)) = msg_seq;
+		(*(uint32_t*)(data + write_index + OFFSET_MSGID)) = msg_id;
+		(*(uint8_t*)(data + write_index + OFFSET_RELIABLE)) = reliable;
+		(*(uint8_t*)(data + write_index + OFFSET_RESERVED)) = 0;
 
 		return true;
 	}
 
 	bool Packet::ReadHeader()
 	{
-		length = *((uint16_t*)(data + readCursor_ + OFFSET_LENGTH));
-		msg_seq = *((uint32_t*)(data + readCursor_ + OFFSET_MSGSEQ));
-		msg_id = *((uint32_t*)(data + readCursor_ + OFFSET_MSGID));
-		reliable = *((uint8_t*)(data + readCursor_ + OFFSET_RELIABLE));
+		length = *((uint16_t*)(data + read_index + OFFSET_LENGTH));
+		msg_seq = *((uint32_t*)(data + read_index + OFFSET_MSGSEQ));
+		msg_id = *((uint32_t*)(data + read_index + OFFSET_MSGID));
+		reliable = *((uint8_t*)(data + read_index + OFFSET_RELIABLE));
 		return true;
 	}
 }}}

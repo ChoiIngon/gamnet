@@ -122,7 +122,7 @@ void Link::AsyncRead()
 				return;
 			}
 
-			self->read_buffer->writeCursor_ += readbytes;
+			self->read_buffer->write_index += readbytes;
 
 			try 
 			{
