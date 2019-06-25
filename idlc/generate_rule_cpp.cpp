@@ -501,7 +501,7 @@ bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 	}
 	
 	std::cout << "}; // " << pToken->GetName() << std::endl;
-	std::cout << "const std::string& ToString(" << pToken->GetName() << " e) { " << std::endl;
+	std::cout << "inline const std::string& ToString(" << pToken->GetName() << " e) { " << std::endl;
 	std::cout << "\tstatic const std::map<" << pToken->GetName() << ", std::string> table = {" << std::endl;
 	for (std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
 	{
@@ -520,7 +520,7 @@ bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 	std::cout << "}" << std::endl;
 
 	std::cout << "template<class T> T Parse(const std::string&);" << std::endl;
-	std::cout << "template <> " << pToken->GetName() << " Parse<" << pToken->GetName() << ">(const std::string& s) {" << std::endl;
+	std::cout << "template <> inline " << pToken->GetName() << " Parse<" << pToken->GetName() << ">(const std::string& s) {" << std::endl;
 	std::cout << "\tstatic const std::map<std::string, " << pToken->GetName() << "> table = {" << std::endl;
 	for (std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
 	{
