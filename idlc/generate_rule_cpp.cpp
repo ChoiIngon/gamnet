@@ -479,9 +479,7 @@ bool GenerateRuleCpp::CompileMessage(const Token::Message* pToken)
 bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 {
 	std::string default_value = "";
-	//std::cout << "struct " << pToken->GetName() << " {" << std::endl;
 	std::cout << "enum class " << pToken->GetName() << " {" << std::endl;
-	//std::cout << "\tenum TYPE {" << std::endl;
 
 	for(std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
 	{
@@ -490,7 +488,6 @@ bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 			continue;
 		}
 		const Token::EnumElmt* pElmt = static_cast<const Token::EnumElmt*>(*itr);
-		//std::cout << "\t\t\t" << pElmt->m_pElmt->GetName();
 		std::cout << "\t" << pElmt->m_pElmt->GetName();
 		if("" == default_value)
 		{
@@ -503,58 +500,55 @@ bool GenerateRuleCpp::CompileEnum(const Token::Enum* pToken)
 		std::cout << "," << std::endl;
 	}
 	
-	/*
-	std::cout << "\t};" << std::endl;
-	std::cout << "\tTYPE type;" << std::endl;
-	std::cout << "\t" << pToken->GetName() << "() : type(" << default_value << ") {}" << std::endl;
-	std::cout << "\t" << pToken->GetName() << "(int obj) : type((TYPE)obj) {} " << std::endl;
-	std::cout << "\t" << pToken->GetName() << "(TYPE obj) : type(obj) {}" << std::endl;
-	std::cout << "\toperator TYPE() const { return type; }" << std::endl;
-	std::cout << "\toperator int() const { return (int)type; }" << std::endl;
-	std::cout << "\t" << pToken->GetName() << "& operator = (const TYPE& type) { this->type = type; return *this; }" << std::endl;
-
-	std::cout << "\tbool operator == (const " << pToken->GetName() << "& obj) { return type == obj.type; }" << std::endl;
-	std::cout << "\tbool operator == (" << pToken->GetName() << "::TYPE type) { return this->type == type; }" << std::endl;
-	std::cout << "\tbool operator == (int value) { return this->type == value; }" << std::endl;
-
-	std::cout << "\tbool operator != (const " << pToken->GetName() << "& obj) { return type != obj.type; }" << std::endl;
-	std::cout << "\tbool operator != (" << pToken->GetName() << "::TYPE type) { return this->type != type; }" << std::endl;
-	std::cout << "\tbool operator != (int value) { return this->type != value; }" << std::endl;
-
-	std::cout << "\tbool operator < (const " << pToken->GetName() << "& obj) { return type < obj.type; }" << std::endl;
-	std::cout << "\tbool operator < (" << pToken->GetName() << "::TYPE type) { return this->type < type; }" << std::endl;
-	std::cout << "\tbool operator < (int value) { return this->type < value; }" << std::endl;
-
-	std::cout << "\tbool operator > (const " << pToken->GetName() << "& obj) { return type > obj.type; }" << std::endl;
-	std::cout << "\tbool operator > (" << pToken->GetName() << "::TYPE type) { return this->type > type; }" << std::endl;
-	std::cout << "\tbool operator > (int value) { return this->type > value; }" << std::endl;
-
-	std::cout << "\tbool operator <= (const " << pToken->GetName() << "& obj) { return type <= obj.type; }" << std::endl;
-	std::cout << "\tbool operator <= (" << pToken->GetName() << "::TYPE type) { return this->type <= type; }" << std::endl;
-	std::cout << "\tbool operator <= (int value) { return this->type <= value; }" << std::endl;
-
-	std::cout << "\tbool operator >= (const " << pToken->GetName() << "& obj) { return type >= obj.type; }" << std::endl;
-	std::cout << "\tbool operator >= (" << pToken->GetName() << "::TYPE type) { return this->type >= type; }" << std::endl;
-	std::cout << "\tbool operator >= (int value) { return this->type >= value; }" << std::endl;
-	*/
 	std::cout << "}; // " << pToken->GetName() << std::endl;
-	
+	std::cout << "const std::string& ToString(" << pToken->GetName() << " e) { " << std::endl;
+	std::cout << "\tstatic const std::map<" << pToken->GetName() << ", std::string> table = {" << std::endl;
+	for (std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	{
+		if (Token::TYPE_NULL == (*itr)->Type())
+		{
+			continue;
+		}
+		const Token::EnumElmt* pElmt = static_cast<const Token::EnumElmt*>(*itr);
+		std::cout << "\t\t{ " << pToken->GetName() << "::" << pElmt->m_pElmt->GetName() << ", \"" << pElmt->m_pElmt->GetName() << "\"}," << std::endl;
+	}
+	std::cout << "\t};" << std::endl;
+
+	std::cout << "\tauto itr = table.find(e); " << std::endl;
+	std::cout << "\tif(table.end() == itr) { throw std::runtime_error(\"ToString<" << pToken->GetName() << ">()\"); }" << std::endl;
+	std::cout << "\treturn itr->second;" << std::endl;
+	std::cout << "}" << std::endl;
+
+	std::cout << "template<class T> T Parse(const std::string&);" << std::endl;
+	std::cout << "template <> " << pToken->GetName() << " Parse<" << pToken->GetName() << ">(const std::string& s) {" << std::endl;
+	std::cout << "\tstatic const std::map<std::string, " << pToken->GetName() << "> table = {" << std::endl;
+	for (std::list<Token::Base*>::const_iterator itr = pToken->list_.begin(); itr != pToken->list_.end(); itr++)
+	{
+		if (Token::TYPE_NULL == (*itr)->Type())
+		{
+			continue;
+		}
+		const Token::EnumElmt* pElmt = static_cast<const Token::EnumElmt*>(*itr);
+		std::cout << "\t\t{ \"" << pElmt->m_pElmt->GetName() << "\", " << pToken->GetName() << "::" << pElmt->m_pElmt->GetName() << "}," << std::endl;
+	}
+	std::cout << "\t};" << std::endl;
+
+	std::cout << "\tauto itr = table.find(s); " << std::endl;
+	std::cout << "\tif(table.end() == itr) { throw std::runtime_error(\"Parse<" << pToken->GetName() << ">()\"); }" << std::endl;
+	std::cout << "\treturn itr->second;" << std::endl;
+	std::cout << "}" << std::endl;
+
 	std::cout << "struct " << pToken->GetName() << "_Serializer {" << std::endl;
 	std::cout << "\tstatic bool Store(char** _buf_, const " << pToken->GetName() << "& obj) { " << std:: endl;
-	//std::cout << "\t\t" << "(*(" << pToken->GetName() << "::TYPE*)(*_buf_)) = obj.type;	(*_buf_) += sizeof(" << pToken->GetName() << "::TYPE);" << std::endl;
 	std::cout << "\t\t" << "(*(" << pToken->GetName() << "*)(*_buf_)) = obj;	(*_buf_) += sizeof(" << pToken->GetName() << ");" << std::endl;
 	std::cout << "\t\treturn true;" << std::endl;
 	std::cout << "\t}" << std::endl;
 	std::cout << "\tstatic bool Load(" << pToken->GetName() << "& obj, const char** _buf_, size_t& nSize) { " << std::endl;
-	//std::cout << "\t\tif(sizeof("  << pToken->GetName() << "::TYPE) > nSize) { return false; }";
 	std::cout << "\t\tif(sizeof(" << pToken->GetName() << ") > nSize) { return false; }";
-	//std::cout << "\t\tstd::memcpy(&obj.type, *_buf_, sizeof(" << pToken->GetName() << "::TYPE));";
 	std::cout << "\t\tstd::memcpy(&obj, *_buf_, sizeof(" << pToken->GetName() << "));";
-	//std::cout << "\t\t(*_buf_) += sizeof(" << pToken->GetName() << "::TYPE); nSize -= sizeof(" << pToken->GetName() << "::TYPE);" << std::endl;;
 	std::cout << "\t\t(*_buf_) += sizeof(" << pToken->GetName() << "); nSize -= sizeof(" << pToken->GetName() << ");" << std::endl;;
 	std::cout << "\t\treturn true;" << std::endl;
 	std::cout << "\t}" << std::endl;
-	//std::cout << "\tstatic size_t Size(const " << pToken->GetName() << "& obj) { return sizeof(" << pToken->GetName() << "::TYPE); }" << std::endl;
 	std::cout << "\tstatic size_t Size(const " << pToken->GetName() << "& obj) { return sizeof(" << pToken->GetName() << "); }" << std::endl;
 	std::cout << "};" << std::endl;
 
