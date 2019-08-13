@@ -64,6 +64,11 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	
 	session->strand.wrap([session, reason]() {
 		try {
+			if (nullptr == session->link)
+			{
+				LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
+				return;
+			}
 			session->OnClose(reason);
 			session->AttachLink(nullptr);
 			session->OnDestroy();

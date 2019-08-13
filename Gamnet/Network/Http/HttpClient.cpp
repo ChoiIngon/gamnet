@@ -12,6 +12,8 @@ struct curl_slist;
 #include "HttpClient.h"
 //#include <unistd.h>
 
+#define USE_OPENSSL
+
 namespace Gamnet { namespace Network { namespace Http {
 
 /**
@@ -96,6 +98,18 @@ HttpClient::HttpClient(const char* host)
 	: host_(host)
 {
 	curl_ = curl_easy_init();
+	int error_code = 0;
+	error_code = curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYHOST, false);
+	if (CURLE_OK != error_code)
+	{
+		throw GAMNET_EXCEPTION(500, "set ssl option error(error_code:", error_code, ")");
+	}
+
+	error_code = curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, false);
+	if (CURLE_OK != error_code)
+	{
+		throw GAMNET_EXCEPTION(500, "set ssl option error(error_code:", error_code, ")");
+	}
 }
 
 HttpClient::~HttpClient()
@@ -261,13 +275,14 @@ int HttpClient::HttpRequest(const std::string& path)
 			throw GAMNET_EXCEPTION(500, "curl lib isn't inited");
 		}
 
-		for(auto itr : mapHeader_)
+		for(const auto& itr : mapHeader_)
 		{
 			std::string header = itr.first + ": " + itr.second;
 			header_list = curl_slist_append(header_list, header.c_str());
 		}
 
 		CURLcode error_code = CURLE_OK;
+		
 		error_code = curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, header_list);
 		if(CURLE_OK != error_code)
 		{
@@ -296,19 +311,6 @@ int HttpClient::HttpRequest(const std::string& path)
 			throw GAMNET_EXCEPTION(500, "set url error(error_code:", error_code, ")");
 		}
 
-		/*
-		std::string protocol = host_.substr(0, host_.find("://"));
-		std::transform(protocol.begin(), protocol.end(), protocol.begin(), ::toupper);
-		if("HTTPS" == protocol)
-		{
-			error_code = curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, 1L);
-			if(CURLE_OK != error_code)
-			{
-				throw Exception(500, "set ssl option error(error_code:", error_code, ")");
-			}
-		}
-		*/
-
 		error_code = curl_easy_setopt(curl_, CURLOPT_WRITEDATA, (void *)this);
 		if(CURLE_OK != error_code)
 		{
@@ -321,14 +323,15 @@ int HttpClient::HttpRequest(const std::string& path)
 			throw GAMNET_EXCEPTION(500, "set callback function error(error_code:", error_code, ")");
 		}
 
-		//int errorCount = 0;
-		while(true)
+		// int errorCount = 0;
+		for(int i=0; i<10; i++)
 		{
 			error_code = curl_easy_perform(curl_);
 			if(CURLE_OK != error_code)
 			{
-				//LOG(ERR,"perform http request error(error_code:", error_code, ", error_count:", ++errorCount, ")");
-				continue;
+				throw GAMNET_EXCEPTION(500, "perform http request error(error_code:", error_code, ", try_count : ", 0+1, ", url : ", url, ")");
+				//LOG(ERR,"perform http request error(error_code:", error_code, ", try_count:", 0+1, ", url:", url, ")");
+				//continue;
 			}
 
 			error_code = curl_easy_getinfo(curl_, CURLINFO_HTTP_CODE, &_httpCode);
@@ -364,17 +367,8 @@ size_t HttpClient::Callback(void *ptr, size_t size, size_t nmemb, void *arg)
 {
 	const size_t byte_size_of_ptr = size * nmemb;
 	HttpClient* self = (HttpClient*)arg;
-	self->resData_ += (const char*)ptr;
+	self->resData_ += std::string((const char*)ptr, byte_size_of_ptr); ;
 	return byte_size_of_ptr;
-}
-
-void HttpClient::UseSSLVerifier(bool use)
-{
-	CURLcode error_code = curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, use);
-	if(CURLE_OK != error_code)
-	{
-		throw Exception(500, "set ssl option error(error_code:", error_code, ")");
-	}
 }
 
 }}};

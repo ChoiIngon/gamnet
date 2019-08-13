@@ -6,13 +6,15 @@
 
 namespace Gamnet { namespace Database { namespace MySQL {
 	void ReadXml(const char* xml_path);
-	bool Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db);
+	bool Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db, bool fail_query_log = false);
 	ResultSet Execute(int db_type, const std::string& query);
 	template <class... ARGS>
 	ResultSet Execute(int db_type, ARGS... args)
 	{
 		return Execute(db_type, Format(args...));
 	}
+
+	std::string RealEscapeString(int db_type, const std::string& str);
 }}}
 
 #endif /* DATABASE_H_ */

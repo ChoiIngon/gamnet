@@ -1,11 +1,15 @@
 #include "LinkManager.h"
 #include "../Library/Singleton.h"
+#include <list>
 
 namespace Gamnet { namespace Network {
 
 LinkManager::LinkManager() :
-	name("Gamnet::Network::LinkManager"),
-	_acceptor(Singleton<boost::asio::io_service>::GetInstance())
+	_acceptor(Singleton<boost::asio::io_service>::GetInstance()),
+	_max_accept_size(5),
+	_keep_alive_time(300),
+	_cur_accept_size(5),
+	name("Gamnet::Network::LinkManager")
 {
 }
 
@@ -13,7 +17,7 @@ LinkManager::~LinkManager()
 {
 }
 
-bool LinkManager::Listen(int port, int accept_queue_size)
+bool LinkManager::Listen(int port, int accept_queue_size, int keep_alive_time)
 {
 	_endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port);
 	_acceptor.open(_endpoint.protocol());
@@ -31,6 +35,10 @@ bool LinkManager::Listen(int port, int accept_queue_size)
 		std::lock_guard<std::mutex> lo(_lock);
 		_cur_accept_size++;
 	}
+	_keep_alive_time = keep_alive_time;
+	expire_timer.Cancel();
+	expire_timer.AutoReset(true);
+	expire_timer.SetTimer((0 == _keep_alive_time ? 3600 * 1000 : _keep_alive_time * 1000), std::bind(&LinkManager::OnTimerExpire, this));
 	return true;
 }
 
@@ -50,7 +58,7 @@ bool LinkManager::Accept()
 	return true;
 }
 
-void LinkManager::Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& ec)
+void LinkManager::Callback_Accept(const std::shared_ptr<Link> link, const boost::system::error_code& ec)
 {
 	Accept();
 
@@ -96,8 +104,7 @@ std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeo
 		LOG(GAMNET_ERR, "[link_manager:", name, "] can not create link. connect fail(host:", host, ", port:", port, ", timeout:", timeout, ")");
 		return nullptr;
 	}
-
-
+	
 	link->Connect(host, port, timeout);
 	return link;
 }
@@ -132,5 +139,30 @@ size_t LinkManager::Size()
 {
 	std::lock_guard<std::mutex> lo(_lock);
 	return _links.size();
+}
+
+void LinkManager::OnTimerExpire()
+{
+	std::list<std::shared_ptr<Link>> linksToBeDeleted;
+	{
+		std::lock_guard<std::mutex> lo(_lock);
+		int64_t now_ = time(nullptr);
+		if (0 < _keep_alive_time)
+		{
+			for (auto itr = _links.begin(); itr != _links.end(); itr++) {
+				std::shared_ptr<Link> link = itr->second;
+				if (link->expire_time + _keep_alive_time < now_)
+				{
+					linksToBeDeleted.push_back(link);
+				}
+			}
+		}
+	}
+
+	for (auto link: linksToBeDeleted)
+	{
+		LOG(GAMNET_ERR, "[link_key:", link->link_key, "] destroy idle link");
+		link->strand.wrap(std::bind(&Link::Close, link, ErrorCode::IdleTimeoutError))();
+	}
 }
 }} 

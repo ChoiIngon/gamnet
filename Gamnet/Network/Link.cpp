@@ -6,11 +6,12 @@ namespace Gamnet { namespace Network {
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 std::atomic<uint32_t> Link::link_key_generator;
 
-Link::Link(LinkManager* linkManager) : 
+Link::Link(LinkManager* linkManager) :
 	read_buffer(nullptr),
 	socket(io_service_),
 	strand(io_service_),
 	link_key(0),
+	expire_time(0),
 	session(nullptr),	
 	link_manager(linkManager)
 {
@@ -30,9 +31,15 @@ bool Link::Init()
 		return false;
 	}
 	remote_address = boost::asio::ip::address();
-	send_buffers.clear();
-	session = nullptr;
+	expire_time = time(nullptr);
 	return true;
+}
+
+void Link::Clear()
+{
+	session = nullptr;
+	read_buffer = nullptr;
+	send_buffers.clear();
 }
 
 void Link::Connect(const char* host, int port, int timeout)
@@ -42,15 +49,27 @@ void Link::Connect(const char* host, int port, int timeout)
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link_key, "] invalid host name");
 	}
 
+	if(0 == strlen(host))
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "[link_key:", link_key, "] empty host name");
+	}
+
 	if(nullptr == link_manager)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link_key, "] invalid link manager");
 	}
 
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
-	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({host, Format(port).c_str()}));
-	remote_address = boost::asio::ip::address::from_string(host);
-
+	boost::asio::ip::tcp::resolver::query query_(host, "");
+	for (auto itr = resolver_.resolve(query_); itr != boost::asio::ip::tcp::resolver::iterator(); ++itr)
+	{
+		boost::asio::ip::tcp::endpoint end = *itr;
+		remote_address = end.address();
+		break;
+	}
+	
+	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ remote_address.to_v4().to_string(), Format(port).c_str() }));
+	
 	auto self = shared_from_this();
 	assert(self);
 	socket.async_connect(endpoint_, strand.wrap([self](const boost::system::error_code& ec) {
@@ -73,7 +92,7 @@ void Link::OnConnect(const boost::system::error_code& ec)
 		timer.Cancel();
 		if (0 != ec)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "connect fail(errstr:", ec.message(), ", error_code:", ec.value(), ")");
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", link_key, "] connect fail(dest:", remote_address.to_v4().to_string(), ", errno:", ec, ", link_manager:", link_manager->name, ")");
 		} 
 
 		{
@@ -96,11 +115,11 @@ void Link::OnConnect(const boost::system::error_code& ec)
 	}
 	catch(const Exception& e)
 	{
-		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), ", link_key:", link_key, ", error_code:", e.error_code());
+		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), ", link_key:", link_key, ", error_code:", e.error_code(), ", link_manager:", link_manager->name);
 	}
 	catch (const boost::system::system_error& e)
 	{
-		LOG(ERR, "[link_key:", link_key, "] connect fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
+		LOG(ERR, "[link_key:", link_key, "] connect fail(dest:", remote_address.to_v4().to_string(), ", errno:", e.code().value(), ", link_manager:", link_manager->name, ", errstr:", e.what(), ")");
 	}
 	Close(ErrorCode::ConnectFailError);
 }
@@ -108,6 +127,7 @@ void Link::OnConnect(const boost::system::error_code& ec)
 void Link::AsyncRead()
 {
 	auto self(shared_from_this());
+	
 	socket.async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
 		strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
@@ -122,6 +142,7 @@ void Link::AsyncRead()
 				return;
 			}
 
+			self->expire_time = time(nullptr);
 			self->read_buffer->write_index += readbytes;
 
 			try 
@@ -245,20 +266,16 @@ void Link::Close(int reason)
 		try
 		{
 			link_manager->OnClose(shared_from_this(), reason);
+			socket.close();
 		}
 		catch (const Exception& e)
 		{
-			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+			LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
 		}
-
-		//try
-		//{
-			socket.close();
-		//}
-		//catch (const boost::exception& e)
-		//{
-		//	LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, "socket close exception(link_key:", link_key, ")");
-		//}		
+		catch (const boost::system::system_error& e)
+		{
+			LOG(ERR, e.what(), "(error_code:", e.code(), ")");
+		}
 	}
 	link_manager->Remove(link_key);
 	session = nullptr;

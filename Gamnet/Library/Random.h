@@ -4,6 +4,7 @@
 #include <random>
 #include <thread>
 #include <vector>
+#include <list>
 
 namespace Gamnet {
 	class MT19937Wrapper {
@@ -80,6 +81,21 @@ namespace Gamnet {
 				}
 			}
 			return valWeight_.back().second;
+		}
+
+		uint32_t GetTotalWeight() const
+		{
+			return totalWeight_;
+		}
+
+		std::list<T> GetAllRandomEntity() const
+		{
+			std::list<T> entities;
+			for(const auto& itr : valWeight_)
+			{
+				entities.push_back(itr.second);
+			}
+			return entities;
 		}
 	};
 }

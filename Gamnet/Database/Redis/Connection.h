@@ -4,11 +4,11 @@
 #include <boost/asio.hpp>
 #include <list>
 #include "ResultSet.h"
+#include "../../Library/Json/json.h"
+#include "../../Library/Timer.h"
 
 namespace Gamnet { namespace Database {	namespace Redis {
-	class Connection {
-		boost::asio::ip::tcp::socket socket_;
-		void Parse(const std::shared_ptr<ResultSetImpl>& impl, std::list<std::string>::iterator& itr_token);
+	class Connection : public std::enable_shared_from_this<Connection> {
 	public:
 		struct ConnectionInfo
 		{
@@ -16,6 +16,11 @@ namespace Gamnet { namespace Database {	namespace Redis {
 			int port;
 		};
 
+		bool Reconnect();
+	protected :
+		boost::asio::ip::tcp::socket socket_;
+	public:
+		ConnectionInfo connection_info;
 		boost::asio::deadline_timer deadline_;
 
 		Connection();

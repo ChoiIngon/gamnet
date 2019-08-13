@@ -36,10 +36,12 @@ namespace Gamnet {	namespace Test {
 			{
 				name = "";
 				execute_count = 0;
+				except_count = 0;
 				elapsed_time = 0;
 			}
 			std::string name;
 			std::atomic_uint execute_count;
+			std::atomic_uint except_count;
 			uint64_t elapsed_time;
 			SEND_HANDLER_TYPE send_handler;
 			std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> recv_handlers;
@@ -96,6 +98,9 @@ namespace Gamnet {	namespace Test {
 
 		void Init(const char* host, int port, int interval, int session_count, int execute_count)
 		{
+			RegisterTestcase("__connect__", false);
+			RegisterTestcase("__close__", true);
+
 			log.Init("test", "test", 5);
 			if (0 == interval)
 			{
@@ -112,16 +117,23 @@ namespace Gamnet {	namespace Test {
 			this->finish_execute_count = 0;
 			this->max_execute_count = execute_count;
 			this->session_count = session_count;
-
-			execute_timer.AutoReset(true);
-			execute_timer.SetTimer(interval, std::bind(&LinkManager<SESSION_T>::OnExecuteTimerExpire, this));
-
-			log_timer.AutoReset(true);
-			log_timer.SetTimer(3000, std::bind(&LinkManager<SESSION_T>::OnLogTimerExpire, this));
-
-			Test::CreateThreadPool(std::thread::hardware_concurrency());
 		}
 		
+		void Run()
+		{
+			log_timer.AutoReset(true);
+			log_timer.SetTimer(3000, std::bind(&LinkManager<SESSION_T>::OnLogTimerExpire, this));
+			Test::CreateThreadPool(std::thread::hardware_concurrency());
+			for (size_t i = 0; i<this->session_count; i++)
+			{
+				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
+				if (nullptr == link)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_manager:", this->name, "] can not create 'Test::Link' instance");
+				}
+			}
+		}
+
 		virtual std::shared_ptr<Network::Link> Create() override
 		{
 			std::shared_ptr<Network::Link> link = this->link_pool.Create();
@@ -148,12 +160,13 @@ namespace Gamnet {	namespace Test {
 				{
 					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 				}
-			})();
+			})(); 
 			return link;
 		}
 		
 		virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override
 		{
+			begin_execute_count++;
 			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 			if (nullptr == session)
 			{
@@ -169,12 +182,8 @@ namespace Gamnet {	namespace Test {
 						session->send_time = std::chrono::steady_clock::now();
 						if (0 == session->test_seq)
 						{
-							
 							const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
-							
-							//info->send_handler(session);
 							info->execute_count++;
-							
 							this->test_handler.Send_Connect_Req(session);
 						}
 						else
@@ -198,8 +207,14 @@ namespace Gamnet {	namespace Test {
 				return;
 			}
 
-			session->strand.wrap([session, reason]() {
+			session->strand.wrap([=]() {
 				try {
+					if (nullptr == session->link)
+					{
+						LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
+						return;
+					}
+
 					if(true == session->is_connected)
 					{
 						session->OnClose(reason);
@@ -212,9 +227,16 @@ namespace Gamnet {	namespace Test {
 					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 				}
 			})();
-
-			this->session_manager.Remove(session->session_key);
-			finish_execute_count++;
+			
+			if(max_execute_count > ++finish_execute_count)
+			{
+				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
+				if (nullptr == link)
+				{
+					LOG(ERR, ErrorCode::NullPointerError, "[link_manager:", this->name, "] can not create 'Test::Link' instance");
+					return;
+				}
+			}
 		}
 
 		virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
@@ -228,7 +250,7 @@ namespace Gamnet {	namespace Test {
 				return;
 			}
 
-			session->strand.wrap([this, link, session, packet]() {
+			session->strand.wrap([=]() {
 				if (session->test_seq < (int)this->execute_order.size())
 				{
 					bool is_global_handler = false;
@@ -258,6 +280,7 @@ namespace Gamnet {	namespace Test {
 					}
 					catch (const Exception& e)
 					{
+						execute_info->except_count++;
 						link->strand.wrap(std::bind(&Network::Link::Close, link, e.error_code()))();
 						return;
 					}
@@ -322,7 +345,7 @@ namespace Gamnet {	namespace Test {
 			lstRecvHandlerInfos.push_back(recvHandlerInfo);
 		}
 
-		void SetTestSequence(const std::string& test_name)
+		void RegisterTestcase(const std::string& test_name, bool tail = true)
 		{
 			auto itr_execute_info = execute_infos.find(test_name);
 			if (execute_infos.end() == itr_execute_info)
@@ -341,50 +364,35 @@ namespace Gamnet {	namespace Test {
 			{
 				info->recv_handlers[recv_handler->msg_id] = recv_handler;
 			}
-			execute_order.push_back(info);
-		}
 
-		void OnExecuteTimerExpire()
-		{
-			for (size_t i = 0; i<this->session_count && this->begin_execute_count < this->max_execute_count; i++)
+			if(true == tail)
 			{
-				if (this->Size() >= this->session_count || this->link_pool.Available() == 0)
-				{
-					break;
-				}
-
-				std::shared_ptr<Network::Link> link = this->Connect(this->host.c_str(), this->port, 5);
-				if (nullptr == link)
-				{
-					LOG(ERR, "[link_manager:", this->name, "] can not create link. connect fail(link count:", this->Size(), "/", this->link_pool.Capacity(), ")");
-					break;
-				}
-
-				this->begin_execute_count++;
+				execute_order.push_back(info);
 			}
-
-			if (this->begin_execute_count >= this->max_execute_count)
+			else
 			{
-				this->execute_timer.Cancel();
+				execute_order.insert(execute_order.begin(), info);
 			}
 		}
+
 		void OnLogTimerExpire()
 		{
-			log.Write(GAMNET_INF, "[Test] execute count..(", begin_execute_count, "/", max_execute_count, ")");
 			log.Write(GAMNET_INF, "[Test] link count..(active:", this->Size(), ", available:", this->link_pool.Available(), ", max:", this->link_pool.Capacity(), ")");
 			log.Write(GAMNET_INF, "[Test] session count..(active:", this->session_manager.Size(), ", available:", this->session_pool.Available(), ", max:", this->session_pool.Capacity(), ")");
+			log.Write(GAMNET_INF, "[Test] begin count..(", begin_execute_count, "/", max_execute_count, ")");
 
 			for (auto itr : execute_order)
 			{
 				if (0 < itr->execute_count)
 				{
-					log.Write(GAMNET_INF, "[Test] running state..(name:", itr->name, ", count:", itr->execute_count, ", elapsed:", itr->elapsed_time, "ms, average:", itr->elapsed_time / itr->execute_count, "ms)");
+					log.Write(GAMNET_INF, "[Test] running state..(name:", itr->name, ", count:", itr->execute_count, ", except:", itr->except_count, ", elapsed:", itr->elapsed_time, "ms, average:", itr->elapsed_time / itr->execute_count, "ms)");
 				}
 				else
 				{
-					log.Write(GAMNET_INF, "[Test] running state..(name:", itr->name, ", count:", itr->execute_count, ", elapsed:0ms, average:0ms)");
+					log.Write(GAMNET_INF, "[Test] running state..(name:", itr->name, ", count:", itr->execute_count, ", except:0, elapsed:0ms, average:0ms)");
 				}
 			}
+			log.Write(GAMNET_INF, "[Test] ==============================================================");
 
 			if (finish_execute_count >= max_execute_count)
 			{

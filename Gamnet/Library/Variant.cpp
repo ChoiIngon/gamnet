@@ -5,12 +5,61 @@ Variant::Variant()
 {
 }
 
+Variant::Variant(const Variant& val) : value(val.value)
+{
+}
+
 Variant::Variant(const std::string& val) : value(val)
 {
 }
 
-Variant::Variant(const Variant& val) : value(val.value)
+Variant::Variant(const char* val) : value(val)
 {
+}
+
+Variant::Variant(bool val) 
+{
+	value = boost::lexical_cast<std::string>(val);
+}
+
+Variant::Variant(double val)
+{
+	value = boost::lexical_cast<std::string>(val);
+}
+
+Variant::Variant(float val)
+{
+	value = boost::lexical_cast<std::string>(val);
+}
+
+Variant::Variant(uint16_t val)
+{
+	value = boost::lexical_cast<std::string>(val);
+}
+
+Variant::Variant(uint32_t val)
+{
+	value = boost::lexical_cast<std::string>(val);
+}
+
+Variant::Variant(uint64_t val)
+{
+	value = boost::lexical_cast<std::string>(val);
+}
+
+Variant::Variant(int16_t val)
+{
+	value = boost::lexical_cast<std::string>(val);
+}
+
+Variant::Variant(int32_t val)
+{
+	value = boost::lexical_cast<std::string>(val);
+}
+
+Variant::Variant(int64_t val)
+{
+	value = boost::lexical_cast<std::string>(val);
 }
 
 Variant::operator double() const
@@ -121,4 +170,18 @@ const Variant& Variant::operator = (int64_t rhs)
 	return *this;
 }
 
+bool Variant::operator < (const Variant& rhs)
+{
+	return value < rhs.value;
+}
+
+bool Variant::operator == (const Variant& rhs)
+{
+	return value == rhs.value;
+}
+
+bool Variant::operator != (const Variant& rhs)
+{
+	return value != rhs.value;
+}
 }

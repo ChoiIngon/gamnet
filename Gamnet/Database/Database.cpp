@@ -6,8 +6,8 @@ namespace Gamnet {	namespace Database {
 		MySQL::ReadXml(xml_path);
 	}
 
-	bool Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db)
+	bool Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db, bool fail_query_log)
 	{
-		return MySQL::Connect(db_type, host, port, id, passwd, db);
+		return MySQL::Connect(db_type, host, port, id, passwd, db, fail_query_log);
 	}
 }}

@@ -44,7 +44,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	});
 
 	session_manager.Init(0);
-	Network::LinkManager::Listen(port, accept_queue_size);
+	Network::LinkManager::Listen(port, accept_queue_size, 0);
 }
 
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
@@ -139,6 +139,11 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 
 	session->strand.wrap([session, reason]() {
 		try {
+			if (nullptr == session->link)
+			{
+				LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
+				return;
+			}
 			session->OnClose(reason);
 			session->AttachLink(nullptr);
 			session->OnDestroy();

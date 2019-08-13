@@ -9,6 +9,7 @@ namespace Gamnet {
 	template <class R, class... ARGS>
 	class Delegate<R(ARGS...)>
 	{
+	protected :
 		std::list<std::function<R(ARGS...)>> funcs; 
 	public :
 		typedef typename std::list<std::function<R(ARGS...)>>::iterator iterator;

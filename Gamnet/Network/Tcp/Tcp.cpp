@@ -16,23 +16,27 @@
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
+	static boost::asio::ip::address localAddress = GetLocalAddress();
 	
-boost::asio::ip::address GetLocalAddress()
+const boost::asio::ip::address& GetLocalAddress()
 {
+	if(false == localAddress.is_unspecified())
+	{
+		return localAddress;
+	}
 #ifdef _WIN32
 	boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
 	boost::asio::ip::tcp::resolver::query query_(boost::asio::ip::host_name(), ""); 
 	boost::asio::ip::tcp::resolver::iterator itr = resolver_.resolve(query_);
-	boost::asio::ip::address addr;
+	
 	while (itr != boost::asio::ip::tcp::resolver::iterator())
 	{
-		addr = (itr++)->endpoint().address();
-		if (addr.is_v4())
+		localAddress = (itr++)->endpoint().address();
+		if (localAddress.is_v4())
 		{
 			break;
 		}
 	}
-	return addr;
 #else
 	ifaddrs* ifAddrStruct=NULL;
 	getifaddrs(&ifAddrStruct);
@@ -48,8 +52,9 @@ boost::asio::ip::address GetLocalAddress()
 	{
 		freeifaddrs(ifAddrStruct);
 	}
-	return boost::asio::ip::address_v4(ntohl(ip));
+	localAddress = boost::asio::ip::address_v4(ntohl(ip));
 #endif
+	return localAddress;
 }
 
 }}}

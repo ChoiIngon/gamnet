@@ -44,6 +44,8 @@ namespace Gamnet { namespace Database { namespace SQLite {
 		ResultSet();
 		virtual ~ResultSet();
 
+		unsigned int GetRowCount() const;
+
 		iterator begin();
 		iterator end() const;
 		iterator operator [] (unsigned int row_num);

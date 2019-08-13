@@ -17,25 +17,37 @@ namespace Gamnet { namespace Database {	namespace Redis {
 
 	bool Connection::Connect(const ConnectionInfo& connInfo)
 	{
-		deadline_.expires_at(boost::posix_time::pos_infin);
-		deadline_.async_wait([this](boost::system::error_code) {
-			if (this->deadline_.expires_at() <= boost::asio::deadline_timer::traits_type::now())
-			{
+		deadline_.expires_from_now(boost::posix_time::seconds(5));
+		deadline_.async_wait([this](boost::system::error_code e) {
+			//if (this->deadline_.expires_at() <= boost::asio::deadline_timer::traits_type::now())
+			//{
 				// The deadline has passed. The socket is closed so that any outstanding
 				// asynchronous operations are cancelled. This allows the blocked
 				// connect(), read_line() or write_line() functions to return.
-				boost::system::error_code ignored_ec;
-				this->socket_.close(ignored_ec);
+			if (boost::asio::error::operation_aborted == e)
+			{
+				return;
+			}
+			boost::system::error_code ignored_ec;
+			this->socket_.close(ignored_ec);
 
 				// There is no longer an active deadline. The expiry is set to positive
 				// infinity so that the actor takes no action until a new deadline is set.
-				this->deadline_.expires_at(boost::posix_time::pos_infin);
-			}
+			this->deadline_.expires_at(boost::posix_time::pos_infin);
+			//}
 		}); 
-		boost::asio::ip::tcp::resolver resolver_(io_service_);
-		boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ connInfo.host, Format(connInfo.port).c_str() }));
 
-		LOG(INF, "[Redis] connect...(host:", connInfo.host, ", port:", connInfo.port, ")");
+		boost::asio::ip::address remote_address;
+		boost::asio::ip::tcp::resolver resolver_(io_service_);
+		boost::asio::ip::tcp::resolver::query query_(connInfo.host, "");
+		for (auto itr = resolver_.resolve(query_); itr != boost::asio::ip::tcp::resolver::iterator(); ++itr)
+		{
+			boost::asio::ip::tcp::endpoint end = *itr;
+			remote_address = end.address();
+			break;
+		}
+		LOG(INF, "[Redis] connect...(host:", remote_address.to_v4().to_string(), ", port:", connInfo.port, ")");
+		boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ remote_address.to_v4().to_string(), Format(connInfo.port).c_str() }));
 
 		boost::system::error_code ec;
 		socket_.connect(endpoint_, ec);
@@ -44,105 +56,58 @@ namespace Gamnet { namespace Database {	namespace Redis {
 			LOG(GAMNET_ERR, "[Redis] connect fail(host:", connInfo.host, ", port:", connInfo.port, ")");
 			return false;
 		}
+
+		connection_info = connInfo;
+		deadline_.cancel();
 		return true;
+	}
+
+	bool Connection::Reconnect()
+	{
+		return Connect(connection_info);
 	}
 
 	std::shared_ptr<ResultSetImpl> Connection::Execute(const std::string& query)
 	{	
 		if (false == socket_.is_open())
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
+			//throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
+			Reconnect();
 		}
 	
-		socket_.write_some(boost::asio::buffer(query + "\r\n", query.length()+2));
-		
-		std::list<std::string> tokens;
-		std::string token = "";
-		while (true)
+		try 
 		{
-			boost::asio::streambuf streambuf;
-			boost::asio::read_until(socket_, streambuf, "\r\n");
-			size_t size = streambuf.size();
-			const char* data = boost::asio::buffer_cast<const char*>(streambuf.data());
-			std::istream response_stream(&streambuf);
-			for (auto itr = std::istream_iterator<std::string>(response_stream); itr != std::istream_iterator<std::string>(); itr++)
-			{
-				switch ((*itr)[0])
-				{
-				case '+':
-				case '-':
-				case ':':
-				case '$':
-				case '*':
-					if ("" != token)
-					{
-						tokens.push_back(token);
-						token = "";
-					}
-					break;
-				}
+			socket_.write_some(boost::asio::buffer(query + "\r\n", query.length() + 2));
 
-				token += *itr;
-				tokens.push_back(token);
-				token = "";
-			}
-				
-			if (true == tokens.empty())
-			{
-				break;
-			}
-
-			if ('\n' == data[size - 1])
-			{
-				break;
-			}
-
-			token = tokens.back();
-			tokens.pop_back();
+			std::vector<char> buffer;
+			std::shared_ptr<ResultSetImpl> impl(new ResultSetImpl(shared_from_this()));
+			do {
+				char data[1024 * 6] = { 0 };
+				size_t readBytes = socket_.read_some(boost::asio::buffer(data, 1024 * 6));
+				buffer.insert(buffer.end(), &data[0], &data[readBytes]);
+			} while (false == impl->Parse(std::string(&buffer[0], buffer.size())));
+			return impl;
 		}
-
-		std::shared_ptr<ResultSetImpl> impl(new ResultSetImpl());
-		for (auto itr = tokens.begin(); itr != tokens.end(); itr++)
+		catch (const std::exception& e)
 		{
-			Parse(impl, itr);
+			socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+			socket_.close();
+			throw e;
 		}
-			
-		return impl;
 	}
-
-	void Connection::Parse(const std::shared_ptr<ResultSetImpl>& impl, std::list<std::string>::iterator& itr_token)
+	/*
+	void Connection::AsyncExecute(const std::string& query, std::function<void(ResultSet& ret)>& callback)
 	{
-		const std::string& token = *itr_token;
-		switch (token[0])
+		if(false == socket_.is_open())
 		{
-		case '+':
-			impl->push_back(token.substr(1));
-			break;
-		case '-':
-			impl->error = token;
-			break;
-		case ':':
-			impl->push_back(token.substr(1));
-			break;
-		case '$':
-			if ("$-1" == token) // empty
-			{
-				break;
-			}
-			impl->push_back(*(++itr_token));
-			break;
-		case '*': 
-			{
-				int count = atoi(token.substr(1).c_str());
-				for (int i = 0; i < count; i++)
-				{
-					Parse(impl, ++itr_token);
-				}
-			}
-			break;
-		default:
-			impl->error += " " + token;
-			break;
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
 		}
+
+		socket_.write_some(boost::asio::buffer(query + "\r\n", query.length() + 2));
+
+		boost::asio::async_read_until(socket_, response_, "\r\n",
+			boost::bind(&client::handle_read_status_line, this,
+				boost::asio::placeholders::error));
 	}
+	*/
 }}}

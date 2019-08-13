@@ -45,31 +45,9 @@ struct SingletonInitHelper
 		}
 		return true;
 	}
-	void Init()
-	{
-		for(auto& itr : mapInitFuncInfos)
-		{
-			CallInitFunc(itr.second.name);
-		}
-	}
+	void Init();
 
-	void CallInitFunc(const std::string& name)
-	{
-		auto itr = mapInitFuncInfos.find(name);
-		if (mapInitFuncInfos.end() == itr)
-		{
-			LOG(ERR, "undefined init function(name:", name, ")");
-			throw Exception(0, "undefined init function(name:", name, ")");
-		}
-
-		const InitFuncInfo& info = itr->second;
-		if (false == setInitCompleted.insert(info.name).second)
-		{
-			return;
-		}
-		info.func();
-		LOG(GAMNET_INF, "init complete singleton..", name);
-	}
+	void CallInitFunc(const std::string& name);
 };
 
 template<class T>
@@ -93,8 +71,10 @@ public :
 
 }
 
+#define GAMNET_TOKEN_PASTE(x, y) x ## y
+#define GAMNET_TOKEN_PASTE_2(x, y) GAMNET_TOKEN_PASTE(x, y)
 #define GAMNET_BIND_INIT_HANDLER(class_type, func_type) \
-	static bool Init_##__LINE__##_##func_type = Gamnet::SingletonInitHelper::GetInstance().RegisterInitFunction(#class_type, std::bind(&class_type::func_type, &Gamnet::Singleton<class_type>::GetInstance()))
+	static bool GAMNET_TOKEN_PASTE_2(func_type, __COUNTER__) = Gamnet::SingletonInitHelper::GetInstance().RegisterInitFunction(#class_type, std::bind(&class_type::func_type, &Gamnet::Singleton<class_type>::GetInstance()))
 
 #define GAMNET_CALL_INIT_HANDLER(class_type) \
 	SingletonInitHelper::GetInstance().CallInitFunc(#class_type);

@@ -32,10 +32,11 @@ public :
 private :
 	int  Property_[LOG_LEVEL_MAX];
 	bool IsInit_;
+	bool timeRecord_;
 	File file_;
 	std::mutex mutex_;
 public :
-	Logger() : IsInit_(false){};
+	Logger() : IsInit_(false), timeRecord_(true){};
 	virtual ~Logger(){};
 
 	static Logger& GetInstance()
@@ -43,6 +44,8 @@ public :
 		static Logger self;
 		return self;
 	}
+
+	void SetTimeRecord(bool record) { timeRecord_ = record; }
 
 	template <typename... Args>
 	void Write(LOG_LEVEL_TYPE level, const Args&... args)
@@ -57,36 +60,7 @@ public :
 			throw GAMNET_EXCEPTION(ErrorCode::NotInitializedError, "write log exception, log is not initialized yet");
 		}
 
-		std::string s = Format(args...);
-		time_t logtime_;
-		struct tm when;
-		char timebuf[22] = { 0 };
-		time(&logtime_);
-#ifdef _WIN32 // build Static multithreaded library "libcmt"
-		localtime_s(&when, &logtime_);
-		_snprintf_s(timebuf, 22, 21, "[%04d-%02d-%02d %02d:%02d:%02d]", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
-#else
-		localtime_r( &logtime_, &when );
-		snprintf(timebuf, 22, "[%04d-%02d-%02d %02d:%02d:%02d]", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
-#endif
-		
-		std::lock_guard<std::mutex> lo(mutex_);
-		if(Property_[level]&LOG_STDERR)
-		{
-			if(level == LOG_LEVEL_ERR )
-			{
-				std::cerr << timebuf << " " << s.c_str() << std::endl;
-			}
-			else
-			{
-				std::cout << timebuf << " " <<  s.c_str() << std::endl;
-			}
-		}
-		if(Property_[level]&LOG_FILE)
-		{
-			std::ofstream& ofstream_ = file_.open(when);
-			ofstream_ << timebuf << " " << s.c_str() << std::endl;
-		}
+		Write(level, Format(args...));
 	}
 
 	/// \brief Initialize function for Logger lib
@@ -94,6 +68,7 @@ public :
 	/// \return  return if true or false
 	void Init(const char* logPath, const char* prefix, int max_file_size);
 	void SetLevelProperty(LOG_LEVEL_TYPE level, int flag);
+	void Write(LOG_LEVEL_TYPE level, const std::string& log);
 };
 
 }}

@@ -46,12 +46,18 @@ Session::~Session()
 bool Session::Init()
 {
 	session_key = ++Session::session_key_generator;
-	session_token = "";
 	expire_time = ::time(nullptr);
-	link = nullptr;
-	remote_address = nullptr;
-	handler_container.Init();
 	return true;
+}
+
+void Session::Clear()
+{
+	session_key = 0;
+	session_token = "";
+	remote_address = nullptr;
+	expire_time = 0;
+	link = nullptr;
+	handler_container.Init();
 }
 
 bool Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
@@ -170,6 +176,41 @@ size_t SessionManager::Size()
 	return _sessions.size();
 }
 
+void SessionManager::Flush()
+{
+	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
+	{
+		std::lock_guard<std::mutex> lo(_lock);
+		LOG(WRN, "flush invalid sessions(", _sessions.size(), ")");
+		for (auto itr = _sessions.begin(); itr != _sessions.end();) 
+		{
+			std::shared_ptr<Session> session = itr->second;
+			if (nullptr == session)
+			{
+				sessionsToBeDeleted.push_back(session);
+				_sessions.erase(itr++);
+			}
+			else {
+				++itr;
+			}
+		}
+	}
+
+	for (auto session : sessionsToBeDeleted)
+	{
+		LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
+		session->strand.wrap([session]() {
+			try {
+				session->OnDestroy();
+			}
+			catch (const Exception& e)
+			{
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+			}
+		})();
+	}
+}
+
 void SessionManager::OnTimerExpire()
 {
 	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
@@ -195,23 +236,22 @@ void SessionManager::OnTimerExpire()
 	for (auto session : sessionsToBeDeleted)
 	{
 		LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
-		std::shared_ptr<Link> link = session->link;
-		if (nullptr != link)
-		{
-			link->strand.wrap([link] () {
-				try {
-					link->Close(ErrorCode::IdleTimeoutError);
-				}
-				catch (const Exception& e)
-				{
-					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-				}
-			})(); 
-		}
-
 		session->strand.wrap([session]() {
 			try {
+				std::shared_ptr<Link> link = session->link;
+				if (nullptr != link)
+				{
+					session->OnClose(ErrorCode::IdleTimeoutError);
+				}
+
+				session->AttachLink(nullptr);
 				session->OnDestroy();
+				/*
+				if(nullptr != link)
+				{
+					link->strand.wrap(std::bind(&Link::Close, link, ErrorCode::IdleTimeoutError))();
+				}
+				*/
 			}
 			catch (const Exception& e)
 			{

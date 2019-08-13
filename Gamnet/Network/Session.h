@@ -17,7 +17,7 @@ class SessionManager
 {
 	Timer											_timer;
 	std::mutex										_lock;
-	std::map<uint32_t, std::shared_ptr<Session>>	_sessions;
+	std::map<uint32_t, std::shared_ptr<Session>>	_sessions;	
 	int64_t											_keepalive_time;
 public :
 	SessionManager();
@@ -29,6 +29,7 @@ public :
 	std::shared_ptr<Session> Find(uint32_t key);
 	size_t Size();
 
+	void Flush();
 private :
 	void OnTimerExpire();
 };
@@ -50,6 +51,18 @@ public :
 		}
 	};
 
+	struct ReleaseFunctor
+	{
+		template <class T>
+		T* operator() (T* session)
+		{
+			if(nullptr != session)
+			{
+				session->Clear();
+			}
+			return session;
+		}
+	};
 	Session();
 	Session(boost::asio::io_service& io_service);
 	virtual ~Session();
@@ -69,6 +82,7 @@ public :
 	virtual void OnDestroy() = 0;
 
 	virtual bool Init();
+	virtual void Clear();
 	bool AsyncSend(const std::shared_ptr<Buffer>& buffer);
 	bool AsyncSend(const char* data, int length);
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);

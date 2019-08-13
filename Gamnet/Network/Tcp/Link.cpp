@@ -29,41 +29,55 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		return true;
 	}
 
+	void Link::Clear()
+	{
+		recv_packet = nullptr;
+		Network::Link::Clear();
+	}
+
 	void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 	{
-		recv_packet->Append(buffer->ReadPtr(), buffer->Size());
-		while (Packet::HEADER_SIZE <= (int)recv_packet->Size())
+		while(0 < buffer->Size())
 		{
-			recv_packet->ReadHeader();
-			if (Packet::HEADER_SIZE > recv_packet->length)
-			{
-				LOG(GAMNET_ERR, "buffer underflow(read size:", recv_packet->length, ")");
-				Close(ErrorCode::BufferUnderflowError);
-				return;
-			}
+			size_t readSize = std::min(buffer->Size(), recv_packet->Available());
+			recv_packet->Append(buffer->ReadPtr(), readSize);
+			buffer->Remove(readSize);
 
-			if (recv_packet->length >= recv_packet->Capacity())
+			while(Packet::HEADER_SIZE <= (int)recv_packet->Size())
 			{
-				LOG(GAMNET_ERR, "buffer overflow(read size:", recv_packet->length, ")");
-				Close(ErrorCode::BufferOverflowError);
-				return;
-			}
+				recv_packet->ReadHeader();
+				if (Packet::HEADER_SIZE > recv_packet->length)
+				{
+					LOG(GAMNET_ERR, "buffer underflow(read size:", recv_packet->length, ")");
+					Close(ErrorCode::BufferUnderflowError);
+					return;
+				}
 
-			if (recv_packet->length > (uint16_t)recv_packet->Size())
-			{
-				break;
-			}
+				if (recv_packet->length >= (uint16_t)recv_packet->Capacity())
+				{
+					LOG(GAMNET_ERR, "buffer overflow(read size:", recv_packet->length, ")");
+					Close(ErrorCode::BufferOverflowError);
+					return;
+				}
 
-			std::shared_ptr<Packet> packet = recv_packet;
-			recv_packet = Packet::Create();
-			if (nullptr == recv_packet)
-			{
-				LOG(GAMNET_ERR, "null packet instance");
-				Close(ErrorCode::NullPacketError);
-				return;
+				if(recv_packet->length > (uint16_t)recv_packet->Size())
+				{
+					break;
+				}
+
+				std::shared_ptr<Packet> packet = recv_packet;
+				recv_packet = Packet::Create();
+				if (nullptr == recv_packet)
+				{
+					LOG(GAMNET_ERR, "null packet instance");
+					Close(ErrorCode::NullPacketError);
+					return;
+				}
+				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
+				link_manager->OnRecvMsg(shared_from_this(), packet);
 			}
-			recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
-			link_manager->OnRecvMsg(shared_from_this(), packet);
+			
 		}
+		
 	}
 }}}

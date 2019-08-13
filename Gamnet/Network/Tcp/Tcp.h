@@ -35,7 +35,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	template <class SESSION_T, class MSG>
-	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = false)
+	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable)
 	{
 		std::shared_ptr<Packet> packet = Packet::Create();
 		if (nullptr == packet)
@@ -44,7 +44,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return false;
 		}
 
-		//packet->msg_seq = ++session->send_seq;
+		packet->msg_seq = ++session->send_seq;
 		packet->reliable = reliable;
 		if(false == packet->Write(msg))
 		{
@@ -55,7 +55,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		return session->AsyncSend(packet);
 	}
 
-	boost::asio::ip::address GetLocalAddress();
+	const boost::asio::ip::address& GetLocalAddress();
 	
 	template <class SESSION_T>
 	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key)

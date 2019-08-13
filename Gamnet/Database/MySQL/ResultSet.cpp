@@ -1,13 +1,14 @@
 #include "ResultSet.h"
 #include "Connection.h"
-#include "../../Library/Exception.h"
 #include <boost/lexical_cast.hpp>
+#include "../../Library/Exception.h"
+#include "../../Log/Log.h"
 
 namespace Gamnet { namespace Database { namespace MySQL {
 
-ResultSetImpl::ResultSetImpl() :
-		conn_(NULL),
-		res_(NULL),
+ResultSetImpl::ResultSetImpl(const std::shared_ptr<Connection> conn) :
+		conn_(conn),
+		res_(nullptr),
 		affectedRowCount_(0),
 		lastInsertID_(0)
 {
@@ -15,24 +16,104 @@ ResultSetImpl::ResultSetImpl() :
 
 ResultSetImpl::~ResultSetImpl()
 {
-	if (NULL != res_)
+	if (nullptr != res_)
 	{
 		mysql_free_result(res_);
-		res_ = NULL;
+		res_ = nullptr;
+	}
 
-		// trash remain result
-		if (mysql_more_results(&(conn_->conn_)))
+	// trash remain result
+	if (mysql_more_results(&(conn_->conn_)))
+	{
+		while (0 == mysql_next_result(&conn_->conn_))
 		{
-			while (0 == mysql_next_result(&conn_->conn_))
+			MYSQL_RES* res = mysql_store_result(&conn_->conn_);
+			if (nullptr != res)
 			{
-				MYSQL_RES* res = mysql_store_result(&conn_->conn_);
-				if (NULL != res)
-				{
-					mysql_free_result(res);
-				}
+				mysql_free_result(res);
 			}
 		}
 	}
+}
+
+bool ResultSetImpl::Execute(const std::string& query)
+{
+	assert(nullptr != conn_);
+	if(0 != mysql_real_query(&(conn_->conn_), query.c_str(), query.length()))
+	{
+		LOG(GAMNET_ERR, mysql_error(&(conn_->conn_)), "(query:", query, ")");
+		throw Exception(mysql_errno(&(conn_->conn_)), mysql_error(&(conn_->conn_)), "(query:", query, ")");
+	}
+
+	if(false == StoreResult())
+	{
+		LOG(GAMNET_ERR, mysql_error(&(conn_->conn_)), "(query:", query, ")");
+		throw Exception(mysql_errno(&(conn_->conn_)), mysql_error(&(conn_->conn_)), "(query:", query, ")");
+	}
+	return true;
+}
+
+std::string ResultSetImpl::RealEscapeString(const std::string& str)
+{
+	std::vector<char> buff(str.length() * 2 + 1);
+	unsigned long length = mysql_real_escape_string(&(conn_->conn_), &buff[0], str.c_str(), str.length());
+
+	return std::string(&buff[0], length);
+}
+
+bool ResultSetImpl::StoreResult()
+{
+	affectedRowCount_ = 0;
+	lastInsertID_ = 0;
+	mapColumnName_.clear();
+
+	if (nullptr != res_)
+	{
+		mysql_free_result(res_);
+		res_ = nullptr;
+	}
+
+	unsigned int num_fields = mysql_field_count(&conn_->conn_);
+	if (0 < num_fields)
+	{
+		res_ = mysql_store_result(&conn_->conn_);
+		if (nullptr == res_)
+		{
+			LOG(ERR, mysql_error(&conn_->conn_));
+			throw Exception(mysql_errno(&conn_->conn_), mysql_error(&conn_->conn_));
+		}
+		MYSQL_FIELD *field = nullptr;
+		for (unsigned int i = 0; (field = mysql_fetch_field(res_)); i++)
+		{
+			mapColumnName_[field->name] = i;
+		}
+	}
+	else
+	{
+		affectedRowCount_ = (unsigned int)mysql_affected_rows(&(conn_->conn_));
+		lastInsertID_ = static_cast<unsigned int>(mysql_insert_id(&(conn_->conn_)));
+	}
+
+	return true;
+}
+
+bool ResultSetImpl::NextResult()
+{
+	if(nullptr == &conn_->conn_)
+	{
+		return false;
+	}
+	if(false == mysql_more_results(&conn_->conn_))
+	{
+		return false;
+	}
+
+	if(0 != mysql_next_result(&conn_->conn_))
+	{
+		throw Exception(mysql_errno(&conn_->conn_), mysql_error(&conn_->conn_));
+	}
+	
+	return StoreResult();
 }
 
 ResultSet::ResultSet() : impl_(NULL)
@@ -45,7 +126,7 @@ ResultSet::~ResultSet()
 
 unsigned int ResultSet::GetAffectedRow() const
 {
-	if (NULL == impl_)
+	if (nullptr == impl_)
 	{
 		return 0;
 	}
@@ -54,11 +135,11 @@ unsigned int ResultSet::GetAffectedRow() const
 
 unsigned int ResultSet::GetRowCount()
 {
-	if (NULL == impl_)
+	if (nullptr == impl_)
 	{
 		return 0;
 	}
-	if (NULL == impl_->res_)
+	if (nullptr == impl_->res_)
 	{
 		return 0;
 	}
@@ -68,6 +149,39 @@ unsigned int ResultSet::GetRowCount()
 unsigned int ResultSet::GetLastInsertID() const
 {
 	return impl_->lastInsertID_;
+}
+
+bool ResultSet::NextResult()
+{
+	return impl_->NextResult();
+}
+
+Json::Value ResultSet::ToJson()
+{
+	Json::Value root;
+	if (nullptr != impl_ && nullptr != impl_->res_)
+	{
+		unsigned int num_fields = impl_->mapColumnName_.size();
+		std::vector<std::string> columnNames(num_fields);
+		for(const auto& itr : impl_->mapColumnName_)
+		{
+			columnNames[itr.second] = itr.first;
+		}
+
+		mysql_data_seek(impl_->res_, 0);
+
+		MYSQL_ROW row = nullptr;
+		while(nullptr != (row = mysql_fetch_row(impl_->res_)))
+		{
+			Json::Value value;
+			for(unsigned int i=0; i<num_fields; i++)
+			{
+				value[columnNames[i]] = row[i];
+			}		
+			root.append(value);
+		}
+	}
+	return root;
 }
 
 ResultSet::iterator ResultSet::begin()
@@ -80,28 +194,28 @@ ResultSet::iterator ResultSet::end() const
 	return iterator();
 }
 
-ResultSet::iterator::iterator() : impl_(NULL), row_(NULL)
+ResultSet::iterator::iterator() : impl_(nullptr), row_(nullptr)
 {
 }
 
 ResultSet::iterator::iterator(const std::shared_ptr<ResultSetImpl>& impl) : impl_(impl)
 {
-	if (NULL != impl_)
+	if (nullptr != impl_)
 	{
 		mysql_data_seek(impl_->res_, 0);
 		row_ = mysql_fetch_row(impl_->res_);
-		if (NULL != row_ && NULL == *row_)
+		if (nullptr != row_ && nullptr == *row_)
 		{
-			row_ = NULL;
+			row_ = nullptr;
 		}
 	}
 }
 
 ResultSet::iterator& ResultSet::iterator::operator ++ (int)
 {
-	if (NULL == impl_)
+	if (nullptr == impl_)
 	{
-		row_ = NULL;
+		row_ = nullptr;
 	}
 	else
 	{
@@ -138,7 +252,7 @@ bool ResultSet::iterator::operator == (const ResultSet::iterator& itr) const
 ResultSet::iterator ResultSet::operator [] (unsigned int index)
 {
 	iterator itr;
-	if (NULL == impl_ || NULL == impl_->res_)
+	if (nullptr == impl_ || nullptr == impl_->res_)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid result set");
 	}
@@ -147,6 +261,7 @@ ResultSet::iterator ResultSet::operator [] (unsigned int index)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidArrayRangeError, "out range row index(index:", index, ")");
 	}
+
 	mysql_data_seek(impl_->res_, index);
 	itr.impl_ = impl_;
 	itr.row_ = mysql_fetch_row(impl_->res_);
@@ -161,11 +276,15 @@ const std::string ResultSet::iterator::getString(const std::string& column_name)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "Unknown column '", column_name, "' in 'field list'");
 	}
-	if (NULL == row_)
+	if (nullptr == row_)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid data");
 	}
 
+	if(nullptr == row_[itr->second])
+	{
+		return "";
+	}
 	return row_[itr->second];
 }
 

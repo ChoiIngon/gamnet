@@ -47,44 +47,13 @@ class Timer
 	bool auto_reset_;
 	boost::asio::deadline_timer deadline_timer_;
 
-	void OnExpire(const boost::system::error_code& ec)
-	{
-		if (0 != ec)
-		{
-			return;
-		}
-
-		std::shared_ptr<TimerEntry> entry = entry_;
-		{
-			std::lock_guard<std::mutex> lo(lock_);
-			if (nullptr == entry)
-			{
-				return;
-			}
-		}
-		entry->OnExpire();
-		
-		if(true == auto_reset_)
-		{
-			Resume();
-		}
-	}
+	void OnExpire(const boost::system::error_code& ec);
 public :
-	Timer() :
-		entry_(nullptr), interval_(0), auto_reset_(false), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
-	{
-	}
+	Timer();
+	Timer(boost::asio::io_service& ioService);
 
-	Timer(boost::asio::io_service& ioService) :
-		entry_(nullptr), interval_(0), auto_reset_(false), deadline_timer_(ioService)
-	{	
-	}
+	~Timer();
 
-	~Timer()
-	{
-		deadline_timer_.expires_at(boost::posix_time::pos_infin);
-		entry_ = nullptr;
-	}
 	/*!
 		\param interval ms(1/1000 sec)
 		\param functor call back funcion
@@ -117,31 +86,9 @@ public :
     /*!
      * \brief timer event will expire just onetime. if reset timer event call 'Resume'
      */
-	bool Resume()
-	{
-		{
-			std::lock_guard<std::mutex> lo(lock_);
-			if(nullptr == entry_)
-			{
-				return false;
-			}
-		}
-		deadline_timer_.expires_at(deadline_timer_.expires_at() + boost::posix_time::milliseconds(interval_));
-		deadline_timer_.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
-		return true;
-	}
-
-	void AutoReset(bool flag)
-	{
-		auto_reset_ = flag;
-	}
-
-	void Cancel()
-	{
-		deadline_timer_.cancel();
-		std::lock_guard<std::mutex> lo(lock_);
-		entry_ = nullptr;
-	}
+	bool Resume();
+	void AutoReset(bool flag);
+	void Cancel();
 
 	template<class TIMEUNIT_T = std::chrono::milliseconds>
 	static uint64_t Now()
@@ -156,19 +103,9 @@ class ElapseTimer
 	std::chrono::time_point<std::chrono::high_resolution_clock> t0_;
 	bool auto_reset_;
 public :
-	ElapseTimer() : t0_(std::chrono::high_resolution_clock::now()), auto_reset_(false)
-	{
-	}
-
-	void AutoReset(bool flag)
-	{
-		auto_reset_ = flag;
-	}
-
-	void Reset()
-	{
-		t0_ = std::chrono::high_resolution_clock::now();
-	}
+	ElapseTimer();
+	void AutoReset(bool flag);
+	void Reset();
 
 	template<class TIMEUNIT_T = std::chrono::milliseconds>
 	uint64_t Count() 
@@ -184,6 +121,7 @@ public :
 	}
 };
 
+std::string FromUnixtime(time_t now);
 }
 
 #endif /* TIMER_H_ */

@@ -125,7 +125,7 @@ license you like.
 #define JSON_CONFIG_H_INCLUDED
 #include <stddef.h>
 #include <string> //typdef String
-
+#include <stdint.h>
 /// If defined, indicates that json library is embedded in CppTL library.
 //# define JSON_IN_CPPTL 1
 
@@ -258,25 +258,29 @@ license you like.
 #endif // if !defined(JSON_IS_AMALGAMATION)
 
 namespace Json {
-typedef int Int;
-typedef unsigned int UInt;
+	typedef int Int;
+	typedef unsigned int UInt;
+
 #if defined(JSON_NO_INT64)
-typedef int LargestInt;
-typedef unsigned int LargestUInt;
-#undef JSON_HAS_INT64
+	typedef int LargestInt;
+	typedef unsigned int LargestUInt;
+	#undef JSON_HAS_INT64
 #else                 // if defined(JSON_NO_INT64)
-// For Microsoft Visual use specific types as long long is not supported
+	// For Microsoft Visual use specific types as long long is not supported
 #if defined(_MSC_VER) // Microsoft Visual Studio
-typedef __int64 Int64;
-typedef unsigned __int64 UInt64;
+	typedef __int64 Int64;
+	typedef unsigned __int64 UInt64;
 #else                 // if defined(_MSC_VER) // Other platforms, use long long
-typedef long long int Int64;
-typedef unsigned long long int UInt64;
+	typedef int64_t Int64;
+	typedef uint64_t UInt64;
 #endif // if defined(_MSC_VER)
+
 typedef Int64 LargestInt;
 typedef UInt64 LargestUInt;
+
 #define JSON_HAS_INT64
 #endif // if defined(JSON_NO_INT64)
+
 #if JSONCPP_USING_SECURE_MEMORY
 #define JSONCPP_STRING        std::basic_string<char, std::char_traits<char>, Json::SecureAllocator<char> >
 #define JSONCPP_OSTRINGSTREAM std::basic_ostringstream<char, std::char_traits<char>, Json::SecureAllocator<char> >

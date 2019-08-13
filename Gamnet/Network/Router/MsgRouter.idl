@@ -11,6 +11,12 @@ enum ROUTER_CAST_TYPE
 
 struct Address
 {
+	.cpp %%
+	Address(ROUTER_CAST_TYPE _cast_type, const std::string& _service_name, uint32_t _id)
+		: service_name(_service_name), cast_type(_cast_type), id(_id), msg_seq(0)
+	{
+	}
+	%%
 	string service_name;
 	ROUTER_CAST_TYPE cast_type;
 	uint32 id;

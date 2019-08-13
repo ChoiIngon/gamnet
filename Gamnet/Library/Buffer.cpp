@@ -1,3 +1,4 @@
+
 /*
  * Buffer.cpp
  *
@@ -30,10 +31,10 @@ void Buffer::Swap(const std::shared_ptr<Buffer>& lhs, const std::shared_ptr<Buff
 	rhs->bufSize_ = tmp_size;
 }
 
-Buffer::Buffer(size_t size) : write_index(0), read_index(0), bufSize_(size), data(NULL)
+Buffer::Buffer(size_t size) : bufSize_(size), data(nullptr), write_index(0), read_index(0)
 {
 	data = new char[bufSize_];
-	if(NULL == data)
+	if(nullptr == data)
 	{
 		throw Exception(ENOMEM, "not enough space(need:", size," bytes)");
 	}
@@ -42,10 +43,10 @@ Buffer::Buffer(size_t size) : write_index(0), read_index(0), bufSize_(size), dat
 
 Buffer::~Buffer()
 {
-	if(NULL != data)
+	if(nullptr != data)
 	{
 		delete [] data;
-		data = NULL;
+		data = nullptr;
 	}
 }
 

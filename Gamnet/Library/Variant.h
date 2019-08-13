@@ -10,9 +10,19 @@ namespace Gamnet {
 		std::string value;
 	public:
 		Variant();
-		Variant(const std::string& val);
 		Variant(const Variant& val);
-
+		Variant(const std::string& val);
+		Variant(const char* val);
+		Variant(bool val);
+		Variant(double val);
+		Variant(float val);
+		Variant(uint16_t val);
+		Variant(uint32_t val);
+		Variant(uint64_t val);
+		Variant(int16_t val);
+		Variant(int32_t val);
+		Variant(int64_t val);
+		
 		operator bool() const;
 
 		operator std::string();
@@ -39,8 +49,14 @@ namespace Gamnet {
 		const Variant& operator = (int16_t rhs);
 		const Variant& operator = (int32_t rhs);
 		const Variant& operator = (int64_t rhs);
+
+		bool operator < (const Variant& rhs);
+		bool operator == (const Variant& rhs);
+		bool operator != (const Variant& rhs);
 	};
 
+	
+	
 } /* namespace Gamnet */
 
 #endif

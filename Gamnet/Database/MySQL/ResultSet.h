@@ -12,21 +12,28 @@
 #include <memory>
 #include <map>
 #include "../../Library/Variant.h"
+#include "../../Library/Json/json.h"
 
 namespace Gamnet { namespace Database { namespace MySQL {
 	class Connection;
 
 	struct ResultSetImpl
 	{
-		std::shared_ptr<Connection> conn_;
+		const std::shared_ptr<Connection> conn_;
 
 		MYSQL_RES* res_;
 		unsigned int affectedRowCount_;
 		unsigned int lastInsertID_;
 		std::map<std::string, unsigned short> mapColumnName_;
 
-		ResultSetImpl();
+		ResultSetImpl(const std::shared_ptr<Connection> conn);
 		~ResultSetImpl();
+
+		bool Execute(const std::string& query);
+		std::string RealEscapeString(const std::string& str);
+
+		bool StoreResult();
+		bool NextResult();
 	};
 
 	struct ResultSet
@@ -69,10 +76,13 @@ namespace Gamnet { namespace Database { namespace MySQL {
 		unsigned int GetAffectedRow() const;
 		unsigned int GetRowCount();
 		unsigned int GetLastInsertID() const;
+		bool NextResult();
+		Json::Value ToJson();
 
 		iterator begin();
 		iterator end() const;
 		iterator operator [] (unsigned int index);
+
 	};
 
 } } }

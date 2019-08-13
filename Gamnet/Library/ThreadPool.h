@@ -57,53 +57,13 @@ private :
 	struct Worker
 	{
 		ThreadPool& pool_;
-		Worker(ThreadPool& pool)
-			: pool_(pool)
-		{
-		}
+		Worker(ThreadPool& pool);
 
-		void operator () ()
-		{
-			while(true)
-			{
-				std::function<void()> f;
-				{
-					std::unique_lock<std::mutex> lock(pool_.mutex_);
-					while(false == pool_.stop_ && pool_.tasks_.empty())
-					{
-						pool_.condition_.wait(lock);
-					}
-
-					if(true == pool_.stop_)
-					{
-						return;
-					}
-
-					f = pool_.tasks_.front();
-					pool_.tasks_.pop_front();
-				}
-				f();
-			}
-		}
+		void operator () ();
 	};
 public:
-	ThreadPool(int thread_count)
-		: stop_(false)
-	{
-		for(int i=0; i<thread_count; i++)
-		{
-			workers_.push_back(std::thread(Worker(*this)));
-		}
-	}
-	virtual ~ThreadPool()
-	{
-		stop_ = true;
-		condition_.notify_all();
-
-		std::for_each (workers_.begin(), workers_.end(), [](std::thread& thr) {
-			thr.join();
-		});
-	}
+	ThreadPool(int thread_count);
+	virtual ~ThreadPool();
 	/*!
 	  \param t thread functor thread pool will execute<br>
 			eg) std::bind(&some_function, arg1, arg2)
@@ -115,6 +75,8 @@ public:
 		tasks_.push_back(t);
 		condition_.notify_one();
 	}
+
+	size_t GetTaskCount();
 private :
 	std::vector<std::thread > workers_;
 	std::deque<std::function<void ()> > tasks_;

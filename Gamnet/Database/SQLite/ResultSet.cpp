@@ -19,6 +19,16 @@ namespace Gamnet { namespace Database { namespace SQLite {
 	{
 	}
 
+	unsigned int ResultSet::GetRowCount() const
+	{
+		if (nullptr == impl_)
+		{
+			return 0;
+		}
+
+		return impl_->rowCount_;
+	}
+
 	ResultSet::iterator ResultSet::begin()
 	{
 		return iterator(impl_);

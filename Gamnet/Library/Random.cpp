@@ -1,5 +1,6 @@
 #include "Random.h"
 #include <iostream>
+#include "Exception.h"
 
 namespace Gamnet {
 	MT19937Wrapper::MT19937Wrapper() 
@@ -17,6 +18,10 @@ namespace Gamnet {
 
 	int32_t Random::Range(int32_t min, int32_t max)
 	{
+		if (min > max)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "invalid random range(min:", min, ", max:", max, ")");
+		}
 		std::uniform_int_distribution<int32_t> dist(min, max);
 		return (int32_t)dist(mt.engine);
 	}
@@ -29,6 +34,10 @@ namespace Gamnet {
 	*/
 	int64_t Random::Range(int64_t min, int64_t max)
 	{
+		if (min > max)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "invalid random range(min:", min, ", max:", max, ")");
+		}
 		std::uniform_int_distribution<int64_t> dist(min, max);
 		return (int64_t)dist(mt.engine64);
 	}
@@ -41,6 +50,10 @@ namespace Gamnet {
 	*/
 	double Random::Range(double min, double max)
 	{
+		if (min > max)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "invalid random range(min:", min, ", max:", max, ")");
+		}
 		std::uniform_real_distribution<double> dist(min, max);
 		return (double)dist(mt.engine);
 	}

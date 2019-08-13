@@ -2,10 +2,13 @@
 #define GAMNET_DATABASE_MYSQL_TRANSACTION_H_
 
 #include "Connection.h"
+#include <list>
 #include "../../Library/String.h"
+#include "../../Library/Exception.h"
 
 namespace Gamnet { namespace Database { namespace MySQL {
 class Transaction {
+	std::string queries;
 	bool commit;
 	std::shared_ptr<Connection> connection;
 public:
@@ -13,13 +16,13 @@ public:
 	virtual ~Transaction();
 
 	template <class... ARGS>
-	ResultSet Execute(ARGS... args)
+	void Execute(ARGS... args)
 	{
-		const std::string query = Format(args...);
-		ResultSet res;
-		res.impl_ = connection->Execute(query);
-		res.impl_->conn_ = connection;
-		return res;
+		if(true == commit)
+		{
+			throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already commited transaction");
+		}
+		queries += Format(args...) + ";";
 	}
 	ResultSet Commit();
 };

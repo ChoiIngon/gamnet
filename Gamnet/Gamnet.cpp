@@ -7,6 +7,7 @@ void Run(int thread_count)
 {
 	SingletonInitHelper::GetInstance().Init();
 
+	Test::Run(thread_count);
 	Log::Write(GAMNET_INF, "Gamnet server starts..");
 	std::vector<std::thread > ioThreads;
 	for(int i=0; i<thread_count; i++)

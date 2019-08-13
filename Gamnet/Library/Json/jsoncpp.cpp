@@ -72,9 +72,9 @@ license you like.
 
 
 
-
 #include "json.h"
-
+#include "../Exception.h"
+#include <boost/lexical_cast.hpp>
 #ifndef JSON_IS_AMALGAMATION
 #error "Compile with -I PATH_TO_JSON_DIRECTORY"
 #endif
@@ -460,7 +460,6 @@ bool Reader::readToken(Token& token) {
     token.type_ = tokenArrayEnd;
     break;
   case '"':
-  case '\'' :
     token.type_ = tokenString;
     ok = readString();
     break;
@@ -635,16 +634,22 @@ void Reader::readNumber() {
   }
 }
 
-bool Reader::readString() {
-  Char c = '\0';
-  while (current_ != end_) {
-    c = getNextChar();
-    if (c == '\\')
-      getNextChar();
-    else if (c == '"' || c == '\'')
-      break;
-  }
-  return c == '"' || c == '\'';
+bool Reader::readString() 
+{
+	Char c = '\0';
+	while (current_ != end_) 
+	{
+		c = getNextChar();
+		if (c == '\\')
+		{
+			getNextChar();
+		}
+		else if (c == '"')
+		{
+			break;
+		}
+	}
+	return c == '"';
 }
 
 bool Reader::readObject(Token& tokenStart) {
@@ -1392,104 +1397,116 @@ void OurReader::skipCommentTokens(Token& token) {
   }
 }
 
-bool OurReader::readToken(Token& token) {
-  skipSpaces();
-  token.start_ = current_;
-  Char c = getNextChar();
-  bool ok = true;
-  switch (c) {
-  case '{':
-    token.type_ = tokenObjectBegin;
-    break;
-  case '}':
-    token.type_ = tokenObjectEnd;
-    break;
-  case '[':
-    token.type_ = tokenArrayBegin;
-    break;
-  case ']':
-    token.type_ = tokenArrayEnd;
-    break;
-  case '"':
-    token.type_ = tokenString;
-    ok = readString();
-    break;
-  case '\'':
-    if (features_.allowSingleQuotes_) {
-    token.type_ = tokenString;
-    ok = readStringSingleQuote();
-    break;
-    } // else continue
-  case '/':
-    token.type_ = tokenComment;
-    ok = readComment();
-    break;
-  case '0':
-  case '1':
-  case '2':
-  case '3':
-  case '4':
-  case '5':
-  case '6':
-  case '7':
-  case '8':
-  case '9':
-    token.type_ = tokenNumber;
-    readNumber(false);
-    break;
-  case '-':
-    if (readNumber(true)) {
-      token.type_ = tokenNumber;
-    } else {
-      token.type_ = tokenNegInf;
-      ok = features_.allowSpecialFloats_ && match("nfinity", 7);
-    }
-    break;
-  case 't':
-    token.type_ = tokenTrue;
-    ok = match("rue", 3);
-    break;
-  case 'f':
-    token.type_ = tokenFalse;
-    ok = match("alse", 4);
-    break;
-  case 'n':
-    token.type_ = tokenNull;
-    ok = match("ull", 3);
-    break;
-  case 'N':
-    if (features_.allowSpecialFloats_) {
-      token.type_ = tokenNaN;
-      ok = match("aN", 2);
-    } else {
-      ok = false;
-    }
-    break;
-  case 'I':
-    if (features_.allowSpecialFloats_) {
-      token.type_ = tokenPosInf;
-      ok = match("nfinity", 7);
-    } else {
-      ok = false;
-    }
-    break;
-  case ',':
-    token.type_ = tokenArraySeparator;
-    break;
-  case ':':
-    token.type_ = tokenMemberSeparator;
-    break;
-  case 0:
-    token.type_ = tokenEndOfStream;
-    break;
-  default:
-    ok = false;
-    break;
-  }
-  if (!ok)
-    token.type_ = tokenError;
-  token.end_ = current_;
-  return true;
+bool OurReader::readToken(Token& token) 
+{
+	skipSpaces();
+	token.start_ = current_;
+	Char c = getNextChar();
+	bool ok = true;
+	switch (c) {
+	case '{':
+		token.type_ = tokenObjectBegin;
+		break;
+	case '}':
+		token.type_ = tokenObjectEnd;
+		break;
+	case '[':
+		token.type_ = tokenArrayBegin;
+		break;
+	case ']':
+		token.type_ = tokenArrayEnd;
+		break;
+	case '"':
+		token.type_ = tokenString;
+		ok = readString();
+		break;
+	case '\'':
+		if (features_.allowSingleQuotes_) 
+		{
+			token.type_ = tokenString;
+			ok = readStringSingleQuote();
+			break;
+		} // else continue
+	case '/':
+		token.type_ = tokenComment;
+		ok = readComment();
+		break;
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		token.type_ = tokenNumber;
+		readNumber(false);
+		break;
+	case '-':
+		if (readNumber(true)) 
+		{
+			token.type_ = tokenNumber;
+		} 
+		else 
+		{
+			token.type_ = tokenNegInf;
+			ok = features_.allowSpecialFloats_ && match("nfinity", 7);
+		}
+		break;
+	case 't':
+		token.type_ = tokenTrue;
+		ok = match("rue", 3);
+		break;
+	case 'f':
+		token.type_ = tokenFalse;
+		ok = match("alse", 4);
+		break;
+	case 'n':
+		token.type_ = tokenNull;
+		ok = match("ull", 3);
+		break;
+	case 'N':
+		if (features_.allowSpecialFloats_) {
+			token.type_ = tokenNaN;
+			ok = match("aN", 2);
+		} 
+		else 
+		{
+			ok = false;
+		}
+		break;
+	case 'I':
+		if (features_.allowSpecialFloats_) 
+		{
+			token.type_ = tokenPosInf;
+			ok = match("nfinity", 7);
+		} 
+		else 
+		{
+			ok = false;
+		}
+		break;
+	case ',':
+		token.type_ = tokenArraySeparator;	
+		break;
+	case ':':
+		token.type_ = tokenMemberSeparator;
+		break;
+	case 0:
+		token.type_ = tokenEndOfStream;
+		break;
+	default:
+		ok = false;
+		break;
+	}
+	if (!ok)
+	{
+		token.type_ = tokenError;
+	}
+	token.end_ = current_;
+	return true;
 }
 
 void OurReader::skipSpaces() {
@@ -3078,29 +3095,31 @@ bool Value::getString(char const** str, char const** cend) const {
   return true;
 }
 
-JSONCPP_STRING Value::asString() const {
-  switch (type_) {
-  case nullValue:
-    return "";
-  case stringValue:
-  {
-    if (value_.string_ == 0) return "";
-    unsigned this_len;
-    char const* this_str;
-    decodePrefixedString(this->allocated_, this->value_.string_, &this_len, &this_str);
-    return JSONCPP_STRING(this_str, this_len);
-  }
-  case booleanValue:
-    return value_.bool_ ? "true" : "false";
-  case intValue:
-    return valueToString(value_.int_);
-  case uintValue:
-    return valueToString(value_.uint_);
-  case realValue:
-    return valueToString(value_.real_);
-  default:
-    JSON_FAIL_MESSAGE("Type is not convertible to string");
-  }
+JSONCPP_STRING Value::asString() const 
+{
+	switch (type_) {
+	case nullValue:
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::NullPointerError, "Value is null. can not convertable to String");
+	case stringValue:
+	{
+		if (value_.string_ == 0) 
+			return "";
+		unsigned this_len;
+		char const* this_str;
+		decodePrefixedString(this->allocated_, this->value_.string_, &this_len, &this_str);
+		return JSONCPP_STRING(this_str, this_len);
+	}
+	case booleanValue:
+		return value_.bool_ ? "true" : "false";
+	case intValue:
+		return valueToString(value_.int_);
+	case uintValue:
+		return valueToString(value_.uint_);
+	case realValue:
+		return valueToString(value_.real_);
+	default:
+		JSON_FAIL_MESSAGE("Type is not convertible to string");
+	}
 }
 
 #ifdef JSON_USE_CPPTL
@@ -3113,92 +3132,105 @@ CppTL::ConstString Value::asConstString() const {
 }
 #endif
 
-Value::Int Value::asInt() const {
-  switch (type_) {
-  case intValue:
-    JSON_ASSERT_MESSAGE(isInt(), "LargestInt out of Int range");
-    return Int(value_.int_);
-  case uintValue:
-    JSON_ASSERT_MESSAGE(isInt(), "LargestUInt out of Int range");
-    return Int(value_.uint_);
-  case realValue:
-    JSON_ASSERT_MESSAGE(InRange(value_.real_, minInt, maxInt),
-                        "double out of Int range");
-    return Int(value_.real_);
-  case nullValue:
-    return 0;
-  case booleanValue:
-    return value_.bool_ ? 1 : 0;
-  default:
-    break;
-  }
-  JSON_FAIL_MESSAGE("Value is not convertible to Int.");
+Value::Int Value::asInt() const 
+{
+	switch (type_) 
+	{
+	case stringValue :
+		return boost::lexical_cast<int>(asString());
+	case intValue:
+		JSON_ASSERT_MESSAGE(isInt(), "LargestInt out of Int range");
+		return Int(value_.int_);
+	case uintValue:
+		JSON_ASSERT_MESSAGE(isInt(), "LargestUInt out of Int range");
+		return Int(value_.uint_);
+	case realValue:
+		JSON_ASSERT_MESSAGE(InRange(value_.real_, minInt, maxInt), "double out of Int range");
+		return Int(value_.real_);
+	case nullValue:
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::NullPointerError, "Value is null. can not convertable to Int");
+	case booleanValue:
+		return value_.bool_ ? 1 : 0;
+	default:
+		break;
+	}
+	JSON_FAIL_MESSAGE("Value is not convertible to Int.");
 }
 
-Value::UInt Value::asUInt() const {
-  switch (type_) {
-  case intValue:
-    JSON_ASSERT_MESSAGE(isUInt(), "LargestInt out of UInt range");
-    return UInt(value_.int_);
-  case uintValue:
-    JSON_ASSERT_MESSAGE(isUInt(), "LargestUInt out of UInt range");
-    return UInt(value_.uint_);
-  case realValue:
-    JSON_ASSERT_MESSAGE(InRange(value_.real_, 0, maxUInt),
-                        "double out of UInt range");
-    return UInt(value_.real_);
-  case nullValue:
-    return 0;
-  case booleanValue:
-    return value_.bool_ ? 1 : 0;
-  default:
-    break;
-  }
-  JSON_FAIL_MESSAGE("Value is not convertible to UInt.");
+Value::UInt Value::asUInt() const 
+{
+	switch (type_) 
+	{
+	case stringValue :
+		return boost::lexical_cast<uint32_t>(asString());
+	case intValue:
+		JSON_ASSERT_MESSAGE(isUInt(), "LargestInt out of UInt range");
+		return UInt(value_.int_);
+	case uintValue:
+		JSON_ASSERT_MESSAGE(isUInt(), "LargestUInt out of UInt range");
+		return UInt(value_.uint_);
+	case realValue:
+		JSON_ASSERT_MESSAGE(InRange(value_.real_, 0, maxUInt), "double out of UInt range");
+		return UInt(value_.real_);
+	case nullValue:
+		//return 0;
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::NullPointerError, "Value is null. can not convertable to UInt");
+	case booleanValue:
+		return value_.bool_ ? 1 : 0;
+	default:
+		break;
+	}
+	JSON_FAIL_MESSAGE("Value is not convertible to UInt.");
 }
 
 #if defined(JSON_HAS_INT64)
 
-Value::Int64 Value::asInt64() const {
-  switch (type_) {
-  case intValue:
-    return Int64(value_.int_);
-  case uintValue:
-    JSON_ASSERT_MESSAGE(isInt64(), "LargestUInt out of Int64 range");
-    return Int64(value_.uint_);
-  case realValue:
-    JSON_ASSERT_MESSAGE(InRange(value_.real_, minInt64, maxInt64),
-                        "double out of Int64 range");
-    return Int64(value_.real_);
-  case nullValue:
-    return 0;
-  case booleanValue:
-    return value_.bool_ ? 1 : 0;
-  default:
-    break;
-  }
-  JSON_FAIL_MESSAGE("Value is not convertible to Int64.");
+Value::Int64 Value::asInt64() const 
+{
+	switch (type_) 
+	{  
+	case stringValue :
+		return boost::lexical_cast<int64_t>(asString());
+	case intValue:
+		return Int64(value_.int_);
+	case uintValue:
+		JSON_ASSERT_MESSAGE(isInt64(), "LargestUInt out of Int64 range");
+		return Int64(value_.uint_);
+	case realValue:
+		JSON_ASSERT_MESSAGE(InRange(value_.real_, minInt64, maxInt64), "double out of Int64 range");
+		return Int64(value_.real_);
+	case nullValue:
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::NullPointerError, "Value is null. can not convertable to Int64");
+	case booleanValue:
+		return value_.bool_ ? 1 : 0;
+	default:
+		break;
+	}
+	JSON_FAIL_MESSAGE("Value is not convertible to Int64.");
 }
 
-Value::UInt64 Value::asUInt64() const {
-  switch (type_) {
-  case intValue:
-    JSON_ASSERT_MESSAGE(isUInt64(), "LargestInt out of UInt64 range");
-    return UInt64(value_.int_);
-  case uintValue:
-    return UInt64(value_.uint_);
-  case realValue:
-    JSON_ASSERT_MESSAGE(InRange(value_.real_, 0, maxUInt64),
-                        "double out of UInt64 range");
-    return UInt64(value_.real_);
-  case nullValue:
-    return 0;
-  case booleanValue:
-    return value_.bool_ ? 1 : 0;
-  default:
-    break;
-  }
-  JSON_FAIL_MESSAGE("Value is not convertible to UInt64.");
+Value::UInt64 Value::asUInt64() const 
+{
+	switch (type_) 
+	{
+	case stringValue :
+		return boost::lexical_cast<uint64_t>(asString());
+	case intValue:
+		JSON_ASSERT_MESSAGE(isUInt64(), "LargestInt out of UInt64 range");
+		return UInt64(value_.int_);
+	case uintValue:
+		return UInt64(value_.uint_);
+	case realValue:
+		JSON_ASSERT_MESSAGE(InRange(value_.real_, 0, maxUInt64), "double out of UInt64 range");
+		return UInt64(value_.real_);
+	case nullValue:
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::NullPointerError, "Value is null. can not convertable to UInt64");
+	case booleanValue:
+		return value_.bool_ ? 1 : 0;
+	default:
+		break;
+	}
+	JSON_FAIL_MESSAGE("Value is not convertible to UInt64.");
 }
 #endif // if defined(JSON_HAS_INT64)
 
@@ -3218,68 +3250,80 @@ LargestUInt Value::asLargestUInt() const {
 #endif
 }
 
-double Value::asDouble() const {
-  switch (type_) {
-  case intValue:
-    return static_cast<double>(value_.int_);
-  case uintValue:
+double Value::asDouble() const 
+{
+	switch (type_) 
+	{
+	case stringValue :
+		return boost::lexical_cast<double>(asString());
+	case intValue:
+		return static_cast<double>(value_.int_);
+	case uintValue:
 #if !defined(JSON_USE_INT64_DOUBLE_CONVERSION)
-    return static_cast<double>(value_.uint_);
+		return static_cast<double>(value_.uint_);
 #else  // if !defined(JSON_USE_INT64_DOUBLE_CONVERSION)
-    return integerToDouble(value_.uint_);
+		return integerToDouble(value_.uint_);
 #endif // if !defined(JSON_USE_INT64_DOUBLE_CONVERSION)
-  case realValue:
-    return value_.real_;
-  case nullValue:
-    return 0.0;
-  case booleanValue:
-    return value_.bool_ ? 1.0 : 0.0;
-  default:
-    break;
-  }
-  JSON_FAIL_MESSAGE("Value is not convertible to double.");
+	case realValue:
+		return value_.real_;
+	case nullValue:
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::NullPointerError, "Value is null. can not convertable to Double");
+	case booleanValue:
+		return value_.bool_ ? 1.0 : 0.0;
+	default:
+		break;
+	}
+	JSON_FAIL_MESSAGE("Value is not convertible to double.");
 }
 
-float Value::asFloat() const {
-  switch (type_) {
-  case intValue:
-    return static_cast<float>(value_.int_);
-  case uintValue:
+float Value::asFloat() const
+{
+	switch (type_) 
+	{  
+	case stringValue:
+		return boost::lexical_cast<float>(asString());
+	case intValue:
+		return static_cast<float>(value_.int_);
+	case uintValue:
 #if !defined(JSON_USE_INT64_DOUBLE_CONVERSION)
-    return static_cast<float>(value_.uint_);
+		return static_cast<float>(value_.uint_);
 #else  // if !defined(JSON_USE_INT64_DOUBLE_CONVERSION)
     // This can fail (silently?) if the value is bigger than MAX_FLOAT.
-    return static_cast<float>(integerToDouble(value_.uint_));
+		return static_cast<float>(integerToDouble(value_.uint_));
 #endif // if !defined(JSON_USE_INT64_DOUBLE_CONVERSION)
-  case realValue:
-    return static_cast<float>(value_.real_);
-  case nullValue:
-    return 0.0;
-  case booleanValue:
-    return value_.bool_ ? 1.0f : 0.0f;
-  default:
-    break;
-  }
-  JSON_FAIL_MESSAGE("Value is not convertible to float.");
+	case realValue:
+		return static_cast<float>(value_.real_);
+	case nullValue:
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::NullPointerError, "Value is null. can not convertable to Float");
+	case booleanValue:
+		return value_.bool_ ? 1.0f : 0.0f;
+	default:
+		break;
+	}
+	JSON_FAIL_MESSAGE("Value is not convertible to float.");
 }
 
-bool Value::asBool() const {
-  switch (type_) {
-  case booleanValue:
-    return value_.bool_;
-  case nullValue:
-    return false;
-  case intValue:
-    return value_.int_ ? true : false;
-  case uintValue:
-    return value_.uint_ ? true : false;
-  case realValue:
-    // This is kind of strange. Not recommended.
-    return (value_.real_ != 0.0) ? true : false;
-  default:
-    break;
-  }
-  JSON_FAIL_MESSAGE("Value is not convertible to bool.");
+bool Value::asBool() const 
+{
+	switch (type_) 
+	{
+	case stringValue :
+		return boost::lexical_cast<bool>(asString());
+	case booleanValue:
+		return value_.bool_;
+	case nullValue:
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::NullPointerError, "Value is null. can not convertable to Bool");
+	case intValue:
+		return value_.int_ ? true : false;
+	case uintValue:
+		return value_.uint_ ? true : false;
+	case realValue:
+		// This is kind of strange. Not recommended.
+		return (value_.real_ != 0.0) ? true : false;
+	default:
+		break;
+	}
+	JSON_FAIL_MESSAGE("Value is not convertible to bool.");
 }
 
 bool Value::isConvertibleTo(ValueType other) const {
@@ -3382,47 +3426,54 @@ void Value::resize(ArrayIndex newSize) {
   }
 }
 
-Value& Value::operator[](ArrayIndex index) {
-  JSON_ASSERT_MESSAGE(
-      type_ == nullValue || type_ == arrayValue,
-      "in Json::Value::operator[](ArrayIndex): requires arrayValue");
-  if (type_ == nullValue)
-    *this = Value(arrayValue);
-  CZString key(index);
-  ObjectValues::iterator it = value_.map_->lower_bound(key);
-  if (it != value_.map_->end() && (*it).first == key)
-    return (*it).second;
+Value& Value::operator[](ArrayIndex index) 
+{
+	JSON_ASSERT_MESSAGE(type_ == nullValue || type_ == arrayValue, "in Json::Value::operator[](ArrayIndex): requires arrayValue");
+	
+	if (type_ == nullValue)
+	{
+		*this = Value(arrayValue);
+	}
 
-  ObjectValues::value_type defaultValue(key, nullRef);
-  it = value_.map_->insert(it, defaultValue);
-  return (*it).second;
+	CZString key(index);
+	ObjectValues::iterator it = value_.map_->lower_bound(key);
+	if (it != value_.map_->end() && (*it).first == key)
+	{
+		return (*it).second;
+	}
+	
+	ObjectValues::value_type defaultValue(key, nullRef);
+	it = value_.map_->insert(it, defaultValue);
+	return (*it).second;
 }
 
-Value& Value::operator[](int index) {
-  JSON_ASSERT_MESSAGE(
-      index >= 0,
-      "in Json::Value::operator[](int index): index cannot be negative");
-  return (*this)[ArrayIndex(index)];
+Value& Value::operator[](int index) 
+{
+	JSON_ASSERT_MESSAGE(index >= 0, "in Json::Value::operator[](int index): index cannot be negative");
+	return (*this)[ArrayIndex(index)];
 }
 
-const Value& Value::operator[](ArrayIndex index) const {
-  JSON_ASSERT_MESSAGE(
-      type_ == nullValue || type_ == arrayValue,
-      "in Json::Value::operator[](ArrayIndex)const: requires arrayValue");
-  if (type_ == nullValue)
-    return nullRef;
-  CZString key(index);
-  ObjectValues::const_iterator it = value_.map_->find(key);
-  if (it == value_.map_->end())
-    return nullRef;
-  return (*it).second;
+const Value& Value::operator[](ArrayIndex index) const 
+{
+	JSON_ASSERT_MESSAGE(type_ == nullValue || type_ == arrayValue, "in Json::Value::operator[](ArrayIndex)const: requires arrayValue");
+	if (type_ == nullValue)
+	{
+		return nullRef;
+	}
+  
+	CZString key(index);
+	ObjectValues::const_iterator it = value_.map_->find(key);
+	if (it == value_.map_->end())
+	{
+		return nullRef;
+	}
+	return (*it).second;
 }
 
-const Value& Value::operator[](int index) const {
-  JSON_ASSERT_MESSAGE(
-      index >= 0,
-      "in Json::Value::operator[](int index) const: index cannot be negative");
-  return (*this)[ArrayIndex(index)];
+const Value& Value::operator[](int index) const 
+{
+	JSON_ASSERT_MESSAGE(index >= 0, "in Json::Value::operator[](int index) const: index cannot be negative");
+	return (*this)[ArrayIndex(index)];
 }
 
 void Value::initBasic(ValueType vtype, bool allocated) {
@@ -3436,42 +3487,54 @@ void Value::initBasic(ValueType vtype, bool allocated) {
 // Access an object value by name, create a null member if it does not exist.
 // @pre Type of '*this' is object or null.
 // @param key is null-terminated.
-Value& Value::resolveReference(const char* key) {
-  JSON_ASSERT_MESSAGE(
-      type_ == nullValue || type_ == objectValue,
-      "in Json::Value::resolveReference(): requires objectValue");
-  if (type_ == nullValue)
-    *this = Value(objectValue);
-  CZString actualKey(
-      key, static_cast<unsigned>(strlen(key)), CZString::noDuplication); // NOTE!
-  ObjectValues::iterator it = value_.map_->lower_bound(actualKey);
-  if (it != value_.map_->end() && (*it).first == actualKey)
-    return (*it).second;
+Value& Value::resolveReference(const char* key)
+{
+	if (false == (type_ == nullValue || type_ == objectValue))
+	{
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::UndefinedError, "in Json::Value::resolveReference(key:", key, "): requires objectValue");
+	}
+	if (type_ == nullValue)
+	{
+		*this = Value(objectValue);
+	}
 
-  ObjectValues::value_type defaultValue(actualKey, nullRef);
-  it = value_.map_->insert(it, defaultValue);
-  Value& value = (*it).second;
-  return value;
+	CZString actualKey(key, static_cast<unsigned>(strlen(key)), CZString::noDuplication); // NOTE!
+	ObjectValues::iterator it = value_.map_->lower_bound(actualKey);
+	if (it != value_.map_->end() && (*it).first == actualKey)
+	{
+		return (*it).second;
+	}
+
+	ObjectValues::value_type defaultValue(actualKey, nullRef);
+	it = value_.map_->insert(it, defaultValue);
+	Value& value = (*it).second;
+	return value;
 }
 
 // @param key is not null-terminated.
 Value& Value::resolveReference(char const* key, char const* cend)
 {
-  JSON_ASSERT_MESSAGE(
-      type_ == nullValue || type_ == objectValue,
-      "in Json::Value::resolveReference(key, end): requires objectValue");
-  if (type_ == nullValue)
-    *this = Value(objectValue);
-  CZString actualKey(
-      key, static_cast<unsigned>(cend-key), CZString::duplicateOnCopy);
-  ObjectValues::iterator it = value_.map_->lower_bound(actualKey);
-  if (it != value_.map_->end() && (*it).first == actualKey)
-    return (*it).second;
+	if (false == (type_ == nullValue || type_ == objectValue))
+	{
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::UndefinedError, "in Json::Value::resolveReference(key:", key, ", end:", cend, "): requires objectValue");
+	}
 
-  ObjectValues::value_type defaultValue(actualKey, nullRef);
-  it = value_.map_->insert(it, defaultValue);
-  Value& value = (*it).second;
-  return value;
+	if (type_ == nullValue)
+	{
+		*this = Value(objectValue);
+	}
+	CZString actualKey(key, static_cast<unsigned>(cend-key), CZString::duplicateOnCopy);
+	ObjectValues::iterator it = value_.map_->lower_bound(actualKey);
+	
+	if (it != value_.map_->end() && (*it).first == actualKey)
+	{
+		return (*it).second;
+	}
+	
+	ObjectValues::value_type defaultValue(actualKey, nullRef);
+	it = value_.map_->insert(it, defaultValue);
+	Value& value = (*it).second;
+	return value;
 }
 
 Value Value::get(ArrayIndex index, const Value& defaultValue) const {
@@ -3505,16 +3568,19 @@ Value const& Value::operator[](JSONCPP_STRING const& key) const
   return *found;
 }
 
-Value& Value::operator[](const char* key) {
-  return resolveReference(key, key + strlen(key));
+Value& Value::operator[](const char* key) 
+{
+	return resolveReference(key, key + strlen(key));
 }
 
-Value& Value::operator[](const JSONCPP_STRING& key) {
-  return resolveReference(key.data(), key.data() + key.length());
+Value& Value::operator[](const JSONCPP_STRING& key) 
+{
+	return resolveReference(key.data(), key.data() + key.length());
 }
 
-Value& Value::operator[](const StaticString& key) {
-  return resolveReference(key.c_str());
+Value& Value::operator[](const StaticString& key) 
+{
+	return resolveReference(key.c_str());
 }
 
 #ifdef JSON_USE_CPPTL
@@ -3633,21 +3699,22 @@ bool Value::isMember(const CppTL::ConstString& key) const {
 }
 #endif
 
-Value::Members Value::getMemberNames() const {
-  JSON_ASSERT_MESSAGE(
-      type_ == nullValue || type_ == objectValue,
-      "in Json::Value::getMemberNames(), value must be objectValue");
-  if (type_ == nullValue)
-    return Value::Members();
-  Members members;
-  members.reserve(value_.map_->size());
-  ObjectValues::const_iterator it = value_.map_->begin();
-  ObjectValues::const_iterator itEnd = value_.map_->end();
-  for (; it != itEnd; ++it) {
-    members.push_back(JSONCPP_STRING((*it).first.data(),
-                                  (*it).first.length()));
-  }
-  return members;
+Value::Members Value::getMemberNames() const 
+{
+	JSON_ASSERT_MESSAGE(type_ == nullValue || type_ == objectValue, "in Json::Value::getMemberNames(), value must be objectValue");
+	if (type_ == nullValue)
+	{
+		return Value::Members();
+	}
+  
+	Members members;
+	members.reserve(value_.map_->size());
+	ObjectValues::const_iterator it = value_.map_->begin();
+	ObjectValues::const_iterator itEnd = value_.map_->end();
+	for (; it != itEnd; ++it) {
+		members.push_back(JSONCPP_STRING((*it).first.data(), (*it).first.length()));
+	}
+	return members;
 }
 //
 //# ifdef JSON_USE_CPPTL
@@ -3684,19 +3751,21 @@ bool Value::isNull() const { return type_ == nullValue; }
 
 bool Value::isBool() const { return type_ == booleanValue; }
 
-bool Value::isInt() const {
-  switch (type_) {
-  case intValue:
-    return value_.int_ >= minInt && value_.int_ <= maxInt;
-  case uintValue:
-    return value_.uint_ <= UInt(maxInt);
-  case realValue:
-    return value_.real_ >= minInt && value_.real_ <= maxInt &&
-           IsIntegral(value_.real_);
-  default:
-    break;
-  }
-  return false;
+bool Value::isInt() const 
+{
+	switch (type_) 
+	{
+	case stringValue :
+	case intValue:
+		return value_.int_ >= minInt && value_.int_ <= maxInt;
+	case uintValue:
+		return value_.uint_ <= UInt(maxInt);
+	case realValue:
+		return value_.real_ >= minInt && value_.real_ <= maxInt && IsIntegral(value_.real_);
+	default:
+		break;
+	}
+	return false;
 }
 
 bool Value::isUInt() const {
@@ -3754,11 +3823,12 @@ bool Value::isUInt64() const {
   return false;
 }
 
-bool Value::isIntegral() const {
+bool Value::isIntegral() const 
+{
 #if defined(JSON_HAS_INT64)
-  return isInt64() || isUInt64();
+	return isInt64() || isUInt64();
 #else
-  return isInt() || isUInt();
+	return isInt() || isUInt();
 #endif
 }
 

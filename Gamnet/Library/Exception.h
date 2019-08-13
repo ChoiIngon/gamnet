@@ -23,6 +23,7 @@ public :
 		InvalidAddressError			= 41,
 		InvalidLinkManagerError		= 42,
 		InvalidHandlerError			= 43,
+		InvalidDatabaseNum			= 44,
 		NotInitializedError			= 50,
 		NullPointerError			= 60,
 		NullPacketError				= 61,
@@ -36,6 +37,13 @@ public :
 		BadLexicalCastError			= 120,
 		IdleTimeoutError			= 130,
 		DuplicateMessageIDError		= 140,
+		AlreadyCommitTransaction	= 150,
+		CipherContextCreateFail		= 200,
+		CipherContextInitFail		= 201,
+		EncryptUpdateFail			= 202,
+		EncryptFinalFail			= 203,
+		DecryptUpdateFail			= 204,
+		DecryptFinalFail			= 205,
 		UndefinedError				= 999
 	};
 };

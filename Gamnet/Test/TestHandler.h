@@ -37,6 +37,7 @@ namespace Gamnet { namespace Test {
 			}
 
 			session->server_session_key = ans["session_key"].asUInt();
+			session->session_key = session->server_session_key;
 			session->server_session_token = ans["session_token"].asString();
 			session->is_connected = true;
 			session->OnConnect();
@@ -91,13 +92,6 @@ namespace Gamnet { namespace Test {
 
 		void Send_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session)
 		{
-			/*
-			std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
-			if (nullptr == link)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
-			}
-			*/
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
 			{
@@ -138,6 +132,7 @@ namespace Gamnet { namespace Test {
 			{
 				return;
 			}	
+
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 		}
 	};

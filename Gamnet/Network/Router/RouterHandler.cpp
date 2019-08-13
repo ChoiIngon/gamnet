@@ -51,10 +51,12 @@ void RouterHandler::Recv_SetAddress_Req(const std::shared_ptr<Session>& session,
 		}
 		LOG(INF, "[Router] recv SetAddress_Req (", session->remote_address->to_string(), "->localhost, service_name:", req.local_address.service_name.c_str(), ")");
 
+		/*
 		if (Singleton<LinkManager>::GetInstance().local_address == req.local_address)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "same router address(", req.local_address.service_name, ":", (int)req.local_address.cast_type, ":", req.local_address.id, ")");
 		}
+		*/
 		session->address = req.local_address;
 		ans.remote_address = Singleton<LinkManager>::GetInstance().local_address;
 	}
@@ -64,7 +66,7 @@ void RouterHandler::Recv_SetAddress_Req(const std::shared_ptr<Session>& session,
 	}
 
 	LOG(INF, "[Router] send SetAddress_Ans (localhost->", session->remote_address->to_string(), ", service_name:", req.local_address.service_name.c_str(), ")");
-	SendMsg(session, ans);
+	SendMsg(session, ans, false);
 }
 void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 {
@@ -87,7 +89,7 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 		{
 			Log::Write(GAMNET_INF, "[Router] send SetAddress_Ntf (localhost->", session->remote_address->to_string(), ")");
 			MsgRouter_SetAddress_Ntf ntf;
-			SendMsg(session, ntf);
+			SendMsg(session, ntf, false);
 			std::lock_guard<std::mutex> lo(LinkManager::lock);
 			session->onRouterConnect(session->address);
 		}

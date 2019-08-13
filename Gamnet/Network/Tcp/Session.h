@@ -19,7 +19,7 @@ public :
 	virtual ~Session();
 
 	virtual bool Init() override;
-
+	virtual void Clear() override;
 	bool AsyncSend(const std::shared_ptr<Packet>& packet);
 	bool handover_safe;
 	uint32_t recv_seq;

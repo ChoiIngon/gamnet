@@ -11,7 +11,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		virtual ~Link();
 
 		virtual bool Init() override;
-		
+		virtual void Clear() override;
 		std::shared_ptr<Packet> recv_packet;
 	protected :
 		virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;

@@ -27,6 +27,18 @@ public:
 			return link;
 		}
 	};
+	struct ReleaseFunctor
+	{
+		template<class T>
+		T* operator() (T* link)
+		{
+			if (nullptr != link)
+			{
+				link->Clear();
+			}
+			return link;
+		}
+	};
 
 	boost::asio::ip::tcp::socket	socket;
 	boost::asio::strand				strand;
@@ -34,6 +46,7 @@ public:
 
 	Timer 							timer;
 	uint32_t 						link_key;
+	int64_t							expire_time;
 	std::shared_ptr<Session> 		session;
 	LinkManager* const 				link_manager;
 
@@ -42,6 +55,7 @@ public :
 	virtual ~Link();
 
 	virtual bool Init();
+	virtual void Clear();
 	void Connect(const char* host, int port, int timeout);
 	void AsyncSend(const char* buf, int len);
 	void AsyncSend(const std::shared_ptr<Buffer>& buffer);

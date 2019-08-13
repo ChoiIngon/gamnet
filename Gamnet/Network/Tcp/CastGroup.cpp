@@ -28,6 +28,12 @@ void CastGroup::DelSession(const std::shared_ptr<Session>& session)
 	sessions.erase(session->session_key);
 }
 
+void CastGroup::Clear()
+{
+	std::lock_guard<std::mutex> lo(lock);
+	sessions.clear();
+}
+
 size_t CastGroup::Size()
 {
 	std::lock_guard<std::mutex> lo(lock);

@@ -22,6 +22,7 @@
 #endif
 
 namespace Gamnet { namespace Network { namespace Tcp {
+#undef max
 
 template <class SESSION_T>
 class Dispatcher
@@ -47,14 +48,26 @@ public :
 #ifdef _DEBUG
 	struct HandlerCallStatistics
 	{
-		HandlerCallStatistics() : msg_id(0), begin_count(0), finish_count(0), elapsed_time(0) {
-		}
 		unsigned int msg_id;
 		const char* name;
 		std::atomic_int begin_count;
 		std::atomic_int finish_count;
-		std::atomic<uint64_t> elapsed_time;
+		std::atomic_int tps;
+		std::atomic<int64_t> elapsed_time;
+		int64_t max_time;
+
+		time_t last_check_time;
+		int last_finish_count;
+
+		HandlerCallStatistics() : 
+			msg_id(0), name(nullptr),
+			begin_count(0), finish_count(0), 
+			tps(0), elapsed_time(0), max_time(0), 
+			last_check_time(time(nullptr)), last_finish_count(0) 
+		{
+		}
 	};
+
 	std::map<unsigned int, std::shared_ptr<HandlerCallStatistics>> mapHandlerCallStatistics_;
 #endif
 public:
@@ -88,6 +101,11 @@ public:
 		}
 
 		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
+		if (nullptr == link)
+		{
+			return;
+		}
+
 		auto itr = mapHandlerFunction_.find(packet->msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
@@ -105,7 +123,7 @@ public:
 			return;
 		}
 #ifdef _DEBUG
-		ElapseTimer diff;
+		ElapseTimer elapseTimer;
 		auto statistics_itr = mapHandlerCallStatistics_.find(packet->msg_id);
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
@@ -129,7 +147,9 @@ public:
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{
-			statistics_itr->second->elapsed_time += diff.Count();
+			int64_t elapsed_time = elapseTimer.Count();
+			statistics_itr->second->max_time = std::max(statistics_itr->second->max_time, elapsed_time);
+			statistics_itr->second->elapsed_time += elapsed_time;
 			statistics_itr->second->finish_count++;
 		}
 #endif

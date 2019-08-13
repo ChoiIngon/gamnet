@@ -9,51 +9,30 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
-struct ROUTER_CAST_TYPE {
-	enum TYPE {
-			UNI_CAST,
-			MULTI_CAST,
-			ANY_CAST,
-			MAX,
-	};
-	TYPE type;
-	ROUTER_CAST_TYPE() : type(UNI_CAST) {}
-	ROUTER_CAST_TYPE(int obj) : type((TYPE)obj) {} 
-	ROUTER_CAST_TYPE(TYPE obj) : type(obj) {}
-	operator TYPE() const { return type; }
-	operator int() const { return (int)type; }
-	ROUTER_CAST_TYPE& operator = (const TYPE& type) { this->type = type; return *this; }
-	bool operator == (const ROUTER_CAST_TYPE& obj) { return type == obj.type; }
-	bool operator == (ROUTER_CAST_TYPE::TYPE type) { return this->type == type; }
-	bool operator == (int value) { return this->type == value; }
-	bool operator != (const ROUTER_CAST_TYPE& obj) { return type != obj.type; }
-	bool operator != (ROUTER_CAST_TYPE::TYPE type) { return this->type != type; }
-	bool operator != (int value) { return this->type != value; }
-	bool operator < (const ROUTER_CAST_TYPE& obj) { return type < obj.type; }
-	bool operator < (ROUTER_CAST_TYPE::TYPE type) { return this->type < type; }
-	bool operator < (int value) { return this->type < value; }
-	bool operator > (const ROUTER_CAST_TYPE& obj) { return type > obj.type; }
-	bool operator > (ROUTER_CAST_TYPE::TYPE type) { return this->type > type; }
-	bool operator > (int value) { return this->type > value; }
-	bool operator <= (const ROUTER_CAST_TYPE& obj) { return type <= obj.type; }
-	bool operator <= (ROUTER_CAST_TYPE::TYPE type) { return this->type <= type; }
-	bool operator <= (int value) { return this->type <= value; }
-	bool operator >= (const ROUTER_CAST_TYPE& obj) { return type >= obj.type; }
-	bool operator >= (ROUTER_CAST_TYPE::TYPE type) { return this->type >= type; }
-	bool operator >= (int value) { return this->type >= value; }
+enum class ROUTER_CAST_TYPE {
+	UNI_CAST,
+	MULTI_CAST,
+	ANY_CAST,
+	MAX,
 }; // ROUTER_CAST_TYPE
 struct ROUTER_CAST_TYPE_Serializer {
 	static bool Store(char** _buf_, const ROUTER_CAST_TYPE& obj) { 
-		(*(ROUTER_CAST_TYPE::TYPE*)(*_buf_)) = obj.type;	(*_buf_) += sizeof(ROUTER_CAST_TYPE::TYPE);
+		(*(ROUTER_CAST_TYPE*)(*_buf_)) = obj;	(*_buf_) += sizeof(ROUTER_CAST_TYPE);
 		return true;
 	}
 	static bool Load(ROUTER_CAST_TYPE& obj, const char** _buf_, size_t& nSize) { 
-		if(sizeof(ROUTER_CAST_TYPE::TYPE) > nSize) { return false; }		std::memcpy(&obj.type, *_buf_, sizeof(ROUTER_CAST_TYPE::TYPE));		(*_buf_) += sizeof(ROUTER_CAST_TYPE::TYPE); nSize -= sizeof(ROUTER_CAST_TYPE::TYPE);
+		if(sizeof(ROUTER_CAST_TYPE) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(ROUTER_CAST_TYPE));		(*_buf_) += sizeof(ROUTER_CAST_TYPE); nSize -= sizeof(ROUTER_CAST_TYPE);
 		return true;
 	}
-	static size_t Size(const ROUTER_CAST_TYPE& obj) { return sizeof(ROUTER_CAST_TYPE::TYPE); }
+	static size_t Size(const ROUTER_CAST_TYPE& obj) { return sizeof(ROUTER_CAST_TYPE); }
 };
 struct Address {
+
+	Address(ROUTER_CAST_TYPE _cast_type, const std::string& _service_name, uint32_t _id)
+		: service_name(_service_name), cast_type(_cast_type), id(_id), msg_seq(0)
+	{
+	}
+	
 	std::string	service_name;
 	ROUTER_CAST_TYPE	cast_type;
 	uint32_t	id;

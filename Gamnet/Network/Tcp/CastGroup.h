@@ -28,34 +28,62 @@ public:
 	virtual ~CastGroup();
 	virtual void AddSession(const std::shared_ptr<Session>& session);
 	virtual void DelSession(const std::shared_ptr<Session>& session);
+	void Clear();
 	size_t Size();
 
 	template <class MSG>
-	bool SendMsg(const MSG& msg)
+	bool SendMsg(const MSG& msg, bool reliable = false)
 	{
-		std::shared_ptr<Packet> packet = Packet::Create();
-		if (nullptr == packet)
+		if(false == reliable)
 		{
-			LOG(GAMNET_ERR, "fail to create packet instance(castgroup_seq:", group_seq, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
+			std::shared_ptr<Packet> packet = Packet::Create();
+			if (nullptr == packet)
+			{
+				LOG(GAMNET_ERR, "fail to create packet instance(castgroup_seq:", group_seq, ", msg_id:", MSG::MSG_ID, ")");
+				return false;
+			}
+
+			packet->reliable = false;
+			packet->msg_seq = 0;
+
+			if (false == packet->Write(msg))
+			{
+				LOG(GAMNET_ERR, "fail to serialize message(castgroup_seq:", group_seq, ", msg_id:", MSG::MSG_ID, ")");
+				return false;
+			}
+
+			std::lock_guard<std::mutex> lo(lock);
+			for (const auto itr : sessions)
+			{
+				std::shared_ptr<Session> session = itr.second;
+				session->AsyncSend(packet);
+			}
 		}
-
-		packet->reliable = false;
-		packet->msg_seq = 0;
-
-		if (false == packet->Write(msg))
+		else 
 		{
-			LOG(GAMNET_ERR, "fail to serialize message(castgroup_seq:", group_seq, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
-		}
+			std::lock_guard<std::mutex> lo(lock);
+			for (auto itr : sessions)
+			{
+				std::shared_ptr<Session> session = itr.second;
+				std::shared_ptr<Packet> packet = Packet::Create();
+				if (nullptr == packet)
+				{
+					LOG(GAMNET_ERR, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+					return false;
+				}
 
-		std::lock_guard<std::mutex> lo(lock);
-		for (const auto itr : sessions)
-		{
-			std::shared_ptr<Session> session = itr.second;
-			session->AsyncSend(packet);
-		}
+				packet->reliable = reliable;
+				packet->msg_seq = ++session->send_seq;
 
+				if (false == packet->Write(msg))
+				{
+					LOG(GAMNET_ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
+					return false;
+				}
+
+				session->AsyncSend(packet);
+			}
+		}
 		return true;
 	}
 

@@ -12,6 +12,10 @@ class Packet : public Buffer
 {
 public :
 	static std::shared_ptr<Packet> Create();
+	static size_t PoolSize();
+	static size_t PoolAvailable();
+	static size_t PoolCapacity();
+
 	template <class MSG>
 	static bool Load(MSG& msg, std::shared_ptr<Packet> packet)
 	{
@@ -35,15 +39,11 @@ public :
 
 	struct Init
 	{
-		Packet* operator() (Packet* packet)
-		{
-			packet->Clear();
-			packet->length = 0;
-			packet->msg_seq = 0;
-			packet->msg_id = 0;
-			packet->reliable = false;
-			return packet;
-		}
+		Packet* operator() (Packet* packet);
+	};
+	struct Release
+	{
+		Packet* operator() (Packet* packet);
 	};
 
 public :
@@ -54,7 +54,7 @@ public :
 	uint32_t msg_seq;
 	uint32_t msg_id;
 	bool reliable;
-
+	
 	/*
 	 * byte stream -> Msg
 	 */
@@ -93,24 +93,7 @@ public :
 		this->write_index += length;
 		return true;
 	}
-	bool Write(uint32_t msgID, const char* buf, size_t bytes)
-	{
-		Clear();
-		length = (uint16_t)(HEADER_SIZE + bytes);
-		msg_id = msgID;
-
-		if (false == WriteHeader())
-		{
-			return false;
-		}
-
-		if(nullptr != buf && 0 < bytes)
-		{
-			std::memcpy(data + HEADER_SIZE, buf, bytes);
-		}
-		this->write_index += length;
-		return true;
-	}
+	bool Write(uint32_t msgID, const char* buf, size_t bytes);
 	bool WriteHeader();
 	bool ReadHeader();
 };

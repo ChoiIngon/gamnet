@@ -11,9 +11,12 @@
 #include <mysql.h>
 #include <string>
 #include "ResultSet.h"
+#include "../../Log/Log.h"
 
 namespace Gamnet { namespace Database {namespace MySQL {
-	class Connection {
+	class Connection : public std::enable_shared_from_this<Connection>
+	{
+		bool Reconnect();
 	public:
 		struct ConnectionInfo
 		{
@@ -22,22 +25,25 @@ namespace Gamnet { namespace Database {namespace MySQL {
 			std::string passwd_;
 			std::string db_;
 			std::string charset_;
+			int db_type_;
 			bool reconnect_;
 			unsigned int timeout_;
 			int port_;
-
-			ConnectionInfo() : charset_("utf8"), reconnect_(true), timeout_(5), port_(3306)
+			bool fail_query_log_;
+		
+			ConnectionInfo() : charset_("utf8"), db_type_(0), reconnect_(true), timeout_(5), port_(3306), fail_query_log_(false)
 			{
 			}
 		};
 		MYSQL conn_;
 		ConnectionInfo connInfo_;
-
+		Log::Logger* logger_;
 		Connection();
 		virtual ~Connection();
 
 		bool Connect(const ConnectionInfo& connInfo);
 		std::shared_ptr<ResultSetImpl> Execute(const std::string& query);
+		std::string RealEscapeString(const std::string& str);
 	};
 } } }
 

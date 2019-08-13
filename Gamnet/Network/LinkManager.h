@@ -17,7 +17,9 @@ class LinkManager
 	boost::asio::ip::tcp::acceptor _acceptor;
 	boost::asio::ip::tcp::endpoint _endpoint;
 	std::map<uint32_t, std::shared_ptr<Network::Link>> _links;
+
 	int _max_accept_size;
+	int _keep_alive_time;
 	volatile int _cur_accept_size;
 public :
 	std::string	name;
@@ -25,7 +27,7 @@ public :
 	LinkManager();
 	virtual ~LinkManager();
 
-	bool Listen(int port, int accept_queue_size);
+	bool Listen(int port, int accept_queue_size, int keep_alive_time);
 	virtual std::shared_ptr<Link> Connect(const char* host, int port, int timeout);
 
 	virtual void OnAccept(const std::shared_ptr<Link>& link) {}
@@ -39,7 +41,9 @@ public :
 	size_t Size();
 private :
 	bool Accept();
-	void Callback_Accept(const std::shared_ptr<Link>& link, const boost::system::error_code& error);
+	void Callback_Accept(const std::shared_ptr<Link> link, const boost::system::error_code& error);
+	Timer expire_timer;
+	void OnTimerExpire();
 };
 
 }} /* namespace Gamnet */

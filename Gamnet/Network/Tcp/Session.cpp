@@ -1,4 +1,5 @@
 #include "Session.h"
+#include "Link.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
@@ -27,21 +28,34 @@ bool Session::Init()
 	send_seq = 0;
 	handover_safe = false;
 	//recv_packets.clear();
-	send_packets.clear();
 	return true;
+}
+
+void Session::Clear()
+{
+	send_packets.clear();
+	Network::Session::Clear();
 }
 
 bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 {
+	if(nullptr == link)
+	{
+		LOG(WRN, "[session_key:", session_key, "] invalid link(msg_id:", packet->msg_id, ")");
+	}
 	if (true == packet->reliable)
 	{
-		this->strand.wrap([this, packet](){
-			packet->msg_seq = ++this->send_seq;
-			packet->WriteHeader();
-			if (Session::RELIABLE_PACKET_QUEUE_SIZE > send_packets.size())
+		strand.wrap([=](){
+			if (100 * Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
 			{
-				send_packets.push_back(packet);
+				if(nullptr != this->link)
+				{
+					this->link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
+				}
+
+				return;
 			}
+			send_packets.push_back(packet);
 			this->Network::Session::AsyncSend(packet);
 		})();
 		return true;

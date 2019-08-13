@@ -199,7 +199,7 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 	arrSession.erase(std::remove_if(arrSession.begin(), arrSession.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
 		if(addr.id == session->address.id)
 		{
-			LOG(GAMNET_INF, "[Router] unregister any-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->remote_address->to_string(), ")");
+			LOG(GAMNET_INF, "[Router] unregister any-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", (nullptr == session->remote_address ? "0.0.0.0" : session->remote_address->to_string()), ")");
 			return true;
 		}
 		return false;
@@ -210,14 +210,14 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 RouterCaster::RouterCaster() 
 {
 	msg_seq = 0;
-	arrCasterImpl_[ROUTER_CAST_TYPE::UNI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
-	arrCasterImpl_[ROUTER_CAST_TYPE::MULTI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
-	arrCasterImpl_[ROUTER_CAST_TYPE::ANY_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Any());
+	arrCasterImpl_[(int)ROUTER_CAST_TYPE::UNI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
+	arrCasterImpl_[(int)ROUTER_CAST_TYPE::MULTI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
+	arrCasterImpl_[(int)ROUTER_CAST_TYPE::ANY_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Any());
 }
 
 bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session> session)
 {
-	for(int i=0; i<ROUTER_CAST_TYPE::MAX; i++)
+	for(int i=0; i<(int)ROUTER_CAST_TYPE::MAX; i++)
 	{
 		if(false == arrCasterImpl_[i]->RegisterAddress(addr, session))
 		{
@@ -252,17 +252,17 @@ bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network
 		return false;
 	}
 
-	if(ROUTER_CAST_TYPE::MAX <= (int)addr.cast_type)
+	if((unsigned int)ROUTER_CAST_TYPE::MAX <= (unsigned int)addr.cast_type)
 	{
-		LOG(ERR, "cast_type:",  (int)addr.cast_type, " is undefined cast_type");
+		LOG(ERR, "cast_type:",  (unsigned int)addr.cast_type, " is undefined cast_type");
 		return false;
 	}
-	return arrCasterImpl_[(int)addr.cast_type]->SendMsg(ntf.msg_seq, network_session, addr, packet);
+	return arrCasterImpl_[(unsigned int)addr.cast_type]->SendMsg(ntf.msg_seq, network_session, addr, packet);
 }
 
 bool RouterCaster::UnregisterAddress(const Address& addr)
 {
-	for(int i=0; i<ROUTER_CAST_TYPE::MAX; i++)
+	for(int i=0; i<(int)ROUTER_CAST_TYPE::MAX; i++)
 	{
 		if(false == arrCasterImpl_[i]->UnregisterAddress(addr))
 		{
@@ -274,7 +274,7 @@ bool RouterCaster::UnregisterAddress(const Address& addr)
 
 std::shared_ptr<Session> RouterCaster::FindSession(const Address& addr)
 {
-	std::shared_ptr<RouterCasterImpl_Uni> caster_impl = std::static_pointer_cast<RouterCasterImpl_Uni>(arrCasterImpl_[ROUTER_CAST_TYPE::UNI_CAST]);
+	std::shared_ptr<RouterCasterImpl_Uni> caster_impl = std::static_pointer_cast<RouterCasterImpl_Uni>(arrCasterImpl_[(int)ROUTER_CAST_TYPE::UNI_CAST]);
 	return caster_impl->FindSession(addr);
 }
 

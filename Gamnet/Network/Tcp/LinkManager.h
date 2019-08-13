@@ -46,8 +46,8 @@ private :
 
 public :
 	SessionManager session_manager;
-	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor> session_pool;
-	Pool<Link, std::mutex, Network::Link::InitFunctor> link_pool;
+	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
+	Pool<Link, std::mutex, Network::Link::InitFunctor, Network::Link::ReleaseFunctor> link_pool;
 
 	LinkManager() : session_pool(), link_pool(65535, LinkFactory(this))
 	{
@@ -75,7 +75,7 @@ public :
 		handlers[MsgID_CliSvr_ReliableAck_Ntf] = std::bind(&LinkManager::Recv_ReliableAck_Ntf, this, std::placeholders::_1, std::placeholders::_2);
 		handlers[MsgID_CliSvr_Close_Req] = std::bind(&LinkManager::Recv_Close_Req, this, std::placeholders::_1, std::placeholders::_2);
 
-		Network::LinkManager::Listen(port, accept_queue_size);
+		Network::LinkManager::Listen(port, accept_queue_size, keep_alive_time);
 	}
 
 	virtual std::shared_ptr<Network::Link> Create() override
@@ -106,6 +106,7 @@ public :
 			try {
 				if(nullptr == session->link)
 				{
+//					LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
 					return;
 				}
 				session->OnClose(reason);
@@ -135,7 +136,7 @@ public :
 		}
 
 		OnClose(link, ErrorCode::Success);
-
+		link->session = nullptr;
 		std::shared_ptr<Packet> packet = Packet::Create();
 		if (nullptr == packet)
 		{
@@ -190,15 +191,23 @@ public :
 			return;
 		}
 	
-		session->strand.wrap([session] () {
-			std::static_pointer_cast<SESSION_T>(session)->handover_safe = false;
+		session->strand.wrap([=] () {
+			if (nullptr != session->link)
+			{
+				//					LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
+				session->OnClose(ErrorCode::Success);
+			}
+			session->AttachLink(nullptr);
+			session->OnDestroy();
+			session_manager.Remove(session->session_key);
 		})();
-		
+		/*
 		std::shared_ptr<Network::Link> link = session->link;
 		if(nullptr != link)
 		{
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 		}
+		*/
 	}
 
 	template <class FUNC, class FACTORY>
@@ -220,10 +229,14 @@ public :
 			std::shared_ptr<SESSION_T> session = session_pool.Create();
 			if(nullptr == session)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
+				session_manager.Flush();
+				session = session_pool.Create();
+				if (nullptr == session)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance(availble:", session_pool.Available(), ")");
+				}
 			}
 
-			//session->send_seq = 1;
 			link->session = session;
 
 			session_manager.Add(session->session_key, session);
@@ -416,22 +429,29 @@ public :
 
 #ifdef _DEBUG
 		Json::Value message;
-		for (auto itr : Singleton<Dispatcher<SESSION_T>>::GetInstance().mapHandlerCallStatistics_)
+		for (const auto& itr : Singleton<Dispatcher<SESSION_T>>::GetInstance().mapHandlerCallStatistics_)
 		{
+			time_t now = time(nullptr);
+			time_t delta = now - itr.second->last_check_time;
+			int finish_count = itr.second->finish_count - itr.second->last_finish_count;
+
+			if (0 < delta)
+			{
+				itr.second->tps = finish_count / delta;
+			}
+
+			itr.second->last_check_time = now;
+			itr.second->last_finish_count = itr.second->finish_count;
+			
 			Json::Value statistics;
-			statistics["msg_id"] = (unsigned int)itr.second->msg_id;
+			statistics["msg_id"] = (int)itr.second->msg_id;
 			statistics["msg_name"] = (const char*)itr.second->name;
-			statistics["begin_count"] = (unsigned int)itr.second->begin_count;
-			statistics["finish_count"] = (unsigned int)itr.second->finish_count;
-			statistics["elapsed_time"] = (unsigned int)itr.second->elapsed_time;
-			if (0 == itr.second->elapsed_time || 0 == itr.second->finish_count)
-			{
-				statistics["average_time"] = 0;
-			}
-			else
-			{
-				statistics["average_time"] = (int)(itr.second->elapsed_time / itr.second->finish_count);
-			}
+			statistics["begin_count"] = (int)itr.second->begin_count;
+			statistics["finish_count"] = (int)itr.second->finish_count;
+			statistics["elapsed_time"] = (int)itr.second->elapsed_time;
+			statistics["max_time"] = (int)itr.second->max_time;
+			statistics["tps"] = (int)itr.second->tps;
+			
 			message.append(statistics);
 		}
 		root["message"] = message;

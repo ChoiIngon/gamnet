@@ -23,7 +23,6 @@ ResultSet Transaction::Commit()
 {
 	ResultSet ret;
 	ret.impl_ = connection->Execute("EXEC");
-	ret.impl_->conn_ = connection;
 	connection = nullptr;
 	commit = true;
 	return ret;

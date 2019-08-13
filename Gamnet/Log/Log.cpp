@@ -27,7 +27,7 @@ void ReadXml(const char* xml_path)
 	int max_size = ptree_.get<int>("server.log.<xmlattr>.max_file_size");
 	Init(path.c_str(), prefix.c_str(), max_size);
 	auto log = ptree_.get_child("server.log");
-	for(auto elmt : log)
+	for(const auto& elmt : log)
 	{
 		Logger::LOG_LEVEL_TYPE level = Logger::LOG_LEVEL_MIN;
 		if("dev" == elmt.first)
