@@ -99,10 +99,6 @@ bool ResultSetImpl::StoreResult()
 
 bool ResultSetImpl::NextResult()
 {
-	if(nullptr == &conn_->conn_)
-	{
-		return false;
-	}
 	if(false == mysql_more_results(&conn_->conn_))
 	{
 		return false;
