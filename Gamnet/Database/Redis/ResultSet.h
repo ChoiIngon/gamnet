@@ -12,9 +12,8 @@ namespace Gamnet { namespace Database {	namespace Redis {
 
 	struct ResultSetImpl : public Json::Value//public std::vector<Variant> 
 	{
-	public :
-		std::shared_ptr<Connection> conn_;
 	private :
+		std::shared_ptr<Connection> conn_;
 		size_t read_index;
 		bool ParseString(Json::Value& output, const std::string& input);
 		bool ParseInt(int& output, const std::string& input);
@@ -22,7 +21,6 @@ namespace Gamnet { namespace Database {	namespace Redis {
 		bool ParseArray(Json::Value& output, const std::string& input);
 		bool Parse(Json::Value& result, const std::string& input);
 	public :
-
 		ResultSetImpl();
 		ResultSetImpl(const std::shared_ptr<Connection> conn);
 		std::string error;

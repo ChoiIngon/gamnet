@@ -5,6 +5,7 @@
 #include <thread>
 #include <vector>
 #include <list>
+#include <limits>
 
 namespace Gamnet {
 	class MT19937Wrapper {
@@ -30,7 +31,7 @@ namespace Gamnet {
 	template <class T>
 	class WeightRandom
 	{
-		const uint32_t MAX_WEIGHT_CONSTRAINT = 9999999;
+		const uint32_t MAX_WEIGHT_CONSTRAINT = std::numeric_limits<uint32_t>::max();
 		uint32_t totalWeight_;
 		std::vector<std::pair<uint32_t, T>> valWeight_;
 	public :

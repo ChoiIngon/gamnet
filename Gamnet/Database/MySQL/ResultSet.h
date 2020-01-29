@@ -30,8 +30,6 @@ namespace Gamnet { namespace Database { namespace MySQL {
 		~ResultSetImpl();
 
 		bool Execute(const std::string& query);
-		std::string RealEscapeString(const std::string& str);
-
 		bool StoreResult();
 		bool NextResult();
 	};

@@ -53,14 +53,6 @@ bool ResultSetImpl::Execute(const std::string& query)
 	return true;
 }
 
-std::string ResultSetImpl::RealEscapeString(const std::string& str)
-{
-	std::vector<char> buff(str.length() * 2 + 1);
-	unsigned long length = mysql_real_escape_string(&(conn_->conn_), &buff[0], str.c_str(), str.length());
-
-	return std::string(&buff[0], length);
-}
-
 bool ResultSetImpl::StoreResult()
 {
 	affectedRowCount_ = 0;
@@ -99,6 +91,10 @@ bool ResultSetImpl::StoreResult()
 
 bool ResultSetImpl::NextResult()
 {
+	if(nullptr == &conn_->conn_)
+	{
+		return false;
+	}
 	if(false == mysql_more_results(&conn_->conn_))
 	{
 		return false;
