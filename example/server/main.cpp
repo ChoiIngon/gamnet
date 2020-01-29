@@ -7,27 +7,8 @@ int main() {
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 	try {
-		Gamnet::Network::Tcp::Listen<Session>(20000, 8192, 600);
+		Gamnet::Network::Tcp::ReadXml<Session>("config.xml");
 		Gamnet::Network::Http::Listen(20001);
-
-		Gamnet::Network::Router::Listen("GAME", 20002,
-			[](const Gamnet::Network::Router::Address& addr) {
-				LOG(DEV, "Router::OnAccept(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
-			}, 
-			[](const Gamnet::Network::Router::Address& addr) {
-				LOG(DEV, "Router::OnClose(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
-			}
-		);
-		
-		Gamnet::Network::Router::Connect("13.124.15.7", 20002, 60,
-			[](const Gamnet::Network::Router::Address& addr) {
-				LOG(DEV, "Router::OnConnect(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
-			},
-			[](const Gamnet::Network::Router::Address& addr) {
-				LOG(DEV, "Router::OnClose(address:", addr.service_name, ":", (int)addr.cast_type, ":", addr.id, ")");
-			}
-		);
-		
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
 		Gamnet::Run(30 /*std::thread::hardware_concurrency()*/);
 	}

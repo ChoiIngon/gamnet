@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Handler_HeartBeat.cpp" />
+    <ClCompile Include="Handler_Http_ServerState.cpp" />
+    <ClCompile Include="Handler_Login.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Manager_Session.cpp" />
+    <ClCompile Include="Session.cpp" />
+    <ClCompile Include="Handler_JoinChannel.cpp" />
+    <ClCompile Include="Manager_CastGroup.cpp" />
+    <ClCompile Include="Handler_SendMessage.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Handler_HeartBeat.h" />
+    <ClInclude Include="Handler_Http_ServerState.h" />
+    <ClInclude Include="Handler_Login.h" />
+    <ClInclude Include="Manager_Session.h" />
+    <ClInclude Include="Session.h" />
+    <ClInclude Include="Handler_JoinChannel.h" />
+    <ClInclude Include="Manager_CastGroup.h" />
+    <ClInclude Include="Handler_SendMessage.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="IDL">
+      <UniqueIdentifier>{867cfdbb-076a-45f9-97fc-cdd743e615b5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\message.idl">
+      <Filter>IDL</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="..\idl\data.idl">
+      <Filter>IDL</Filter>
+    </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config.xml" />
+  </ItemGroup>
+</Project>

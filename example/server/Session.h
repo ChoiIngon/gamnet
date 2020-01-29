@@ -24,6 +24,8 @@ public:
 	uint32_t ack_seq;
 
 	//void Reconnect();
+
+	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> cast_group;
 };
 
 class TestSession : public Gamnet::Test::Session {

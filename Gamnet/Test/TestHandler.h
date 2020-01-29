@@ -95,7 +95,9 @@ namespace Gamnet { namespace Test {
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
+				LOG(ERR, "can not create packet");
+				session->link->strand.wrap(std::bind(&Network::Link::Close, session->link, ErrorCode::NullPacketError))();
+				return;
 			}
 
 			Json::Value ntf;

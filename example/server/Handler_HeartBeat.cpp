@@ -33,13 +33,13 @@ void Handler_HeartBeat::Recv_Ntf(const std::shared_ptr<Session>& session, const 
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		MsgSvrCli_Kickout_Ntf ntfToCli;
-		ntfToCli.error_code = e.error_code();
-		Gamnet::Network::Tcp::SendMsg(session, ntfToCli);
+		ntfToCli.error_code = (ErrorCode)e.error_code();
+		Gamnet::Network::Tcp::SendMsg(session, ntfToCli, true);
 	}
 	MsgSvrCli_HeartBeat_Ntf ntfToCli;
 	ntfToCli.msg_seq = session->ack_seq;
 	LOG(DEV, "MsgSvrCli_HeartBeat_Ntf(session_key:", session->session_key, ", msg_seq:", ntfToCli.msg_seq, ")");
-	Gamnet::Network::Tcp::SendMsg(session, ntfToCli);
+	Gamnet::Network::Tcp::SendMsg(session, ntfToCli, true);
 }
 
 GAMNET_BIND_TCP_HANDLER(

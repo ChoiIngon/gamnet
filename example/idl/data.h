@@ -6,98 +6,105 @@
 #include <map>
 #include <cstring>
 #include <stdint.h>
-struct ErrorCode {
-	enum TYPE {
-			Success = 0,
-			MessageFormatError = 1000,
-			MessageSeqOmmitError = 1001,
-			InvalidUserError = 2000,
-			InvalidAccessTokenError = 2001,
-			DuplicateConnectionError = 3000,
-			ReconnectTimeoutError = 4000,
-			ResponseTimeoutError = 4001,
-			AlreadyLoginSessionError = 5000,
-	};
-	TYPE type;
-	ErrorCode() : type(Success) {}
-	ErrorCode(int obj) : type((TYPE)obj) {} 
-	ErrorCode(TYPE obj) : type(obj) {}
-	operator TYPE() const { return type; }
-	operator int() const { return (int)type; }
-	ErrorCode& operator = (const TYPE& type) { this->type = type; return *this; }
-	bool operator == (const ErrorCode& obj) { return type == obj.type; }
-	bool operator == (ErrorCode::TYPE type) { return this->type == type; }
-	bool operator == (int value) { return this->type == value; }
-	bool operator != (const ErrorCode& obj) { return type != obj.type; }
-	bool operator != (ErrorCode::TYPE type) { return this->type != type; }
-	bool operator != (int value) { return this->type != value; }
-	bool operator < (const ErrorCode& obj) { return type < obj.type; }
-	bool operator < (ErrorCode::TYPE type) { return this->type < type; }
-	bool operator < (int value) { return this->type < value; }
-	bool operator > (const ErrorCode& obj) { return type > obj.type; }
-	bool operator > (ErrorCode::TYPE type) { return this->type > type; }
-	bool operator > (int value) { return this->type > value; }
-	bool operator <= (const ErrorCode& obj) { return type <= obj.type; }
-	bool operator <= (ErrorCode::TYPE type) { return this->type <= type; }
-	bool operator <= (int value) { return this->type <= value; }
-	bool operator >= (const ErrorCode& obj) { return type >= obj.type; }
-	bool operator >= (ErrorCode::TYPE type) { return this->type >= type; }
-	bool operator >= (int value) { return this->type >= value; }
+enum class ErrorCode {
+	Success = 0,
+	MessageFormatError = 1000,
+	MessageSeqOmmitError = 1001,
+	InvalidUserError = 2000,
+	InvalidAccessTokenError = 2001,
+	DuplicateConnectionError = 3000,
+	ReconnectTimeoutError = 4000,
+	ResponseTimeoutError = 4001,
+	AlreadyLoginSessionError = 5000,
+	CanNotCreateCastGroup = 5001,
 }; // ErrorCode
+template <class T> const std::string& ToString(T);
+template <> inline const std::string& ToString<ErrorCode>(ErrorCode e) { 
+	static const std::map<ErrorCode, std::string> table = {
+		{ ErrorCode::Success, "Success"},
+		{ ErrorCode::MessageFormatError, "MessageFormatError"},
+		{ ErrorCode::MessageSeqOmmitError, "MessageSeqOmmitError"},
+		{ ErrorCode::InvalidUserError, "InvalidUserError"},
+		{ ErrorCode::InvalidAccessTokenError, "InvalidAccessTokenError"},
+		{ ErrorCode::DuplicateConnectionError, "DuplicateConnectionError"},
+		{ ErrorCode::ReconnectTimeoutError, "ReconnectTimeoutError"},
+		{ ErrorCode::ResponseTimeoutError, "ResponseTimeoutError"},
+		{ ErrorCode::AlreadyLoginSessionError, "AlreadyLoginSessionError"},
+		{ ErrorCode::CanNotCreateCastGroup, "CanNotCreateCastGroup"},
+	};
+	auto itr = table.find(e); 
+	if(table.end() == itr) { throw std::runtime_error("ToString<ErrorCode>()"); }
+	return itr->second;
+}
+template<class T> T Parse(const std::string&);
+template <> inline ErrorCode Parse<ErrorCode>(const std::string& s) {
+	static const std::map<std::string, ErrorCode> table = {
+		{ "Success", ErrorCode::Success},
+		{ "MessageFormatError", ErrorCode::MessageFormatError},
+		{ "MessageSeqOmmitError", ErrorCode::MessageSeqOmmitError},
+		{ "InvalidUserError", ErrorCode::InvalidUserError},
+		{ "InvalidAccessTokenError", ErrorCode::InvalidAccessTokenError},
+		{ "DuplicateConnectionError", ErrorCode::DuplicateConnectionError},
+		{ "ReconnectTimeoutError", ErrorCode::ReconnectTimeoutError},
+		{ "ResponseTimeoutError", ErrorCode::ResponseTimeoutError},
+		{ "AlreadyLoginSessionError", ErrorCode::AlreadyLoginSessionError},
+		{ "CanNotCreateCastGroup", ErrorCode::CanNotCreateCastGroup},
+	};
+	auto itr = table.find(s); 
+	if(table.end() == itr) { throw std::runtime_error("Parse<ErrorCode>()"); }
+	return itr->second;
+}
 struct ErrorCode_Serializer {
 	static bool Store(char** _buf_, const ErrorCode& obj) { 
-		(*(ErrorCode::TYPE*)(*_buf_)) = obj.type;	(*_buf_) += sizeof(ErrorCode::TYPE);
+		(*(ErrorCode*)(*_buf_)) = obj;	(*_buf_) += sizeof(ErrorCode);
 		return true;
 	}
 	static bool Load(ErrorCode& obj, const char** _buf_, size_t& nSize) { 
-		if(sizeof(ErrorCode::TYPE) > nSize) { return false; }		std::memcpy(&obj.type, *_buf_, sizeof(ErrorCode::TYPE));		(*_buf_) += sizeof(ErrorCode::TYPE); nSize -= sizeof(ErrorCode::TYPE);
+		if(sizeof(ErrorCode) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(ErrorCode));		(*_buf_) += sizeof(ErrorCode); nSize -= sizeof(ErrorCode);
 		return true;
 	}
-	static size_t Size(const ErrorCode& obj) { return sizeof(ErrorCode::TYPE); }
+	static size_t Size(const ErrorCode& obj) { return sizeof(ErrorCode); }
 };
-struct ItemType {
-	enum TYPE {
-			Invalid,
-			Weapon,
-			Armor,
-			Potion,
-	};
-	TYPE type;
-	ItemType() : type(Invalid) {}
-	ItemType(int obj) : type((TYPE)obj) {} 
-	ItemType(TYPE obj) : type(obj) {}
-	operator TYPE() const { return type; }
-	operator int() const { return (int)type; }
-	ItemType& operator = (const TYPE& type) { this->type = type; return *this; }
-	bool operator == (const ItemType& obj) { return type == obj.type; }
-	bool operator == (ItemType::TYPE type) { return this->type == type; }
-	bool operator == (int value) { return this->type == value; }
-	bool operator != (const ItemType& obj) { return type != obj.type; }
-	bool operator != (ItemType::TYPE type) { return this->type != type; }
-	bool operator != (int value) { return this->type != value; }
-	bool operator < (const ItemType& obj) { return type < obj.type; }
-	bool operator < (ItemType::TYPE type) { return this->type < type; }
-	bool operator < (int value) { return this->type < value; }
-	bool operator > (const ItemType& obj) { return type > obj.type; }
-	bool operator > (ItemType::TYPE type) { return this->type > type; }
-	bool operator > (int value) { return this->type > value; }
-	bool operator <= (const ItemType& obj) { return type <= obj.type; }
-	bool operator <= (ItemType::TYPE type) { return this->type <= type; }
-	bool operator <= (int value) { return this->type <= value; }
-	bool operator >= (const ItemType& obj) { return type >= obj.type; }
-	bool operator >= (ItemType::TYPE type) { return this->type >= type; }
-	bool operator >= (int value) { return this->type >= value; }
+enum class ItemType {
+	Invalid,
+	Weapon,
+	Armor,
+	Potion,
 }; // ItemType
+template <class T> const std::string& ToString(T);
+template <> inline const std::string& ToString<ItemType>(ItemType e) { 
+	static const std::map<ItemType, std::string> table = {
+		{ ItemType::Invalid, "Invalid"},
+		{ ItemType::Weapon, "Weapon"},
+		{ ItemType::Armor, "Armor"},
+		{ ItemType::Potion, "Potion"},
+	};
+	auto itr = table.find(e); 
+	if(table.end() == itr) { throw std::runtime_error("ToString<ItemType>()"); }
+	return itr->second;
+}
+template<class T> T Parse(const std::string&);
+template <> inline ItemType Parse<ItemType>(const std::string& s) {
+	static const std::map<std::string, ItemType> table = {
+		{ "Invalid", ItemType::Invalid},
+		{ "Weapon", ItemType::Weapon},
+		{ "Armor", ItemType::Armor},
+		{ "Potion", ItemType::Potion},
+	};
+	auto itr = table.find(s); 
+	if(table.end() == itr) { throw std::runtime_error("Parse<ItemType>()"); }
+	return itr->second;
+}
 struct ItemType_Serializer {
 	static bool Store(char** _buf_, const ItemType& obj) { 
-		(*(ItemType::TYPE*)(*_buf_)) = obj.type;	(*_buf_) += sizeof(ItemType::TYPE);
+		(*(ItemType*)(*_buf_)) = obj;	(*_buf_) += sizeof(ItemType);
 		return true;
 	}
 	static bool Load(ItemType& obj, const char** _buf_, size_t& nSize) { 
-		if(sizeof(ItemType::TYPE) > nSize) { return false; }		std::memcpy(&obj.type, *_buf_, sizeof(ItemType::TYPE));		(*_buf_) += sizeof(ItemType::TYPE); nSize -= sizeof(ItemType::TYPE);
+		if(sizeof(ItemType) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(ItemType));		(*_buf_) += sizeof(ItemType); nSize -= sizeof(ItemType);
 		return true;
 	}
-	static size_t Size(const ItemType& obj) { return sizeof(ItemType::TYPE); }
+	static size_t Size(const ItemType& obj) { return sizeof(ItemType); }
 };
 struct ItemData {
 	std::string	item_id;

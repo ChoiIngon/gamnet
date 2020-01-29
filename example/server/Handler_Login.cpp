@@ -39,7 +39,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 			MsgSvrCli_Kickout_Ntf ntf;
 			ntf.error_code = ErrorCode::DuplicateConnectionError;
 			LOG(DEV, "MsgSvrCli_Kickout_Ntf(session_key:", otherSession->session_key, ")");
-			Gamnet::Network::Tcp::SendMsg(otherSession, ntf);
+			Gamnet::Network::Tcp::SendMsg(otherSession, ntf, true);
 			otherSession->user_data.user_seq = 0;
 		}
 		
@@ -64,7 +64,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 		ans.error_code = (ErrorCode)e.error_code();
 	}
 	LOG(DEV, "MsgSvrCli_Login_Ans(session_key:", session->session_key, ", user_seq:", ans.user_data.user_seq, ", error_code:", (int)ans.error_code, ")");
-	Gamnet::Network::Tcp::SendMsg(session, ans);
+	Gamnet::Network::Tcp::SendMsg(session, ans, true);
 }
 
 GAMNET_BIND_TCP_HANDLER(

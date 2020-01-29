@@ -91,7 +91,7 @@
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>x64/Debug;C:\Program Files\MySQL\MySQL Connector C 6.1\lib;C:\local\OpenSSL-Win64\lib;C:\local\curl-7.43.0-win64\lib;C:\local\boost_1_64_0\lib64-msvc-14.1;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../x64/Debug;C:\Program Files\MySQL\MySQL Connector C 6.1\lib;C:\local\OpenSSL-Win64\lib;C:\local\curl-7.43.0-win64\lib;C:\local\boost_1_64_0\lib64-msvc-14.1;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Gamnet.lib;ssleay32.lib;libeay32.lib;libcurl.lib;libmysql.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -124,24 +124,40 @@
   <ItemGroup>
     <ClCompile Include="Handler_HeartBeat.cpp" />
     <ClCompile Include="Handler_Http_ServerState.cpp" />
+    <ClCompile Include="Handler_JoinChannel.cpp" />
     <ClCompile Include="Handler_Login.cpp" />
+    <ClCompile Include="Handler_SendMessage.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Manager_CastGroup.cpp" />
     <ClCompile Include="Manager_Session.cpp" />
     <ClCompile Include="Session.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Handler_HeartBeat.h" />
     <ClInclude Include="Handler_Http_ServerState.h" />
+    <ClInclude Include="Handler_JoinChannel.h" />
     <ClInclude Include="Handler_Login.h" />
+    <ClInclude Include="Handler_SendMessage.h" />
+    <ClInclude Include="Manager_CastGroup.h" />
     <ClInclude Include="Manager_Session.h" />
     <ClInclude Include="Session.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\idl\message.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">x64\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Message>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\data.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

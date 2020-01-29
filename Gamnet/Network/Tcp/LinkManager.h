@@ -225,7 +225,7 @@ public :
 
 		try 
 		{
-			LOG(DEV, "[link_key:", link->link_key, "]");	
+			//LOG(DEV, "[link_key:", link->link_key, "]");	
 			std::shared_ptr<SESSION_T> session = session_pool.Create();
 			if(nullptr == session)
 			{
@@ -256,7 +256,7 @@ public :
 			
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
-			LOG(DEV, "[link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
+			//LOG(DEV, "[link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
 		}
 		catch (const Exception& e)
 		{
@@ -294,7 +294,7 @@ public :
 			uint32_t session_key = req["session_key"].asUInt();
 			const std::string session_token = req["session_token"].asString();
 				
-			LOG(DEV, "[link_key:", link->link_key, "] session_key:", session_key, ", session_token:", session_token);	
+			//LOG(DEV, "[link_key:", link->link_key, "] session_key:", session_key, ", session_token:", session_token);	
 			const std::shared_ptr<SESSION_T> session = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
 			if (nullptr == session)
 			{
@@ -338,7 +338,7 @@ public :
 			ans["error_code"] = e.error_code();
 		}
 
-		LOG(DEV, "[link_key:", link->link_key, "] error_code:", ans["error_code"].asUInt());
+		//LOG(DEV, "[link_key:", link->link_key, "] error_code:", ans["error_code"].asUInt());
 		Json::FastWriter writer;
 		std::string str = writer.write(ans);
 
