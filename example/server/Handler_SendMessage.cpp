@@ -55,17 +55,17 @@ void Test_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, const std
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
-	if(100 > ntfSvrCli.msg_seq)
+	if(100 < ntfSvrCli.msg_seq)
 	{
-		MsgCliSvr_SendMessage_Ntf ntfCliSvr;
-		ntfCliSvr.msg_seq = session->send_seq;
-		Gamnet::Test::SendMsg(session, ntfCliSvr);
+		session->Next();
+		return;
 	}
-	else
-	{
-	}
+
+	MsgCliSvr_SendMessage_Ntf ntfCliSvr;
+	ntfCliSvr.msg_seq = session->send_seq;
+	Gamnet::Test::SendMsg(session, ntfCliSvr);
 }
 
-GAMNET_BIND_TEST_GLOBAL_HANDLER(
+GAMNET_BIND_TEST_RECV_HANDLER(
 	TestSession, MsgSvrCli_SendMessage_Ntf, Test_SendMessage_Ntf
 );

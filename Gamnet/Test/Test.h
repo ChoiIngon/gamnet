@@ -19,18 +19,18 @@ namespace Gamnet { namespace Test {
 	void Run(int thread_count);
 	void RegisterRun(std::function<void()> runFunctor);
 
-	template<class SESSION_T, class NTF_T>
-	bool RegisterHandler(const std::string& test_name, typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	template<class SESSION_T, class REQ_T, class ANS_T>
+	bool BindHandler(const std::string& test_name, typename LinkManager<SESSION_T>::SEND_HANDLER_TYPE send, typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
-		Singleton<LinkManager<SESSION_T>>::GetInstance().RegisterRecvHandler(test_name, NTF_T::MSG_ID, recv, 0);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().BindSendHandler(test_name, send);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().BindRecvHandler(test_name, ANS_T::MSG_ID, recv);
 		return true;
 	}
 
-	template<class SESSION_T, class REQ_T, class ANS_T>
-	bool RegisterHandler(const std::string& test_name, typename LinkManager<SESSION_T>::SEND_HANDLER_TYPE send, typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	template<class SESSION_T, class MSG_T>
+	bool BindRecvHandler(typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
-		Singleton<LinkManager<SESSION_T>>::GetInstance().RegisterSendHandler(test_name, send);
-		Singleton<LinkManager<SESSION_T>>::GetInstance().RegisterRecvHandler(test_name, ANS_T::MSG_ID, recv, 1);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().BindGlobalRecvHandler(MSG_T::MSG_ID, recv);
 		return true;
 	}
 
@@ -44,7 +44,7 @@ namespace Gamnet { namespace Test {
 			return false;			
 		}
 
-		//packet->msg_seq = ++session->send_seq;
+		packet->msg_seq = ++session->send_seq;
 		packet->reliable = false;
 		if (false == packet->Write(msg))
 		{
@@ -85,15 +85,15 @@ namespace Gamnet { namespace Test {
 }}
 
 #define GAMNET_BIND_TEST_HANDLER(session_type, test_name, send_msg_type, recv_msg_type, send_func, recv_func) \
-	static bool Test_##send_msg_type##_##send_func##_##__LINE__ = Gamnet::Test::RegisterHandler<session_type, send_msg_type, recv_msg_type>( \
+	static bool Test_##send_msg_type##_##send_func##_##__LINE__ = Gamnet::Test::BindHandler<session_type, send_msg_type, recv_msg_type>( \
 			test_name, \
 			&send_func, &recv_func \
 	)
 
-#define GAMNET_BIND_TEST_NTF_HANDLER(session_type, test_name, msg_type, recv_func) \
-	static bool Test_##msg_type##_##func = Gamnet::Test::RegisterHandler<session_type, msg_type>(test_name, &recv_func)
+#define GAMNET_BIND_TEST_SEND_HANDLER(session_type, test_name, send_msg_type, send_func) \
+	static bool Test_##send_msg_type##_##send_func##_##__LINE__ = false;
 
-#define GAMNET_BIND_TEST_GLOBAL_HANDLER(session_type, msg_type, recv_func) \
-	static bool Test_##msg_type##_##func = Gamnet::Test::RegisterHandler<session_type, msg_type>("__connect__", &recv_func)
+#define GAMNET_BIND_TEST_RECV_HANDLER(session_type, msg_type, recv_func) \
+	static bool Test_##msg_type##_##func = Gamnet::Test::BindRecvHandler<session_type, msg_type>(&recv_func)
 
 #endif /* TEST_H_ */

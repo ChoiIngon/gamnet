@@ -26,7 +26,7 @@ namespace Gamnet {	namespace Test {
 		struct RecvHandlerInfo
 		{
 			uint32_t msg_id;
-			int increase_test_seq; // 1
+			//int increase_test_seq; // 1
 			RECV_HANDLER_TYPE recv_handler;
 		};
 
@@ -38,17 +38,19 @@ namespace Gamnet {	namespace Test {
 				execute_count = 0;
 				except_count = 0;
 				elapsed_time = 0;
+				repeat_count = 0;
 			}
 			std::string name;
 			std::atomic_uint execute_count;
 			std::atomic_uint except_count;
 			uint64_t elapsed_time;
+			int repeat_count;
 			SEND_HANDLER_TYPE send_handler;
 			std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> recv_handlers;
 		};
 
 		std::map<std::string, std::shared_ptr<TestExecuteInfo>>	execute_infos;
-		std::map<std::string, std::list<std::shared_ptr<RecvHandlerInfo>>> 	recv_handlers;
+		std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> 	global_recv_handlers;
 
 		Log::Logger	log;
 		Timer 		log_timer;
@@ -70,26 +72,12 @@ namespace Gamnet {	namespace Test {
 		{
 			this->name = "Gamnet::Test::LinkManager";
 
-			RegisterSendHandler("__connect__", 
-				std::bind(&TestHandler<SESSION_T>::Send_Connect_Req, &test_handler, std::placeholders::_1)
-			);
-			RegisterRecvHandler("__connect__", 
-				(uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, 
-				std::bind(&TestHandler<SESSION_T>::Recv_Connect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 
-				1
-			);
-			RegisterRecvHandler("__connect__", 
-				(uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, 
-				std::bind(&TestHandler<SESSION_T>::Recv_Reconnect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 
-				1
-			);
-			RegisterSendHandler("__close__", 
-				std::bind(&TestHandler<SESSION_T>::Send_Close_Req, &test_handler, std::placeholders::_1)
-			);
-			RegisterRecvHandler("__close__", 
-				(uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Close_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2), 
-				1
-			);
+			BindSendHandler("__connect__", std::bind(&TestHandler<SESSION_T>::Send_Connect_Req, &test_handler, std::placeholders::_1));
+			BindRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Connect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
+			BindRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Reconnect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
+
+			BindSendHandler("__close__", std::bind(&TestHandler<SESSION_T>::Send_Close_Req, &test_handler, std::placeholders::_1));
+			BindRecvHandler("__close__", (uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Close_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
 		}
 
 		virtual ~LinkManager()
@@ -253,25 +241,26 @@ namespace Gamnet {	namespace Test {
 			session->strand.wrap([=]() {
 				if (session->test_seq < (int)this->execute_order.size())
 				{
-					bool is_global_handler = false;
-
-					const std::shared_ptr<TestExecuteInfo>& execute_info = this->execute_order[session->test_seq];
+					const std::shared_ptr<TestExecuteInfo> execute_info = this->execute_order[session->test_seq];
 					auto itr = execute_info->recv_handlers.find(packet->msg_id);
-					if (execute_info->recv_handlers.end() == itr)
+					if(execute_info->recv_handlers.end() != itr)
 					{
-						itr = this->execute_order[0]->recv_handlers.find(packet->msg_id);
-						if (this->execute_order[0]->recv_handlers.end() == itr)
+						execute_info->elapsed_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - session->send_time).count();
+					}
+					else
+					{
+						itr = global_recv_handlers.find(packet->msg_id);
+						if (global_recv_handlers.end() == itr)
 						{
 							LOG(GAMNET_WRN, "can't find handler function(msg_id:", packet->msg_id, ")");
 							link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::InvalidHandlerError))();
 							return;
 						}
-
-						is_global_handler = true;
 					}
 
 					RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
 					try {
+						session->is_pause = true;
 						handler(session, packet);
 						if(session->recv_seq < packet->msg_seq)
 						{
@@ -290,16 +279,8 @@ namespace Gamnet {	namespace Test {
 						this->test_handler.Send_ReliableAck_Ntf(session);
 					}
 
-					if (false == is_global_handler)
+					if (false == session->is_pause)
 					{
-						auto now = std::chrono::steady_clock::now();
-						execute_info->elapsed_time += std::chrono::duration_cast<std::chrono::milliseconds>(now - session->send_time).count();
-						session->send_time = now;
-					}
-
-					if (false == session->is_pause && 0 < itr->second->increase_test_seq)
-					{
-						session->test_seq += itr->second->increase_test_seq;
 						if (session->test_seq >= (int)this->execute_order.size())
 						{
 							this->test_handler.Send_Close_Req(session);
@@ -324,7 +305,7 @@ namespace Gamnet {	namespace Test {
 			})();
 		}
 
-		void RegisterSendHandler(const std::string& test_name, SEND_HANDLER_TYPE send)
+		void BindSendHandler(const std::string& test_name, SEND_HANDLER_TYPE send)
 		{
 			std::shared_ptr<TestExecuteInfo> executeInfo = std::shared_ptr<TestExecuteInfo>(new TestExecuteInfo());
 			executeInfo->name = test_name;
@@ -335,14 +316,33 @@ namespace Gamnet {	namespace Test {
 			}
 		}
 
-		void RegisterRecvHandler(const std::string& test_name, uint32_t msgID, RECV_HANDLER_TYPE recv, int increaseTestSEQ = 1)
+		void BindRecvHandler(const std::string& test_name, uint32_t msgID, RECV_HANDLER_TYPE recv)
 		{
 			std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
 			recvHandlerInfo->msg_id = msgID;
-			recvHandlerInfo->increase_test_seq = increaseTestSEQ;
 			recvHandlerInfo->recv_handler = recv;
-			std::list<std::shared_ptr<RecvHandlerInfo>>& lstRecvHandlerInfos = recv_handlers[test_name];
-			lstRecvHandlerInfos.push_back(recvHandlerInfo);
+
+			auto itr = execute_infos.find(test_name);
+			if(execute_infos.end() == itr)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "can't find registered test case execute info(test_name:", test_name, ")");
+			}
+			std::shared_ptr<TestExecuteInfo> executeInfo = itr->second;
+			if(false == executeInfo->recv_handlers.insert(std::make_pair(msgID, recvHandlerInfo)).second)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated recv msg id(test_name:", test_name, ", msg_id:", msgID, ")");
+			}
+		}
+
+		void BindGlobalRecvHandler(uint32_t msgID, RECV_HANDLER_TYPE recv)
+		{
+			std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
+			recvHandlerInfo->msg_id = msgID;
+			recvHandlerInfo->recv_handler = recv;
+			if(false == global_recv_handlers.insert(std::make_pair(msgID, recvHandlerInfo)).second)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated global recv msg id(msg_id:", msgID, ")");
+			}
 		}
 
 		void RegisterTestcase(const std::string& test_name, bool tail = true)
@@ -352,19 +352,8 @@ namespace Gamnet {	namespace Test {
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "can't find registered test case execute info(test_name:", test_name, ")");
 			}
-			const std::shared_ptr<TestExecuteInfo>& info = itr_execute_info->second;
-
-			auto itr_recv_handlers = recv_handlers.find(test_name);
-			if (recv_handlers.end() == itr_recv_handlers)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "can't find registered test case recv handler(test_name:", test_name, ")");
-			}
-
-			for (const std::shared_ptr<RecvHandlerInfo> recv_handler : itr_recv_handlers->second)
-			{
-				info->recv_handlers[recv_handler->msg_id] = recv_handler;
-			}
-
+			
+			std::shared_ptr<TestExecuteInfo> info = itr_execute_info->second;
 			if(true == tail)
 			{
 				execute_order.push_back(info);

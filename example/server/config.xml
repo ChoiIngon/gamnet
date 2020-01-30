@@ -17,9 +17,7 @@
   <tcp port="20000" max_count="8000" keep_alive="300"/>
   <router name="LT_GAME" host="127.0.0.1" port="43334"/>
   
-  <test host="127.0.0.1" port="20000" session_count="10" loop_count="1" interval="1000">
+  <test host="127.0.0.1" port="20000" session_count="4" loop_count="1" interval="1000">
 		<message name="Test_JoinChannel"/>
-    <message name="Test_SendMessage" repeat="100"/>
-    <message name="Test_LeaveChannel"/>
 	</test>
 </server>

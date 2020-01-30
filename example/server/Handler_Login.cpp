@@ -104,9 +104,10 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 
 	//session->Reconnect();
 }
-
+/*
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_Login",
 	MsgCliSvr_Login_Req, MsgSvrCli_Login_Ans,
 	Test_Login_Req, Test_Login_Ans
 );
+*/

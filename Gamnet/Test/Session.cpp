@@ -23,6 +23,7 @@ void CreateThreadPool(int threadCount)
 
 Session::Session() : 
 	Network::Tcp::Session(io_service_), 
+	repeat_count(0),
 	server_session_key(0),
 	server_session_token(""),
 	test_seq(-1), 
@@ -40,6 +41,7 @@ bool Session::Init()
 	{
 		return false;
 	}
+	repeat_count = 0;
 	server_session_key = 0;
 	server_session_token = "";
 	test_seq = 0;
@@ -49,9 +51,11 @@ bool Session::Init()
 	return true;
 }
 
-void Session::Pause()
+void Session::Pause(int millisecond)
 {
 	is_pause = true;
+	timer.SetTimer(millisecond, [] () {
+	});
 }
 
 void Session::Resume()
@@ -59,4 +63,9 @@ void Session::Resume()
 	is_pause = false;
 }
 
+void Session::Next()
+{
+	test_seq++;
+	is_pause = false;
+}
 }}/* namespace Gamnet */

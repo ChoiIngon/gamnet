@@ -71,8 +71,10 @@ void Test_SvrCli_HeartBeat_Ntf(const std::shared_ptr<TestSession>& session, cons
 	}
 }
 
+/*
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_HeartBeat",
 	MsgCliSvr_HeartBeat_Ntf, MsgSvrCli_HeartBeat_Ntf,
 	Test_CliSvr_HeartBeat_Ntf, Test_SvrCli_HeartBeat_Ntf
 );
+*/

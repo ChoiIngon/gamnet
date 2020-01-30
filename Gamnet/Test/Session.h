@@ -9,12 +9,14 @@ void CreateThreadPool(int threadCount);
 
 class Session : public Network::Tcp::Session {
 public:
+	int repeat_count;
 	uint32_t server_session_key;
 	std::string server_session_token;
 	int test_seq;
 	bool is_pause;
 	bool is_connected;
 	std::chrono::time_point<std::chrono::steady_clock> send_time;
+	Timer timer;
 
 	Session();
 	virtual ~Session();
@@ -25,8 +27,9 @@ public:
 	virtual void OnClose(int reason) override {}
 
 	bool Init() override;
-	void Pause();
+	void Pause(int millisecond);
 	void Resume();
+	void Next();
 };
 
 }} /* namespace Gamnet */

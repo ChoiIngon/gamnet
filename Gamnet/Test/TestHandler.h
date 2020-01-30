@@ -41,6 +41,7 @@ namespace Gamnet { namespace Test {
 			session->server_session_token = ans["session_token"].asString();
 			session->is_connected = true;
 			session->OnConnect();
+			session->Next();
 		}
 
 		void Send_Reconnect_Req(const std::shared_ptr<SESSION_T>& session)
@@ -88,6 +89,7 @@ namespace Gamnet { namespace Test {
 			session->is_connected = true;
 			session->OnConnect();
 			session->Resume();
+			session->Next();
 		}
 
 		void Send_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session)

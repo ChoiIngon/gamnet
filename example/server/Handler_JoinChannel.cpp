@@ -79,8 +79,13 @@ GAMNET_BIND_TEST_HANDLER(
 	Test_JoinChannel_Req, Test_JoinChannel_Ans
 );
 
+GAMNET_BIND_TEST_RECV_HANDLER(
+	TestSession, MsgSvrCli_JoinChannel_Ans, Test_JoinChannel_Ans
+);
+
 void Test_JoinChannel_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
+	int memberCount = 0;
 	{
 		MsgSvrCli_JoinChannel_Ntf ntf;
 		try {
@@ -88,19 +93,20 @@ void Test_JoinChannel_Ntf(const std::shared_ptr<TestSession>& session, const std
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 			}
+			memberCount = ntf.session_count;
 		}
 		catch (const Gamnet::Exception& e) {
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
 	}
+	if(4 <= memberCount)
 	{
-		session->Pause();
 		MsgCliSvr_SendMessage_Ntf ntf;
 		ntf.msg_seq = session->send_seq;
 		Gamnet::Test::SendMsg(session, ntf);
 	}
 }
 
-GAMNET_BIND_TEST_GLOBAL_HANDLER(
+GAMNET_BIND_TEST_RECV_HANDLER(
 	TestSession, MsgSvrCli_JoinChannel_Ntf,	Test_JoinChannel_Ntf
 );
