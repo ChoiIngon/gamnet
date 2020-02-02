@@ -43,10 +43,11 @@ bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 	{
 		LOG(WRN, "[session_key:", session_key, "] invalid link(msg_id:", packet->msg_id, ")");
 	}
+
 	if (true == packet->reliable)
 	{
 		strand.wrap([=](){
-			if (100 * Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
+			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
 			{
 				if(nullptr != this->link)
 				{

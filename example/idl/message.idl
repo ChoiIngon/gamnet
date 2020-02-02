@@ -6,12 +6,12 @@
 using data;
 %%
 
-message MsgCliSvr_Login_Req	:		00000001
+message MsgCliSvr_Login_Req	:		00000010
 {
 	string user_id;
 };
 
-message MsgSvrCli_Login_Ans :		00000001
+message MsgSvrCli_Login_Ans :		00000010
 {
 	ErrorCode error_code;
 	UserData user_data;

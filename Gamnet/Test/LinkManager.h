@@ -23,13 +23,6 @@ namespace Gamnet {	namespace Test {
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
 		
 	private:
-		struct RecvHandlerInfo
-		{
-			uint32_t msg_id;
-			//int increase_test_seq; // 1
-			RECV_HANDLER_TYPE recv_handler;
-		};
-
 		struct TestExecuteInfo
 		{
 			TestExecuteInfo()
@@ -46,11 +39,11 @@ namespace Gamnet {	namespace Test {
 			uint64_t elapsed_time;
 			int repeat_count;
 			SEND_HANDLER_TYPE send_handler;
-			std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> recv_handlers;
+			std::map<uint32_t, RECV_HANDLER_TYPE> recv_handlers;
 		};
 
 		std::map<std::string, std::shared_ptr<TestExecuteInfo>>	execute_infos;
-		std::map<uint32_t, std::shared_ptr<RecvHandlerInfo>> 	global_recv_handlers;
+		std::map<uint32_t, RECV_HANDLER_TYPE> 	global_recv_handlers;
 
 		Log::Logger	log;
 		Timer 		log_timer;
@@ -189,6 +182,7 @@ namespace Gamnet {	namespace Test {
 
 		virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 		{
+			finish_execute_count += 1;
 			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 			if (nullptr == session)
 			{
@@ -215,8 +209,8 @@ namespace Gamnet {	namespace Test {
 					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 				}
 			})();
-			
-			if(max_execute_count > ++finish_execute_count)
+
+			if (max_execute_count > begin_execute_count)
 			{
 				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
 				if (nullptr == link)
@@ -258,7 +252,7 @@ namespace Gamnet {	namespace Test {
 						}
 					}
 
-					RECV_HANDLER_TYPE& handler = itr->second->recv_handler;
+					RECV_HANDLER_TYPE& handler = itr->second;
 					try {
 						session->is_pause = true;
 						handler(session, packet);
@@ -283,7 +277,8 @@ namespace Gamnet {	namespace Test {
 					{
 						if (session->test_seq >= (int)this->execute_order.size())
 						{
-							this->test_handler.Send_Close_Req(session);
+							//this->test_handler.Send_Close_Req(session);
+							//link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 							return;
 						}
 
@@ -318,17 +313,13 @@ namespace Gamnet {	namespace Test {
 
 		void BindRecvHandler(const std::string& test_name, uint32_t msgID, RECV_HANDLER_TYPE recv)
 		{
-			std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
-			recvHandlerInfo->msg_id = msgID;
-			recvHandlerInfo->recv_handler = recv;
-
 			auto itr = execute_infos.find(test_name);
 			if(execute_infos.end() == itr)
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "can't find registered test case execute info(test_name:", test_name, ")");
 			}
 			std::shared_ptr<TestExecuteInfo> executeInfo = itr->second;
-			if(false == executeInfo->recv_handlers.insert(std::make_pair(msgID, recvHandlerInfo)).second)
+			if(false == executeInfo->recv_handlers.insert(std::make_pair(msgID, recv)).second)
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated recv msg id(test_name:", test_name, ", msg_id:", msgID, ")");
 			}
@@ -336,10 +327,7 @@ namespace Gamnet {	namespace Test {
 
 		void BindGlobalRecvHandler(uint32_t msgID, RECV_HANDLER_TYPE recv)
 		{
-			std::shared_ptr<RecvHandlerInfo> recvHandlerInfo = std::shared_ptr<RecvHandlerInfo>(new RecvHandlerInfo());
-			recvHandlerInfo->msg_id = msgID;
-			recvHandlerInfo->recv_handler = recv;
-			if(false == global_recv_handlers.insert(std::make_pair(msgID, recvHandlerInfo)).second)
+			if(false == global_recv_handlers.insert(std::make_pair(msgID, recv)).second)
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated global recv msg id(msg_id:", msgID, ")");
 			}

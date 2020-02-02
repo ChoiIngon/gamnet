@@ -18,6 +18,7 @@
   <router name="LT_GAME" host="127.0.0.1" port="43334"/>
   
   <test host="127.0.0.1" port="20000" session_count="4" loop_count="1" interval="1000">
-		<message name="Test_JoinChannel"/>
+		<message name="Test_Login"/>
+    <message name="Test_JoinChannel"/>
 	</test>
 </server>

@@ -126,6 +126,8 @@ namespace Gamnet { namespace Test {
 				LOG(GAMNET_ERR, "fail to serialize packet");
 				return;
 			}
+
+			LOG(DEV, "[", session->link->link_manager->name, "::link_key:", session->link->link_key, "]");
 			session->AsyncSend(packet);
 		}
 
@@ -136,6 +138,7 @@ namespace Gamnet { namespace Test {
 			{
 				return;
 			}	
+			LOG(DEV, "[", link->link_manager->name, "::link_key:", session->link->link_key, "]");
 
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 		}

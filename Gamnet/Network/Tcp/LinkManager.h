@@ -127,6 +127,7 @@ public :
 
 	void Recv_Close_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
+		LOG(DEV, "[", name, "::link_key:", link->link_key, "] session_key:", (nullptr != link->session) ? link->session->session_key : 0);
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr != session)
 		{
@@ -146,8 +147,7 @@ public :
 		packet->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);
 		link->AsyncSend(packet);
 	}
-
-
+	
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
 		if(nullptr != link->session)
@@ -160,7 +160,7 @@ public :
 		{
 			if (nullptr == link->session)
 			{
-				LOG(ERR, "[link_key:", link->link_key, "] invalid session");
+				LOG(ERR, "[", name, "::link_key:", link->link_key, "] invalid session");
 				link->Close(ErrorCode::NullPointerError);
 				return;
 			}
@@ -187,7 +187,7 @@ public :
 		std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
 		if (nullptr == session)
 		{
-			LOG(WRN, "can not find session(session_key:", session_key, ")");
+			LOG(WRN, "can not find session(", name,"::session_key:", session_key, ")");
 			return;
 		}
 	
@@ -225,7 +225,6 @@ public :
 
 		try 
 		{
-			//LOG(DEV, "[link_key:", link->link_key, "]");	
 			std::shared_ptr<SESSION_T> session = session_pool.Create();
 			if(nullptr == session)
 			{
@@ -256,11 +255,11 @@ public :
 			
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
-			//LOG(DEV, "[link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
+			LOG(DEV, "[", name,"::link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
 		}
 		catch (const Exception& e)
 		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
+			LOG(Log::Logger::LOG_LEVEL_ERR, name, ":", e.what());
 			ans["error_code"] = e.error_code();
 		}
 
@@ -397,7 +396,7 @@ public :
 
 		uint32_t ackSEQ = ntf["ack_seq"].asUInt();
 
-		session->strand.wrap([session, ackSEQ](){
+		session->strand.wrap([session, ackSEQ]() {
 			while (0 < session->send_packets.size())
 			{
 				const std::shared_ptr<Packet>& sendPacket = session->send_packets.front();

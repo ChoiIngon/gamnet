@@ -10,7 +10,7 @@
 #include "data.h"
 
 struct MsgCliSvr_Login_Req {
-	enum { MSG_ID = 1 }; 
+	enum { MSG_ID = 10 }; 
 	std::string	user_id;
 	MsgCliSvr_Login_Req()	{
 	}
@@ -56,7 +56,7 @@ struct MsgCliSvr_Login_Req_Serializer {
 	static size_t Size(const MsgCliSvr_Login_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_Login_Ans {
-	enum { MSG_ID = 1 }; 
+	enum { MSG_ID = 10 }; 
 	ErrorCode	error_code;
 	UserData	user_data;
 	MsgSvrCli_Login_Ans()	{

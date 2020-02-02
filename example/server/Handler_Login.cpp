@@ -101,13 +101,12 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 	catch(const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-
+	session->Next();
 	//session->Reconnect();
 }
-/*
+
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_Login",
 	MsgCliSvr_Login_Req, MsgSvrCli_Login_Ans,
 	Test_Login_Req, Test_Login_Ans
 );
-*/

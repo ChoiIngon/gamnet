@@ -39,8 +39,11 @@ void Session::OnClose(int reason)
 void Session::OnDestroy()
 {
 	assert(nullptr == link);
-	cast_group->DelSession(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
-	cast_group = nullptr;
+	if(nullptr != cast_group)
+	{
+		cast_group->DelSession(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
+		cast_group = nullptr;
+	}
 	//LOG(DEV, "[UserSession] session_key:", session_key);
 }
 

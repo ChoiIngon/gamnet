@@ -11,7 +11,7 @@ class Session : public Network::Session
 {
 public:
 	enum {
-		RELIABLE_PACKET_QUEUE_SIZE = 50
+		RELIABLE_PACKET_QUEUE_SIZE = 100
 	};
 public :
 	Session();
