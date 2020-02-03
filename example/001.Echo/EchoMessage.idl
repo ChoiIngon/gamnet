@@ -1,0 +1,16 @@
+enum ErrorCode
+{
+	Success,
+	MessageFormatError,
+};
+
+message MsgCliSvr_EchoMessage_Req : 00000010
+{
+	string Message;
+};
+
+message MsgSvrCli_EchoMessage_Ans : 00000010
+{
+	ErrorCode Error;
+	string Message;
+};

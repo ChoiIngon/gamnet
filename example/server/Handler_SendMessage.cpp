@@ -42,6 +42,13 @@ GAMNET_BIND_TCP_HANDLER(
 	HandlerStatic
 );
 
+void Test_SendMessage_Req(const std::shared_ptr<TestSession>& session)
+{
+	MsgCliSvr_SendMessage_Ntf ntf;
+	ntf.msg_seq = session->send_seq;
+	Gamnet::Test::SendMsg(session, ntf);
+}
+
 void Test_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgSvrCli_SendMessage_Ntf ntfSvrCli;
@@ -55,7 +62,7 @@ void Test_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, const std
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
-	if(100 < ntfSvrCli.msg_seq)
+	if(100 == session->send_seq)
 	{
 		session->Next();
 		return;
@@ -65,6 +72,12 @@ void Test_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, const std
 	ntfCliSvr.msg_seq = session->send_seq;
 	Gamnet::Test::SendMsg(session, ntfCliSvr);
 }
+
+GAMNET_BIND_TEST_HANDLER(
+	TestSession, "Test_SendMessage",
+	MsgCliSvr_SendMessage_Ntf, MsgSvrCli_SendMessage_Ntf,
+	Test_SendMessage_Req, Test_SendMessage_Ntf
+);
 
 GAMNET_BIND_TEST_RECV_HANDLER(
 	TestSession, MsgSvrCli_SendMessage_Ntf, Test_SendMessage_Ntf

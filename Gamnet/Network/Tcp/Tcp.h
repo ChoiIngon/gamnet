@@ -35,7 +35,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	template <class SESSION_T, class MSG>
-	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable)
+	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = false)
 	{
 		std::shared_ptr<Packet> packet = Packet::Create();
 		if (nullptr == packet)

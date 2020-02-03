@@ -273,15 +273,8 @@ namespace Gamnet {	namespace Test {
 						this->test_handler.Send_ReliableAck_Ntf(session);
 					}
 
-					if (false == session->is_pause)
+					if (false == session->is_pause && (int)this->execute_order.size() > session->test_seq)
 					{
-						if (session->test_seq >= (int)this->execute_order.size())
-						{
-							//this->test_handler.Send_Close_Req(session);
-							//link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
-							return;
-						}
-
 						const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
 						try
 						{

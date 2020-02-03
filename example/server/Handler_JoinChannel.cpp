@@ -27,7 +27,7 @@ void Handler_JoinChannel::Recv_Req(const std::shared_ptr<Session>& session, cons
 		}
 		session->cast_group = castGroup;
 		castGroup->AddSession(session);
-		if(4 > castGroup->Size())
+		if(2 > castGroup->Size())
 		{
 			Gamnet::Singleton<Manager_CastGroup>::GetInstance().AddCastGroup(castGroup);
 		}
@@ -99,11 +99,9 @@ void Test_JoinChannel_Ntf(const std::shared_ptr<TestSession>& session, const std
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
 	}
-	if(4 <= memberCount)
+	if(2 <= memberCount)
 	{
-		MsgCliSvr_SendMessage_Ntf ntf;
-		ntf.msg_seq = session->send_seq;
-		Gamnet::Test::SendMsg(session, ntf);
+		session->Next();
 	}
 }
 

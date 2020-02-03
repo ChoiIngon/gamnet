@@ -232,7 +232,7 @@ public :
 			
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
-			LOG(DEV, "[", name,"::link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
+			//LOG(DEV, "[", name,"::link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
 		}
 		catch (const Exception& e)
 		{
@@ -388,7 +388,7 @@ public :
 
 	void Recv_Close_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
-		LOG(DEV, "[", name, "::link_key:", link->link_key, "] session_key:", (nullptr != link->session) ? link->session->session_key : 0);
+		//LOG(DEV, "[", name, "::link_key:", link->link_key, "] session_key:", (nullptr != link->session) ? link->session->session_key : 0);
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr != session)
 		{
