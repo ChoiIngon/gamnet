@@ -297,6 +297,10 @@ namespace Gamnet {	namespace Test {
 						next_execute_info->execute_count++;
 					}
 				}
+				else
+				{
+					link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
+				}
 			})();
 		}
 

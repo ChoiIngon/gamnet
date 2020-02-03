@@ -66,6 +66,7 @@ void Session::Resume()
 void Session::Next()
 {
 	test_seq++;
+	//LOG(DEV, "session_key:", session_key, ", link_key:", link->link_key, ", test_seq:", test_seq);
 	is_pause = false;
 }
 }}/* namespace Gamnet */

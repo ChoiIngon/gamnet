@@ -125,29 +125,6 @@ public :
 		})(this);
 	}
 
-	void Recv_Close_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
-	{
-		LOG(DEV, "[", name, "::link_key:", link->link_key, "] session_key:", (nullptr != link->session) ? link->session->session_key : 0);
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if (nullptr != session)
-		{
-			session->strand.wrap([session]() {
-				session->handover_safe = false;
-			})();
-		}
-
-		OnClose(link, ErrorCode::Success);
-		link->session = nullptr;
-		std::shared_ptr<Packet> packet = Packet::Create();
-		if (nullptr == packet)
-		{
-			return;
-		}
-
-		packet->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);
-		link->AsyncSend(packet);
-	}
-	
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
 		if(nullptr != link->session)
@@ -409,23 +386,51 @@ public :
 		})();
 	}
 
+	void Recv_Close_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
+	{
+		LOG(DEV, "[", name, "::link_key:", link->link_key, "] session_key:", (nullptr != link->session) ? link->session->session_key : 0);
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		if (nullptr != session)
+		{
+			session->strand.wrap([session]() {
+				session->handover_safe = false;
+			})();
+		}
+
+		OnClose(link, ErrorCode::Success);
+		link->session = nullptr;
+		std::shared_ptr<Packet> packet = Packet::Create();
+		if (nullptr == packet)
+		{
+			return;
+		}
+
+		packet->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);
+		link->AsyncSend(packet);
+	}
+
 	Json::Value State()
 	{
 		Json::Value root;
 		root["name"] = name;
 
 		Json::Value link;
-		link["max_count"] = (unsigned int)link_pool.Capacity();
-		link["idle_count"] = (unsigned int)link_pool.Available();
-		link["active_count"] = (unsigned int)Size();
+		link["max_count"] = link_pool.Capacity();
+		link["idle_count"] = link_pool.Available();
+		link["active_count"] = Size();
 		root["link"] = link;
 		
 		Json::Value session;
-		session["max_count"] = (unsigned int)session_pool.Capacity();
-		session["idle_count"] = (unsigned int)session_pool.Available();
-		session["active_count"] = (unsigned int)session_manager.Size();
+		session["max_count"] = session_pool.Capacity();
+		session["idle_count"] = session_pool.Available();
+		session["active_count"] = session_manager.Size();
 		root["session"] = session;
 
+		Json::Value packet;
+		packet["max_count"] = Packet::PoolCapacity();
+		packet["idle_count"] = Packet::PoolAvailable();
+		packet["active_count"] = Packet::PoolSize();
+		root["packet"] = packet;
 #ifdef _DEBUG
 		Json::Value message;
 		for (const auto& itr : Singleton<Dispatcher<SESSION_T>>::GetInstance().mapHandlerCallStatistics_)
