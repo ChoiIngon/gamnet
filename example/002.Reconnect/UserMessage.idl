@@ -1,0 +1,41 @@
+enum ErrorCode
+{
+	Success,
+	MessageFormatError,
+	DuplicateConnection
+};
+
+struct UserData
+{
+	string UserID;
+	int64 UserSEQ;
+	string Data;
+};
+
+message MsgCliSvr_UserLogin_Req : 00000010
+{
+	string UserID;
+};
+
+message MsgSvrCli_UserLogin_Ans : 00000010
+{
+	ErrorCode Error;
+	UserData User;
+};
+
+message MsgCliSvr_UserUpdate_Req : 00000010
+{
+	string Data;
+};
+
+message MsgSvrCli_UserUpdate_Ans : 00000010
+{
+	ErrorCode Error;
+	UserData User;
+};
+
+message MsgSvrCli_UserKickout_Ntf : 10000003
+{
+	ErrorCode Error;
+};
+

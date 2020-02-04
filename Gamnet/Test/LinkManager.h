@@ -54,10 +54,10 @@ namespace Gamnet {	namespace Test {
 		int 			max_execute_count;
 		int				session_count;
 
+	public:
 		std::string host;
 		int			port;
-		
-	public:
+
 		TestHandler<SESSION_T> test_handler;
 		std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 
