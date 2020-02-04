@@ -40,7 +40,6 @@ void UserLoginHandler::Recv_Req(const std::shared_ptr<UserSession>& session, con
 		*/
 		UserData& userData = session->user_data;
 		userData.UserID = req.UserID;
-
 		ans.User = session->user_data;
 		session->handover_safe = true;
 	}
@@ -50,7 +49,7 @@ void UserLoginHandler::Recv_Req(const std::shared_ptr<UserSession>& session, con
 		ans.Error = (ErrorCode)e.error_code();
 	}
 	LOG(DEV, "MsgSvrCli_UserLogin_Ans(session_key:", session->session_key, ", error_code:", (int)ans.Error, ")");
-	Gamnet::Network::Tcp::SendMsg(session, ans);
+	Gamnet::Network::Tcp::SendMsg(session, ans, true);
 }
 
 GAMNET_BIND_TCP_HANDLER(
@@ -63,7 +62,9 @@ GAMNET_BIND_TCP_HANDLER(
 void Test_UserLogin_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_UserLogin_Req req;
+	req.UserID = "UserID";
 	Gamnet::Test::SendMsg(session, req);
+	session->Reconnect();
 }
 
 void Test_UserLogin_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
@@ -78,7 +79,7 @@ void Test_UserLogin_Ans(const std::shared_ptr<TestSession>& session, const std::
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-	session->Next();
+	
 }
 
 GAMNET_BIND_TEST_HANDLER(

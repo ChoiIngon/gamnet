@@ -20,6 +20,7 @@ void UserUpdateHandler::Recv_Req(const std::shared_ptr<UserSession>& session, co
 		}
 
 		LOG(DEV, "MsgCliSvr_UserUpdate_Req(session_key:", session->session_key, ")");
+		ans.User = session->user_data;
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -27,7 +28,7 @@ void UserUpdateHandler::Recv_Req(const std::shared_ptr<UserSession>& session, co
 		ans.Error = (ErrorCode)e.error_code();
 	}
 	LOG(DEV, "MsgSvrCli_UserUpdate_Ans(session_key:", session->session_key, ", error_code:", (int)ans.Error, ")");
-	Gamnet::Network::Tcp::SendMsg(session, ans);
+	Gamnet::Network::Tcp::SendMsg(session, ans, true);
 }
 
 GAMNET_BIND_TCP_HANDLER(

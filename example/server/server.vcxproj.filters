@@ -30,11 +30,7 @@
     <CustomBuild Include="..\idl\message.idl">
       <Filter>IDL</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <Midl Include="..\idl\data.idl">
-      <Filter>IDL</Filter>
-    </Midl>
+    <CustomBuild Include="..\idl\data.idl" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="config.xml" />

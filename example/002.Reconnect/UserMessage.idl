@@ -23,18 +23,18 @@ message MsgSvrCli_UserLogin_Ans : 00000010
 	UserData User;
 };
 
-message MsgCliSvr_UserUpdate_Req : 00000010
+message MsgCliSvr_UserUpdate_Req : 00000011
 {
 	string Data;
 };
 
-message MsgSvrCli_UserUpdate_Ans : 00000010
+message MsgSvrCli_UserUpdate_Ans : 00000011
 {
 	ErrorCode Error;
 	UserData User;
 };
 
-message MsgSvrCli_UserKickout_Ntf : 10000003
+message MsgSvrCli_UserKickout_Ntf : 10000012
 {
 	ErrorCode Error;
 };

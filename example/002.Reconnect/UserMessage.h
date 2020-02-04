@@ -195,7 +195,7 @@ struct MsgSvrCli_UserLogin_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_UserLogin_Ans& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_UserUpdate_Req {
-	enum { MSG_ID = 10 }; 
+	enum { MSG_ID = 11 }; 
 	std::string	Data;
 	MsgCliSvr_UserUpdate_Req()	{
 	}
@@ -241,7 +241,7 @@ struct MsgCliSvr_UserUpdate_Req_Serializer {
 	static size_t Size(const MsgCliSvr_UserUpdate_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_UserUpdate_Ans {
-	enum { MSG_ID = 10 }; 
+	enum { MSG_ID = 11 }; 
 	ErrorCode	Error;
 	UserData	User;
 	MsgSvrCli_UserUpdate_Ans()	{
@@ -286,7 +286,7 @@ struct MsgSvrCli_UserUpdate_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_UserUpdate_Ans& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_UserKickout_Ntf {
-	enum { MSG_ID = 10000003 }; 
+	enum { MSG_ID = 10000012 }; 
 	ErrorCode	Error;
 	MsgSvrCli_UserKickout_Ntf()	{
 	}

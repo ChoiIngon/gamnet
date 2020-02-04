@@ -18,8 +18,28 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EchoMessage.h" />
+    <ClInclude Include="EchoMessageHandler.h" />
+    <ClInclude Include="EchoSession.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="EchoMessage.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp %(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp %(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="EchoMessageHandler.cpp" />
+    <ClCompile Include="EchoSession.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F178C849-DFA2-415C-84CD-17C6DE8E375B}</ProjectGuid>
+    <ProjectGuid>{10465F8C-3657-4341-BA71-94BD1291BE99}</ProjectGuid>
     <RootNamespace>server</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -121,46 +141,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Handler_HeartBeat.cpp" />
-    <ClCompile Include="Handler_Http_ServerState.cpp" />
-    <ClCompile Include="Handler_JoinChannel.cpp" />
-    <ClCompile Include="Handler_Login.cpp" />
-    <ClCompile Include="Handler_SendMessage.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Manager_CastGroup.cpp" />
-    <ClCompile Include="Manager_Session.cpp" />
-    <ClCompile Include="Session.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Handler_HeartBeat.h" />
-    <ClInclude Include="Handler_Http_ServerState.h" />
-    <ClInclude Include="Handler_JoinChannel.h" />
-    <ClInclude Include="Handler_Login.h" />
-    <ClInclude Include="Handler_SendMessage.h" />
-    <ClInclude Include="Manager_CastGroup.h" />
-    <ClInclude Include="Manager_Session.h" />
-    <ClInclude Include="Session.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\idl\message.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Message>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\idl\data.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="config.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
