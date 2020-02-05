@@ -10,44 +10,42 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
-	LOG(DEV, "[session_key:", session_key, "] 'UserSession' is created");
+	LOG(DEV, "[ServerSession] session_key:", session_key);
 }
 
 void UserSession::OnAccept()
 {
-	assert(nullptr != link);
-	LOG(DEV, "[", link->link_manager->name, "] session_key:", session_key, "]");
+	LOG(DEV, "[ServerSession] session_key:", session_key);
 }
 
 void UserSession::OnClose(int reason)
 {
-	assert(nullptr != link);
-	LOG(DEV, "[", link->link_manager->name, "] session_key:", session_key, "]");
+	LOG(DEV, "[ServerSession] session_key:", session_key);
 }
 
 void UserSession::OnDestroy()
 {
-	LOG(DEV, "[session_key:", session_key, "] 'UserSession' is destroyed");
+	LOG(DEV, "[ServerSession] session_key:", session_key);
 }
 
 void TestSession::OnCreate()
 {
-	LOG(DEV, "[TestSession] session_key:", session_key);
+	LOG(DEV, "[ClientSession] session_key:", server_session_key);
 }
 
 void TestSession::OnConnect()
 {
-	LOG(DEV, "[TestSession] session_key:", session_key);
+	LOG(DEV, "[ClientSession] session_key:", server_session_key);
 }
 
 void TestSession::OnClose(int reason)
 {
-	LOG(DEV, "[TestSession] session_key:", session_key);
+	LOG(DEV, "[ClientSession] session_key:", server_session_key);
 }
 
 void TestSession::OnDestroy()
 {
-	LOG(DEV, "[TestSession] session_key:", session_key);
+	LOG(DEV, "[ClientSession] session_key:", server_session_key);
 }
 
 void TestSession::Reconnect()

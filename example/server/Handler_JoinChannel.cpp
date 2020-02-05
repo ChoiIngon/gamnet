@@ -34,7 +34,7 @@ void Handler_JoinChannel::Recv_Req(const std::shared_ptr<Session>& session, cons
 
 		MsgSvrCli_JoinChannel_Ntf ntf;
 		ntf.session_key = session->session_key;
-		ntf.session_count = castGroup->Size();
+		ntf.session_count = (int)castGroup->Size();
 		castGroup->SendMsg(ntf, true);
 	}
 	catch (const Gamnet::Exception& e)
