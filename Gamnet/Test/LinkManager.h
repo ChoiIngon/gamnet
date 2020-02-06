@@ -107,6 +107,7 @@ namespace Gamnet {	namespace Test {
 			Test::CreateThreadPool(std::thread::hardware_concurrency());
 			for (size_t i = 0; i<this->session_count; i++)
 			{
+				begin_execute_count++;
 				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
 				if (nullptr == link)
 				{
@@ -147,7 +148,6 @@ namespace Gamnet {	namespace Test {
 		
 		virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override
 		{
-			begin_execute_count++;
 			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 			if (nullptr == session)
 			{
@@ -182,12 +182,13 @@ namespace Gamnet {	namespace Test {
 
 		virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 		{
-			finish_execute_count += 1;
 			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 			if (nullptr == session)
 			{
 				return;
 			}
+
+			finish_execute_count += 1;
 
 			session->strand.wrap([=]() {
 				try {
@@ -209,9 +210,10 @@ namespace Gamnet {	namespace Test {
 					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 				}
 			})();
-
+			
 			if (max_execute_count > begin_execute_count)
 			{
+				begin_execute_count++;
 				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
 				if (nullptr == link)
 				{

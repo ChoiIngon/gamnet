@@ -29,9 +29,9 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	template <class SESSION_T, class FUNC, class FACTORY>
-	bool RegisterHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
+	bool BindHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
 	{
-		return Singleton<Dispatcher<SESSION_T>>::GetInstance().RegisterHandler(msg_id, name, func, factory);
+		return Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(msg_id, name, func, factory);
 	}
 
 	template <class SESSION_T, class MSG>
@@ -77,7 +77,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 }}}
 
 #define GAMNET_BIND_TCP_HANDLER(session_type, message_type, class_type, func, policy) \
-	static bool Network_##message_type##_##func = Gamnet::Network::Tcp::RegisterHandler<session_type>( \
+	static bool Network_##message_type##_##func = Gamnet::Network::Tcp::BindHandler<session_type>( \
 			message_type::MSG_ID, \
 			#message_type, \
 			&class_type::func, \

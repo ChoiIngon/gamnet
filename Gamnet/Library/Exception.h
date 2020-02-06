@@ -24,6 +24,7 @@ public :
 		InvalidLinkManagerError		= 42,
 		InvalidHandlerError			= 43,
 		InvalidDatabaseNum			= 44,
+		InvalidLinkError			= 45,
 		NotInitializedError			= 50,
 		NullPointerError			= 60,
 		NullPacketError				= 61,

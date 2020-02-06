@@ -24,10 +24,13 @@
 namespace Gamnet { namespace Network { namespace Tcp {
 #undef max
 
+	
 template <class SESSION_T>
 class Dispatcher
 {
 	GAMNET_WHERE(SESSION_T, Session);
+
+	
 
 	typedef void(IHandler::*function_type)(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Packet>&);
 public :
@@ -52,7 +55,6 @@ public :
 		const char* name;
 		std::atomic_int begin_count;
 		std::atomic_int finish_count;
-		std::atomic_int tps;
 		std::atomic<int64_t> elapsed_time;
 		int64_t max_time;
 
@@ -62,7 +64,7 @@ public :
 		HandlerCallStatistics() : 
 			msg_id(0), name(nullptr),
 			begin_count(0), finish_count(0), 
-			tps(0), elapsed_time(0), max_time(0), 
+			elapsed_time(0), max_time(0), 
 			last_check_time(time(nullptr)), last_finish_count(0) 
 		{
 		}
@@ -71,11 +73,13 @@ public :
 	std::map<unsigned int, std::shared_ptr<HandlerCallStatistics>> mapHandlerCallStatistics_;
 #endif
 public:
-	Dispatcher() {}
+	Dispatcher() 
+	{		
+	}
 	~Dispatcher() {}
 
 	template <class FUNC, class FACTORY>
-	bool RegisterHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
+	bool BindHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
 	{
 		HandlerFunction handlerFunction(factory, static_cast<function_type>(func));
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)

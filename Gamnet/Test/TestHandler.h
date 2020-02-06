@@ -46,7 +46,6 @@ namespace Gamnet { namespace Test {
 
 		void Send_Reconnect_Req(const std::shared_ptr<SESSION_T>& session)
 		{
-			//LOG(DEV, "[session_key:", session->session_key, "]");
 			std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
 			if (nullptr == link)
 			{
@@ -72,6 +71,7 @@ namespace Gamnet { namespace Test {
 
 		void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
+			LOG(DEV, "[session_key:", session->session_key, "]");
 			std::string json = std::string(packet->ReadPtr() + Network::Tcp::Packet::HEADER_SIZE, packet->Size());
 			Json::Value ans;
 			Json::Reader reader;
@@ -88,8 +88,8 @@ namespace Gamnet { namespace Test {
 
 			session->is_connected = true;
 			session->OnConnect();
-			session->Resume();
-			session->Next();
+			//session->Resume();
+			//session->Next();
 		}
 
 		void Send_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session)
@@ -138,8 +138,7 @@ namespace Gamnet { namespace Test {
 			{
 				return;
 			}	
-			//LOG(DEV, "[", link->link_manager->name, "::link_key:", session->link->link_key, "]");
-
+			LOG(DEV, "[", link->link_manager->name, "::link_key:", session->link->link_key, "]");
 			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
 		}
 	};

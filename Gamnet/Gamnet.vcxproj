@@ -262,6 +262,7 @@
     <ClInclude Include="Network\Tcp\LinkManager.h" />
     <ClInclude Include="Network\Tcp\Packet.h" />
     <ClInclude Include="Network\Tcp\Session.h" />
+    <ClInclude Include="Network\Tcp\SystemMessageHandler.h" />
     <ClInclude Include="Network\Tcp\Tcp.h" />
     <ClInclude Include="Test\LinkManager.h" />
     <ClInclude Include="test\Session.h" />

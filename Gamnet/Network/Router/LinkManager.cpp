@@ -22,11 +22,11 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	LinkManager::onRouterAccept = onAccept;
 	LinkManager::onRouterClose = onClose;
 
-	RegisterHandler(MsgRouter_SetAddress_Req::MSG_ID,	"MsgRouter_SetAddress_Req", &RouterHandler::Recv_SetAddress_Req, new Network::HandlerStatic<RouterHandler>());
-	RegisterHandler(MsgRouter_SetAddress_Ans::MSG_ID,	"MsgRouter_SetAddress_Ans", &RouterHandler::Recv_SetAddress_Ans, new Network::HandlerStatic<RouterHandler>());
-	RegisterHandler(MsgRouter_SetAddress_Ntf::MSG_ID,	"MsgRouter_SetAddress_Ntf", &RouterHandler::Recv_SetAddress_Ntf, new Network::HandlerStatic<RouterHandler>());
-	RegisterHandler(MsgRouter_SendMsg_Ntf::MSG_ID,		"MsgRouter_SendMsg_Ntf", &RouterHandler::Recv_SendMsg_Ntf, new Network::HandlerStatic<RouterHandler>());
-	RegisterHandler(MsgRouter_HeartBeat_Ntf::MSG_ID,	"MsgRouter_HeartBeat_Ntf", &RouterHandler::Recv_HeartBeat_Ntf, new Network::HandlerStatic<RouterHandler>());
+	BindHandler(MsgRouter_SetAddress_Req::MSG_ID,	"MsgRouter_SetAddress_Req", &RouterHandler::Recv_SetAddress_Req, new Network::HandlerStatic<RouterHandler>());
+	BindHandler(MsgRouter_SetAddress_Ans::MSG_ID,	"MsgRouter_SetAddress_Ans", &RouterHandler::Recv_SetAddress_Ans, new Network::HandlerStatic<RouterHandler>());
+	BindHandler(MsgRouter_SetAddress_Ntf::MSG_ID,	"MsgRouter_SetAddress_Ntf", &RouterHandler::Recv_SetAddress_Ntf, new Network::HandlerStatic<RouterHandler>());
+	BindHandler(MsgRouter_SendMsg_Ntf::MSG_ID,		"MsgRouter_SendMsg_Ntf", &RouterHandler::Recv_SendMsg_Ntf, new Network::HandlerStatic<RouterHandler>());
+	BindHandler(MsgRouter_HeartBeat_Ntf::MSG_ID,	"MsgRouter_HeartBeat_Ntf", &RouterHandler::Recv_HeartBeat_Ntf, new Network::HandlerStatic<RouterHandler>());
 
 	local_address.service_name = service_name;
 	local_address.cast_type = ROUTER_CAST_TYPE::UNI_CAST;
