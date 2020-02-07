@@ -51,7 +51,7 @@ bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 			{
 				if(nullptr != this->link)
 				{
-					this->link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
+					this->link->Close(ErrorCode::NullPointerError);
 				}
 
 				return;

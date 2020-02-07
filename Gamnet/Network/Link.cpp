@@ -129,7 +129,7 @@ void Link::AsyncRead()
 	auto self(shared_from_this());
 	
 	socket.async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
-		strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
+		[self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
 				self->Close(ErrorCode::Success); // no error, just closed socket
@@ -161,7 +161,7 @@ void Link::AsyncRead()
 			}
 			self->read_buffer->Clear();
 			self->AsyncRead();
-		})
+		}
 	);
 }
 
@@ -261,24 +261,28 @@ int Link::SyncSend(const char* buf, int len)
 
 void Link::Close(int reason)
 {
-	if (true == socket.is_open())
-	{
-		try
+	auto self(shared_from_this());
+	strand.wrap([self](int reason) {
+		if (true == self->socket.is_open())
 		{
-			link_manager->OnClose(shared_from_this(), reason);
-			socket.close();
+			try
+			{
+				LOG(INF, "[", self->link_manager->name, "/", self->link_key, "/", (nullptr == self->session ? 0 : self->session->session_key), "] Link::Close(reason:", reason, ")");
+				self->link_manager->OnClose(self, reason);
+				self->socket.close();
+			}
+			catch (const Exception& e)
+			{
+				LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
+			}
+			catch (const boost::system::system_error& e)
+			{
+				LOG(ERR, e.what(), "(error_code:", e.code(), ")");
+			}
 		}
-		catch (const Exception& e)
-		{
-			LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-		catch (const boost::system::system_error& e)
-		{
-			LOG(ERR, e.what(), "(error_code:", e.code(), ")");
-		}
-	}
-	link_manager->Remove(link_key);
-	session = nullptr;
+		self->session = nullptr;
+	})(reason);
+	link_manager->Remove(self->link_key);
 }
 
 }}

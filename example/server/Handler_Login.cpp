@@ -56,7 +56,6 @@ void Handler_Login::Recv_Req(const std::shared_ptr<Session>& session, const std:
 			user_data.items.push_back(item);
 		}
 		ans.user_data = user_data;
-		session->handover_safe = true;
 	}
 	catch(const Gamnet::Exception& e)
 	{
@@ -77,7 +76,7 @@ GAMNET_BIND_TCP_HANDLER(
 void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_Login_Req req;
-	req.user_id = Gamnet::Format("user_id_", Gamnet::Random::Range(1, 99999));
+	req.user_id = "user_id";
 	Gamnet::Test::SendMsg(session, req);
 }
 

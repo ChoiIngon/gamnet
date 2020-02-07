@@ -2,6 +2,8 @@
 #define _GAMNET_NETWORK_TCP_SYSTEM_MESSAGE_HANDLER_H_
 
 #include "../Handler.h"
+#include "../../Library/Json/json.h"
+#include "../../Library/Singleton.h"
 
 namespace Gamnet {	namespace Network {		namespace Tcp {
 	enum MSG_ID {
@@ -28,7 +30,7 @@ public:
 		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
 		assert(nullptr != link);
 
-		LOG(DEV, "[link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
+		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Connect_Req");
 
 		Json::Value ans;
 		ans["error_code"] = 0;
@@ -38,7 +40,6 @@ public:
 		try
 		{
 			Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Add(session->session_key, session);
-
 			session->OnCreate();
 			session->OnAccept();
 			session->handover_safe = true;
@@ -55,7 +56,7 @@ public:
 		std::shared_ptr<Packet> sendPacket = Packet::Create();
 		if (nullptr == sendPacket)
 		{
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPacketError))();
+			link->Close(ErrorCode::NullPacketError);
 			return;
 		}
 
@@ -71,6 +72,7 @@ public:
 		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
 		assert(nullptr != link);
 
+		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Reconnect_Req");
 		Json::Value req;
 		Json::Value ans;
 		ans["error_code"] = 0;
@@ -87,7 +89,6 @@ public:
 			uint32_t session_key = req["session_key"].asUInt();
 			const std::string session_token = req["session_token"].asString();
 
-			LOG(DEV, "[link_key:", link->link_key, "] session_key:", session_key, ", session_token:", session_token);
 			const std::shared_ptr<SESSION_T> prevSession = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
 			if (nullptr == prevSession)
 			{
@@ -102,12 +103,11 @@ public:
 			std::shared_ptr<Link> invalidLink = std::static_pointer_cast<Link>(prevSession->link);
 			if (nullptr != invalidLink)
 			{
-				invalidLink->strand.wrap([invalidLink]() {
-					invalidLink->session = nullptr;
-					invalidLink->Close(ErrorCode::DuplicateConnectionError);
-				})();
+				prevSession->OnClose(ErrorCode::DuplicateConnectionError);
+				invalidLink->session = nullptr;
+				invalidLink->Close(ErrorCode::DuplicateConnectionError);
 			}
-
+			
 			link->session = prevSession;
 			for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
 			{
@@ -130,7 +130,7 @@ public:
 		std::shared_ptr<Packet> sendPacket = Packet::Create();
 		if (nullptr == sendPacket)
 		{
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPacketError))();
+			link->Close(ErrorCode::NullPacketError);
 			return;
 		}
 
@@ -146,7 +146,7 @@ public:
 		std::shared_ptr<Packet> sendPacket = Packet::Create();
 		if (nullptr == sendPacket)
 		{
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPacketError))();
+			link->Close(ErrorCode::NullPacketError);
 			return;
 		}
 
@@ -192,14 +192,15 @@ public:
 		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
 		assert(nullptr != link);
 
-		LOG(DEV, "[link_key:", link->link_key, "] session_key:", (nullptr != link->session) ? link->session->session_key : 0);
+		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", link->session->session_key , "] Recv_Close_Req");
+
 		session->handover_safe = false;
 		link->strand.wrap(std::bind(&Network::Tcp::LinkManager<SESSION_T>::OnClose, link->link_manager, link, ErrorCode::Success));
 
 		std::shared_ptr<Packet> sendPacket = Packet::Create();
 		if (nullptr == sendPacket)
 		{
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPacketError))();
+			link->Close(ErrorCode::NullPacketError);
 			return;
 		}
 

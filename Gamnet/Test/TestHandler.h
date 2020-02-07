@@ -32,7 +32,7 @@ namespace Gamnet { namespace Test {
 
 			if (ErrorCode::Success != ans["error_code"].asInt())
 			{
-				session->link->strand.wrap(std::bind(&Network::Link::Close, session->link, ans["error_code"].asInt()))();
+				session->link->Close(ans["error_code"].asInt());
 				return;
 			}
 
@@ -71,7 +71,7 @@ namespace Gamnet { namespace Test {
 
 		void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
-			LOG(DEV, "[session_key:", session->session_key, "]");
+			LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Recv_Reconnect_Ans");
 			std::string json = std::string(packet->ReadPtr() + Network::Tcp::Packet::HEADER_SIZE, packet->Size());
 			Json::Value ans;
 			Json::Reader reader;
@@ -82,14 +82,14 @@ namespace Gamnet { namespace Test {
 
 			if (ErrorCode::Success != ans["error_code"].asInt())
 			{
-				session->link->strand.wrap(std::bind(&Network::Link::Close, session->link, ans["error_code"].asInt()))();
+				session->link->Close(ans["error_code"].asInt());
 				return;
 			}
 
 			session->is_connected = true;
 			session->OnConnect();
 			//session->Resume();
-			//session->Next();
+			session->Next();
 		}
 
 		void Send_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session)
@@ -97,8 +97,7 @@ namespace Gamnet { namespace Test {
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
 			{
-				LOG(ERR, "can not create packet");
-				session->link->strand.wrap(std::bind(&Network::Link::Close, session->link, ErrorCode::NullPacketError))();
+				session->link->Close(ErrorCode::NullPacketError);
 				return;
 			}
 
@@ -138,8 +137,8 @@ namespace Gamnet { namespace Test {
 			{
 				return;
 			}	
-			LOG(DEV, "[", link->link_manager->name, "::link_key:", session->link->link_key, "]");
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
+			LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Close_Ans");
+			link->Close(ErrorCode::Success);
 		}
 	};
 }}

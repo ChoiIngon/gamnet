@@ -146,20 +146,13 @@ public :
 		session->strand.wrap([=] () {
 			if (nullptr != session->link)
 			{
-				//					LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
+				//	LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
 				session->OnClose(ErrorCode::Success);
 			}
-			session->AttachLink(nullptr);
 			session->OnDestroy();
+			session->AttachLink(nullptr);
 			session_manager.Remove(session->session_key);
 		})();
-		/*
-		std::shared_ptr<Network::Link> link = session->link;
-		if(nullptr != link)
-		{
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
-		}
-		*/
 	}
 
 	template <class FUNC, class FACTORY>

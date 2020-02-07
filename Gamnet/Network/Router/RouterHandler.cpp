@@ -80,7 +80,7 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 		if(ErrorCode::Success != ans.error_code)
 		{
 			std::shared_ptr<Link> _link = session->link;
-			_link->strand.wrap(std::bind(&Link::Close, _link, ans.error_code))();
+			_link->Close(ans.error_code);
 			throw Exception(ans.error_code, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] Recv_SetAddress_Ans fail");
 		}
 		LOG(GAMNET_INF, "[Router] recv SetAddress_Ans(", session->remote_address->to_string(), "->localhost, service_name:", ans.remote_address.service_name, ")");

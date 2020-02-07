@@ -114,7 +114,7 @@ public:
 		if(itr == mapHandlerFunction_.end())
 		{
 			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->read_index, ")");
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
+			link->Close(ErrorCode::NullPointerError);
 			return ;
 		}
 
@@ -123,7 +123,7 @@ public:
 		if(NULL == handler)
 		{
 			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->read_index, ")");
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
+			link->Close(ErrorCode::NullPointerError);
 			return;
 		}
 #ifdef _DEBUG
@@ -140,7 +140,7 @@ public:
 		catch (const std::exception& e)
 		{
 			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::UndefinedError))();
+			link->Close(ErrorCode::UndefinedError);
 			return;
 		}
 

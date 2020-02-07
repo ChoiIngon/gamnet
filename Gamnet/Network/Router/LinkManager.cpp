@@ -69,8 +69,8 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 
 	session->strand.wrap([session, link] () {
 		try {
-			session->OnCreate();
 			session->AttachLink(link);
+			session->OnCreate();
 		}
 		catch (const Exception& e)
 		{
@@ -118,8 +118,8 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 
 	session->strand.wrap([session, link] () {
 		try {
-			session->OnCreate();
 			session->AttachLink(link);
+			session->OnCreate();
 			session->OnAccept();
 		}
 		catch (const Exception& e)
@@ -145,8 +145,8 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 				return;
 			}
 			session->OnClose(reason);
-			session->AttachLink(nullptr);
 			session->OnDestroy();
+			session->AttachLink(nullptr);
 		}
 		catch (const Exception& e)
 		{

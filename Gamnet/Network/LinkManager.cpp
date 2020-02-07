@@ -62,7 +62,7 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link> link, const boost:
 {
 	Accept();
 
-	link->strand.wrap([this, link, ec] () {
+	//link->strand.wrap([this, link, ec] () {
 		try {
 			if(0 != ec)
 			{
@@ -93,7 +93,7 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link> link, const boost:
 			LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
 		}
 		link->Close(ErrorCode::AcceptFailError);
-	})();
+	//})();
 }
 
 std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeout)
@@ -162,7 +162,7 @@ void LinkManager::OnTimerExpire()
 	for (auto link: linksToBeDeleted)
 	{
 		LOG(GAMNET_ERR, "[link_key:", link->link_key, "] destroy idle link");
-		link->strand.wrap(std::bind(&Link::Close, link, ErrorCode::IdleTimeoutError))();
+		link->Close(ErrorCode::IdleTimeoutError);
 	}
 }
 }} 

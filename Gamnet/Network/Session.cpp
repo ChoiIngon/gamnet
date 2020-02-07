@@ -202,6 +202,7 @@ void SessionManager::Flush()
 		session->strand.wrap([session]() {
 			try {
 				session->OnDestroy();
+				session->AttachLink(nullptr);
 			}
 			catch (const Exception& e)
 			{
@@ -244,14 +245,8 @@ void SessionManager::OnTimerExpire()
 					session->OnClose(ErrorCode::IdleTimeoutError);
 				}
 
-				session->AttachLink(nullptr);
 				session->OnDestroy();
-				/*
-				if(nullptr != link)
-				{
-					link->strand.wrap(std::bind(&Link::Close, link, ErrorCode::IdleTimeoutError))();
-				}
-				*/
+				session->AttachLink(nullptr);
 			}
 			catch (const Exception& e)
 			{

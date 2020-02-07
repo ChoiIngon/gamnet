@@ -135,8 +135,8 @@ namespace Gamnet {	namespace Test {
 			link->session = session;
 			session->strand.wrap([session, link]() {
 				try {
-					session->OnCreate();
 					session->AttachLink(link);
+					session->OnCreate();
 				}
 				catch (const Exception& e)
 				{
@@ -202,8 +202,8 @@ namespace Gamnet {	namespace Test {
 					{
 						session->OnClose(reason);
 					}
-					session->AttachLink(nullptr);
 					session->OnDestroy();
+					session->AttachLink(nullptr);
 				}
 				catch (const Exception& e)
 				{
@@ -249,7 +249,7 @@ namespace Gamnet {	namespace Test {
 						if (global_recv_handlers.end() == itr)
 						{
 							LOG(GAMNET_WRN, "can't find handler function(msg_id:", packet->msg_id, ")");
-							link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::InvalidHandlerError))();
+							link->Close(ErrorCode::InvalidHandlerError);
 							return;
 						}
 					}
@@ -266,7 +266,7 @@ namespace Gamnet {	namespace Test {
 					catch (const Exception& e)
 					{
 						execute_info->except_count++;
-						link->strand.wrap(std::bind(&Network::Link::Close, link, e.error_code()))();
+						link->Close(e.error_code());
 						return;
 					}
 
@@ -286,7 +286,7 @@ namespace Gamnet {	namespace Test {
 						catch (const Gamnet::Exception& e)
 						{
 							LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-							link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::UndefinedError))();
+							link->Close(ErrorCode::UndefinedError);
 							return;
 						}
 						next_execute_info->execute_count++;
@@ -294,7 +294,7 @@ namespace Gamnet {	namespace Test {
 				}
 				else
 				{
-					link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
+					link->Close(ErrorCode::Success);
 				}
 			})();
 		}
