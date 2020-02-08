@@ -47,10 +47,9 @@ namespace Gamnet { namespace Test {
 		void Send_Reconnect_Req(const std::shared_ptr<SESSION_T>& session)
 		{
 			std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
-			if (nullptr == link)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid link(session_key:", session->session_key, ")");
-			}
+			assert(nullptr != link);
+
+			LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Send_Reconnect_Req");
 
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
@@ -87,9 +86,14 @@ namespace Gamnet { namespace Test {
 			}
 
 			session->is_connected = true;
+
+			for (const std::shared_ptr<Network::Tcp::Packet>& sendPacket : session->send_packets)
+			{
+				session->link->AsyncSend(sendPacket);
+			}
 			session->OnConnect();
 			//session->Resume();
-			session->Next();
+			//session->Next();
 		}
 
 		void Send_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session)

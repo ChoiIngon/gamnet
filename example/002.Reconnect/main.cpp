@@ -4,7 +4,7 @@
 
 int main() {
 	Gamnet::Log::ReadXml("config.xml");
-	LOG(INF, "Echo Server Starts..");
+	LOG(INF, "002.Reconnect Example Server Starts..");
 	LOG(INF, "build date:", __DATE__, " ", __TIME__);
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
@@ -16,7 +16,7 @@ int main() {
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
 		return 1;
 	}
 	return 0;

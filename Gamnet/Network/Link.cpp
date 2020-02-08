@@ -94,7 +94,7 @@ void Link::OnConnect(const boost::system::error_code& ec)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", link_key, "] connect fail(dest:", remote_address.to_v4().to_string(), ", errno:", ec, ", link_manager:", link_manager->name, ")");
 		} 
-
+		
 		{
 			boost::asio::socket_base::linger option(true, 0);
 			socket.set_option(option);

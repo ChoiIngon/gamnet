@@ -58,7 +58,7 @@ public :
 	virtual std::shared_ptr<Network::Link> Create() override
 	{
 		std::shared_ptr<Link> link = link_pool.Create();
-		if(nullptr == link)
+		if(nullptr == link) 
 		{
 			LOG(GAMNET_ERR, "[link_manager:", name, "] can not create 'Tcp::Link' instance");
 			return nullptr;
@@ -101,9 +101,9 @@ public :
 				if(false == session->handover_safe)
 				{
 					session->OnDestroy();
+					session->AttachLink(nullptr);
 					this->session_manager.Remove(session->session_key);
 				}
-				session->AttachLink(nullptr);
 			}
 			catch (const Exception& e)
 			{

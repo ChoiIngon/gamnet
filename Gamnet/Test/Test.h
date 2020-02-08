@@ -35,7 +35,7 @@ namespace Gamnet { namespace Test {
 	}
 
 	template <class SESSION_T, class MSG>
-	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg)
+	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = false)
 	{
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
@@ -45,7 +45,7 @@ namespace Gamnet { namespace Test {
 		}
 
 		packet->msg_seq = ++session->send_seq;
-		packet->reliable = false;
+		packet->reliable = reliable;
 		if (false == packet->Write(msg))
 		{
 			LOG(ERR, "[session_key:", session->session_key, "] fail to serialize message(msg_id:", MSG::MSG_ID, ")");

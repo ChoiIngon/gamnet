@@ -248,7 +248,7 @@ namespace Gamnet {	namespace Test {
 						itr = global_recv_handlers.find(packet->msg_id);
 						if (global_recv_handlers.end() == itr)
 						{
-							LOG(GAMNET_WRN, "can't find handler function(msg_id:", packet->msg_id, ")");
+							LOG(GAMNET_WRN, "can't find handler function(link_key:", link->link_key, ", msg_id:", packet->msg_id, ")");
 							link->Close(ErrorCode::InvalidHandlerError);
 							return;
 						}

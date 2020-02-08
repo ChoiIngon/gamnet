@@ -19,7 +19,7 @@ void UserUpdateHandler::Recv_Req(const std::shared_ptr<UserSession>& session, co
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(DEV, "MsgCliSvr_UserUpdate_Req(session_key:", session->session_key, ")");
+		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_UserUpdate_Req");
 		ans.User = session->user_data;
 	}
 	catch (const Gamnet::Exception& e)
@@ -27,7 +27,7 @@ void UserUpdateHandler::Recv_Req(const std::shared_ptr<UserSession>& session, co
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.Error = (ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_UserUpdate_Ans(session_key:", session->session_key, ", error_code:", (int)ans.Error, ")");
+	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_UserUpdate_Ans(error_code:", (int)ans.Error, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans, true);
 }
 
@@ -41,7 +41,9 @@ GAMNET_BIND_TCP_HANDLER(
 void Test_UserUpdate_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_UserUpdate_Req req;
-	Gamnet::Test::SendMsg(session, req);
+	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUpdate_Req");
+	Gamnet::Test::SendMsg(session, req, true);
+	session->Reconnect();
 }
 
 void Test_UserUpdate_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
@@ -52,6 +54,7 @@ void Test_UserUpdate_Ans(const std::shared_ptr<TestSession>& session, const std:
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
+		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUpdate_Ans");
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());

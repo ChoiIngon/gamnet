@@ -19,7 +19,7 @@ void UserLoginHandler::Recv_Req(const std::shared_ptr<UserSession>& session, con
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(DEV, "MsgCliSvr_UserLogin_Req(session_key:", session->session_key, ")");
+		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_UserLogin_Req");
 		
 		UserData& userData = session->user_data;
 		userData.UserID = req.UserID;
@@ -30,7 +30,7 @@ void UserLoginHandler::Recv_Req(const std::shared_ptr<UserSession>& session, con
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.Error = (ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_UserLogin_Ans(session_key:", session->session_key, ", error_code:", (int)ans.Error, ")");
+	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_UserLogin_Ans(error_code:", (int)ans.Error, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans, true);
 }
 
@@ -45,8 +45,8 @@ void Test_UserLogin_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_UserLogin_Req req;
 	req.UserID = "UserID";
+	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Req");
 	Gamnet::Test::SendMsg(session, req);
-	session->Reconnect();
 }
 
 void Test_UserLogin_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
@@ -57,11 +57,12 @@ void Test_UserLogin_Ans(const std::shared_ptr<TestSession>& session, const std::
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
+		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Ans");
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-	
+	session->Next();
 }
 
 GAMNET_BIND_TEST_HANDLER(

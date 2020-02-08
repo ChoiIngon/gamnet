@@ -68,5 +68,9 @@ void Session::Next()
 	test_seq++;
 	//LOG(DEV, "session_key:", session_key, ", link_key:", link->link_key, ", test_seq:", test_seq);
 	is_pause = false;
+	while (0 < send_packets.size())
+	{
+		send_packets.pop_front();
+	}
 }
 }}/* namespace Gamnet */
