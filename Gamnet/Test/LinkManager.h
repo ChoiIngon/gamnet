@@ -158,19 +158,21 @@ namespace Gamnet {	namespace Test {
 
 			session->strand.wrap([this, session]() {
 				try {
-					if (0 < this->execute_order.size())
+					if (0 == this->execute_order.size())
 					{
-						session->send_time = std::chrono::steady_clock::now();
-						if (0 == session->test_seq)
-						{
-							const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
-							info->execute_count++;
-							this->test_handler.Send_Connect_Req(session);
-						}
-						else
-						{
-							this->test_handler.Send_Reconnect_Req(session);
-						}
+						return;
+					}
+					
+					session->send_time = std::chrono::steady_clock::now();
+					if (0 == session->test_seq)
+					{
+						const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
+						info->execute_count++;
+						this->test_handler.Send_Connect_Req(session);
+					}
+					else
+					{
+						this->test_handler.Send_Reconnect_Req(session);
 					}
 				}
 				catch (const Exception& e)

@@ -236,15 +236,14 @@ void SessionManager::OnTimerExpire()
 
 	for (auto session : sessionsToBeDeleted)
 	{
-		LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
 		session->strand.wrap([session]() {
 			try {
+				LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] destroy idle session");
 				std::shared_ptr<Link> link = session->link;
-				if (nullptr != link)
+				if (nullptr != link && true == link->socket.is_open())
 				{
 					session->OnClose(ErrorCode::IdleTimeoutError);
 				}
-
 				session->OnDestroy();
 				session->AttachLink(nullptr);
 			}

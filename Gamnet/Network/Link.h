@@ -12,8 +12,6 @@ class Link : public std::enable_shared_from_this<Link>
 {
 	std::shared_ptr<Buffer> 			read_buffer;
 	std::deque<std::shared_ptr<Buffer>>	send_buffers;
-public :
-	static std::atomic<uint32_t> link_key_generator;
 public:
 	struct InitFunctor
 	{

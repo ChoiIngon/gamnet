@@ -4,7 +4,7 @@
 namespace Gamnet { namespace Network {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
-std::atomic<uint32_t> Link::link_key_generator;
+static std::atomic<uint32_t> LINK_KEY;
 
 Link::Link(LinkManager* linkManager) :
 	read_buffer(nullptr),
@@ -23,15 +23,15 @@ Link::~Link()
 
 bool Link::Init()
 {
-	link_key = ++Link::link_key_generator;
+	link_key = ++LINK_KEY;
+	remote_address = boost::asio::ip::address();
+	expire_time = time(nullptr);
 	read_buffer = Buffer::Create();
 	if (nullptr == read_buffer)
 	{
-		LOG(GAMNET_ERR, "[link_key:", link_key, "] can not create read buffer");
+		LOG(GAMNET_ERR, "[", link_manager->name, "/", link_key, "/0] can not create read buffer");
 		return false;
 	}
-	remote_address = boost::asio::ip::address();
-	expire_time = time(nullptr);
 	return true;
 }
 
@@ -44,19 +44,19 @@ void Link::Clear()
 
 void Link::Connect(const char* host, int port, int timeout)
 {
+	if (nullptr == link_manager)
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "[link_key:", link_key, "] invalid link_manager");
+	}
+
 	if(nullptr == host)
 	{
-		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link_key, "] invalid host name");
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "[", link_manager->name, "/", link_key, "/0] host is null");
 	}
 
 	if(0 == strlen(host))
 	{
-		throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "[link_key:", link_key, "] empty host name");
-	}
-
-	if(nullptr == link_manager)
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link_key, "] invalid link manager");
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[", link_manager->name, "/", link_key, "/0] host is empty");
 	}
 
 	boost::asio::ip::tcp::resolver resolver_(io_service_);
@@ -72,27 +72,26 @@ void Link::Connect(const char* host, int port, int timeout)
 	
 	auto self = shared_from_this();
 	assert(self);
-	socket.async_connect(endpoint_, strand.wrap([self](const boost::system::error_code& ec) {
-		self->OnConnect(ec);
-	}));
 
-	if(0 < timeout)
+	if (0 < timeout)
 	{
 		timer.AutoReset(false);
-		timer.SetTimer(timeout*1000, strand.wrap([this]() {
-			LOG(GAMNET_WRN, "[", link_manager->name, ", link_key:", link_key, "] connect timeout(ip:", remote_address.to_string(), ")");
-			Close(ErrorCode::ConnectTimeoutError);
-		}));
+		timer.SetTimer(timeout * 1000, strand.wrap(std::bind(&Link::Connect, self, boost::asio::error::timed_out)));
 	}
+	socket.async_connect(endpoint_, strand.wrap(std::bind(&Link::OnConnect, self, boost::asio::placeholders::error)));
 }
 
 void Link::OnConnect(const boost::system::error_code& ec)
 {
 	try {
 		timer.Cancel();
-		if (0 != ec)
+		if(false == socket.is_open())
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", link_key, "] connect fail(dest:", remote_address.to_v4().to_string(), ", errno:", ec, ", link_manager:", link_manager->name, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[", link_manager->name, "/", link_key, "0] connect timeout(dest:", remote_address.to_v4().to_string(), ", errno:", ec, ", link_manager:", link_manager->name, ")");
+		}
+		else if (0 != ec)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[", link_manager->name, "/", link_key, "0] connect fail(dest:", remote_address.to_v4().to_string(), ", errno:", ec, ", link_manager:", link_manager->name, ")");
 		} 
 		
 		{

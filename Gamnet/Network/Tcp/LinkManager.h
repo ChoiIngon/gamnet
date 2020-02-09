@@ -110,8 +110,6 @@ public :
 				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 			}
 		})();
-
-		link->session = nullptr;
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
@@ -143,15 +141,15 @@ public :
 			return;
 		}
 	
-		session->strand.wrap([=] () {
-			if (nullptr != session->link)
+		session_manager.Remove(session->session_key);
+		session->strand.wrap([session] () {
+			if (nullptr != session->link && true == session->link->socket.is_open())
 			{
 				//	LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
 				session->OnClose(ErrorCode::Success);
 			}
 			session->OnDestroy();
 			session->AttachLink(nullptr);
-			session_manager.Remove(session->session_key);
 		})();
 	}
 
