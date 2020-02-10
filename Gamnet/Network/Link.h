@@ -61,12 +61,13 @@ public :
 	int  SyncSend(const std::shared_ptr<Buffer>& buffer);
 	virtual void Close(int reason);
 		
-	void AsyncRead();
+	virtual void OnAccept();
 protected :
-	virtual void OnConnect(const boost::system::error_code& ec);
+	virtual void OnConnect(const boost::system::error_code& ec, const boost::asio::ip::tcp::endpoint& endpoint);
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) = 0;
 	virtual void OnSend(const boost::system::error_code& ec, std::size_t transferredBytes);
 private :
+	void AsyncRead();
 	void FlushSend();
 };
 

@@ -76,8 +76,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
 				link_manager->OnRecvMsg(shared_from_this(), packet);
 			}
-			
 		}
-		
 	}
 }}}

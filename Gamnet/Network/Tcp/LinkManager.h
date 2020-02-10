@@ -119,7 +119,7 @@ public :
 		if (nullptr == session)
 		{
 			LOG(ERR, "[", name, "::link_key:", link->link_key, "] invalid session(msg_id:", packet->msg_id, ")");
-			link->Close(ErrorCode::NullPointerError);
+			link->Close(ErrorCode::InvalidSessionError);
 			return;
 		}
 

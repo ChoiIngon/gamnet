@@ -76,12 +76,26 @@ void Link::Connect(const char* host, int port, int timeout)
 	if (0 < timeout)
 	{
 		timer.AutoReset(false);
-		timer.SetTimer(timeout * 1000, strand.wrap(std::bind(&Link::Connect, self, boost::asio::error::timed_out)));
+		timer.SetTimer(timeout * 1000, strand.wrap(std::bind(&Link::Close, self, ErrorCode::ConnectTimeoutError)));
 	}
-	socket.async_connect(endpoint_, strand.wrap(std::bind(&Link::OnConnect, self, boost::asio::placeholders::error)));
+	socket.async_connect(endpoint_, strand.wrap(std::bind(&Link::OnConnect, self, std::placeholders::_1, endpoint_)));
 }
 
-void Link::OnConnect(const boost::system::error_code& ec)
+void Link::OnAccept()
+{
+	boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+	socket.set_option(option);
+	remote_address = socket.remote_endpoint().address();
+	if (false == link_manager->Add(shared_from_this()))
+	{
+		assert(!"duplicated link");
+		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+	}
+	link_manager->OnAccept(shared_from_this());
+	AsyncRead();
+}
+
+void Link::OnConnect(const boost::system::error_code& ec, const boost::asio::ip::tcp::endpoint& endpoint)
 {
 	try {
 		timer.Cancel();
@@ -126,7 +140,6 @@ void Link::OnConnect(const boost::system::error_code& ec)
 void Link::AsyncRead()
 {
 	auto self(shared_from_this());
-	
 	socket.async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
 		[self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
@@ -179,7 +192,7 @@ void Link::AsyncSend(const char* buf, int len)
 void Link::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	auto self(shared_from_this());
-	strand.wrap([self](const std::shared_ptr<Buffer>& buffer) {
+	strand.wrap([self](std::shared_ptr<Buffer> buffer) {
 		bool needFlush = self->send_buffers.empty();
 		self->send_buffers.push_back(buffer);
 		if(true == needFlush)
@@ -195,11 +208,7 @@ void Link::FlushSend()
 	{
 		auto self(shared_from_this());
 		const std::shared_ptr<Buffer> buffer = send_buffers.front();
-		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()),
-			strand.wrap([self](const boost::system::error_code& ec, std::size_t transferredBytes) {
-				self->OnSend(ec, transferredBytes);
-			}
-		));
+		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), strand.wrap(std::bind(&Link::OnSend, self, std::placeholders::_1, std::placeholders::_2)));
 	}
 }
 
