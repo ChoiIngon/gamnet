@@ -15,7 +15,7 @@ public:
 	};
 public :
 	Session();
-	Session(boost::asio::io_service& ioService);
+	//Session(boost::asio::io_service& ioService);
 	virtual ~Session();
 
 	virtual bool Init() override;

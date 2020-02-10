@@ -23,12 +23,13 @@ Session::Session() :
 	session_key(0),
 	session_token(""),
 	remote_address(nullptr),
-	strand(io_service_),
+	//strand(io_service_),
 	expire_time(0),
 	link(nullptr)
 {
 }
 
+/*
 Session::Session(boost::asio::io_service& io_service) :
 	session_key(0),
 	session_token(""),
@@ -38,7 +39,7 @@ Session::Session(boost::asio::io_service& io_service) :
 	link(nullptr)
 {
 }
-
+*/
 Session::~Session()
 {
 }
@@ -199,16 +200,9 @@ void SessionManager::Flush()
 	for (auto session : sessionsToBeDeleted)
 	{
 		LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
-		session->strand.wrap([session]() {
-			try {
-				session->OnDestroy();
-				session->AttachLink(nullptr);
-			}
-			catch (const Exception& e)
-			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-		})();
+		std::lock_guard<std::recursive_mutex> lo(session->lock);
+		session->OnDestroy();
+		session->AttachLink(nullptr);
 	}
 }
 
@@ -236,22 +230,15 @@ void SessionManager::OnTimerExpire()
 
 	for (auto session : sessionsToBeDeleted)
 	{
-		session->strand.wrap([session]() {
-			try {
-				LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] destroy idle session");
-				std::shared_ptr<Link> link = session->link;
-				if (nullptr != link && true == link->socket.is_open())
-				{
-					session->OnClose(ErrorCode::IdleTimeoutError);
-				}
-				session->OnDestroy();
-				session->AttachLink(nullptr);
-			}
-			catch (const Exception& e)
-			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-		})(); 
+		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] destroy idle session");
+		std::lock_guard<std::recursive_mutex> lo(session->lock);
+		std::shared_ptr<Link> link = session->link;
+		if (nullptr != link && true == link->socket.is_open())
+		{
+			session->OnClose(ErrorCode::IdleTimeoutError);
+		}
+		session->OnDestroy();
+		session->AttachLink(nullptr);
 	}
 }
 

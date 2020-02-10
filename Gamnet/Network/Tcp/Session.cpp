@@ -7,10 +7,11 @@ Session::Session()
 {
 }
 
+/*
 Session::Session(boost::asio::io_service& ioService) : Network::Session(ioService)
 {
 }
-
+*/
 Session::~Session()
 {
 }
@@ -27,7 +28,7 @@ bool Session::Init()
 	recv_seq = 0;
 	send_seq = 0;
 	handover_safe = false;
-	//recv_packets.clear();
+	
 	return true;
 }
 
@@ -39,26 +40,20 @@ void Session::Clear()
 
 bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 {
-	if(nullptr == link)
-	{
-		LOG(WRN, "[session_key:", session_key, "] invalid link(msg_id:", packet->msg_id, ")");
-	}
-
 	if (true == packet->reliable)
 	{
-		strand.wrap([=](){
-			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
+		std::lock_guard<std::recursive_mutex> lo(lock);
+		if (Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
+		{
+			if(nullptr != link)
 			{
-				if(nullptr != this->link)
-				{
-					this->link->Close(ErrorCode::NullPointerError);
-				}
-
-				return;
+				link->Close(ErrorCode::NullPointerError);
 			}
-			send_packets.push_back(packet);
-			this->Network::Session::AsyncSend(packet);
-		})();
+
+			return false;
+		}
+		send_packets.push_back(packet); // keep send message util ack received
+		Network::Session::AsyncSend(packet);
 		return true;
 	}
 

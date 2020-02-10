@@ -96,21 +96,21 @@ public:
 		return true;
 	}
 
-	void OnRecvMsg(const std::shared_ptr<SESSION_T> session, const std::shared_ptr<Packet> packet)
+	void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		assert(nullptr != session);
+		const std::shared_ptr<Packet> packet = std::static_pointer_cast<Packet>(buffer);
 		if (true == packet->reliable && packet->msg_seq <= session->recv_seq)
 		{
-			LOG(WRN, "[session_key:", session->session_key, "] discard message(msg_id:", packet->msg_id, ", received msg_seq:", packet->msg_seq, ", expected msg_seq:", session->recv_seq + 1, ")");
+			LOG(WRN, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] discard message(msg_id:", packet->msg_id, ", received msg_seq:", packet->msg_seq, ", expected msg_seq:", session->recv_seq + 1, ")");
 			return;
 		}
-
-		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
-		assert(nullptr != link);
 
 		auto itr = mapHandlerFunction_.find(packet->msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
-			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->read_index, ")");
+			LOG(ERR, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")");
 			link->Close(ErrorCode::InvalidHandlerError);
 			return ;
 		}
@@ -119,7 +119,7 @@ public:
 		std::shared_ptr<IHandler> handler = handler_function.factory_->GetHandler(&session->handler_container, packet->msg_id);
 		if(nullptr == handler)
 		{
-			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->read_index, ")");
+			LOG(ERR, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")");
 			link->Close(ErrorCode::InvalidHandlerError);
 			return;
 		}
@@ -132,19 +132,23 @@ public:
 		}
 #endif
 		try {
+			std::lock_guard<std::recursive_mutex> lo(session->lock);
 			handler_function.function_(handler, session, packet);
+
+			if (true == packet->reliable)
+			{
+				session->recv_seq = packet->msg_seq;
+			}
+
+			session->expire_time = ::time(nullptr);
 		}
 		catch (const std::exception& e)
 		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
+			LOG(ERR, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] handler execute error(msg_id:", packet->msg_id, ", exception:", e.what(), ")");
 			link->Close(ErrorCode::UndefinedError);
 			return;
 		}
-
-		if(true == packet->reliable)
-		{
-			session->recv_seq = packet->msg_seq;
-		}
+		
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{

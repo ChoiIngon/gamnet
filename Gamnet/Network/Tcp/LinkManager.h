@@ -91,40 +91,27 @@ public :
 			return;
 		}
 
-		session->strand.wrap([this, session, reason] () {
-			try {
-				if(nullptr == session->link)
-				{
-					return;
-				}
-				session->OnClose(reason);
-				if(false == session->handover_safe)
-				{
-					session->OnDestroy();
-					session->AttachLink(nullptr);
-					this->session_manager.Remove(session->session_key);
-				}
-			}
-			catch (const Exception& e)
-			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-		})();
+		std::lock_guard<std::recursive_mutex> lo(session->lock);
+		session->OnClose(reason);
+		if (false == session->handover_safe)
+		{
+			session->OnDestroy();
+			session->AttachLink(nullptr);
+			session_manager.Remove(session->session_key);
+		}
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
-		const std::shared_ptr<Packet> packet = std::static_pointer_cast<Packet>(buffer);
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr == session)
 		{
-			LOG(ERR, "[", name, "::link_key:", link->link_key, "] invalid session(msg_id:", packet->msg_id, ")");
+			LOG(ERR, "[", name, "/", link->link_key, "/0] invalid session");
 			link->Close(ErrorCode::InvalidSessionError);
 			return;
 		}
 
-		session->expire_time = ::time(nullptr);
-		session->strand.wrap(std::bind(&Dispatcher<SESSION_T>::OnRecvMsg, &Singleton<Dispatcher<SESSION_T>>::GetInstance(), session, packet))();
+		Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(link, buffer);
 	}
 
 	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key) 

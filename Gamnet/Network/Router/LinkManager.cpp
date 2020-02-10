@@ -64,20 +64,11 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 	link->session = session;
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
-
-	session_manager.Add(session->session_key, session);
-
-	session->strand.wrap([session, link] () {
-		try {
-			session->AttachLink(link);
-			session->OnCreate();
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-	})();
 	
+	session->AttachLink(link);
+	session->OnCreate();
+	
+	session_manager.Add(session->session_key, session);
 	link->Connect(host, port, timeout);
 }
 
@@ -90,15 +81,7 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 		return;
 	}
 	
-	session->strand.wrap([session] () {
-		try {
-			session->OnConnect();
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		};
-	})(); 
+	session->OnConnect();
 	_cast_group->AddSession(session);
 }
 
@@ -114,19 +97,11 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 
 	_cast_group->AddSession(session);
 
+	session->AttachLink(link);
+	session->OnCreate();
+	session->OnAccept();
+	
 	session_manager.Add(session->session_key, session);
-
-	session->strand.wrap([session, link] () {
-		try {
-			session->AttachLink(link);
-			session->OnCreate();
-			session->OnAccept();
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-	})();
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
@@ -137,23 +112,11 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 		return;
 	}
 
-	session->strand.wrap([session, reason]() {
-		try {
-			if (nullptr == session->link)
-			{
-				LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
-				return;
-			}
-			session->OnClose(reason);
-			session->OnDestroy();
-			session->AttachLink(nullptr);
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-	})();
-
+	std::lock_guard<std::recursive_mutex> lo(session->lock);
+	session->OnClose(reason);
+	session->OnDestroy();
+	session->AttachLink(nullptr);
+	
 	session_manager.Remove(session->session_key);
 	_cast_group->DelSession(session);
 }
@@ -166,9 +129,7 @@ void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const st
 		return;
 	}
 
-	session->expire_time = ::time(nullptr);
-	const std::shared_ptr<Tcp::Packet>& packet = std::static_pointer_cast<Tcp::Packet>(buffer);
-	session->strand.wrap(std::bind(&Tcp::Dispatcher<Session>::OnRecvMsg, &Singleton<Tcp::Dispatcher<Session>>::GetInstance(), session, packet))();
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().OnRecvMsg(link, buffer);
 }
 
 Json::Value LinkManager::State()

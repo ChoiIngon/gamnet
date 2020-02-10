@@ -24,7 +24,7 @@ void Dispatcher::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std
 
 	const HandlerFunction& handler_function = itr->second;
 	std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&session->handler_container, 0);
-	if(NULL == handler)
+	if(nullptr == handler)
 	{
 		LOG(ERR, "[link_key:", link->link_key,"] can't find handler function(uri:", uri, ")");
 		Response res;

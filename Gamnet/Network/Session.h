@@ -64,13 +64,14 @@ public :
 		}
 	};
 	Session();
-	Session(boost::asio::io_service& io_service);
+//	Session(boost::asio::io_service& io_service);
 	virtual ~Session();
 
 	uint32_t					session_key;
 	std::string					session_token;
 	boost::asio::ip::address*	remote_address;
-	boost::asio::strand			strand;
+	// boost::asio::strand			strand;
+	std::recursive_mutex		lock;
 	int64_t						expire_time;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;

@@ -22,7 +22,7 @@ void CreateThreadPool(int threadCount)
 }
 
 Session::Session() : 
-	Network::Tcp::Session(io_service_), 
+	//Network::Tcp::Session(io_service_), 
 	repeat_count(0),
 	server_session_key(0),
 	server_session_token(""),

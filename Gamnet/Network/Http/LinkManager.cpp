@@ -36,21 +36,12 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
 	}
 
-	session->session_key = ++Network::Session::session_key_generator;
+	//session->session_key = ++Network::Session::session_key_generator;
 
 	link->session = session;
-	
-	session->strand.wrap([session, link]() {
-		try {
-			session->AttachLink(link);
-			session->OnCreate();
-			session->OnAccept();
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-	})();
+	session->AttachLink(link);
+	session->OnCreate();
+	session->OnAccept();
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
@@ -62,23 +53,9 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 		return;
 	}
 	
-	session->strand.wrap([session, reason]() {
-		try {
-			if (nullptr == session->link)
-			{
-				LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
-				return;
-			}
-			session->OnClose(reason);
-			session->OnDestroy();
-			session->AttachLink(nullptr);
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-	})();
+	session->OnClose(reason);
+	session->OnDestroy();
+	session->AttachLink(nullptr);
 }
-
 
 }}}

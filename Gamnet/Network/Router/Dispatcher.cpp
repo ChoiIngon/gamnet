@@ -38,21 +38,21 @@ namespace Gamnet { namespace Network { namespace Router {
 				return;
 			}
 
-			network_session->strand.wrap([network_session, handler_function, msg_id, from, packet]() {
-				std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
-				if (nullptr == handler)
-				{
-					LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
-					return;
-				}
-				try {
-					handler_function.function_(handler, from, packet);
-				}
-				catch (const std::exception& e)
-				{
-					LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
-				}
-			})();
+			
+			std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
+			if (nullptr == handler)
+			{
+				LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
+				return;
+			}
+			try {
+				std::lock_guard<std::recursive_mutex> lo(network_session->lock);
+				handler_function.function_(handler, from, packet);
+			}
+			catch (const std::exception& e)
+			{
+				LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
+			}
 		}
 		else
 		{
