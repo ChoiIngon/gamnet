@@ -32,8 +32,7 @@ namespace Gamnet { namespace Test {
 
 			if (ErrorCode::Success != ans["error_code"].asInt())
 			{
-				session->link->Close(ans["error_code"].asInt());
-				return;
+				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] connect fail(error_code:", ans["error_code"].asInt(), ")");
 			}
 
 			session->server_session_key = ans["session_key"].asUInt();
@@ -81,8 +80,7 @@ namespace Gamnet { namespace Test {
 
 			if (ErrorCode::Success != ans["error_code"].asInt())
 			{
-				session->link->Close(ans["error_code"].asInt());
-				return;
+				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] reconnect fail(error_code:", ans["error_code"].asInt(), ")");
 			}
 
 			session->is_connected = true;
@@ -101,8 +99,7 @@ namespace Gamnet { namespace Test {
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
 			{
-				session->link->Close(ErrorCode::NullPacketError);
-				return;
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", session->link->link_manager->name, " / ", session->link->link_key, " / ", session->session_key, "] can not create Packet instance");
 			}
 
 			Json::Value ntf;
@@ -142,7 +139,7 @@ namespace Gamnet { namespace Test {
 				return;
 			}	
 			LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Close_Ans");
-			link->Close(ErrorCode::Success);
+			link->Close(/*ErrorCode::Success*/);
 		}
 	};
 }}

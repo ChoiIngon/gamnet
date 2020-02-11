@@ -174,16 +174,20 @@ namespace Gamnet {	namespace Test {
 				return;
 			}
 
-			if(true == session->is_connected)
 			{
-				session->OnClose(reason);
+				std::lock_guard<std::recursive_mutex> lo(session->lock);
+				if(true == session->is_connected)
+				{
+					session->OnClose(reason);
+				}
+				session->OnDestroy();
+				session->AttachLink(nullptr);
 			}
-			session->OnDestroy();
-			session->AttachLink(nullptr);
 			
 			finish_execute_count += 1;
-			if (max_execute_count > begin_execute_count++)
+			if (max_execute_count > begin_execute_count)
 			{
+				begin_execute_count++;
 				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
 				if (nullptr == link)
 				{
@@ -215,26 +219,16 @@ namespace Gamnet {	namespace Test {
 					itr = global_recv_handlers.find(packet->msg_id);
 					if (global_recv_handlers.end() == itr)
 					{
-						LOG(WRN, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(link_key:", link->link_key, ", msg_id:", packet->msg_id, ")");
-						link->Close(ErrorCode::InvalidHandlerError);
-						return;
+						throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")");
 					}
 				}
 
 				RECV_HANDLER_TYPE& handler = itr->second;
-				try {
-					session->is_pause = true;
-					handler(session, packet);
-					if(session->recv_seq < packet->msg_seq)
-					{
-						session->recv_seq = packet->msg_seq;
-					}
-				}
-				catch (const Exception& e)
+				session->is_pause = true;
+				handler(session, packet);
+				if(session->recv_seq < packet->msg_seq)
 				{
-					execute_info->except_count++;
-					link->Close(e.error_code());
-					return;
+					session->recv_seq = packet->msg_seq;
 				}
 
 				if (true == packet->reliable)
@@ -245,23 +239,14 @@ namespace Gamnet {	namespace Test {
 				if (false == session->is_pause && (int)this->execute_order.size() > session->test_seq)
 				{
 					const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
-					try
-					{
-						session->send_time = std::chrono::steady_clock::now();
-						next_execute_info->send_handler(session);
-					}
-					catch (const Gamnet::Exception& e)
-					{
-						LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-						link->Close(ErrorCode::UndefinedError);
-						return;
-					}
+					session->send_time = std::chrono::steady_clock::now();
+					next_execute_info->send_handler(session);
 					next_execute_info->execute_count++;
 				}
 			}
 			else
 			{
-				link->Close(ErrorCode::Success);
+				link->Close(/*ErrorCode::Success*/);
 			}
 		}
 

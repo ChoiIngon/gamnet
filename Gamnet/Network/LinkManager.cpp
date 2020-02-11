@@ -73,13 +73,13 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link> link, const boost:
 	}
 	catch(const Exception& e)
 	{
-		LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", e.error_code(), ")");
+		LOG(GAMNET_ERR, "[", name, "/", link->link_key, "] accept fail(errno:", e.error_code(), ")");
 	}
 	catch(const boost::system::system_error& e)
 	{
-		LOG(GAMNET_ERR, "[link_key:", link->link_key, "] accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
+		LOG(GAMNET_ERR, "[", name, "/", link->link_key, "] accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
 	}
-	link->Close(ErrorCode::AcceptFailError);
+	link->Close(/*ErrorCode::AcceptFailError*/);
 }
 
 std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeout)
@@ -145,10 +145,10 @@ void LinkManager::OnTimerExpire()
 		}
 	}
 
-	for (auto link: linksToBeDeleted)
+	for (auto link : linksToBeDeleted)
 	{
-		LOG(GAMNET_ERR, "[link_key:", link->link_key, "] destroy idle link");
-		link->Close(ErrorCode::IdleTimeoutError);
+		LOG(GAMNET_ERR, "[", name, "/", link->link_key, "/0] destroy idle link");
+		link->Close(/*ErrorCode::IdleTimeoutError*/);
 	}
 }
 

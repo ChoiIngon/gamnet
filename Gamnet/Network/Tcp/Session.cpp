@@ -47,7 +47,7 @@ bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 		{
 			if(nullptr != link)
 			{
-				link->Close(ErrorCode::NullPointerError);
+				link->Close(/*ErrorCode::NullPointerError*/);
 			}
 
 			return false;

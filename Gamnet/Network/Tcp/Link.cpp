@@ -48,16 +48,12 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				recv_packet->ReadHeader();
 				if (Packet::HEADER_SIZE > recv_packet->length)
 				{
-					LOG(GAMNET_ERR, "buffer underflow(read size:", recv_packet->length, ")");
-					Close(ErrorCode::BufferUnderflowError);
-					return;
+					throw GAMNET_EXCEPTION(ErrorCode::BufferUnderflowError, "buffer underflow(read size:", recv_packet->length, ")");
 				}
 
 				if (recv_packet->length >= (uint16_t)recv_packet->Capacity())
 				{
-					LOG(GAMNET_ERR, "buffer overflow(read size:", recv_packet->length, ")");
-					Close(ErrorCode::BufferOverflowError);
-					return;
+					throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", recv_packet->length, ")");
 				}
 
 				if(recv_packet->length > (uint16_t)recv_packet->Size())
@@ -69,15 +65,9 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				recv_packet = Packet::Create();
 				if (nullptr == recv_packet)
 				{
-					LOG(GAMNET_ERR, "null packet instance");
-					Close(ErrorCode::NullPacketError);
-					return;
+					throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
 				}
 				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
-				if(nullptr == session)
-				{
-					LOG(INF, "[", link_manager->name, "/", link_key, "/0] invalid session(msg_id:", packet->msg_id, ")");
-				}
 				link_manager->OnRecvMsg(shared_from_this(), packet);
 			}
 		}

@@ -67,17 +67,8 @@ void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 
 	uri = uri.substr(0, uri_end);
 	Request req(param);
-	
-	std::shared_ptr<Network::Session> s = this->session;
-	if (nullptr == session)
-	{
-		LOG(GAMNET_ERR, "invalid session(link_key:", link_key, ")");
-		Close(ErrorCode::InvalidSessionError);
-		return;
-	}
-	
 	auto self = shared_from_this();
 	Singleton<Dispatcher>::GetInstance().OnRecvMsg(self, uri, req);
-	Close(ErrorCode::Success);
+	Close(/*ErrorCode::Success*/);
 }
 }}}

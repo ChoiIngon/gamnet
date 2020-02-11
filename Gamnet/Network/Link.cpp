@@ -76,7 +76,7 @@ void Link::Connect(const char* host, int port, int timeout)
 	if (0 < timeout)
 	{
 		timer.AutoReset(false);
-		timer.SetTimer(timeout * 1000, strand.wrap(std::bind(&Link::Close, self, ErrorCode::ConnectTimeoutError)));
+		timer.SetTimer(timeout * 1000, strand.wrap(std::bind(&Link::Close, self/*, ErrorCode::ConnectTimeoutError*/)));
 	}
 	socket.async_connect(endpoint_, strand.wrap(std::bind(&Link::OnConnect, self, std::placeholders::_1, endpoint_)));
 }
@@ -92,7 +92,8 @@ void Link::OnAccept()
 		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
 	}
 	link_manager->OnAccept(shared_from_this());
-	strand.wrap(std::bind(&Link::AsyncRead, shared_from_this()))();
+	//strand.wrap(std::bind(&Link::AsyncRead, shared_from_this()))();
+	AsyncRead();
 }
 
 void Link::OnConnect(const boost::system::error_code& ec, const boost::asio::ip::tcp::endpoint& endpoint)
@@ -123,18 +124,19 @@ void Link::OnConnect(const boost::system::error_code& ec, const boost::asio::ip:
 			assert(!"duplicated link");
 			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
 		}
-		strand.wrap(std::bind(&Link::AsyncRead, shared_from_this()))();
+		//strand.wrap(std::bind(&Link::AsyncRead, shared_from_this()))();
+		AsyncRead();
 		return;
 	}
 	catch(const Exception& e)
 	{
-		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), ", link_key:", link_key, ", error_code:", e.error_code(), ", link_manager:", link_manager->name);
+		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), ", error_code:", e.error_code());
 	}
 	catch (const boost::system::system_error& e)
 	{
-		LOG(ERR, "[link_key:", link_key, "] connect fail(dest:", remote_address.to_v4().to_string(), ", errno:", e.code().value(), ", link_manager:", link_manager->name, ", errstr:", e.what(), ")");
+		LOG(ERR, "[", link_manager->name, "/", link_key, "/0] connect fail(dest:", remote_address.to_v4().to_string(), ", errno:", e.code().value(), ", errstr:", e.what(), ")");
 	}
-	Close(ErrorCode::ConnectFailError);
+	Close(/*ErrorCode::ConnectFailError*/);
 }
 
 void Link::AsyncRead()
@@ -144,13 +146,15 @@ void Link::AsyncRead()
 		[self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
-				self->Close(ErrorCode::Success); // no error, just closed socket
+				self->socket.close(ec);
+				self->OnClose(ErrorCode::Success); // no error, just closed socket
 				return;
 			}
 
 			if(0 == readbytes)
 			{
-				self->Close(ErrorCode::Success);
+				self->socket.close();
+				self->OnClose(ErrorCode::Success);
 				return;
 			}
 
@@ -167,12 +171,13 @@ void Link::AsyncRead()
 			}
 			catch(const Exception& e)
 			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), ", link key:", self->link_key, ", session_key:", (nullptr != self->session ? self->session->session_key : 0));
-				self->Close(e.error_code());
-				return;
+				LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
+				self->socket.close();
+				//return;
 			}
 			self->read_buffer->Clear();
-			self->strand.wrap(std::bind(&Link::AsyncRead, self))();
+			//self->strand.wrap(std::bind(&Link::AsyncRead, self))();
+			self->AsyncRead();
 		}
 	);
 }
@@ -216,7 +221,7 @@ void Link::OnSend(const boost::system::error_code& ec, std::size_t transferredBy
 {
 	if (0 != ec)
 	{
-		Close(ErrorCode::Success); // no error, just closed socket
+		Close(/*ErrorCode::Success*/); // no error, just closed socket
 		return;
 	}
 
@@ -267,27 +272,27 @@ int Link::SyncSend(const char* buf, int len)
 	return totalSentBytes;
 }
 
-void Link::Close(int reason)
+void Link::Close(/*int reason*/)
+{
+	if (false == socket.is_open())
+	{
+		return;
+	}
+	socket.close();
+}
+
+void Link::OnClose(int reason)
 {
 	if (true == socket.is_open())
 	{
-		try
-		{
-			LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::Close(reason:", reason, ")");
-			link_manager->OnClose(shared_from_this(), reason);
-			socket.close();
-		}
-		catch (const Exception& e)
-		{
-			LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-		catch (const boost::system::system_error& e)
-		{
-			LOG(ERR, e.what(), "(error_code:", e.code(), ")");
-		}
+		assert(false);
+		return;
 	}
-	session = nullptr;
+
+	LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::Close(reason:", reason, ")");
+	link_manager->OnClose(shared_from_this(), reason);
 	link_manager->Remove(link_key);
+	session = nullptr;
 }
 
 void Link::AttachSession(const std::shared_ptr<Session>& session)

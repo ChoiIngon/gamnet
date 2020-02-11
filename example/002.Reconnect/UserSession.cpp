@@ -53,7 +53,7 @@ void TestSession::Reconnect()
 	LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] TestSession::Reconnect");
 	std::shared_ptr<Gamnet::Network::Link> prevLink = link;
 	prevLink->session = nullptr;
-	prevLink->Close(Gamnet::ErrorCode::UndefinedError);
+	prevLink->Close(/*Gamnet::ErrorCode::UndefinedError*/);
 	//AttachLink(nullptr);
 	//OnClose(0);
 

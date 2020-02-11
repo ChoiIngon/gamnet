@@ -75,12 +75,7 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 {
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
-	if (nullptr == link->session)
-	{
-		link->Close(ErrorCode::InvalidSessionError);
-		return;
-	}
-	
+	assert(nullptr != session);
 	session->OnConnect();
 	_cast_group->AddSession(session);
 }

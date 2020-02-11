@@ -106,9 +106,7 @@ public :
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
 		if (nullptr == session)
 		{
-			LOG(ERR, "[", name, "/", link->link_key, "/0] invalid session");
-			link->Close(ErrorCode::InvalidSessionError);
-			return;
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[", name, "/", link->link_key, "/0] invalid session");
 		}
 
 		Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(link, buffer);

@@ -30,8 +30,6 @@ class Dispatcher
 {
 	GAMNET_WHERE(SESSION_T, Session);
 
-	
-
 	typedef void(IHandler::*function_type)(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Packet>&);
 public :
 	struct HandlerFunction
@@ -110,18 +108,14 @@ public:
 		auto itr = mapHandlerFunction_.find(packet->msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
-			LOG(ERR, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")");
-			link->Close(ErrorCode::InvalidHandlerError);
-			return ;
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")");
 		}
 
 		const HandlerFunction& handler_function = itr->second;
 		std::shared_ptr<IHandler> handler = handler_function.factory_->GetHandler(&session->handler_container, packet->msg_id);
 		if(nullptr == handler)
 		{
-			LOG(ERR, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")");
-			link->Close(ErrorCode::InvalidHandlerError);
-			return;
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")"); 
 		}
 #ifdef _DEBUG
 		ElapseTimer elapseTimer;
@@ -131,7 +125,7 @@ public:
 			statistics_itr->second->begin_count++;
 		}
 #endif
-		try {
+		{
 			std::lock_guard<std::recursive_mutex> lo(session->lock);
 			handler_function.function_(handler, session, packet);
 
@@ -141,12 +135,6 @@ public:
 			}
 
 			session->expire_time = ::time(nullptr);
-		}
-		catch (const std::exception& e)
-		{
-			LOG(ERR, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] handler execute error(msg_id:", packet->msg_id, ", exception:", e.what(), ")");
-			link->Close(ErrorCode::UndefinedError);
-			return;
 		}
 		
 #ifdef _DEBUG

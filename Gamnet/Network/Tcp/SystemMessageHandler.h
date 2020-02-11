@@ -56,8 +56,7 @@ public:
 		std::shared_ptr<Packet> sendPacket = Packet::Create();
 		if (nullptr == sendPacket)
 		{
-			link->Close(ErrorCode::NullPacketError);
-			return;
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", link->link_manager->name, " / ", link->link_key, " / ", session->session_key, "] can not create Packet instance");
 		}
 
 		Json::FastWriter writer;
@@ -107,7 +106,7 @@ public:
 				{
 					prevSession->OnClose(ErrorCode::DuplicateConnectionError);
 					invalidLink->session = nullptr;
-					invalidLink->Close(ErrorCode::DuplicateConnectionError);
+					invalidLink->Close(/*ErrorCode::DuplicateConnectionError*/);
 				}
 				prevSession->AttachLink(link);
 				prevSession->OnAccept();
@@ -131,8 +130,7 @@ public:
 		std::shared_ptr<Packet> sendPacket = Packet::Create();
 		if (nullptr == sendPacket)
 		{
-			link->Close(ErrorCode::NullPacketError);
-			return;
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", link->link_manager->name, " / ", link->link_key, " / ", session->session_key, "] can not create Packet instance");
 		}
 
 		sendPacket->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
@@ -147,8 +145,7 @@ public:
 		std::shared_ptr<Packet> sendPacket = Packet::Create();
 		if (nullptr == sendPacket)
 		{
-			link->Close(ErrorCode::NullPacketError);
-			return;
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", link->link_manager->name, " / ", link->link_key, " / ", session->session_key, "] can not create Packet instance");
 		}
 
 		Json::Value ans;
@@ -196,13 +193,12 @@ public:
 		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", link->session->session_key , "] Recv_Close_Req");
 
 		session->handover_safe = false;
-		link->strand.wrap(std::bind(&Network::Tcp::LinkManager<SESSION_T>::OnClose, link->link_manager, link, ErrorCode::Success));
+		//link->strand.wrap(std::bind(&Network::Tcp::LinkManager<SESSION_T>::OnClose, link->link_manager, link, ErrorCode::Success));
 
 		std::shared_ptr<Packet> sendPacket = Packet::Create();
 		if (nullptr == sendPacket)
 		{
-			link->Close(ErrorCode::NullPacketError);
-			return;
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", link->link_manager->name, " / ", link->link_key, " / ", link->session->session_key , "] can not create Packet instance");
 		}
 
 		sendPacket->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);

@@ -206,10 +206,16 @@ void SessionManager::OnTimerExpire()
 
 	for (auto session : sessionsToBeDeleted)
 	{
-		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] destroy idle session");
 		std::lock_guard<std::recursive_mutex> lo(session->lock);
 		std::shared_ptr<Link> link = session->link;
-		if (nullptr != link && true == link->socket.is_open())
+		if(nullptr == link)
+		{
+			continue;
+		}
+
+		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] destroy idle session");
+
+		if (true == link->socket.is_open())
 		{
 			session->OnClose(ErrorCode::IdleTimeoutError);
 		}
