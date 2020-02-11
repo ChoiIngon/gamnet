@@ -1,4 +1,4 @@
-#include "Session.h"
+#include "ChatSession.h"
 
 int main() {
 	Gamnet::Log::ReadXml("config.xml");
@@ -7,7 +7,7 @@ int main() {
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 	try {
-		Gamnet::Network::Tcp::ReadXml<Session>("config.xml");
+		Gamnet::Network::Tcp::ReadXml<ChatSession>("config.xml");
 		Gamnet::Network::Http::Listen(20001);
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
 		Gamnet::Run(30 /*std::thread::hardware_concurrency()*/);

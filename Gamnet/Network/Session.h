@@ -63,19 +63,16 @@ public :
 			return session;
 		}
 	};
+
 	Session();
-//	Session(boost::asio::io_service& io_service);
 	virtual ~Session();
 
 	uint32_t					session_key;
 	std::string					session_token;
-	boost::asio::ip::address*	remote_address;
-	// boost::asio::strand			strand;
 	std::recursive_mutex		lock;
 	int64_t						expire_time;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;
-
 public :
 	virtual void OnCreate() = 0;
 	virtual void OnAccept() = 0;
@@ -91,6 +88,7 @@ public :
 		
 	void AttachLink(const std::shared_ptr<Link>& link);
 
+	const boost::asio::ip::address& GetRemoteAddress() const;
 	static std::atomic<uint32_t> session_key_generator;
 	static std::string GenerateSessionToken(uint32_t session_key);
 };

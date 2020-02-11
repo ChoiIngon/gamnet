@@ -92,7 +92,7 @@ void Link::OnAccept()
 		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
 	}
 	link_manager->OnAccept(shared_from_this());
-	AsyncRead();
+	strand.wrap(std::bind(&Link::AsyncRead, shared_from_this()))();
 }
 
 void Link::OnConnect(const boost::system::error_code& ec, const boost::asio::ip::tcp::endpoint& endpoint)
@@ -123,7 +123,7 @@ void Link::OnConnect(const boost::system::error_code& ec, const boost::asio::ip:
 			assert(!"duplicated link");
 			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
 		}
-		AsyncRead();
+		strand.wrap(std::bind(&Link::AsyncRead, shared_from_this()))();
 		return;
 	}
 	catch(const Exception& e)
@@ -172,7 +172,7 @@ void Link::AsyncRead()
 				return;
 			}
 			self->read_buffer->Clear();
-			self->AsyncRead();
+			self->strand.wrap(std::bind(&Link::AsyncRead, self))();
 		}
 	);
 }
@@ -269,28 +269,30 @@ int Link::SyncSend(const char* buf, int len)
 
 void Link::Close(int reason)
 {
-	auto self(shared_from_this());
-	strand.wrap([self](int reason) {
-		if (true == self->socket.is_open())
+	if (true == socket.is_open())
+	{
+		try
 		{
-			try
-			{
-				LOG(INF, "[", self->link_manager->name, "/", self->link_key, "/", (nullptr == self->session ? 0 : self->session->session_key), "] Link::Close(reason:", reason, ")");
-				self->link_manager->OnClose(self, reason);
-				self->socket.close();
-			}
-			catch (const Exception& e)
-			{
-				LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-			catch (const boost::system::system_error& e)
-			{
-				LOG(ERR, e.what(), "(error_code:", e.code(), ")");
-			}
+			LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::Close(reason:", reason, ")");
+			link_manager->OnClose(shared_from_this(), reason);
+			socket.close();
 		}
-		self->session = nullptr;
-	})(reason);
-	link_manager->Remove(self->link_key);
+		catch (const Exception& e)
+		{
+			LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
+		catch (const boost::system::system_error& e)
+		{
+			LOG(ERR, e.what(), "(error_code:", e.code(), ")");
+		}
+	}
+	session = nullptr;
+	link_manager->Remove(link_key);
+}
+
+void Link::AttachSession(const std::shared_ptr<Session>& session)
+{
+	this->session = session;
 }
 
 }}

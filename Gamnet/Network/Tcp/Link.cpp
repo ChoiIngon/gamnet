@@ -74,6 +74,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 					return;
 				}
 				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
+				if(nullptr == session)
+				{
+					LOG(INF, "[", link_manager->name, "/", link_key, "/0] invalid session(msg_id:", packet->msg_id, ")");
+				}
 				link_manager->OnRecvMsg(shared_from_this(), packet);
 			}
 		}

@@ -62,6 +62,8 @@ public :
 	virtual void Close(int reason);
 		
 	virtual void OnAccept();
+
+	void AttachSession(const std::shared_ptr<Session>& session);
 protected :
 	virtual void OnConnect(const boost::system::error_code& ec, const boost::asio::ip::tcp::endpoint& endpoint);
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) = 0;

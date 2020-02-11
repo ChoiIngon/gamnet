@@ -7,47 +7,46 @@ Handler_JoinChannel::Handler_JoinChannel() {
 Handler_JoinChannel::~Handler_JoinChannel() {
 }
 
-void Handler_JoinChannel::Recv_Req(const std::shared_ptr<Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_JoinChannel::Recv_Req(const std::shared_ptr<ChatSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgCliSvr_JoinChannel_Req req;
 	MsgSvrCli_JoinChannel_Ans ans;
-	ans.error_code = ErrorCode::Success;
+	ans.Error = ErrorCode::Success;
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(DEV, "MsgCliSvr_JoinChannel_Req(session_key:", session->session_key, ")");
+		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_JoinChannel_Req");
 
-		std::shared_ptr<Gamnet::Network::Tcp::CastGroup> castGroup = Gamnet::Singleton<Manager_CastGroup>::GetInstance().GetCastGroup();
-		if(nullptr == castGroup)
+		session->chat_channel = Gamnet::Singleton<Manager_CastGroup>::GetInstance().GetCastGroup();
+		if(nullptr == session->chat_channel)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::CanNotCreateCastGroup);
 		}
-		session->cast_group = castGroup;
-		castGroup->AddSession(session);
-		if(2 > castGroup->Size())
+		 
+		session->chat_channel->AddSession(session);
+		if(2 > session->chat_channel->Size())
 		{
-			Gamnet::Singleton<Manager_CastGroup>::GetInstance().AddCastGroup(castGroup);
+			Gamnet::Singleton<Manager_CastGroup>::GetInstance().AddCastGroup(session->chat_channel);
 		}
 
 		MsgSvrCli_JoinChannel_Ntf ntf;
-		ntf.session_key = session->session_key;
-		ntf.session_count = (int)castGroup->Size();
-		castGroup->SendMsg(ntf, true);
+		ntf.NewUserData = session->user_data;
+		session->chat_channel->SendMsg(ntf, true);
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		ans.error_code = (ErrorCode)e.error_code();
+		ans.Error = (ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_JoinChannel_Ans(session_key:", session->session_key, ", error_code:", (int)ans.error_code, ")");
+	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_JoinChannel_Ans(error_code:", ToString<ErrorCode>(ans.Error), ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans, true);
 }
 
 GAMNET_BIND_TCP_HANDLER(
-	Session,
+	ChatSession,
 	MsgCliSvr_JoinChannel_Req,
 	Handler_JoinChannel, Recv_Req,
 	HandlerStatic
@@ -71,6 +70,7 @@ void Test_JoinChannel_Ans(const std::shared_ptr<TestSession>& session, const std
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
+	session->Next();
 }
 
 GAMNET_BIND_TEST_HANDLER(
@@ -79,13 +79,8 @@ GAMNET_BIND_TEST_HANDLER(
 	Test_JoinChannel_Req, Test_JoinChannel_Ans
 );
 
-GAMNET_BIND_TEST_RECV_HANDLER(
-	TestSession, MsgSvrCli_JoinChannel_Ans, Test_JoinChannel_Ans
-);
-
 void Test_JoinChannel_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	int memberCount = 0;
 	{
 		MsgSvrCli_JoinChannel_Ntf ntf;
 		try {
@@ -93,15 +88,10 @@ void Test_JoinChannel_Ntf(const std::shared_ptr<TestSession>& session, const std
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 			}
-			memberCount = ntf.session_count;
 		}
 		catch (const Gamnet::Exception& e) {
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
-	}
-	if(2 <= memberCount)
-	{
-		session->Next();
 	}
 }
 

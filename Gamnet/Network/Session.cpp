@@ -22,24 +22,11 @@ std::string Session::GenerateSessionToken(uint32_t session_key)
 Session::Session() :
 	session_key(0),
 	session_token(""),
-	remote_address(nullptr),
-	//strand(io_service_),
 	expire_time(0),
 	link(nullptr)
 {
 }
 
-/*
-Session::Session(boost::asio::io_service& io_service) :
-	session_key(0),
-	session_token(""),
-	remote_address(nullptr),
-	strand(io_service),
-	expire_time(0),
-	link(nullptr)
-{
-}
-*/
 Session::~Session()
 {
 }
@@ -55,7 +42,6 @@ void Session::Clear()
 {
 	session_key = 0;
 	session_token = "";
-	remote_address = nullptr;
 	expire_time = 0;
 	link = nullptr;
 	handler_container.Init();
@@ -105,17 +91,7 @@ int Session::SyncSend(const char* data, int length)
 
 void Session::AttachLink(const std::shared_ptr<Link>& link)
 {
-	if(nullptr != this->link)
-	{
-		this->remote_address = nullptr;
-		this->link = nullptr;
-	}
-
-	if(nullptr != link)
-	{
-		this->link = link;
-		this->remote_address = &(link->remote_address);
-	}
+	this->link = link;
 }
 
 SessionManager::SessionManager() : 
@@ -242,4 +218,9 @@ void SessionManager::OnTimerExpire()
 	}
 }
 
+const boost::asio::ip::address& Session::GetRemoteAddress() const
+{
+	assert(nullptr != link);
+	return link->remote_address;
+}
 }} /* namespace Gamnet */

@@ -22,6 +22,7 @@
     <ProjectGuid>{F178C849-DFA2-415C-84CD-17C6DE8E375B}</ProjectGuid>
     <RootNamespace>server</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <ProjectName>003.ChatServer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -122,44 +123,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Handler_HeartBeat.cpp" />
     <ClCompile Include="Handler_Http_ServerState.cpp" />
     <ClCompile Include="Handler_JoinChannel.cpp" />
     <ClCompile Include="Handler_Login.cpp" />
     <ClCompile Include="Handler_SendMessage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Manager_CastGroup.cpp" />
-    <ClCompile Include="Manager_Session.cpp" />
-    <ClCompile Include="Session.cpp" />
+    <ClCompile Include="ChatSession.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Handler_HeartBeat.h" />
     <ClInclude Include="Handler_Http_ServerState.h" />
     <ClInclude Include="Handler_JoinChannel.h" />
     <ClInclude Include="Handler_Login.h" />
     <ClInclude Include="Handler_SendMessage.h" />
     <ClInclude Include="Manager_CastGroup.h" />
-    <ClInclude Include="Manager_Session.h" />
-    <ClInclude Include="Session.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\idl\message.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Message>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\idl\data.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
-    </CustomBuild>
+    <ClInclude Include="ChatSession.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="config.xml">
       <SubType>Designer</SubType>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="ChatMessage.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp %(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp %(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).h</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

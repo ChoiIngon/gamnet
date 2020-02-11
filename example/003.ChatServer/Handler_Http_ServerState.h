@@ -1,7 +1,7 @@
 #ifndef HANDLER_HTTP_ServerState_H_
 #define HANDLER_HTTP_ServerState_H_
 
-#include "Session.h"
+#include "ChatSession.h"
 
 class Handler_Http_ServerState : public Gamnet::Network::IHandler
 {

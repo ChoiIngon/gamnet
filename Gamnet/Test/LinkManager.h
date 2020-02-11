@@ -120,14 +120,14 @@ namespace Gamnet {	namespace Test {
 			std::shared_ptr<Network::Link> link = this->link_pool.Create();
 			if (nullptr == link)
 			{
-				LOG(GAMNET_ERR, "[link_manager:", this->name, "] can not create 'Test::Link' instance");
+				LOG(ERR, "[", name, "/0/0] can not create link instance");
 				return nullptr;
 			}
 
 			std::shared_ptr<SESSION_T> session = this->session_pool.Create();
 			if (nullptr == session)
 			{
-				LOG(ERR, "[link_manager:", this->name, "] can not create session. connect fail(session count:", this->session_manager.Size(), "/", this->session_pool.Capacity(), ")");
+				LOG(ERR, "[", name, "/", link->link_key, "/0] can not create session instance");
 				return nullptr;
 			}
 				
@@ -187,7 +187,7 @@ namespace Gamnet {	namespace Test {
 				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
 				if (nullptr == link)
 				{
-					LOG(ERR, ErrorCode::NullPointerError, "[link_manager:", this->name, "] can not create 'Test::Link' instance");
+					LOG(ERR, "[", name, "/0/0] can not create 'Test::Link' instance");
 					return;
 				}
 			}
@@ -195,9 +195,12 @@ namespace Gamnet {	namespace Test {
 
 		virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 		{
-			const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
 			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-			assert(nullptr != session);
+			if(nullptr == session)
+			{
+				return;
+			}
+			const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
 
 			if (session->test_seq < (int)this->execute_order.size())
 			{
@@ -212,7 +215,7 @@ namespace Gamnet {	namespace Test {
 					itr = global_recv_handlers.find(packet->msg_id);
 					if (global_recv_handlers.end() == itr)
 					{
-						LOG(GAMNET_WRN, "can't find handler function(link_key:", link->link_key, ", msg_id:", packet->msg_id, ")");
+						LOG(WRN, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(link_key:", link->link_key, ", msg_id:", packet->msg_id, ")");
 						link->Close(ErrorCode::InvalidHandlerError);
 						return;
 					}

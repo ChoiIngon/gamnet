@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<server>
+	<log path="log" prefix="server" max_file_size="5">
+		<dev console="yes" file="yes" sys="no"/>
+		<inf console="yes" file="yes" sys="no"/>
+		<wrn console="yes" file="yes" sys="no"/>
+		<err console="yes" file="yes" sys="no"/>
+	</log>
+	
+	<tcp port="20000" max_count="8000" keep_alive="60"/>
+  
+  <test host="127.0.0.1" port="20000" session_count="10" loop_count="1" interval="1000">
+	  <message name="Test_DuplicateLogin"/>
+    <message name="Test_JoinChannel"/>
+    <message name="Test_SendMessage"/>
+	</test>
+</server>

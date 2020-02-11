@@ -1,12 +1,10 @@
 #ifndef MANAGER_CHANNEL_H_
 #define MANAGER_CHANNEL_H_
 
-#include <mutex>
-#include <string>
-#include <map>
-#include "Session.h"
+#include <Gamnet.h>
 
-class Manager_CastGroup {
+class Manager_CastGroup 
+{
 private:
 	std::mutex lock;
 
