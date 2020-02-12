@@ -27,10 +27,12 @@ void Handler_JoinChannel::Recv_Req(const std::shared_ptr<ChatSession>& session, 
 		}
 		 
 		session->chat_channel->AddSession(session);
+		/*
 		if(2 > session->chat_channel->Size())
 		{
 			Gamnet::Singleton<Manager_CastGroup>::GetInstance().AddCastGroup(session->chat_channel);
 		}
+		*/
 
 		MsgSvrCli_JoinChannel_Ntf ntf;
 		ntf.NewUserData = session->user_data;

@@ -86,12 +86,12 @@ void Link::OnAccept()
 	boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 	socket.set_option(option);
 	remote_address = socket.remote_endpoint().address();
+	link_manager->OnAccept(shared_from_this());
 	if (false == link_manager->Add(shared_from_this()))
 	{
 		assert(!"duplicated link");
 		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
 	}
-	link_manager->OnAccept(shared_from_this());
 	//strand.wrap(std::bind(&Link::AsyncRead, shared_from_this()))();
 	AsyncRead();
 }
@@ -143,42 +143,40 @@ void Link::AsyncRead()
 {
 	auto self(shared_from_this());
 	socket.async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
-		[self](boost::system::error_code ec, std::size_t readbytes) {
+		strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
-				self->socket.close(ec);
+				self->Close();
 				self->OnClose(ErrorCode::Success); // no error, just closed socket
 				return;
 			}
 
 			if(0 == readbytes)
 			{
-				self->socket.close();
+				self->Close();
 				self->OnClose(ErrorCode::Success);
 				return;
 			}
 
-			self->expire_time = time(nullptr);
 			self->read_buffer->write_index += readbytes;
+			self->expire_time = time(nullptr);
 
 			try 
 			{
 				self->OnRead(self->read_buffer);
-				if(nullptr == self->read_buffer)
-				{
-					return;
-				}
+				assert(nullptr != self->read_buffer);
 			}
 			catch(const Exception& e)
 			{
 				LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
-				self->socket.close();
-				//return;
+				self->Close();
+				self->OnClose(e.error_code());
+				return;
 			}
 			self->read_buffer->Clear();
 			//self->strand.wrap(std::bind(&Link::AsyncRead, self))();
 			self->AsyncRead();
-		}
+		})
 	);
 }
 
@@ -221,7 +219,7 @@ void Link::OnSend(const boost::system::error_code& ec, std::size_t transferredBy
 {
 	if (0 != ec)
 	{
-		Close(/*ErrorCode::Success*/); // no error, just closed socket
+		//Close(); // no error, just closed socket
 		return;
 	}
 
@@ -274,6 +272,7 @@ int Link::SyncSend(const char* buf, int len)
 
 void Link::Close(/*int reason*/)
 {
+	LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::Close(connect:", (true == socket.is_open() ? "true" : "false"), ")");
 	if (false == socket.is_open())
 	{
 		return;
@@ -283,13 +282,13 @@ void Link::Close(/*int reason*/)
 
 void Link::OnClose(int reason)
 {
+	LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::OnClose(reason:", reason, ")");
 	if (true == socket.is_open())
 	{
 		assert(false);
 		return;
 	}
 
-	LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::Close(reason:", reason, ")");
 	link_manager->OnClose(shared_from_this(), reason);
 	link_manager->Remove(link_key);
 	session = nullptr;

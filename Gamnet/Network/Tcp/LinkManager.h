@@ -71,15 +71,15 @@ public :
 		std::shared_ptr<SESSION_T> session = session_pool.Create();
 		if (nullptr == session)
 		{
-			session_manager.Flush();
-			session = session_pool.Create();
-			if (nullptr == session)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance(availble:", session_pool.Available(), ")");
-			}
+			//session_manager.Flush();
+			//session = session_pool.Create();
+			//if (nullptr == session)
+			//{
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[", name, "/", link->link_key, "/0] can not create session instance(availble:", session_pool.Available(), ")");
+			//}
 		}
 
-		session->AttachLink(link);
+		session->link = link;
 		link->session = session;
 	}
 	
@@ -92,11 +92,15 @@ public :
 		}
 
 		std::lock_guard<std::recursive_mutex> lo(session->lock);
+		if(nullptr == session->link)
+		{
+			return;
+		}
 		session->OnClose(reason);
 		if (false == session->handover_safe)
 		{
 			session->OnDestroy();
-			session->AttachLink(nullptr);
+			session->link = nullptr;
 			session_manager.Remove(session->session_key);
 		}
 	}

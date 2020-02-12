@@ -38,7 +38,10 @@ bool LinkManager::Listen(int port, int accept_queue_size, int keep_alive_time)
 	_keep_alive_time = keep_alive_time;
 	expire_timer.Cancel();
 	expire_timer.AutoReset(true);
-	expire_timer.SetTimer((0 == _keep_alive_time ? 3600 * 1000 : _keep_alive_time * 1000), std::bind(&LinkManager::OnTimerExpire, this));
+	if(0 < _keep_alive_time)
+	{
+		expire_timer.SetTimer(_keep_alive_time * 1000, std::bind(&LinkManager::OnTimerExpire, this));
+	}
 	return true;
 }
 
@@ -148,7 +151,8 @@ void LinkManager::OnTimerExpire()
 	for (auto link : linksToBeDeleted)
 	{
 		LOG(GAMNET_ERR, "[", name, "/", link->link_key, "/0] destroy idle link");
-		link->Close(/*ErrorCode::IdleTimeoutError*/);
+		link->strand.wrap(std::bind(&Link::Close, link))();
+		//link->Close(/*ErrorCode::IdleTimeoutError*/);
 	}
 }
 

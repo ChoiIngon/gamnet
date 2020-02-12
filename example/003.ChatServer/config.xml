@@ -9,7 +9,7 @@
 	
 	<tcp port="20000" max_count="8000" keep_alive="60"/>
   
-  <test host="127.0.0.1" port="20000" session_count="100" loop_count="100" interval="1000">
+  <test host="127.0.0.1" port="20000" session_count="100" loop_count="50" interval="1000">
 	  <message name="Test_Login"/>
     <message name="Test_JoinChannel"/>
     <message name="Test_SendMessage"/>

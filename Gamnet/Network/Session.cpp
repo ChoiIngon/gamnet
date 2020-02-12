@@ -49,44 +49,40 @@ void Session::Clear()
 
 bool Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	std::shared_ptr<Link> _link = link;
-	if(nullptr == _link)
+	if(nullptr == link)
 	{
 		LOG(ERR, "invalid link[session_key:", session_key, "]");
 		return false;
 	}
-	_link->AsyncSend(buffer);
+	link->AsyncSend(buffer);
 	return true;
 }
 
 bool Session::AsyncSend(const char* data, int length)
 {
-	std::shared_ptr<Link> _link = link;
-	if (nullptr == _link)
+	if (nullptr == link)
 	{
 		LOG(ERR, "invalid link[session_key:", session_key, "]");
 		return false;
 	}
-	_link->AsyncSend(data, length);
+	link->AsyncSend(data, length);
 	return true;
 }
 int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	std::shared_ptr<Link> _link = link;
-	if (nullptr == _link)
+	if (nullptr == link)
 	{
 		return -1;
 	}
-	return _link->SyncSend(buffer);
+	return link->SyncSend(buffer);
 }
 int Session::SyncSend(const char* data, int length)
 {
-	std::shared_ptr<Link> _link = link;
-	if (nullptr == _link)
+	if (nullptr == link)
 	{
 		return -1;
 	}
-	return _link->SyncSend(data, length);
+	return link->SyncSend(data, length);
 }
 
 void Session::AttachLink(const std::shared_ptr<Link>& link)
@@ -112,7 +108,10 @@ bool SessionManager::Init(int keepAliveSeconds)
 	_sessions.clear();
 	_timer.Cancel();
 	_timer.AutoReset(true);
-	_timer.SetTimer((0 == _keepalive_time ? 3600 * 1000 : _keepalive_time * 1000), std::bind(&SessionManager::OnTimerExpire, this));
+	if(0 < _keepalive_time)
+	{
+		_timer.SetTimer(_keepalive_time * 1000, std::bind(&SessionManager::OnTimerExpire, this));
+	}
 	
 	return true;
 }
@@ -152,7 +151,7 @@ size_t SessionManager::Size()
 	std::lock_guard<std::mutex> lo(_lock);
 	return _sessions.size();
 }
-
+/*
 void SessionManager::Flush()
 {
 	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
@@ -162,7 +161,7 @@ void SessionManager::Flush()
 		for (auto itr = _sessions.begin(); itr != _sessions.end();) 
 		{
 			std::shared_ptr<Session> session = itr->second;
-			if (nullptr == session)
+			if (nullptr == session->link)
 			{
 				sessionsToBeDeleted.push_back(session);
 				_sessions.erase(itr++);
@@ -181,9 +180,10 @@ void SessionManager::Flush()
 		session->AttachLink(nullptr);
 	}
 }
-
+*/
 void SessionManager::OnTimerExpire()
 {
+	/*
 	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
 	{
 		std::lock_guard<std::mutex> lo(_lock);
@@ -206,7 +206,6 @@ void SessionManager::OnTimerExpire()
 
 	for (auto session : sessionsToBeDeleted)
 	{
-		std::lock_guard<std::recursive_mutex> lo(session->lock);
 		std::shared_ptr<Link> link = session->link;
 		if(nullptr == link)
 		{
@@ -214,14 +213,20 @@ void SessionManager::OnTimerExpire()
 		}
 
 		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] destroy idle session");
-
-		if (true == link->socket.is_open())
-		{
+		link->strand.wrap([=]() {
+			if (true == link->socket.is_open())
+			{
+				link->Close();
+				return;
+			}
+			std::lock_guard<std::recursive_mutex> lo(session->lock);
 			session->OnClose(ErrorCode::IdleTimeoutError);
-		}
-		session->OnDestroy();
-		session->AttachLink(nullptr);
+			session->OnDestroy();
+			session->link = nullptr;
+			link->session = nullptr;
+		});		
 	}
+	*/
 }
 
 const boost::asio::ip::address& Session::GetRemoteAddress() const

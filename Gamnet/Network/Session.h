@@ -29,7 +29,7 @@ public :
 	std::shared_ptr<Session> Find(uint32_t key);
 	size_t Size();
 
-	void Flush();
+	//void Flush();
 private :
 	void OnTimerExpire();
 };
