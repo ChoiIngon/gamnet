@@ -139,7 +139,7 @@ namespace Gamnet { namespace Test {
 				return;
 			}	
 			LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Close_Ans");
-			link->Close(/*ErrorCode::Success*/);
+			link->Close(ErrorCode::Success);
 		}
 	};
 }}

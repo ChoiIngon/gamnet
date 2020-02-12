@@ -42,19 +42,16 @@ bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 {
 	if (true == packet->reliable)
 	{
-		std::lock_guard<std::recursive_mutex> lo(lock);
-		if (Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
-		{
-			if(nullptr != link)
+		link->strand.wrap([=]() {
+			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
 			{
-				link->Close(/*ErrorCode::NullPointerError*/);
+				link->Close(ErrorCode::NullPointerError);
+				return;
 			}
 
-			return false;
-		}
-		send_packets.push_back(packet); // keep send message util ack received
-		Network::Session::AsyncSend(packet);
-		return true;
+			send_packets.push_back(packet); // keep send message util ack received
+			Network::Session::AsyncSend(packet);
+		}) ();
 	}
 
 	return Network::Session::AsyncSend(packet);

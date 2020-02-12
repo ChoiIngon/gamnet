@@ -125,17 +125,14 @@ public:
 			statistics_itr->second->begin_count++;
 		}
 #endif
+		handler_function.function_(handler, session, packet);
+
+		if (true == packet->reliable)
 		{
-			std::lock_guard<std::recursive_mutex> lo(session->lock);
-			handler_function.function_(handler, session, packet);
-
-			if (true == packet->reliable)
-			{
-				session->recv_seq = packet->msg_seq;
-			}
-
-			session->expire_time = ::time(nullptr);
+			session->recv_seq = packet->msg_seq;
 		}
+
+		session->expire_time = ::time(nullptr);
 		
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)

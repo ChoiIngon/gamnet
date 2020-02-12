@@ -107,7 +107,6 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 		return;
 	}
 
-	std::lock_guard<std::recursive_mutex> lo(session->lock);
 	session->OnClose(reason);
 	session->OnDestroy();
 	session->AttachLink(nullptr);

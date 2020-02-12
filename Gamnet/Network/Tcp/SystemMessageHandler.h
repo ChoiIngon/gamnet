@@ -99,23 +99,20 @@ public:
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "[link_key:", link->link_key, "] invalid session token(expect:", prevSession->session_token, ", receive:", session_token, ")");
 			}
 
-			{
-				std::lock_guard<std::recursive_mutex> lo(prevSession->lock);
-				std::shared_ptr<Link> invalidLink = std::static_pointer_cast<Link>(prevSession->link);
-				if (nullptr != invalidLink)
-				{
-					prevSession->OnClose(ErrorCode::DuplicateConnectionError);
-					invalidLink->session = nullptr;
-					invalidLink->Close(/*ErrorCode::DuplicateConnectionError*/);
-				}
-				prevSession->AttachLink(link);
-				prevSession->OnAccept();
-			}
-			link->session = prevSession;
-			for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
-			{
-				link->AsyncSend(sendPacket);
-			}			
+			assert(nullptr != prevSession->link);
+			prevSession->link->strand.wrap([=]() {
+				prevSession->link->Close(ErrorCode::DuplicateConnectionError);
+				link->strand.wrap([=]() {
+					prevSession->link = link;
+					link->session = prevSession;
+					prevSession->OnAccept();
+
+					for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
+					{
+						link->AsyncSend(sendPacket);
+					}
+				})();
+			})();
 		}
 		catch (const Exception& e)
 		{

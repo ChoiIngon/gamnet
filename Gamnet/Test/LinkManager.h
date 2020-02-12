@@ -174,15 +174,12 @@ namespace Gamnet {	namespace Test {
 				return;
 			}
 
+			if(true == session->is_connected)
 			{
-				std::lock_guard<std::recursive_mutex> lo(session->lock);
-				if(true == session->is_connected)
-				{
-					session->OnClose(reason);
-				}
-				session->OnDestroy();
-				session->AttachLink(nullptr);
+				session->OnClose(reason);
 			}
+			session->OnDestroy();
+			session->AttachLink(nullptr);
 			
 			finish_execute_count += 1;
 			if (max_execute_count > begin_execute_count)
@@ -246,7 +243,7 @@ namespace Gamnet {	namespace Test {
 			}
 			else
 			{
-				link->Close(/*ErrorCode::Success*/);
+				link->Close(ErrorCode::Success);
 			}
 		}
 

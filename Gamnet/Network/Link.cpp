@@ -76,7 +76,7 @@ void Link::Connect(const char* host, int port, int timeout)
 	if (0 < timeout)
 	{
 		timer.AutoReset(false);
-		timer.SetTimer(timeout * 1000, strand.wrap(std::bind(&Link::Close, self/*, ErrorCode::ConnectTimeoutError*/)));
+		timer.SetTimer(timeout * 1000, strand.wrap(std::bind(&Link::Close, self, ErrorCode::ConnectTimeoutError)));
 	}
 	socket.async_connect(endpoint_, strand.wrap(std::bind(&Link::OnConnect, self, std::placeholders::_1, endpoint_)));
 }
@@ -136,7 +136,7 @@ void Link::OnConnect(const boost::system::error_code& ec, const boost::asio::ip:
 	{
 		LOG(ERR, "[", link_manager->name, "/", link_key, "/0] connect fail(dest:", remote_address.to_v4().to_string(), ", errno:", e.code().value(), ", errstr:", e.what(), ")");
 	}
-	Close(/*ErrorCode::ConnectFailError*/);
+	Close(ErrorCode::ConnectFailError);
 }
 
 void Link::AsyncRead()
@@ -146,15 +146,13 @@ void Link::AsyncRead()
 		strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
-				self->Close();
-				self->OnClose(ErrorCode::Success); // no error, just closed socket
+				self->Close(ErrorCode::Success);
 				return;
 			}
 
 			if(0 == readbytes)
 			{
-				self->Close();
-				self->OnClose(ErrorCode::Success);
+				self->Close(ErrorCode::Success);
 				return;
 			}
 
@@ -169,8 +167,7 @@ void Link::AsyncRead()
 			catch(const Exception& e)
 			{
 				LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
-				self->Close();
-				self->OnClose(e.error_code());
+				self->Close(e.error_code());
 				return;
 			}
 			self->read_buffer->Clear();
@@ -270,7 +267,7 @@ int Link::SyncSend(const char* buf, int len)
 	return totalSentBytes;
 }
 
-void Link::Close(/*int reason*/)
+void Link::Close(int reason)
 {
 	LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::Close(connect:", (true == socket.is_open() ? "true" : "false"), ")");
 	if (false == socket.is_open())
@@ -278,6 +275,8 @@ void Link::Close(/*int reason*/)
 		return;
 	}
 	socket.close();
+
+	OnClose(reason);
 }
 
 void Link::OnClose(int reason)

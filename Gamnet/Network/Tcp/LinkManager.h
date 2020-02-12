@@ -91,16 +91,12 @@ public :
 			return;
 		}
 
-		std::lock_guard<std::recursive_mutex> lo(session->lock);
-		if(nullptr == session->link)
-		{
-			return;
-		}
 		session->OnClose(reason);
-		if (false == session->handover_safe)
+		if (false == session->handover_safe || (0 < link->link_manager->keep_alive_time && link->expire_time + link->link_manager->keep_alive_time < time(nullptr)))
 		{
 			session->OnDestroy();
 			session->link = nullptr;
+			link->session = nullptr;
 			session_manager.Remove(session->session_key);
 		}
 	}

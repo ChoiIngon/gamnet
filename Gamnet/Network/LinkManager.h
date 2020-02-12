@@ -19,9 +19,9 @@ class LinkManager
 	std::map<uint32_t, std::shared_ptr<Network::Link>> _links;
 
 	int _max_accept_size;
-	int _keep_alive_time;
 	volatile int _cur_accept_size;
 public :
+	int keep_alive_time;
 	std::string	name;
 public :
 	LinkManager();

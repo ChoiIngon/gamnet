@@ -69,7 +69,7 @@ public :
 
 	uint32_t					session_key;
 	std::string					session_token;
-	std::recursive_mutex		lock;
+	//std::recursive_mutex		lock;
 	int64_t						expire_time;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;

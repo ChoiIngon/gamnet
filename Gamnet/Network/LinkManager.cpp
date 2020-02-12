@@ -7,7 +7,7 @@ namespace Gamnet { namespace Network {
 LinkManager::LinkManager() :
 	_acceptor(Singleton<boost::asio::io_service>::GetInstance()),
 	_max_accept_size(5),
-	_keep_alive_time(300),
+	keep_alive_time(300),
 	_cur_accept_size(5),
 	name("Gamnet::Network::LinkManager")
 {
@@ -35,12 +35,12 @@ bool LinkManager::Listen(int port, int accept_queue_size, int keep_alive_time)
 		std::lock_guard<std::mutex> lo(_lock);
 		_cur_accept_size++;
 	}
-	_keep_alive_time = keep_alive_time;
+	this->keep_alive_time = keep_alive_time;
 	expire_timer.Cancel();
 	expire_timer.AutoReset(true);
-	if(0 < _keep_alive_time)
+	if(0 < keep_alive_time)
 	{
-		expire_timer.SetTimer(_keep_alive_time * 1000, std::bind(&LinkManager::OnTimerExpire, this));
+		expire_timer.SetTimer(keep_alive_time * 1000, std::bind(&LinkManager::OnTimerExpire, this));
 	}
 	return true;
 }
@@ -82,7 +82,7 @@ void LinkManager::Callback_Accept(const std::shared_ptr<Link> link, const boost:
 	{
 		LOG(GAMNET_ERR, "[", name, "/", link->link_key, "] accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
 	}
-	link->Close(/*ErrorCode::AcceptFailError*/);
+	link->Close(ErrorCode::AcceptFailError);
 }
 
 std::shared_ptr<Link> LinkManager::Connect(const char* host, int port, int timeout)
@@ -136,11 +136,11 @@ void LinkManager::OnTimerExpire()
 	{
 		std::lock_guard<std::mutex> lo(_lock);
 		int64_t now_ = time(nullptr);
-		if (0 < _keep_alive_time)
+		if (0 < keep_alive_time)
 		{
 			for (auto itr = _links.begin(); itr != _links.end(); itr++) {
 				std::shared_ptr<Link> link = itr->second;
-				if (link->expire_time + _keep_alive_time < now_)
+				if (link->expire_time + keep_alive_time < now_)
 				{
 					linksToBeDeleted.push_back(link);
 				}
@@ -151,7 +151,7 @@ void LinkManager::OnTimerExpire()
 	for (auto link : linksToBeDeleted)
 	{
 		LOG(GAMNET_ERR, "[", name, "/", link->link_key, "/0] destroy idle link");
-		link->strand.wrap(std::bind(&Link::Close, link))();
+		link->strand.wrap(std::bind(&Link::Close, link, ErrorCode::IdleTimeoutError))();
 		//link->Close(/*ErrorCode::IdleTimeoutError*/);
 	}
 }
