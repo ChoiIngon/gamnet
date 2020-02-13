@@ -47,6 +47,7 @@ void Test_UserLogin_Req(const std::shared_ptr<TestSession>& session)
 	req.UserID = "UserID";
 	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Req");
 	Gamnet::Test::SendMsg(session, req);
+	session->Reconnect();
 }
 
 void Test_UserLogin_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)

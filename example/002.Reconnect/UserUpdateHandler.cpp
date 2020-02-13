@@ -43,7 +43,6 @@ void Test_UserUpdate_Req(const std::shared_ptr<TestSession>& session)
 	MsgCliSvr_UserUpdate_Req req;
 	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUpdate_Req");
 	Gamnet::Test::SendMsg(session, req, true);
-	session->Reconnect();
 }
 
 void Test_UserUpdate_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
