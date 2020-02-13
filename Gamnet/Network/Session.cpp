@@ -46,6 +46,7 @@ void Session::Clear()
 
 bool Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
+	assert(nullptr != link);
 	if(nullptr == link)
 	{
 		LOG(ERR, "invalid link[session_key:", session_key, "]");
@@ -57,6 +58,7 @@ bool Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 
 bool Session::AsyncSend(const char* data, int length)
 {
+	assert(nullptr != link);
 	if (nullptr == link)
 	{
 		LOG(ERR, "invalid link[session_key:", session_key, "]");

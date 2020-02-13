@@ -48,12 +48,12 @@ namespace Gamnet { namespace Test {
 			std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
 			assert(nullptr != link);
 
-			LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Send_Reconnect_Req");
+			//LOG(DEV, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Send_Reconnect_Req");
 
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
 			}
 
 			Json::Value req;
@@ -69,7 +69,7 @@ namespace Gamnet { namespace Test {
 
 		void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
-			LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Recv_Reconnect_Ans");
+			//LOG(DEV, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Recv_Reconnect_Ans");
 			std::string json = std::string(packet->ReadPtr() + Network::Tcp::Packet::HEADER_SIZE, packet->Size());
 			Json::Value ans;
 			Json::Reader reader;
@@ -118,13 +118,11 @@ namespace Gamnet { namespace Test {
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
 			{
-				LOG(GAMNET_ERR, "can not create packet");
-				return;
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", session->link->link_manager->name, " / ", session->link->link_key, " / ", session->session_key, "] can not create Packet instance");
 			}
 			if (false == packet->Write(Network::Tcp::MsgID_CliSvr_Close_Req, nullptr, 0))
 			{
-				LOG(GAMNET_ERR, "fail to serialize packet");
-				return;
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[", session->link->link_manager->name, " / ", session->link->link_key, " / ", session->session_key, "] fail to serialize packet");
 			}
 
 			//LOG(DEV, "[", session->link->link_manager->name, "::link_key:", session->link->link_key, "]");
@@ -134,11 +132,8 @@ namespace Gamnet { namespace Test {
 		void Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
 			std::shared_ptr<Network::Link> link = session->link;
-			if(nullptr == link)
-			{
-				return;
-			}	
-			LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Close_Ans");
+			assert(nullptr != link);
+			//LOG(DEV, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Close_Ans");
 			link->Close(ErrorCode::Success);
 		}
 	};

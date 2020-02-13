@@ -19,30 +19,28 @@ void Handler_JoinChannel::Recv_Req(const std::shared_ptr<ChatSession>& session, 
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_JoinChannel_Req(user_id:", session->user_data.UserID, ")");
 		session->chat_channel = Gamnet::Singleton<Manager_CastGroup>::GetInstance().GetCastGroup();
 		if(nullptr == session->chat_channel)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::CanNotCreateCastGroup);
 		}
 
+		ans.ChannelSEQ = session->chat_channel->group_seq;
 		ntf.NewUserData = session->user_data;
 
-		std::lock_guard<Gamnet::Network::Tcp::CastGroup> lo(*session->chat_channel);
-		std::shared_ptr<Gamnet::Network::Tcp::CastGroup> chatChannel = session->chat_channel;
-		for(auto& itr : chatChannel->sessions)
+		Gamnet::AtomicPtr<Gamnet::Network::Tcp::CastGroup> lockedPtr(session->chat_channel);
+		for(auto& itr : lockedPtr->sessions)
 		{
 			std::shared_ptr<ChatSession> chatSession = std::static_pointer_cast<ChatSession>(itr.second);
 			ans.ExistingUserData.push_back(chatSession->user_data);
 		}		
-		chatChannel->AddSession(session);
-		if(2 > chatChannel->Size())
+		lockedPtr->AddSession(session);
+		if(2 > lockedPtr->Size())
 		{
 			Gamnet::Singleton<Manager_CastGroup>::GetInstance().AddCastGroup(session->chat_channel);
 		}
-		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_JoinChannel_Ans(chat_channel:", chatChannel->group_seq, ", error_code:", ToString<ErrorCode>(ans.Error), ")");
 		Gamnet::Network::Tcp::SendMsg(session, ans, true);
-		chatChannel->SendMsg(ntf, true);
+		lockedPtr->SendMsg(ntf, true);
 		return;
 	}
 	catch (const Gamnet::Exception& e)
@@ -63,6 +61,7 @@ GAMNET_BIND_TCP_HANDLER(
 void Test_JoinChannel_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_JoinChannel_Req req;
+	LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_JoinChannel_Req()");
 	Gamnet::Test::SendMsg(session, req);
 }
 
@@ -74,7 +73,8 @@ void Test_JoinChannel_Ans(const std::shared_ptr<TestSession>& session, const std
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
-
+		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_JoinChannel_Ans(error_code:", ToString<ErrorCode>(ans.Error), ", channel_seq:", ans.ChannelSEQ, ")");
+		session->channel_seq = ans.ChannelSEQ;
 		for(auto& userData : ans.ExistingUserData)
 		{
 			session->user_ids.insert(userData.UserID);
@@ -109,6 +109,7 @@ void Test_JoinChannel_Ntf(const std::shared_ptr<TestSession>& session, const std
 		{
 			session->Next();
 		}
+		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_JoinChannel_Ntf(channel_seq:", session->channel_seq, ", user_id:", ntf.NewUserData.UserID, ", user_count:", session->user_ids.size(), ")");
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());

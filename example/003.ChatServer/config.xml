@@ -13,5 +13,6 @@
 	  <message name="Test_Login"/>
     <message name="Test_JoinChannel"/>
     <message name="Test_SendMessage"/>
+    <message name="Test_LeaveChannel"/>
 	</test>
 </server>

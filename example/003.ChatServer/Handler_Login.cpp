@@ -25,14 +25,11 @@ void Handler_Login::Recv_Req(const std::shared_ptr<ChatSession>& session, const 
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_Login_Req(user_id:", req.UserID, ")");
-
 		const std::shared_ptr<ChatSession> otherSession = Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.UserID, session);
 		if(nullptr != otherSession)
 		{
 			MsgSvrCli_Kickout_Ntf ntf;
 			ntf.Error = ErrorCode::DuplicateConnectionError;
-			LOG(INF, "[", otherSession->link->link_manager->name, "/", otherSession->link->link_key, "/", otherSession->session_key, "] MsgSvrCli_Kickout_Ntf(error_code:", ToString<ErrorCode>(ntf.Error),")");
 			Gamnet::Network::Tcp::SendMsg(otherSession, ntf, true);
 		}
 		
@@ -45,7 +42,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<ChatSession>& session, const 
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.Error = (ErrorCode)e.error_code();
 	}
-	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Login_Ans(error_code:", ToString<ErrorCode>(ans.Error), ")");
+	
 	Gamnet::Network::Tcp::SendMsg(session, ans, true);
 }
 
@@ -60,6 +57,7 @@ void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_Login_Req req;
 	req.UserID = session->session_token;
+	LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_Login_Req(user_id:", req.UserID, ")");
 	Gamnet::Test::SendMsg(session, req);
 }
 
@@ -72,6 +70,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 		session->user_data = ans.UserData;
+		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Login_Ans(error_code:", ToString<ErrorCode>(ans.Error), ")");
 	}
 	catch(const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());

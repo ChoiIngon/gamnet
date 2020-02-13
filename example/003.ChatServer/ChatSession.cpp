@@ -13,20 +13,20 @@ void ChatSession::OnCreate()
 {
 	user_data.UserID = "";
 	chat_channel = nullptr;
-	LOG(DEV, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "]");
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnCreate");
 }
 
 void ChatSession::OnAccept()
 {
 	assert(nullptr != link);
-	//LOG(DEV, "[UserChatSession] session_key:", session_key, ", link_key:", link->link_key, ", link_manager:", link->link_manager->name);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnAccept");
 }
 
 void ChatSession::OnClose(int reason)
 {
 	assert(nullptr != link);
-	//LOG(DEV, "[UserChatSession] session_key:", session_key, ", link_key:", link->link_key, ", error_code:", reason);
 	Gamnet::Singleton<Manager_Session>::GetInstance().Remove(user_data.UserID);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnClose");
 }
 
 void ChatSession::OnDestroy()
@@ -38,7 +38,7 @@ void ChatSession::OnDestroy()
 		chat_channel->DelSession(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
 		chat_channel = nullptr;
 	}
-	//LOG(DEV, "[UserSession] session_key:", session_key);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnDestory");
 }
 
 Manager_Session::Manager_Session() {
@@ -74,21 +74,23 @@ void Manager_Session::Remove(const std::string& user_id)
 
 void TestSession::OnCreate()
 {
-	//LOG(DEV, "[TestSession] session_key:", session_key);
+	channel_seq = 0;
+	chat_seq = 0;
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnCreate");
 }
 
 void TestSession::OnConnect()
 {
-	//LOG(DEV, "[TestSession] session_key:", session_key, ", link_key:", link->link_key, ", link_manager:", link->link_manager->name);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnConnect");
 }
 
 void TestSession::OnClose(int reason)
 {
-	//LOG(DEV, "[TestSession] session_key:", session_key, ", link_key:", link->link_key, ", error_code:", reason);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnClose");
 }
 
 void TestSession::OnDestroy()
 {
 	user_ids.clear();
-	//LOG(DEV, "[TestSession] session_key:", session_key);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnDestroy");
 }

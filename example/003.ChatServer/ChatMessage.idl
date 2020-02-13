@@ -36,6 +36,7 @@ message MsgCliSvr_JoinChannel_Req : 00010001
 message MsgSvrCli_JoinChannel_Ans : 00010001
 {
 	ErrorCode Error;
+	int64 ChannelSEQ;
 	list<ChatUserData> ExistingUserData;
 };
 
@@ -46,11 +47,13 @@ message MsgSvrCli_JoinChannel_Ntf : 10010001
 
 message MsgCliSvr_SendMessage_Ntf : 00010002
 {
+	int64 ChatSEQ;
 	string ChatMessage;
 };
 
 message MsgSvrCli_SendMessage_Ntf : 10010002
 {
+	int64 ChatSEQ;
 	string ChatMessage;
 };
 

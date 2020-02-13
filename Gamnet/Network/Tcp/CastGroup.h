@@ -11,6 +11,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 class CastGroup 
 {
+	template<class T> friend class AtomicPtr;
 	std::mutex _lock;
 public:
 	struct Init 
@@ -84,7 +85,6 @@ public:
 	}
 
 	static std::shared_ptr<CastGroup> Create();
-
 public :
 	void lock();
 	bool try_lock();

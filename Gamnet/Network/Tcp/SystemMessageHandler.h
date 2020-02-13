@@ -30,7 +30,7 @@ public:
 		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
 		assert(nullptr != link);
 
-		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Connect_Req");
+		// LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Connect_Req");
 
 		Json::Value ans;
 		ans["error_code"] = 0;
@@ -187,7 +187,7 @@ public:
 		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
 		assert(nullptr != link);
 
-		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", link->session->session_key , "] Recv_Close_Req");
+		//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", link->session->session_key , "] Recv_Close_Req");
 
 		session->handover_safe = false;
 		//link->strand.wrap(std::bind(&Network::Tcp::LinkManager<SESSION_T>::OnClose, link->link_manager, link, ErrorCode::Success));

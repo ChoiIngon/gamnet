@@ -269,7 +269,7 @@ int Link::SyncSend(const char* buf, int len)
 
 void Link::Close(int reason)
 {
-	LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::Close(connect:", (true == socket.is_open() ? "true" : "false"), ")");
+	//LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::Close(connect:", (true == socket.is_open() ? "true" : "false"), ")");
 	if (false == socket.is_open())
 	{
 		return;
@@ -281,7 +281,7 @@ void Link::Close(int reason)
 
 void Link::OnClose(int reason)
 {
-	LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::OnClose(reason:", reason, ")");
+	//LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::OnClose(reason:", reason, ")");
 	if (true == socket.is_open())
 	{
 		assert(false);

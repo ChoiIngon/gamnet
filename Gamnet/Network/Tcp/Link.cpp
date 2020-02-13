@@ -23,7 +23,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		recv_packet = Packet::Create();
 		if(nullptr == recv_packet)
 		{
-			LOG(GAMNET_ERR, "null packet instance");
+			LOG(GAMNET_ERR, "[", link_manager->name, "/", link_key, "/0] can not create Packet instance");
 			return false;
 		}
 		return true;

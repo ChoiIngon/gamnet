@@ -40,6 +40,8 @@ public:
 
 class TestSession : public Gamnet::Test::Session {
 public :
+	int64_t channel_seq;
+	int64_t chat_seq;
 	ChatUserData user_data;
 	std::set<std::string> user_ids;
 	virtual void OnCreate() override;
