@@ -71,6 +71,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
+		session->user_data = ans.UserData;
 	}
 	catch(const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());

@@ -39,9 +39,9 @@ public:
 };
 
 class TestSession : public Gamnet::Test::Session {
-	std::string host;
 public :
 	ChatUserData user_data;
+	std::set<std::string> user_ids;
 	virtual void OnCreate() override;
 	virtual void OnConnect() override;
 	virtual void OnClose(int reason) override;

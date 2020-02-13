@@ -10,7 +10,8 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
-struct LinkManager : public Tcp::LinkManager<Session> {
+struct LinkManager : public Tcp::LinkManager<Session> 
+{
 	Timer _heartbeat_timer;
 	std::shared_ptr<Tcp::CastGroup> _cast_group;
 public :

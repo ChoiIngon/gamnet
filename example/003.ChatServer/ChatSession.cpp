@@ -34,6 +34,7 @@ void ChatSession::OnDestroy()
 	assert(nullptr != link);
 	if(nullptr != chat_channel)
 	{
+		std::lock_guard<Gamnet::Network::Tcp::CastGroup> lo(*chat_channel);
 		chat_channel->DelSession(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
 		chat_channel = nullptr;
 	}
@@ -73,7 +74,6 @@ void Manager_Session::Remove(const std::string& user_id)
 
 void TestSession::OnCreate()
 {
-	user_data.UserID = "";
 	//LOG(DEV, "[TestSession] session_key:", session_key);
 }
 
@@ -89,5 +89,6 @@ void TestSession::OnClose(int reason)
 
 void TestSession::OnDestroy()
 {
+	user_ids.clear();
 	//LOG(DEV, "[TestSession] session_key:", session_key);
 }

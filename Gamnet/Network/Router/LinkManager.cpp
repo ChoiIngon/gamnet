@@ -39,6 +39,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	_heartbeat_timer.AutoReset(true);
 	_heartbeat_timer.SetTimer(60000, [this] () {
 		MsgRouter_HeartBeat_Ntf ntf;
+		std::lock_guard<Tcp::CastGroup> lo(*_cast_group);
 		_cast_group->SendMsg(ntf);
 		LOG(GAMNET_INF, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
 	});
@@ -76,6 +77,7 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	assert(nullptr != session);
 	session->OnConnect();
+	std::lock_guard<Tcp::CastGroup> lo(*_cast_group);
 	_cast_group->AddSession(session);
 }
 
@@ -89,13 +91,13 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 
 	link->session = session;
 	session->link = link;
-
-	_cast_group->AddSession(session);
-
 	session->OnCreate();
 	session->OnAccept();
 	
 	session_manager.Add(session->session_key, session);
+
+	std::lock_guard<Tcp::CastGroup> lo(*_cast_group);
+	_cast_group->AddSession(session);
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
@@ -111,6 +113,8 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	session->link = nullptr;
 	
 	session_manager.Remove(session->session_key);
+
+	std::lock_guard<Tcp::CastGroup> lo(*_cast_group);
 	_cast_group->DelSession(session);
 }
 

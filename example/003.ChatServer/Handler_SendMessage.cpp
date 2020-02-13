@@ -16,16 +16,18 @@ void Handler_SendMessage::Recv_Ntf(const std::shared_ptr<ChatSession>& session, 
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		// LOG(DEV, "MsgCliSvr_SendMessage_Ntf(session_key:", session->session_key, ")");
+		//LOG(DEV, "MsgCliSvr_SendMessage_Ntf(session_key:", session->session_key, ", message:", ntfCliSvr.ChatMessage, ")");
 
 		if (nullptr == session->chat_channel)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::CanNotCreateCastGroup);
 		}
 		
-
 		MsgSvrCli_SendMessage_Ntf ntfSvrCli;
-		session->chat_channel->SendMsg(ntfSvrCli);
+		ntfSvrCli.ChatMessage = ntfCliSvr.ChatMessage;
+		std::lock_guard<Gamnet::Network::Tcp::CastGroup> lo(*session->chat_channel);
+		std::shared_ptr<Gamnet::Network::Tcp::CastGroup> chatChannel = session->chat_channel;
+		chatChannel->SendMsg(ntfSvrCli);
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -43,17 +45,20 @@ GAMNET_BIND_TCP_HANDLER(
 void Test_SendMessage_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_SendMessage_Ntf ntf;
+	ntf.ChatMessage = session->user_data.UserID;
 	Gamnet::Test::SendMsg(session, ntf);
 }
 
 void Test_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	MsgSvrCli_SendMessage_Ntf ntfSvrCli;
+	MsgSvrCli_SendMessage_Ntf ntf;
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(ntfSvrCli, packet))
+		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
+
+		assert(session->user_ids.end() != session->user_ids.find(ntf.ChatMessage));
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
@@ -66,6 +71,7 @@ void Test_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, const std
 	}
 
 	MsgCliSvr_SendMessage_Ntf ntfCliSvr;
+	ntfCliSvr.ChatMessage = session->user_data.UserID;
 	Gamnet::Test::SendMsg(session, ntfCliSvr);
 }
 
