@@ -43,7 +43,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 		LOG(GAMNET_INF, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
 	});
 
-	session_manager.Init(0);
+	session_manager.Init();
 	Network::LinkManager::Listen(port, accept_queue_size, 0);
 }
 
@@ -62,10 +62,9 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 	}
 
 	link->session = session;
+	session->link = link;
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
-	
-	session->AttachLink(link);
 	session->OnCreate();
 	
 	session_manager.Add(session->session_key, session);
@@ -89,10 +88,10 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 	}
 
 	link->session = session;
+	session->link = link;
 
 	_cast_group->AddSession(session);
 
-	session->AttachLink(link);
 	session->OnCreate();
 	session->OnAccept();
 	
@@ -109,7 +108,7 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 
 	session->OnClose(reason);
 	session->OnDestroy();
-	session->AttachLink(nullptr);
+	session->link = nullptr;
 	
 	session_manager.Remove(session->session_key);
 	_cast_group->DelSession(session);

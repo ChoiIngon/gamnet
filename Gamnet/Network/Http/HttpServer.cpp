@@ -4,7 +4,7 @@ namespace Gamnet { namespace Network { namespace Http {
 
 	void Listen(int port, int accept_queue_size)
 	{
-		Singleton<LinkManager>::GetInstance().Listen(port, accept_queue_size, 5);
+		Singleton<LinkManager>::GetInstance().Listen(port, accept_queue_size, 0);
 		LOG(GAMNET_INF, "Gamnet::Http listener start(port:", port, ")");
 	}
 

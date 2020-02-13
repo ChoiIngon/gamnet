@@ -131,8 +131,8 @@ namespace Gamnet {	namespace Test {
 				return nullptr;
 			}
 				
+			session->link = link;
 			link->session = session;
-			session->AttachLink(link);
 			session->OnCreate();
 			return link;
 		}
@@ -179,18 +179,13 @@ namespace Gamnet {	namespace Test {
 				session->OnClose(reason);
 			}
 			session->OnDestroy();
-			session->AttachLink(nullptr);
+			session->link = nullptr;
 			
 			finish_execute_count += 1;
 			if (max_execute_count > begin_execute_count)
 			{
 				begin_execute_count++;
-				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
-				if (nullptr == link)
-				{
-					LOG(ERR, "[", name, "/0/0] can not create 'Test::Link' instance");
-					return;
-				}
+				this->Connect(host.c_str(), port, 5);
 			}
 		}
 

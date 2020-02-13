@@ -54,11 +54,9 @@ void TestSession::Reconnect()
 	std::shared_ptr<Gamnet::Network::Link> prevLink = link;
 	prevLink->session = nullptr;
 	prevLink->Close(Gamnet::ErrorCode::UndefinedError);
-	//AttachLink(nullptr);
-	//OnClose(0);
-
+	
 	std::shared_ptr<Gamnet::Network::Link> newLink = Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().link_pool.Create();
-	AttachLink(newLink);
+	this->link = newLink;
 	newLink->session = shared_from_this();
 
 	const std::string& host = Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().host;

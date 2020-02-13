@@ -22,8 +22,8 @@
 #endif
 
 namespace Gamnet { namespace Network { namespace Tcp {
-#undef max
 
+#undef max
 	
 template <class SESSION_T>
 class Dispatcher
@@ -132,8 +132,6 @@ public:
 			session->recv_seq = packet->msg_seq;
 		}
 
-		session->expire_time = ::time(nullptr);
-		
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{

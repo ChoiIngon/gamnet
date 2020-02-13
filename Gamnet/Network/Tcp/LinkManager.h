@@ -49,8 +49,7 @@ public :
 	void Listen(int port, int max_session, int keep_alive_time, int accept_queue_size)
 	{
 		session_pool.Capacity(65535);
-		session_manager.Init(keep_alive_time);
-
+		session_manager.Init();
 		link_pool.Capacity(max_session);
 		Network::LinkManager::Listen(port, accept_queue_size, keep_alive_time);
 	}
@@ -71,12 +70,7 @@ public :
 		std::shared_ptr<SESSION_T> session = session_pool.Create();
 		if (nullptr == session)
 		{
-			//session_manager.Flush();
-			//session = session_pool.Create();
-			//if (nullptr == session)
-			//{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[", name, "/", link->link_key, "/0] can not create session instance(availble:", session_pool.Available(), ")");
-			//}
 		}
 
 		session->link = link;
@@ -119,7 +113,7 @@ public :
 	
 	void DestroySession(uint32_t session_key)
 	{
-		std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
+		std::shared_ptr<SESSION_T> session = session_manager.Find(session_key);
 		if (nullptr == session)
 		{
 			LOG(WRN, "can not find session(", name,"::session_key:", session_key, ")");
@@ -127,14 +121,10 @@ public :
 		}
 	
 		session_manager.Remove(session->session_key);
-		session->strand.wrap([session] () {
-			if (nullptr != session->link && true == session->link->socket.is_open())
-			{
-				//	LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
-				session->OnClose(ErrorCode::Success);
-			}
-			session->OnDestroy();
-			session->AttachLink(nullptr);
+		assert(session->link);
+		session->link->strand.wrap([=] () {
+			session->handover_safe = false;
+			link->Close(ErrorCode::Success);
 		})();
 	}
 

@@ -21,41 +21,38 @@ std::shared_ptr<Network::Link> LinkManager::Create()
 	std::shared_ptr<Link> link = link_pool.Create();
 	if(nullptr == link)
 	{
-		LOG(GAMNET_ERR, "can not create 'Http::Link' instance");
+		LOG(ERR, "[", name, "/0/0] can not create link instance");
 		return nullptr;
 	}
 
+	std::shared_ptr<Session> session = std::shared_ptr<Session>(new Session());
+	if (nullptr == session)
+	{
+		LOG(ERR, "[", name, "/", link->link_key, "/0] can not create session instance");
+		return nullptr;
+	}
+
+	session->Init();
+	session->link = link;
+	link->session = session;
+	session->OnCreate();
 	return link;
 }
 
 void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 {
-	const std::shared_ptr<Session> session = std::shared_ptr<Session>(new Session());
-	if (nullptr == session)
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
-	}
-
-	//session->session_key = ++Network::Session::session_key_generator;
-
-	link->session = session;
-	session->AttachLink(link);
-	session->OnCreate();
-	session->OnAccept();
+	assert(nullptr != link->session);
+	link->session->OnAccept();
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 {
-	std::shared_ptr<Network::Http::Session> session = std::static_pointer_cast<Network::Http::Session>(link->session);
-	if (nullptr == session)
-	{
-		LOG(ERR, "[link_key:", link->link_key, "] link refers invalid session");
-		return;
-	}
+	std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
+	assert(nullptr != link->session);
 	
 	session->OnClose(reason);
 	session->OnDestroy();
-	session->AttachLink(nullptr);
+	session->link = nullptr;
 }
 
 }}}

@@ -11,7 +11,7 @@ namespace Gamnet { namespace Network {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
-std::atomic<uint32_t> Session::session_key_generator;
+static std::atomic<uint32_t> SESSION_KEY;
 
 std::string Session::GenerateSessionToken(uint32_t session_key)
 {
@@ -22,7 +22,6 @@ std::string Session::GenerateSessionToken(uint32_t session_key)
 Session::Session() :
 	session_key(0),
 	session_token(""),
-	expire_time(0),
 	link(nullptr)
 {
 }
@@ -33,8 +32,7 @@ Session::~Session()
 
 bool Session::Init()
 {
-	session_key = ++Session::session_key_generator;
-	expire_time = ::time(nullptr);
+	session_key = ++SESSION_KEY;
 	return true;
 }
 
@@ -42,7 +40,6 @@ void Session::Clear()
 {
 	session_key = 0;
 	session_token = "";
-	expire_time = 0;
 	link = nullptr;
 	handler_container.Init();
 }
@@ -85,13 +82,7 @@ int Session::SyncSend(const char* data, int length)
 	return link->SyncSend(data, length);
 }
 
-void Session::AttachLink(const std::shared_ptr<Link>& link)
-{
-	this->link = link;
-}
-
-SessionManager::SessionManager() : 
-	_keepalive_time(0) 
+SessionManager::SessionManager() 
 {
 }
 
@@ -99,20 +90,10 @@ SessionManager::~SessionManager()
 {
 }
 
-bool SessionManager::Init(int keepAliveSeconds)
+bool SessionManager::Init()
 {
 	std::lock_guard<std::mutex> lo(_lock);
-
-	_keepalive_time = keepAliveSeconds;
-
 	_sessions.clear();
-	_timer.Cancel();
-	_timer.AutoReset(true);
-	if(0 < _keepalive_time)
-	{
-		_timer.SetTimer(_keepalive_time * 1000, std::bind(&SessionManager::OnTimerExpire, this));
-	}
-	
 	return true;
 }
 
@@ -150,83 +131,6 @@ size_t SessionManager::Size()
 {
 	std::lock_guard<std::mutex> lo(_lock);
 	return _sessions.size();
-}
-/*
-void SessionManager::Flush()
-{
-	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
-	{
-		std::lock_guard<std::mutex> lo(_lock);
-		LOG(WRN, "flush invalid sessions(", _sessions.size(), ")");
-		for (auto itr = _sessions.begin(); itr != _sessions.end();) 
-		{
-			std::shared_ptr<Session> session = itr->second;
-			if (nullptr == session->link)
-			{
-				sessionsToBeDeleted.push_back(session);
-				_sessions.erase(itr++);
-			}
-			else {
-				++itr;
-			}
-		}
-	}
-
-	for (auto session : sessionsToBeDeleted)
-	{
-		LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
-		std::lock_guard<std::recursive_mutex> lo(session->lock);
-		session->OnDestroy();
-		session->AttachLink(nullptr);
-	}
-}
-*/
-void SessionManager::OnTimerExpire()
-{
-	/*
-	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
-	{
-		std::lock_guard<std::mutex> lo(_lock);
-		int64_t now_ = time(nullptr);
-		if(0 < _keepalive_time)
-		{
-			for (auto itr = _sessions.begin(); itr != _sessions.end();) {
-				std::shared_ptr<Session> session = itr->second;
-				if (session->expire_time + _keepalive_time < now_)
-				{
-					sessionsToBeDeleted.push_back(session);
-					_sessions.erase(itr++);
-				}
-				else {
-					++itr;
-				}
-			}
-		}
-	}
-
-	for (auto session : sessionsToBeDeleted)
-	{
-		std::shared_ptr<Link> link = session->link;
-		if(nullptr == link)
-		{
-			continue;
-		}
-
-		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] destroy idle session");
-		link->strand.wrap([=]() {
-			if (true == link->socket.is_open())
-			{
-				link->Close();
-				return;
-			}
-			std::lock_guard<std::recursive_mutex> lo(session->lock);
-			session->OnClose(ErrorCode::IdleTimeoutError);
-			session->OnDestroy();
-			session->link = nullptr;
-			link->session = nullptr;
-		});		
-	}
-	*/
 }
 
 const boost::asio::ip::address& Session::GetRemoteAddress() const
