@@ -52,6 +52,7 @@ bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 			send_packets.push_back(packet); // keep send message util ack received
 			Network::Session::AsyncSend(packet);
 		}) ();
+		return true;
 	}
 
 	return Network::Session::AsyncSend(packet);
