@@ -22,8 +22,6 @@ void CreateThreadPool(int threadCount)
 }
 
 Session::Session() : 
-	//Network::Tcp::Session(io_service_), 
-	repeat_count(0),
 	server_session_key(0),
 	server_session_token(""),
 	test_seq(-1), 
@@ -41,7 +39,6 @@ bool Session::Init()
 	{
 		return false;
 	}
-	repeat_count = 0;
 	server_session_key = 0;
 	server_session_token = "";
 	test_seq = 0;
@@ -54,8 +51,9 @@ bool Session::Init()
 void Session::Pause(int millisecond)
 {
 	is_pause = true;
-	timer.SetTimer(millisecond, [] () {
-	});
+	timer.SetTimer(millisecond, [=]() {
+		link->strand.wrap(execute_send_handler)(std::static_pointer_cast<Session>(shared_from_this()));
+	}); 
 }
 
 void Session::Resume()

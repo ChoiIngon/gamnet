@@ -95,7 +95,8 @@ static std::string USER_IDS[] = {
 void Test_DuplicateLogin_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_Login_Req req;
-	req.UserID = USER_IDS[Gamnet::Random::Range(0, USER_IDS->size())];
+	req.UserID = USER_IDS[Gamnet::Random::Range(0, (int)USER_IDS->size())];
+	LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_Login_Req(user_id:", req.UserID, ")");
 	Gamnet::Test::SendMsg(session, req);
 }
 
@@ -113,11 +114,13 @@ void Test_Kickout_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
+		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Kickout_Ntf(error_code:", ToString<ErrorCode>(ntf.Error), ")");
+		session->link->Close((int)ntf.Error);
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-	session->link->strand.wrap(std::bind(&Gamnet::Network::Link::Close, session->link, (int)ntf.Error));
+	throw GAMNET_EXCEPTION(ErrorCode::DuplicateConnectionError);
 }
 
 GAMNET_BIND_TEST_RECV_HANDLER(

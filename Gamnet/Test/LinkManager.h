@@ -29,15 +29,13 @@ namespace Gamnet {	namespace Test {
 			{
 				name = "";
 				execute_count = 0;
-				except_count = 0;
+				fail_count = 0;
 				elapsed_time = 0;
-				repeat_count = 0;
 			}
 			std::string name;
 			std::atomic_uint execute_count;
-			std::atomic_uint except_count;
+			std::atomic_uint fail_count;
 			uint64_t elapsed_time;
-			int repeat_count;
 			SEND_HANDLER_TYPE send_handler;
 			std::map<uint32_t, RECV_HANDLER_TYPE> recv_handlers;
 		};
@@ -107,6 +105,10 @@ namespace Gamnet {	namespace Test {
 			for (size_t i = 0; i<this->session_count; i++)
 			{
 				begin_execute_count++;
+				if(max_execute_count < begin_execute_count)
+				{
+					break;
+				}
 				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
 				if (nullptr == link)
 				{
@@ -133,6 +135,7 @@ namespace Gamnet {	namespace Test {
 				
 			session->link = link;
 			link->session = session;
+			session->execute_send_handler = std::bind(&LinkManager<SESSION_T>::ExecuteSendHandler, this, std::placeholders::_1);
 			session->OnCreate();
 			return link;
 		}
@@ -217,7 +220,13 @@ namespace Gamnet {	namespace Test {
 
 				RECV_HANDLER_TYPE& handler = itr->second;
 				session->is_pause = true;
-				handler(session, packet);
+				try {
+					handler(session, packet);
+				}
+				catch (const Exception& /*e*/)
+				{
+					execute_info->fail_count++;
+				}
 				if(session->recv_seq < packet->msg_seq)
 				{
 					session->recv_seq = packet->msg_seq;
@@ -228,18 +237,28 @@ namespace Gamnet {	namespace Test {
 					this->test_handler.Send_ReliableAck_Ntf(session);
 				}
 
-				if (false == session->is_pause && (int)this->execute_order.size() > session->test_seq)
+				if (false == session->is_pause)
 				{
-					const std::shared_ptr<TestExecuteInfo>& next_execute_info = this->execute_order[session->test_seq];
-					session->send_time = std::chrono::steady_clock::now();
-					next_execute_info->send_handler(session);
-					next_execute_info->execute_count++;
+					ExecuteSendHandler(session);
 				}
 			}
 			else
 			{
 				link->Close(ErrorCode::Success);
 			}
+		}
+		
+		void ExecuteSendHandler(const std::shared_ptr<Session>& session)
+		{
+			if((int)this->execute_order.size() <= session->test_seq)
+			{
+				session->link->Close(ErrorCode::Success);
+				return;
+			}
+			const std::shared_ptr<TestExecuteInfo>& executeInfo = this->execute_order[session->test_seq];
+			session->send_time = std::chrono::steady_clock::now();
+			executeInfo->send_handler(std::static_pointer_cast<SESSION_T>(session));
+			executeInfo->execute_count++;
 		}
 
 		void BindSendHandler(const std::string& test_name, SEND_HANDLER_TYPE send)
@@ -304,11 +323,11 @@ namespace Gamnet {	namespace Test {
 			{
 				if (0 < itr->execute_count)
 				{
-					log.Write(GAMNET_INF, "[Test] running state..(name:", itr->name, ", count:", itr->execute_count, ", except:", itr->except_count, ", elapsed:", itr->elapsed_time, "ms, average:", itr->elapsed_time / itr->execute_count, "ms)");
+					log.Write(GAMNET_INF, "[Test] running state..(name:", itr->name, ", execute:", itr->execute_count, ", fail:", itr->fail_count, ", total_time:", itr->elapsed_time, "ms, average_time:", itr->elapsed_time / itr->execute_count, "ms)");
 				}
 				else
 				{
-					log.Write(GAMNET_INF, "[Test] running state..(name:", itr->name, ", count:", itr->execute_count, ", except:0, elapsed:0ms, average:0ms)");
+					log.Write(GAMNET_INF, "[Test] running state..(name:", itr->name, ", execute:", itr->execute_count, ", fail:0, total_time:0ms, average_time:0ms)");
 				}
 			}
 			log.Write(GAMNET_INF, "[Test] ==============================================================");
