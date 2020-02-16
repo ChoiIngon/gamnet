@@ -88,6 +88,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		return res;
 	}
 
+	static std::shared_ptr<Network::Link> subscriber = Singleton<SubscriberManager>::GetInstance().Create();
 	bool Subscribe(int db_type, const std::string& channel, const std::function<void(const std::string& message)>& callback)
 	{
 		auto itr_ConnectionInfo = connectionInfos.find(db_type);
@@ -97,7 +98,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		}
 		
 		const Connection::ConnectionInfo& connInfo = itr_ConnectionInfo->second;
-
+		/*
 		std::shared_ptr<Subscriber> subscriber = nullptr;
 		auto itr_Subscriber = subscribers.find(db_type);
 		if(subscribers.end() == itr_Subscriber)
@@ -112,6 +113,8 @@ namespace Gamnet { namespace Database { namespace Redis {
 		}
 
 		return subscriber->Subscribe(channel, callback);
+		*/
+		return true;
 	}
 
 	void Unsubscribe(int db_type, const std::string& channel)

@@ -10,7 +10,9 @@ int main() {
 
 	try {
 		Gamnet::Network::Tcp::ReadXml<UserSession>("config.xml");
-		Gamnet::Network::Http::Listen(20001);
+		Gamnet::Network::Router::Listen("Reconnect", 30001);
+		Gamnet::Network::Http::Listen(40001);
+
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
 		Gamnet::Run(std::thread::hardware_concurrency());
 	}

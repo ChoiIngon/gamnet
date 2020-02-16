@@ -74,16 +74,12 @@ namespace Gamnet {	namespace Test {
 		{
 		}
 
-		void Init(const char* host, int port, int interval, int session_count, int execute_count)
+		void Init(const char* host, int port, int session_count, int execute_count)
 		{
 			RegisterTestcase("__connect__", false);
 			RegisterTestcase("__close__", true);
 
 			log.Init("test", "test", 5);
-			if (0 == interval)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'interval' should be set");
-			}
 			if (0 == session_count)
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'session_count' should be set");

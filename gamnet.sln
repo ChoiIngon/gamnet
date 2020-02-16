@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "003.ChatServer", "example\0
 		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E} = {019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "004.Router", "example\004.Router\004.Router.vcxproj", "{4210862A-961D-4631-9B42-5FE4053FED79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -87,6 +89,16 @@ Global
 		{F178C849-DFA2-415C-84CD-17C6DE8E375B}.Release|x64.Build.0 = Release|x64
 		{F178C849-DFA2-415C-84CD-17C6DE8E375B}.Release|x86.ActiveCfg = Release|Win32
 		{F178C849-DFA2-415C-84CD-17C6DE8E375B}.Release|x86.Build.0 = Release|Win32
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Debug|ARM.ActiveCfg = Debug|Win32
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Debug|x64.ActiveCfg = Debug|x64
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Debug|x64.Build.0 = Debug|x64
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Debug|x86.ActiveCfg = Debug|Win32
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Debug|x86.Build.0 = Debug|Win32
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Release|ARM.ActiveCfg = Release|Win32
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Release|x64.ActiveCfg = Release|x64
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Release|x64.Build.0 = Release|x64
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Release|x86.ActiveCfg = Release|Win32
+		{4210862A-961D-4631-9B42-5FE4053FED79}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

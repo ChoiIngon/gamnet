@@ -9,9 +9,11 @@
 namespace Gamnet { namespace Network { namespace Router {
 	const Address& GetRouterAddress();
 
-	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept = [](const Address&){}, const std::function<void(const Address& addr)>& onClose = [](const Address&) {});
-	void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect = [](const Address&) {}, const std::function<void(const Address& addr)>& onClose = [](const Address&) {});
+	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& accept_callback = [](const Address&){}, const std::function<void(const Address& addr)>& close_callback = [](const Address&) {});
+	void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& connect_callback = [](const Address&) {}, const std::function<void(const Address& addr)>& close_callback = [](const Address&) {});
 	
+	void ReadXml(const char* xml_path, const std::function<void(const Address& addr)>& connect_callback, const std::function<void(const Address& addr)>& close_callback);
+
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{

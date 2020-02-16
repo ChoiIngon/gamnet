@@ -61,7 +61,6 @@ namespace Gamnet { namespace Test {
 
 		const std::string host = ptree_.get<std::string>("server.test.<xmlattr>.host");
 		uint32_t port = ptree_.get<uint32_t>("server.test.<xmlattr>.port");
-		uint32_t interval = ptree_.get<uint32_t>("server.test.<xmlattr>.interval");
 		uint32_t session_count = ptree_.get<uint32_t>("server.test.<xmlattr>.session_count");
 		uint32_t loop_count = ptree_.get<uint32_t>("server.test.<xmlattr>.loop_count");
 		auto test_case = ptree_.get_child("server.test");
@@ -75,7 +74,7 @@ namespace Gamnet { namespace Test {
 			}
 		}
 		
-		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host.c_str(), port, interval, session_count, session_count * loop_count);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host.c_str(), port, session_count, session_count * loop_count);
 
 		LinkManager<SESSION_T>* ptr = &Singleton<LinkManager<SESSION_T>>::GetInstance();
 		RegisterRun(std::function<void()>(std::bind(&LinkManager<SESSION_T>::Run, ptr)));

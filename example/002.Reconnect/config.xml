@@ -7,8 +7,8 @@
     <err console="yes" file="yes" sys="no"/>
   </log>
 
-  <tcp port="20000" max_count="8000" keep_alive="30"/>
-  <test host="127.0.0.1" port="20000" session_count="1" loop_count="1" interval="1000">
+  <tcp port="20002" max_count="8000" keep_alive="30"/>
+  <test host="127.0.0.1" port="20002" session_count="1" loop_count="1" interval="1000">
     <message name="Test_UserLogin"/>
     <message name="Test_UserUpdate"/>
   </test>

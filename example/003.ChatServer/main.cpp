@@ -8,6 +8,7 @@ int main() {
 
 	try {
 		Gamnet::Network::Tcp::ReadXml<ChatSession>("config.xml");
+		Gamnet::Network::Router::ReadXml("config.xml", [](const Gamnet::Network::Router::Address&) {}, [](const Gamnet::Network::Router::Address&) {});
 		Gamnet::Network::Http::Listen(20001);
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
 		Gamnet::Run(30 /*std::thread::hardware_concurrency()*/);
