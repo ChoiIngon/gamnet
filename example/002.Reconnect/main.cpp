@@ -1,5 +1,3 @@
-// Reconnect Server
-
 #include "UserSession.h"
 
 int main() {
@@ -10,8 +8,8 @@ int main() {
 
 	try {
 		Gamnet::Network::Tcp::ReadXml<UserSession>("config.xml");
-		Gamnet::Network::Router::Listen("Reconnect", 30001);
-		Gamnet::Network::Http::Listen(40001);
+		Gamnet::Network::Router::ReadXml("config.xml");
+		Gamnet::Network::Http::Listen(20002);
 
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
 		Gamnet::Run(std::thread::hardware_concurrency());

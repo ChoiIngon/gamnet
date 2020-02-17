@@ -7,9 +7,11 @@
 		<err console="yes" file="yes" sys="no"/>
 	</log>
 	
-	<tcp port="20003" max_count="8000" keep_alive="60"/>
-  
-  <test host="127.0.0.1" port="20003" session_count="2" loop_count="1" interval="1000">
+	<tcp port="30000" max_count="8000" keep_alive="60"/>
+  <router name="Chat" port="30001">
+    <farm host="127.0.0.1" port="6379"/>
+  </router>
+  <test host="127.0.0.1" port="30000" session_count="2" loop_count="1" interval="1000">
 	  <message name="Test_Login"/>
     <message name="Test_JoinChannel"/>
     <message name="Test_SendMessage"/>

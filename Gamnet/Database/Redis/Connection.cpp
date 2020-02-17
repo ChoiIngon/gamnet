@@ -77,7 +77,11 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	
 		try 
 		{
-			socket_.write_some(boost::asio::buffer(query + "\r\n", query.length() + 2));
+			int sentBytes = Send(query + "\r\n");
+			if(0 > sentBytes)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::SendMsgFailError);
+			}
 
 			std::vector<char> buffer;
 			std::shared_ptr<ResultSetImpl> impl(new ResultSetImpl(shared_from_this()));
@@ -95,19 +99,33 @@ namespace Gamnet { namespace Database {	namespace Redis {
 			throw e;
 		}
 	}
-	/*
-	void Connection::AsyncExecute(const std::string& query, std::function<void(ResultSet& ret)>& callback)
+
+	int Connection::Send(const std::string& query)
 	{
-		if(false == socket_.is_open())
+		int totalSentBytes = 0;
+		while (query.length() > totalSentBytes)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
+			try {
+				boost::system::error_code ec;
+				int sentBytes = boost::asio::write(socket_, boost::asio::buffer(query.c_str() + totalSentBytes, query.length() - totalSentBytes), ec);
+				if (0 > sentBytes || 0 != ec)
+				{
+					LOG(ERR, "[REDIS/host:", connection_info.host, "/port:", connection_info.port, "] send fail(query:", query, ", ec:", ec, ")");
+					return -1;
+				}
+				if (0 == sentBytes)
+				{
+					LOG(ERR, "[REDIS/host:", connection_info.host, "/port:", connection_info.port, "] send fail(query:", query, ", ec:", ec, ")");
+					return -1;
+				}
+				totalSentBytes += sentBytes;
+			}
+			catch (const boost::system::system_error& e)
+			{
+				LOG(ERR, "[REDIS/host:", connection_info.host, "/port:", connection_info.port, "] send fail(query:", query, ", exception:", e.what(), ")");
+				return -1;
+			}
 		}
-
-		socket_.write_some(boost::asio::buffer(query + "\r\n", query.length() + 2));
-
-		boost::asio::async_read_until(socket_, response_, "\r\n",
-			boost::bind(&client::handle_read_status_line, this,
-				boost::asio::placeholders::error));
+		return totalSentBytes;
 	}
-	*/
 }}}

@@ -14,8 +14,10 @@
 namespace Gamnet { namespace Database { namespace Redis {
 	class Subscriber : public Network::Link
 	{
+		std::mutex lock;
 		std::shared_ptr<Buffer> recv_buffer;
-		std::map<std::string, Delegate<void(const std::string& message)>> callback_functions;
+		std::map<std::string, std::function<void(const std::string& message)>> callback_functions;
+		std::map<std::string, std::function<void(const Json::Value&)>> handlers;
 
 		void OnRecv_SubscribeAns(const Json::Value& ans);
 		void OnRecv_PublishReq(const Json::Value& req);
@@ -24,13 +26,12 @@ namespace Gamnet { namespace Database { namespace Redis {
 		virtual ~Subscriber();
 
 		bool Init();
+		void Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback);
+		void Publish(const std::string& channel, const std::string& message);
+		void Unsubscribe(const std::string& channel);
+	private :
 		void AsyncSend(const std::string& query);
 		void OnRead(const std::shared_ptr<Buffer>& buffer);
-		bool Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback);
-		void Unsubscribe(const std::string& channel);
-
-	public :
-		std::map<std::string, std::function<void(const Json::Value&)>> handlers;
 	};
 
 	class SubscriberManager : public Network::LinkManager

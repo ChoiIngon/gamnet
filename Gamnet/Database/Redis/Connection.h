@@ -8,7 +8,8 @@
 #include "../../Library/Timer.h"
 
 namespace Gamnet { namespace Database {	namespace Redis {
-	class Connection : public std::enable_shared_from_this<Connection> {
+	class Connection : public std::enable_shared_from_this<Connection> 
+	{
 	public:
 		struct ConnectionInfo
 		{
@@ -28,6 +29,8 @@ namespace Gamnet { namespace Database {	namespace Redis {
 
 		bool Connect(const ConnectionInfo& connInfo);
 		std::shared_ptr<ResultSetImpl> Execute(const std::string& query);
+	private :
+		int Send(const std::string& query);
 	};
 } } }
 #endif

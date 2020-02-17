@@ -12,7 +12,7 @@ namespace Gamnet { namespace Network { namespace Router {
 	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& accept_callback = [](const Address&){}, const std::function<void(const Address& addr)>& close_callback = [](const Address&) {});
 	void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& connect_callback = [](const Address&) {}, const std::function<void(const Address& addr)>& close_callback = [](const Address&) {});
 	
-	void ReadXml(const char* xml_path, const std::function<void(const Address& addr)>& connect_callback, const std::function<void(const Address& addr)>& close_callback);
+	void ReadXml(const char* xml_path, const std::function<void(const Address& addr)>& connect_callback = [](const Address&) {}, const std::function<void(const Address& addr)>& close_callback = [](const Address&) {});
 
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)

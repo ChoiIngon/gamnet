@@ -82,7 +82,7 @@ public:
 		HandlerFunction handlerFunction(factory, static_cast<function_type>(func));
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)
 		{
-			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ")");
+			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ", name:", name, ")");
 		}
 
 #ifdef _DEBUG

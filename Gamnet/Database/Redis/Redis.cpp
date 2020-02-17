@@ -66,6 +66,10 @@ namespace Gamnet { namespace Database { namespace Redis {
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidDatabaseNum, "duplicated db_type:", db_type);
 		}
+
+		std::shared_ptr<Network::Link> subscriber = Singleton<SubscriberManager>::GetInstance().Create();
+		subscriber->Connect(connInfo.host.c_str(), connInfo.port, 5);
+		subscribers.insert(std::make_pair(db_type, std::static_pointer_cast<Subscriber>(subscriber)));
 		return Singleton<ConnectionPool<Connection>>::GetInstance().Connect(db_type, connInfo);
 	}
 
@@ -88,8 +92,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		return res;
 	}
 
-	static std::shared_ptr<Network::Link> subscriber = Singleton<SubscriberManager>::GetInstance().Create();
-	bool Subscribe(int db_type, const std::string& channel, const std::function<void(const std::string& message)>& callback)
+	void Subscribe(int db_type, const std::string& channel, const std::function<void(const std::string& message)>& callback)
 	{
 		auto itr_ConnectionInfo = connectionInfos.find(db_type);
 		if(itr_ConnectionInfo == connectionInfos.end())
@@ -97,24 +100,31 @@ namespace Gamnet { namespace Database { namespace Redis {
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidDatabaseNum, "can not find database connection info(db_type:", db_type, ")");
 		}
 		
-		const Connection::ConnectionInfo& connInfo = itr_ConnectionInfo->second;
-		/*
-		std::shared_ptr<Subscriber> subscriber = nullptr;
 		auto itr_Subscriber = subscribers.find(db_type);
 		if(subscribers.end() == itr_Subscriber)
 		{
-			subscriber = std::make_shared<Subscriber>();
-			subscriber->Connect(connInfo.host.c_str(), connInfo.port, 5);
-			subscribers.insert(std::make_pair(db_type, subscriber));
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidDatabaseNum, "can not find database connection info(db_type:", db_type, ")");
 		}
-		else
-		{
-			subscriber = itr_Subscriber->second;
-		}
+		std::shared_ptr<Subscriber> subscriber = itr_Subscriber->second;
+		subscriber->Subscribe(channel, callback);
+	}
 
-		return subscriber->Subscribe(channel, callback);
-		*/
+	bool Publish(int db_type, const std::string& channel, const std::string& message)
+	{
+		auto ret = Execute(db_type, "PUBLISH ", CheckString(channel), " '", CheckString(message), "'");
+		if (true == ret.empty())
+		{
+			return false;
+		}
 		return true;
+	}
+
+	bool Publish(int db_type, const std::string& channel, Json::Value& value)
+	{
+		Json::FastWriter writer;
+		writer.omitEndingLineFeed();
+		std::string message = writer.write(value);
+		return Publish(db_type, channel, message);
 	}
 
 	void Unsubscribe(int db_type, const std::string& channel)
@@ -165,6 +175,22 @@ namespace Gamnet { namespace Database { namespace Redis {
 			return ret.value().asInt64();
 		}
 		return 0;
+	}
+
+	bool Set(int db_type, const std::string& key, const std::string& value)
+	{
+		auto ret = Execute(db_type, "SET ", CheckString(key), " \"", CheckString(value), "\"");
+		if(true == ret.empty())
+		{
+			return false;
+		}
+
+		if("OK" != ret.value().asString())
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	// DEL key [key ...]

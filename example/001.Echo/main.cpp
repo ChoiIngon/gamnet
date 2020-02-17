@@ -1,18 +1,16 @@
-// Echo server
-
 #include "EchoSession.h"
 
 int main() {
 	Gamnet::Log::ReadXml("config.xml");
-	LOG(INF, "Echo Server Starts..");
+	LOG(INF, "001.Echo Example Server Starts..");
 	LOG(INF, "build date:", __DATE__, " ", __TIME__);
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 	try {
 		Gamnet::Network::Tcp::ReadXml<EchoSession>("config.xml");
-		Gamnet::Network::Router::Listen("Echo", 30000);
-		Gamnet::Network::Http::Listen(40000);
-
+		Gamnet::Network::Router::ReadXml("config.xml");
+		Gamnet::Network::Http::Listen(10002);
+		
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
 		Gamnet::Run(std::thread::hardware_concurrency());
 	}

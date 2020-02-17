@@ -26,34 +26,49 @@ void Connect(const char* host, int port, int timeout, const std::function<void(c
 	Singleton<LinkManager>::GetInstance().Connect(host, port, timeout, connect_callback, close_callback);
 }
 
-static std::shared_ptr<Database::Redis::Subscriber> subscriber = std::static_pointer_cast<Database::Redis::Subscriber>(Gamnet::Singleton<Gamnet::Database::Redis::SubscriberManager>::GetInstance().Create());
-
 void ReadXml(const char* xml_path, const std::function<void(const Address& addr)>& connect_callback, const std::function<void(const Address& addr)>& close_callback)
 {
-	subscriber->Connect("127.0.0.1", 6379, 5);
-	subscriber->Subscribe("router", [](const std::string& message) {
-		LOG(DEV, "message from redis:", message);
-	});
-
-	/*
 	boost::property_tree::ptree ptree_;
 	boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
+	auto router = ptree_.get_child("server.router");
+	std::string service_name = router.get<std::string>("<xmlattr>.name");
+	int port = router.get<int>("<xmlattr>.port");
 
-	auto router = ptree_.get_child("server");
-	for (const auto& elmt : router)
+	Listen(service_name.c_str(), port, connect_callback, close_callback);
+	Connect(Network::Tcp::GetLocalAddress().to_v4().to_string().c_str(), port, 5, connect_callback, close_callback);
+
+	auto farm = router.get_child("farm");
+
+	std::string farm_host = farm.get<std::string>("<xmlattr>.host");
+	int farm_port = farm.get<int>("<xmlattr>.port");
+	Database::Redis::Connect(-1, farm_host.c_str(), farm_port);
+	Database::Redis::Subscribe(-1, "__router__", [=] (const std::string& message) 
 	{
-		if ("router" != elmt.first)
+		Json::Reader reader;
+		Json::Value router_info;
+		if(false == reader.parse(message, router_info))
 		{
-			continue;
+			LOG(ERR, "router message parse failed(message:", message, ")");
+			return;
 		}
-		std::string service_name = elmt.second.get<std::string>("<xmlattr>.name");
-		const std::string host = elmt.second.get<std::string>("<xmlattr>.host");
-		int port = elmt.second.get<int>("<xmlattr>.port");
-		
-		Connect(host.c_str(), port, 30, connect_callback, close_callback);
-	}
-	*/
 
-	
+		if(true == router_info["host"].isNull())
+		{
+			LOG(ERR, "router message format error(\'host\' is null)");
+			return;
+		}
+
+		if(true == router_info["port"].isNull())
+		{
+			LOG(ERR, "router message format error(\'port\' is null)");
+			return;
+		}
+		Connect(router_info["host"].asString().c_str(), router_info["port"].asInt(), 5, connect_callback, close_callback);
+	});
+
+	Json::Value router_info;
+	router_info["host"] = Network::Tcp::GetLocalAddress().to_v4().to_string();
+	router_info["port"] = port;
+	Database::Redis::Publish(-1, "__router__", router_info);
 }
 }}}

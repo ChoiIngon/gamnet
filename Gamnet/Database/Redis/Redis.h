@@ -15,9 +15,12 @@ namespace Gamnet { namespace Database { namespace Redis {
 			return Execute(db_type, Format(args...));
 		}
 
-		bool Subscribe(int db_type, const std::string& channel, const std::function<void(const std::string& messsage)>& callback);
+		void Subscribe(int db_type, const std::string& channel, const std::function<void(const std::string& messsage)>& callback);
+		bool Publish(int db_type, const std::string& channel, const std::string& message);
+		bool Publish(int db_type, const std::string& channel, Json::Value& value);
 		void Unsubscribe(int db_type, const std::string& channel);
 
+		bool Set(int db_type, const std::string& key, const std::string& value);
 		bool Exists(int db_type, const std::string& key);
 		bool Expire(int db_type, const std::string& key, int seconds);
 		int64_t TTL(int db_type, const std::string& key);

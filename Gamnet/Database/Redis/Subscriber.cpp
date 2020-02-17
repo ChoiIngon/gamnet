@@ -32,23 +32,18 @@ namespace Gamnet { namespace Database { namespace Redis {
 	void Subscriber::AsyncSend(const std::string& query)
 	{
 		std::shared_ptr<Buffer> buffer = Buffer::Create();
+		if (nullptr == buffer)
+		{
+			LOG(GAMNET_ERR, "can not create buffer(link_key:", link_key, ")");
+			return;
+		}
 		buffer->Append(query.c_str(), query.length());
 		buffer->Append("\r\n", 2);
-		auto self = shared_from_this();
-		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()),
-			strand.wrap([self, buffer](const boost::system::error_code& ec, std::size_t transferredBytes) {
-				if(0 != ec)
-				{
-					self->Close(ec.value());
-					return;
-				}
-			}
-		));
+		Network::Link::AsyncSend(buffer);
 	}
 
 	void Subscriber::OnRead(const std::shared_ptr<Buffer>& buffer)
 	{
-		int start = std::max(0, (int)recv_buffer->Size() - 1);
 		recv_buffer->Append(buffer->ReadPtr(), buffer->Size());
 		
 		std::shared_ptr<ResultSetImpl> impl = std::make_shared<ResultSetImpl>();
@@ -61,10 +56,12 @@ namespace Gamnet { namespace Database { namespace Redis {
 
 		if (1 > impl->size())
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError);
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, impl->error);
 		}
 
 		const std::string& command = (*impl)[0].asString();
+
+		std::lock_guard<std::mutex> lo(lock);
 		auto itr = handlers.find(command);
 		if (itr != handlers.end())
 		{
@@ -72,21 +69,36 @@ namespace Gamnet { namespace Database { namespace Redis {
 		}
 	}
 
-	bool Subscriber::Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback)
+	void Subscriber::Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback)
 	{
-		auto itr = callback_functions.find(channel);
-		if(callback_functions.end() == itr)
 		{
-			AsyncSend("SUBSCRIBE " + channel);
+			std::lock_guard<std::mutex> lo(lock);
+			auto itr = callback_functions.find(channel);
+			if(callback_functions.end() != itr)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::DuplicateMessageIDError, "duplicated subscribe hander(channel:", channel, ")");
+			}
+			callback_functions[channel] = callback;
 		}
-		callback_functions[channel] += callback;
-		return true;
+
+		const std::string query = Format("SUBSCRIBE ", channel, "\r\n");
+		Network::Link::AsyncSend(query.c_str(), query.length());
+	}
+
+	void Subscriber::Publish(const std::string& channel, const std::string& message)
+	{
+		const std::string query = Format("PUBLISH ", channel, " '", message, "'\r\n");
+		Network::Link::AsyncSend(query.c_str(), query.length());
 	}
 
 	void Subscriber::Unsubscribe(const std::string& channel)
 	{
-		AsyncSend("UNSUBSCRIBE " + channel);
-		callback_functions.erase(channel);
+		{
+			std::lock_guard<std::mutex> lo(lock);
+			callback_functions.erase(channel);
+		}
+		const std::string query = Format("UNSUBSCRIBE ", channel, "\r\n");
+		Network::Link::AsyncSend(query.c_str(), query.length());
 	}
 	
 	void Subscriber::OnRecv_SubscribeAns(const Json::Value& ans)
