@@ -111,7 +111,7 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	session->OnClose(reason);
 	session->OnDestroy();
 	session->link = nullptr;
-	
+	link->session = nullptr;
 	session_manager.Remove(session->session_key);
 
 	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
@@ -135,8 +135,8 @@ Json::Value LinkManager::State()
 	root["name"] = name;
 
 	Json::Value link;
-	link["max_count"] = (unsigned int)link_pool.Capacity();
-	link["idle_count"] = (unsigned int)link_pool.Available();
+	//link["max_count"] = (unsigned int)link_pool.Capacity();
+	//link["idle_count"] = (unsigned int)link_pool.Available();
 	link["active_count"] = (unsigned int)Size();
 	root["link"] = link;
 

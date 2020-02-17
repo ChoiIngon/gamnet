@@ -22,7 +22,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		recv_buffer = Buffer::Create();
 		if(nullptr == recv_buffer)
 		{
-			LOG(ERR, "[", link_manager->name, "/", link_key, "/0] can not create buffer instance");
+			LOG(ERR, "can not create buffer instance");
 			return false;
 		}
 
@@ -136,7 +136,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		std::shared_ptr<Subscriber> subscriber = std::make_shared<Subscriber>(this);
 		if (nullptr == subscriber)
 		{
-			LOG(GAMNET_ERR, "[link_manager:", name, "] can not create 'Tcp::Link' instance");
+			LOG(GAMNET_ERR, "can not create 'Tcp::Link' instance");
 			return nullptr;
 		}
 		if(false == subscriber->Init())

@@ -53,6 +53,7 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	session->OnClose(reason);
 	session->OnDestroy();
 	session->link = nullptr;
+	link->session = nullptr;
 }
 
 }}}

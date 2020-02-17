@@ -394,5 +394,8 @@
     <ClInclude Include="Network\Tcp\SystemMessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Network\Acceptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

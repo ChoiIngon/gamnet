@@ -4,7 +4,7 @@
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
-	Link::Link(Network::LinkManager* linkManager) : Network::Link(linkManager)
+	Link::Link(Network::LinkManager* linkManager) : Network::Link(), link_manager(linkManager)
 	{
 	}
 
@@ -19,7 +19,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return false;
 		}
 
-//		recv_seq = 0;
 		recv_packet = Packet::Create();
 		if(nullptr == recv_packet)
 		{
@@ -33,6 +32,26 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 		recv_packet = nullptr;
 		Network::Link::Clear();
+	}
+
+	void Link::OnAccept()
+	{
+		link_manager->OnAccept(shared_from_this());
+		if (false == link_manager->Add(shared_from_this()))
+		{
+			assert(!"duplicated link");
+			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+		}
+	}
+
+	void Link::OnConnect()
+	{
+		link_manager->OnConnect(shared_from_this());
+		if (false == link_manager->Add(shared_from_this()))
+		{
+			assert(!"duplicated link");
+			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+		}
 	}
 
 	void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
@@ -71,5 +90,17 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				link_manager->OnRecvMsg(shared_from_this(), packet);
 			}
 		}
+	}
+
+	void Link::OnClose(int reason)
+	{
+		if (true == socket.is_open())
+		{
+			assert(false);
+			return;
+		}
+
+		link_manager->OnClose(shared_from_this(), reason);
+		link_manager->Remove(link_key);
 	}
 }}}

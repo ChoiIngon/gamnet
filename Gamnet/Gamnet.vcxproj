@@ -234,6 +234,7 @@
     <ClInclude Include="log\File.h" />
     <ClInclude Include="log\Log.h" />
     <ClInclude Include="log\Logger.h" />
+    <ClInclude Include="Network\Acceptor.h" />
     <ClInclude Include="network\Handler.h" />
     <ClInclude Include="network\HandlerContainer.h" />
     <ClInclude Include="network\HandlerFactory.h" />

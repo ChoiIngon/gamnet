@@ -99,7 +99,7 @@ namespace Gamnet { namespace Test {
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", session->link->link_manager->name, " / ", session->link->link_key, " / ", session->session_key, "] can not create Packet instance");
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
 			}
 
 			Json::Value ntf;
@@ -118,11 +118,11 @@ namespace Gamnet { namespace Test {
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", session->link->link_manager->name, " / ", session->link->link_key, " / ", session->session_key, "] can not create Packet instance");
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
 			}
 			if (false == packet->Write(Network::Tcp::MsgID_CliSvr_Close_Req, nullptr, 0))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[", session->link->link_manager->name, " / ", session->link->link_key, " / ", session->session_key, "] fail to serialize packet");
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize packet");
 			}
 
 			//LOG(DEV, "[", session->link->link_manager->name, "::link_key:", session->link->link_key, "]");

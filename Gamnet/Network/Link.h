@@ -37,7 +37,7 @@ public:
 			return link;
 		}
 	};
-
+	
 	boost::asio::ip::tcp::socket	socket;
 	boost::asio::strand				strand;
 	boost::asio::ip::address 		remote_address;
@@ -46,9 +46,10 @@ public:
 	uint32_t 						link_key;
 	int64_t							expire_time;
 	std::shared_ptr<Session> 		session;
-	LinkManager* const 				link_manager;
+	//LinkManager* const 				link_manager;
 
 public :
+	Link();
 	Link(LinkManager* linkManager);
 	virtual ~Link();
 
@@ -61,17 +62,15 @@ public :
 	int  SyncSend(const std::shared_ptr<Buffer>& buffer);
 	virtual void Close(int reason);
 		
-	virtual void OnAccept();
-
-	void AttachSession(const std::shared_ptr<Session>& session);
-
-protected :
-	virtual void OnConnect(const boost::system::error_code& ec, const boost::asio::ip::tcp::endpoint& endpoint);
-	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) = 0;
-	virtual void OnSend(const boost::system::error_code& ec, std::size_t transferredBytes);
-	virtual void OnClose(int reason);
-private :
+	virtual void OnAccept() {};
 	void AsyncRead();
+protected :
+	virtual void OnConnect() {};
+	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) = 0;
+	virtual void OnClose(int reason) {}
+private :
+	virtual void OnConnectHandler(const boost::system::error_code& ec, const boost::asio::ip::tcp::endpoint& endpoint);
+	virtual void OnSendHandler(const boost::system::error_code& ec, std::size_t transferredBytes);
 	void FlushSend();
 };
 

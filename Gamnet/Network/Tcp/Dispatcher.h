@@ -101,21 +101,21 @@ public:
 		const std::shared_ptr<Packet> packet = std::static_pointer_cast<Packet>(buffer);
 		if (true == packet->reliable && packet->msg_seq <= session->recv_seq)
 		{
-			LOG(WRN, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] discard message(msg_id:", packet->msg_id, ", received msg_seq:", packet->msg_seq, ", expected msg_seq:", session->recv_seq + 1, ")");
+			LOG(WRN, "discard message(msg_id:", packet->msg_id, ", received msg_seq:", packet->msg_seq, ", expected msg_seq:", session->recv_seq + 1, ")");
 			return;
 		}
 
 		auto itr = mapHandlerFunction_.find(packet->msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
 		}
 
 		const HandlerFunction& handler_function = itr->second;
 		std::shared_ptr<IHandler> handler = handler_function.factory_->GetHandler(&session->handler_container, packet->msg_id);
 		if(nullptr == handler)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")"); 
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")"); 
 		}
 #ifdef _DEBUG
 		ElapseTimer elapseTimer;

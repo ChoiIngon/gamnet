@@ -108,7 +108,7 @@ namespace Gamnet {	namespace Test {
 				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
 				if (nullptr == link)
 				{
-					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_manager:", this->name, "] can not create 'Test::Link' instance");
+					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "can not create 'Test::Link' instance");
 				}
 			}
 		}
@@ -179,7 +179,7 @@ namespace Gamnet {	namespace Test {
 			}
 			session->OnDestroy();
 			session->link = nullptr;
-			
+			link->session = nullptr;
 			finish_execute_count += 1;
 			if (max_execute_count > begin_execute_count)
 			{
@@ -210,7 +210,7 @@ namespace Gamnet {	namespace Test {
 					itr = global_recv_handlers.find(packet->msg_id);
 					if (global_recv_handlers.end() == itr)
 					{
-						throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] can't find handler function(msg_id:", packet->msg_id, ")");
+						throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
 					}
 				}
 

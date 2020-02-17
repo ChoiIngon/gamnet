@@ -81,7 +81,6 @@ namespace Gamnet {
 template<class object, class lock_policy = Policy::nolock, class init_policy=Policy::Initialze::do_nothing, class release_policy=Policy::Release::do_nothing>
 class Pool
 {
-	typedef std::function<object*()> object_factory;
 	struct Deleter
 	{
 		typedef Pool<object, lock_policy, init_policy, release_policy> pool_type;
@@ -95,6 +94,7 @@ class Pool
 		}
 	};
 public:
+	typedef std::function<object*()> object_factory;
 	/*!
 	 * \param nSize max object count that this pool can create
 	 * \param object_factory if you need custom create policy. you can use this
@@ -136,6 +136,11 @@ public:
 		return std::shared_ptr<object>(init_(ptr), Deleter(*this));
 	}
 
+	void SetFactory(object_factory factory)
+	{
+		std::lock_guard<lock_policy> lo(lock_);
+		factory_ = factory;
+	}
 	/*!
 	 * \brief return count that pool can create
 	 */

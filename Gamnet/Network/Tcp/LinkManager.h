@@ -7,7 +7,7 @@
 #include "SystemMessageHandler.h"
 #include "../LinkManager.h"
 #include "../../Library/Json/json.h"
-
+#include "../Acceptor.h"
 #include <memory>
 #include <atomic>
 #include <mutex>
@@ -18,6 +18,7 @@ template <class SESSION_T>
 class LinkManager : public Network::LinkManager
 {
 private :
+	Acceptor<Link> acceptor;
 	struct LinkFactory {
 		LinkManager* const link_manager;
 		LinkFactory(LinkManager* linkManager) : link_manager(linkManager) {}
@@ -27,12 +28,13 @@ private :
 			return new Link(link_manager);
 		}
 	};
+	
 public :
 	SessionManager session_manager;
 	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
 	Pool<Link, std::mutex, Network::Link::InitFunctor, Network::Link::ReleaseFunctor> link_pool;
 
-	LinkManager() : session_pool(), link_pool(65535, LinkFactory(this))
+	LinkManager() : acceptor(65535, LinkFactory(this)), session_pool(), link_pool(65535, LinkFactory(this))
 	{
 		name = "Gamnet::Network::Tcp::LinkManager";
 	}
@@ -53,7 +55,8 @@ public :
 		session_pool.Capacity(65535);
 		session_manager.Init();
 
-		Network::LinkManager::Listen(port, accept_queue_size, keep_alive_time);
+		acceptor.Listen(port, max_session, accept_queue_size);
+		//Network::LinkManager::Listen(port, accept_queue_size, keep_alive_time);
 	}
 
 	virtual std::shared_ptr<Network::Link> Create() override
@@ -81,18 +84,19 @@ public :
 	
 	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 	{
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(tcpLink->session);
 		if(nullptr == session)
 		{
 			return;
 		}
 
 		session->OnClose(reason);
-		if (false == session->handover_safe || (0 < link->link_manager->keep_alive_time && link->expire_time + link->link_manager->keep_alive_time < time(nullptr)))
+		if (false == session->handover_safe || (0 < tcpLink->link_manager->keep_alive_time && tcpLink->expire_time + tcpLink->link_manager->keep_alive_time < time(nullptr)))
 		{
 			session->OnDestroy();
 			session->link = nullptr;
-			link->session = nullptr;
+			tcpLink->session = nullptr;
 			session_manager.Remove(session->session_key);
 		}
 	}
