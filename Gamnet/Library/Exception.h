@@ -13,6 +13,7 @@ public :
 		AcceptFailError				= 2,
 		HeartbeatFailError			= 3,
 		SendMsgFailError			= 4,
+		SendQueueOverflowError		= 5,
 		ConnectTimeoutError			= 10,
 		InvalidArgumentError		= 20,
 		InvalidSessionTokenError	= 21,

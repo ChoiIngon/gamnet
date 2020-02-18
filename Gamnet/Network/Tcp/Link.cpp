@@ -75,39 +75,46 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 	{
-		while(0 < buffer->Size())
-		{
-			size_t readSize = std::min(buffer->Size(), recv_packet->Available());
-			recv_packet->Append(buffer->ReadPtr(), readSize);
-			buffer->Remove(readSize);
-
-			while(Packet::HEADER_SIZE <= (int)recv_packet->Size())
+		try {
+			while(0 < buffer->Size())
 			{
-				recv_packet->ReadHeader();
-				if (Packet::HEADER_SIZE > recv_packet->length)
-				{
-					throw GAMNET_EXCEPTION(ErrorCode::BufferUnderflowError, "buffer underflow(read size:", recv_packet->length, ")");
-				}
+				size_t readSize = std::min(buffer->Size(), recv_packet->Available());
+				recv_packet->Append(buffer->ReadPtr(), readSize);
+				buffer->Remove(readSize);
 
-				if (recv_packet->length >= (uint16_t)recv_packet->Capacity())
+				while(Packet::HEADER_SIZE <= (int)recv_packet->Size())
 				{
-					throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", recv_packet->length, ")");
-				}
+					recv_packet->ReadHeader();
+					if (Packet::HEADER_SIZE > recv_packet->length)
+					{
+						throw GAMNET_EXCEPTION(ErrorCode::BufferUnderflowError, "buffer underflow(read size:", recv_packet->length, ")");
+					}
 
-				if(recv_packet->length > (uint16_t)recv_packet->Size())
-				{
-					break;
-				}
+					if (recv_packet->length >= (uint16_t)recv_packet->Capacity())
+					{
+						throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", recv_packet->length, ")");
+					}
 
-				std::shared_ptr<Packet> packet = recv_packet;
-				recv_packet = Packet::Create();
-				if (nullptr == recv_packet)
-				{
-					throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
+					if(recv_packet->length > (uint16_t)recv_packet->Size())
+					{
+						break;
+					}
+
+					std::shared_ptr<Packet> packet = recv_packet;
+					recv_packet = Packet::Create();
+					if (nullptr == recv_packet)
+					{
+						throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
+					}
+					recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
+					link_manager->OnRecvMsg(shared_from_this(), packet);
 				}
-				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
-				link_manager->OnRecvMsg(shared_from_this(), packet);
 			}
+		}
+		catch(const Exception& e)
+		{
+			session->handover_safe = false;
+			throw e;
 		}
 	}
 

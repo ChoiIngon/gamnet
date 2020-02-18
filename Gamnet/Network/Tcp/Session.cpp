@@ -40,7 +40,8 @@ bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 		link->strand.wrap([=]() {
 			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
 			{
-				link->Close(ErrorCode::NullPointerError);
+				this->handover_safe = false;
+				link->Close(ErrorCode::SendQueueOverflowError);
 				return;
 			}
 

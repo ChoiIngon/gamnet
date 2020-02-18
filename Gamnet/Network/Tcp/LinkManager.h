@@ -51,7 +51,7 @@ public:
 	{
 		session_pool.Capacity(65535);
 		session_manager.Init();
-		acceptor.Listen(port, max_session, accept_queue_size);
+		acceptor.Listen(port, max_session + accept_queue_size, accept_queue_size);
 		ActivateIdleLinkTerminator(alive_time);
 	}
 
