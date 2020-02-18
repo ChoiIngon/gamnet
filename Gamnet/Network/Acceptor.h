@@ -10,36 +10,11 @@ namespace Gamnet { namespace Network {
 template <class LINK_T>
 class Acceptor
 {
-	//GAMNET_WHERE(LINK_T, Link);
 private :
-	struct InitFunctor
-	{
-		template<class T>
-		T* operator() (T* link)
-		{
-			if (false == link->Init())
-			{
-				return nullptr;
-			}
-			return link;
-		}
-	};
-	struct ReleaseFunctor
-	{
-		template<class T>
-		T* operator() (T* link)
-		{
-			if (nullptr != link)
-			{
-				link->Clear();
-			}
-			//Singleton<Acceptor<LINK_T>>::GetInstance().Release();
-			return link;
-		}
-	};
-	
-	Pool<LINK_T, std::mutex, InitFunctor, ReleaseFunctor> _link_pool;
-	typedef typename Pool<LINK_T, std::mutex, InitFunctor, ReleaseFunctor>::object_factory object_factory;
+	GAMNET_WHERE(LINK_T, Link);
+	typedef Pool<LINK_T, std::mutex, Link::InitFunctor, Link::ReleaseFunctor> LINK_POOL_T;
+	typedef typename LINK_POOL_T::object_factory object_factory;
+	LINK_POOL_T _link_pool;
 
 	boost::asio::ip::tcp::acceptor _acceptor;
 	boost::asio::ip::tcp::endpoint _endpoint;
@@ -47,7 +22,7 @@ private :
 	int _max_accept_size;
 	std::atomic<int> _cur_accept_size;
 public :
-	Acceptor(int nSize, object_factory factory) :
+	Acceptor(int nSize = 65535, object_factory factory = Policy::Factory::create<LINK_T>()) :
 		_link_pool(nSize, factory),
 		_acceptor(Singleton<boost::asio::io_service>::GetInstance()),
 		_max_accept_size(0),
@@ -74,6 +49,25 @@ public :
 		return true;
 	}
 
+	void Release()
+	{
+		if (_cur_accept_size < _max_accept_size)
+		{
+			_cur_accept_size++;
+			Accept();
+		}
+	}
+
+	size_t Capacity() const
+	{
+		return _link_pool.Capacity();
+	}
+
+	size_t Available()
+	{
+		return _link_pool.Available();
+	}
+private :
 	void Accept()
 	{
 		std::shared_ptr<Network::Link> link = _link_pool.Create();
@@ -97,11 +91,7 @@ public :
 				throw GAMNET_EXCEPTION(ErrorCode::AcceptFailError, "link_key:", link->link_key, ", error_code:", ec.value());
 			}
 
-			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
-			link->socket.set_option(option);
-			link->remote_address = link->socket.remote_endpoint().address();
-			link->OnAccept();
-			link->AsyncRead();
+			link->OnAcceptHandler();
 			return;
 		}
 		catch (const Exception& e)
@@ -113,15 +103,6 @@ public :
 			LOG(GAMNET_ERR, "accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
 		}
 		link->Close(ErrorCode::AcceptFailError);
-	}
-
-	void Release()
-	{
-		if(_cur_accept_size < _max_accept_size)
-		{
-			_cur_accept_size++;
-			Accept();
-		}
 	}
 };
 

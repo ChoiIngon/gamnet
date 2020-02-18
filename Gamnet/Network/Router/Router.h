@@ -15,9 +15,9 @@ namespace Gamnet { namespace Network { namespace Router {
 	void ReadXml(const char* xml_path, const std::function<void(const Address& addr)>& connect_callback = [](const Address&) {}, const std::function<void(const Address& addr)>& close_callback = [](const Address&) {});
 
 	template <class FUNC, class FACTORY>
-	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
+	bool BindHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{
-		return Singleton<Dispatcher>::GetInstance().RegisterHandler(msg_id, func, factory);
+		return Singleton<Dispatcher>::GetInstance().BindHandler(msg_id, func, factory);
 	}
 
 	template <class MSG>
@@ -48,7 +48,7 @@ namespace Gamnet { namespace Network { namespace Router {
 }}}
 
 #define GAMNET_BIND_ROUTER_HANDLER(message_type, class_type, func, policy) \
-	static bool Router_##message_type##_##func = Gamnet::Network::Router::RegisterHandler( \
+	static bool Router_##message_type##_##func = Gamnet::Network::Router::BindHandler( \
 		message_type::MSG_ID, \
 		&class_type::func, \
 		new Gamnet::Network::policy<class_type>() \

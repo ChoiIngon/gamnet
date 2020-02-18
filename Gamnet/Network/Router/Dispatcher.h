@@ -30,7 +30,7 @@ public:
 	~Dispatcher();
 
 	template <class FUNC, class FACTORY>
-	bool RegisterHandler(unsigned int msg_id, FUNC func, FACTORY factory)
+	bool BindHandler(unsigned int msg_id, FUNC func, FACTORY factory)
 	{
 		HandlerFunction handlerFunction = { factory, (function_type)func };
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)

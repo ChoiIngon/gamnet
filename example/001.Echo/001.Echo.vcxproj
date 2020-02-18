@@ -25,6 +25,7 @@
     <ClInclude Include="EchoMessage.h" />
     <ClInclude Include="EchoMessageHandler.h" />
     <ClInclude Include="EchoSession.h" />
+    <ClInclude Include="Handler_Http_ServerState.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="EchoMessage.idl">
@@ -36,6 +37,7 @@
   <ItemGroup>
     <ClCompile Include="EchoMessageHandler.cpp" />
     <ClCompile Include="EchoSession.cpp" />
+    <ClCompile Include="Handler_Http_ServerState.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

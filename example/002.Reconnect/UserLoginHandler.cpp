@@ -19,7 +19,7 @@ void UserLoginHandler::Recv_Req(const std::shared_ptr<UserSession>& session, con
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_UserLogin_Req");
+		//LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_UserLogin_Req");
 		
 		UserData& userData = session->user_data;
 		userData.UserID = req.UserID;
@@ -30,7 +30,7 @@ void UserLoginHandler::Recv_Req(const std::shared_ptr<UserSession>& session, con
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.Error = (ErrorCode)e.error_code();
 	}
-	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_UserLogin_Ans(error_code:", (int)ans.Error, ")");
+	//LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_UserLogin_Ans(error_code:", (int)ans.Error, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans, true);
 }
 
@@ -45,7 +45,7 @@ void Test_UserLogin_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_UserLogin_Req req;
 	req.UserID = "UserID";
-	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Req");
+//	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Req");
 	Gamnet::Test::SendMsg(session, req);
 	session->Reconnect();
 }
@@ -58,7 +58,7 @@ void Test_UserLogin_Ans(const std::shared_ptr<TestSession>& session, const std::
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
-		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Ans");
+//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Ans");
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());

@@ -11,21 +11,7 @@ Link::Link() :
 	socket(io_service_),
 	strand(io_service_),
 	link_key(0),
-	expire_time(0),
-	session(nullptr)//,
-//	link_manager(nullptr)
-{
-
-}
-
-Link::Link(LinkManager* linkManager) :
-	read_buffer(nullptr),
-	socket(io_service_),
-	strand(io_service_),
-	link_key(0),
-	expire_time(0),
-	session(nullptr)//,	
-	//link_manager(linkManager)
+	expire_time(0)
 {
 }
 
@@ -37,31 +23,24 @@ bool Link::Init()
 {
 	link_key = ++LINK_KEY;
 	remote_address = boost::asio::ip::address();
-	expire_time = time(nullptr);
 	read_buffer = Buffer::Create();
 	if (nullptr == read_buffer)
 	{
 		LOG(GAMNET_ERR, "can not create read buffer");
 		return false;
 	}
+	expire_time = time(nullptr);
 	return true;
 }
 
 void Link::Clear()
 {
-	session = nullptr;
 	read_buffer = nullptr;
 	send_buffers.clear();
 }
 
 void Link::Connect(const char* host, int port, int timeout)
 {
-	/*
-	if (nullptr == link_manager)
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "[link_key:", link_key, "] invalid link_manager");
-	}
-	*/
 	if(nullptr == host)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "host is null");
@@ -93,52 +72,45 @@ void Link::Connect(const char* host, int port, int timeout)
 	}
 	socket.async_connect(endpoint_, std::bind(&Link::OnConnectHandler, self, std::placeholders::_1, endpoint_));
 }
-/*
-void Link::OnAccept()
+
+void Link::OnAcceptHandler()
 {
-	boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
-	socket.set_option(option);
 	remote_address = socket.remote_endpoint().address();
-	link_manager->OnAccept(shared_from_this());
-	if (false == link_manager->Add(shared_from_this()))
 	{
-		assert(!"duplicated link");
-		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+		boost::asio::socket_base::linger option(true, 0);
+		socket.set_option(option);
 	}
-	//strand.wrap(std::bind(&Link::AsyncRead, shared_from_this()))();
+	{
+		boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+		socket.set_option(option);
+	}
+	OnAccept();
 	AsyncRead();
 }
-*/
+
 void Link::OnConnectHandler(const boost::system::error_code& ec, const boost::asio::ip::tcp::endpoint& endpoint)
 {
 	try {
 		timer.Cancel();
 		if(false == socket.is_open())
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "connect timeout(dest:", remote_address.to_v4().to_string(), ", errno:", ec, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", link_key, "] connect timeout(dest:", remote_address.to_v4().to_string(), ", message:", ec.message(), ", errno:", ec, ")");
 		}
 		else if (0 != ec)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "connect fail(dest:", remote_address.to_v4().to_string(), ", errno:", ec, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", link_key, "] connect fail(dest:", remote_address.to_v4().to_string(), ", message:", ec.message(), ", errno:", ec, ")");
 		} 
-		
+		/*
 		{
 			boost::asio::socket_base::linger option(true, 0);
 			socket.set_option(option);
 		}
+		*/
 		{
 			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
 			socket.set_option(option);
 		}
 		OnConnect();
-		/*
-		link_manager->OnConnect(shared_from_this());
-		if (false == link_manager->Add(shared_from_this()))
-		{
-			assert(!"duplicated link");
-			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
-		}
-		*/
 		AsyncRead();
 		return;
 	}
@@ -172,7 +144,6 @@ void Link::AsyncRead()
 
 			self->read_buffer->write_index += readbytes;
 			self->expire_time = time(nullptr);
-
 			try 
 			{
 				self->OnRead(self->read_buffer);
@@ -185,7 +156,6 @@ void Link::AsyncRead()
 				return;
 			}
 			self->read_buffer->Clear();
-			//self->strand.wrap(std::bind(&Link::AsyncRead, self))();
 			self->AsyncRead();
 		})
 	);
@@ -283,7 +253,6 @@ int Link::SyncSend(const char* buf, int len)
 
 void Link::Close(int reason)
 {
-	//LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::Close(connect:", (true == socket.is_open() ? "true" : "false"), ")");
 	if (false == socket.is_open())
 	{
 		return;
@@ -292,18 +261,5 @@ void Link::Close(int reason)
 
 	OnClose(reason);
 }
-/*
-void Link::OnClose(int reason)
-{
-	//LOG(INF, "[", link_manager->name, "/", link_key, "/", (nullptr == session ? 0 : session->session_key), "] Link::OnClose(reason:", reason, ")");
-	if (true == socket.is_open())
-	{
-		assert(false);
-		return;
-	}
 
-	link_manager->OnClose(shared_from_this(), reason);
-	link_manager->Remove(link_key);
-}
-*/
 }}

@@ -7,11 +7,6 @@ Session::Session()
 {
 }
 
-/*
-Session::Session(boost::asio::io_service& ioService) : Network::Session(ioService)
-{
-}
-*/
 Session::~Session()
 {
 }

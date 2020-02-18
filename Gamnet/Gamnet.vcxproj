@@ -173,7 +173,6 @@
     <ClCompile Include="Network\Http\HttpClient.cpp" />
     <ClCompile Include="Network\Http\HttpServer.cpp" />
     <ClCompile Include="Network\Http\Link.cpp" />
-    <ClCompile Include="Network\Http\LinkManager.cpp" />
     <ClCompile Include="Network\Http\Request.cpp" />
     <ClCompile Include="Network\Http\Response.cpp" />
     <ClCompile Include="Network\Http\Session.cpp" />
@@ -242,7 +241,6 @@
     <ClInclude Include="Network\Http\HttpClient.h" />
     <ClInclude Include="Network\Http\HttpServer.h" />
     <ClInclude Include="Network\Http\Link.h" />
-    <ClInclude Include="Network\Http\LinkManager.h" />
     <ClInclude Include="Network\Http\Request.h" />
     <ClInclude Include="Network\Http\Response.h" />
     <ClInclude Include="Network\Http\Session.h" />

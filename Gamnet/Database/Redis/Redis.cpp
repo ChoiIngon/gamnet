@@ -67,7 +67,8 @@ namespace Gamnet { namespace Database { namespace Redis {
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidDatabaseNum, "duplicated db_type:", db_type);
 		}
 
-		std::shared_ptr<Network::Link> subscriber = Singleton<SubscriberManager>::GetInstance().Create();
+		std::shared_ptr<Network::Link> subscriber = std::make_shared<Subscriber>();
+		subscriber->Init();
 		subscriber->Connect(connInfo.host.c_str(), connInfo.port, 5);
 		subscribers.insert(std::make_pair(db_type, std::static_pointer_cast<Subscriber>(subscriber)));
 		return Singleton<ConnectionPool<Connection>>::GetInstance().Connect(db_type, connInfo);

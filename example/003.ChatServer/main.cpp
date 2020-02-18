@@ -1,5 +1,4 @@
 #include "ChatSession.h"
-#include <Network/Acceptor.h>
 
 int main() {
 	Gamnet::Log::ReadXml("config.xml");
@@ -9,8 +8,8 @@ int main() {
 
 	try {
 		Gamnet::Network::Tcp::ReadXml<ChatSession>("config.xml");
-		//Gamnet::Network::Router::ReadXml("config.xml", [](const Gamnet::Network::Router::Address&) {}, [](const Gamnet::Network::Router::Address&) {});
-		//Gamnet::Network::Http::Listen(30001);
+		Gamnet::Network::Router::ReadXml("config.xml", [](const Gamnet::Network::Router::Address&) {}, [](const Gamnet::Network::Router::Address&) {});
+		Gamnet::Network::Http::Listen(30001);
 
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
 		Gamnet::Run(30 /*std::thread::hardware_concurrency()*/);

@@ -3,6 +3,7 @@
 
 #include <boost/asio.hpp>
 #include "Connection.h"
+#include "../../Network/LinkManager.h"
 #include "../../Network/Tcp/Tcp.h"
 #include "../../Library/Delegate.h"
 #include "../../Library/Timer.h"
@@ -22,23 +23,15 @@ namespace Gamnet { namespace Database { namespace Redis {
 		void OnRecv_SubscribeAns(const Json::Value& ans);
 		void OnRecv_PublishReq(const Json::Value& req);
 	public :
-		Subscriber(Network::LinkManager* linkManager);
+		Subscriber();
 		virtual ~Subscriber();
 
 		bool Init();
 		void Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback);
-		void Publish(const std::string& channel, const std::string& message);
 		void Unsubscribe(const std::string& channel);
 	private :
 		void AsyncSend(const std::string& query);
 		void OnRead(const std::shared_ptr<Buffer>& buffer);
-	};
-
-	class SubscriberManager : public Network::LinkManager
-	{
-	public :
-		SubscriberManager();
-		virtual std::shared_ptr<Network::Link> Create() override;
 	};
 }}}
 

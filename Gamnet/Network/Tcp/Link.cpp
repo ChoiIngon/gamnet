@@ -4,7 +4,7 @@
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
-	Link::Link(Network::LinkManager* linkManager) : Network::Link(), link_manager(linkManager)
+	Link::Link(Network::LinkManager* linkManager) : Network::Link(), link_manager(linkManager), session(nullptr)
 	{
 	}
 
@@ -25,12 +25,14 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			LOG(GAMNET_ERR, "[", link_manager->name, "/", link_key, "/0] can not create Packet instance");
 			return false;
 		}
+	
 		return true;
 	}
 
 	void Link::Clear()
 	{
 		recv_packet = nullptr;
+		session = nullptr;
 		Network::Link::Clear();
 	}
 

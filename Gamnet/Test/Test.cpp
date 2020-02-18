@@ -1,8 +1,7 @@
 #include "Test.h"
 
 namespace Gamnet { namespace Test {
-
-	static std::function<void()> _runFunctor;
+	static std::function<void()> _runFunctor = [](){};
 	
 	void Run(int thread_count)
 	{

@@ -11,7 +11,7 @@ EchoSession::~EchoSession()
 
 void EchoSession::OnCreate()
 {
-	LOG(DEV, "[session_key:", session_key, "] 'EchoSession' is created");
+	//LOG(DEV, "[session_key:", session_key, "] 'EchoSession' is created");
 }
 
 void EchoSession::OnAccept()
@@ -26,7 +26,7 @@ void EchoSession::OnClose(int reason)
 
 void EchoSession::OnDestroy()
 {
-	LOG(DEV, "[session_key:", session_key, "] 'EchoSession' is destroyed");
+	//LOG(DEV, "[session_key:", session_key, "] 'EchoSession' is destroyed");
 }
 
 void TestSession::OnCreate()

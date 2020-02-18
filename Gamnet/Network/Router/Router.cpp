@@ -2,6 +2,7 @@
 #include "../../Library/Singleton.h"
 #include "../../Log/Log.h"
 #include "../../Database/Redis/Redis.h"
+#include "RouterHandler.h"
 
 namespace Gamnet { namespace Network { namespace Router {
 
@@ -12,6 +13,12 @@ const Address& GetRouterAddress()
 
 void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& connect_callback, const std::function<void(const Address& addr)>& close_callback)
 {
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Req::MSG_ID, "MsgRouter_SetAddress_Req", &RouterHandler::Recv_SetAddress_Req, new Network::HandlerStatic<RouterHandler>());
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Ans::MSG_ID, "MsgRouter_SetAddress_Ans", &RouterHandler::Recv_SetAddress_Ans, new Network::HandlerStatic<RouterHandler>());
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Ntf::MSG_ID, "MsgRouter_SetAddress_Ntf", &RouterHandler::Recv_SetAddress_Ntf, new Network::HandlerStatic<RouterHandler>());
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SendMsg_Ntf::MSG_ID, "MsgRouter_SendMsg_Ntf", &RouterHandler::Recv_SendMsg_Ntf, new Network::HandlerStatic<RouterHandler>());
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_HeartBeat_Ntf::MSG_ID, "MsgRouter_HeartBeat_Ntf", &RouterHandler::Recv_HeartBeat_Ntf, new Network::HandlerStatic<RouterHandler>());
+
 	Singleton<LinkManager>::GetInstance().Listen(service_name, port, connect_callback, close_callback);
 	LOG(INF, "Gamnet::Router listener start(port:", port, ", "
 			"router_address:",

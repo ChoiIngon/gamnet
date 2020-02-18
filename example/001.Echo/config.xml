@@ -12,7 +12,7 @@
     <farm host="127.0.0.1" port="6379"/>
   </router>
   
-  <test host="127.0.0.1" port="10000" session_count="1" loop_count="1" interval="1000">
+  <test host="127.0.0.1" port="10000" session_count="512" loop_count="100">
     <message name="Test_EchoMessage"/>
   </test>
 </server>

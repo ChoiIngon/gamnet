@@ -8,7 +8,7 @@ Dispatcher::Dispatcher() {
 Dispatcher::~Dispatcher() {
 }
 
-void Dispatcher::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::string& uri, const Request& request)
+void Dispatcher::OnRecvMsg(const std::shared_ptr<Network::Http::Link>& link, const std::string& uri, const Request& request)
 {
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
 	auto itr = mapHandlerFunction_.find(uri);

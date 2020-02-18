@@ -17,8 +17,8 @@ namespace Gamnet {	namespace Test {
 	class LinkManager : public Network::Tcp::LinkManager<SESSION_T>
 	{
 		GAMNET_WHERE(SESSION_T, Session);
-
 	public:
+		typedef typename Network::Tcp::LinkManager<SESSION_T> BASE_T;
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
 		
@@ -32,25 +32,25 @@ namespace Gamnet {	namespace Test {
 				fail_count = 0;
 				elapsed_time = 0;
 			}
-			std::string name;
-			std::atomic_uint execute_count;
-			std::atomic_uint fail_count;
-			uint64_t elapsed_time;
-			SEND_HANDLER_TYPE send_handler;
+			std::string			name;
+			std::atomic_uint	execute_count;
+			std::atomic_uint	fail_count;
+			uint64_t			elapsed_time;
+			SEND_HANDLER_TYPE	send_handler;
 			std::map<uint32_t, RECV_HANDLER_TYPE> recv_handlers;
 		};
 
 		std::map<std::string, std::shared_ptr<TestExecuteInfo>>	execute_infos;
 		std::map<uint32_t, RECV_HANDLER_TYPE> 	global_recv_handlers;
+		Pool<Network::Tcp::Link, std::mutex, Network::Link::InitFunctor, Network::Link::ReleaseFunctor> link_pool;
 
-		Log::Logger	log;
-		Timer 		log_timer;
+		Log::Logger		log;
+		Timer 			log_timer;
 		
 		std::atomic_int	begin_execute_count;
 		std::atomic_int	finish_execute_count;
 		int 			max_execute_count;
 		int				session_count;
-
 	public:
 		std::string host;
 		int			port;
@@ -58,7 +58,7 @@ namespace Gamnet {	namespace Test {
 		TestHandler<SESSION_T> test_handler;
 		std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 
-		LinkManager() : log_timer(GetIOService()), begin_execute_count(0), finish_execute_count(0), max_execute_count(0), host(""), port(0)
+		LinkManager() : log_timer(GetIOService()), begin_execute_count(0), finish_execute_count(0), max_execute_count(0), link_pool(65535, BASE_T::LinkFactory(this)), host(""), port(0)
 		{
 			this->name = "Gamnet::Test::LinkManager";
 
@@ -74,7 +74,7 @@ namespace Gamnet {	namespace Test {
 		{
 		}
 
-		void Init(const char* host, int port, int session_count, int execute_count)
+		void Init(const char* host, int port, int session_count, int loop_count)
 		{
 			RegisterTestcase("__connect__", false);
 			RegisterTestcase("__close__", true);
@@ -89,7 +89,7 @@ namespace Gamnet {	namespace Test {
 			this->port = port;
 			this->begin_execute_count = 0;
 			this->finish_execute_count = 0;
-			this->max_execute_count = execute_count;
+			this->max_execute_count = session_count * loop_count;
 			this->session_count = session_count;
 		}
 		
@@ -105,40 +105,14 @@ namespace Gamnet {	namespace Test {
 				{
 					break;
 				}
-				std::shared_ptr<Network::Link> link = this->Connect(host.c_str(), port, 5);
-				if (nullptr == link)
-				{
-					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "can not create 'Test::Link' instance");
-				}
+				Connect();
 			}
-		}
-
-		virtual std::shared_ptr<Network::Link> Create() override
-		{
-			std::shared_ptr<Network::Link> link = this->link_pool.Create();
-			if (nullptr == link)
-			{
-				LOG(ERR, "[", name, "/0/0] can not create link instance");
-				return nullptr;
-			}
-
-			std::shared_ptr<SESSION_T> session = this->session_pool.Create();
-			if (nullptr == session)
-			{
-				LOG(ERR, "[", name, "/", link->link_key, "/0] can not create session instance");
-				return nullptr;
-			}
-				
-			session->link = link;
-			link->session = session;
-			session->execute_send_handler = std::bind(&LinkManager<SESSION_T>::ExecuteSendHandler, this, std::placeholders::_1);
-			session->OnCreate();
-			return link;
 		}
 		
 		virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override
 		{
-			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+			std::shared_ptr<Network::Tcp::Link> tcpLink = std::static_pointer_cast<Network::Tcp::Link>(link);
+			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(tcpLink->session);
 			assert(nullptr != session);
 
 			try {
@@ -167,7 +141,8 @@ namespace Gamnet {	namespace Test {
 
 		virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 		{
-			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+			std::shared_ptr<Network::Tcp::Link> tcpLink = std::static_pointer_cast<Network::Tcp::Link>(link);
+			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(tcpLink->session);
 			if (nullptr == session)
 			{
 				return;
@@ -179,18 +154,19 @@ namespace Gamnet {	namespace Test {
 			}
 			session->OnDestroy();
 			session->link = nullptr;
-			link->session = nullptr;
+			tcpLink->session = nullptr;
 			finish_execute_count += 1;
 			if (max_execute_count > begin_execute_count)
 			{
 				begin_execute_count++;
-				this->Connect(host.c_str(), port, 5);
+				Connect();
 			}
 		}
 
 		virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 		{
-			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+			std::shared_ptr<Network::Tcp::Link> tcpLink = std::static_pointer_cast<Network::Tcp::Link>(link);
+			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(tcpLink->session);
 			if(nullptr == session)
 			{
 				return;
@@ -309,10 +285,35 @@ namespace Gamnet {	namespace Test {
 			}
 		}
 
+		void Connect(std::shared_ptr<SESSION_T> session = nullptr)
+		{
+			std::shared_ptr<Network::Tcp::Link> link = link_pool.Create();
+			if (nullptr == link)
+			{
+				LOG(ERR, "can not create 'Test::Link' instance(", link_pool.Available(), "/", link_pool.Capacity(), ")");
+				return;
+			}
+
+			if(nullptr == session)
+			{
+				session = session_pool.Create();
+				if (nullptr == session)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "can not create 'Test::Session' instance");
+				}
+			}
+
+			session->link = link;
+			link->session = session;
+			session->execute_send_handler = std::bind(&LinkManager<SESSION_T>::ExecuteSendHandler, this, std::placeholders::_1);
+			session->OnCreate();
+			link->Connect(host.c_str(), port, 5);
+		}
+	private :
 		void OnLogTimerExpire()
 		{
-			log.Write(GAMNET_INF, "[Test] link count..(active:", this->Size(), ", available:", this->link_pool.Available(), ", max:", this->link_pool.Capacity(), ")");
-			log.Write(GAMNET_INF, "[Test] session count..(active:", this->session_manager.Size(), ", available:", this->session_pool.Available(), ", max:", this->session_pool.Capacity(), ")");
+			log.Write(GAMNET_INF, "[Test] link count..(active:", Size(), ", available:", link_pool.Available(), ", max:", link_pool.Capacity(), ")");
+			log.Write(GAMNET_INF, "[Test] session count..(active:", session_manager.Size(), ", available:", session_pool.Available(), ", max:", session_pool.Capacity(), ")");
 			log.Write(GAMNET_INF, "[Test] begin count..(", begin_execute_count, "/", max_execute_count, ")");
 
 			for (auto itr : execute_order)

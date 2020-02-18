@@ -11,14 +11,14 @@
 
 namespace Gamnet { namespace Test {
 	template <class SESSION_T>
-	void Init(unsigned int interval, unsigned int session_count, unsigned int loop_count, const char* host, int port)
+	void Init(const char* host, int port, unsigned int session_count, unsigned int loop_count)
 	{
-		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host, port, interval, session_count, session_count * loop_count);
+		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host, port, session_count, loop_count);
 	}
-
+	
 	void Run(int thread_count);
 	void RegisterRun(std::function<void()> runFunctor);
-
+	
 	template<class SESSION_T, class REQ_T, class ANS_T>
 	bool BindHandler(const std::string& test_name, typename LinkManager<SESSION_T>::SEND_HANDLER_TYPE send, typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
@@ -65,7 +65,6 @@ namespace Gamnet { namespace Test {
 		uint32_t loop_count = ptree_.get<uint32_t>("server.test.<xmlattr>.loop_count");
 		auto test_case = ptree_.get_child("server.test");
 
-		
 		for(const auto& elmt : test_case)
 		{
 			if("message" == elmt.first)
@@ -74,10 +73,8 @@ namespace Gamnet { namespace Test {
 			}
 		}
 		
-		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host.c_str(), port, session_count, session_count * loop_count);
-
-		LinkManager<SESSION_T>* ptr = &Singleton<LinkManager<SESSION_T>>::GetInstance();
-		RegisterRun(std::function<void()>(std::bind(&LinkManager<SESSION_T>::Run, ptr)));
+		Init<SESSION_T>(host.c_str(), port, session_count, loop_count);
+		RegisterRun(std::function<void()>(std::bind(&LinkManager<SESSION_T>::Run, &Singleton<LinkManager<SESSION_T>>::GetInstance())));
 	}
 }}
 

@@ -5,6 +5,7 @@
 #include "../HandlerFactory.h"
 #include "Session.h"
 #include "Request.h"
+#include "Link.h"
 
 namespace Gamnet { namespace Network { namespace Http {
 
@@ -34,7 +35,7 @@ public:
 		return true;
 	}
 
-	void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::string& uri, const Request& request);
+	void OnRecvMsg(const std::shared_ptr<Network::Http::Link>& link, const std::string& uri, const Request& request);
 };
 
 }}}

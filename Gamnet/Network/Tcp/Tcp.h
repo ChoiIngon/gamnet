@@ -12,6 +12,11 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	template <class SESSION_T>
 	void Listen(int port, int max_session, int keep_alive, int accept_queue_size = 7)
 	{
+		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_Connect_Req, "MsgID_CliSvr_Connect_Req", &SystemMessageHandler<SESSION_T>::Recv_Connect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_Reconnect_Req, "MsgID_CliSvr_Reconnect_Req", &SystemMessageHandler<SESSION_T>::Recv_Reconnect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_Close_Req, "MsgID_CliSvr_Close_Req", &SystemMessageHandler<SESSION_T>::Recv_Close_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_HeartBeat_Req, "MsgID_CliSvr_HeartBeat_Req", &SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_ReliableAck_Ntf, "MsgID_CliSvr_ReliableAck_Ntf", &SystemMessageHandler<SESSION_T>::Recv_ReliableAck_Ntf, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
 		Singleton<LinkManager<SESSION_T>>::GetInstance().Listen(port, max_session, keep_alive, accept_queue_size);
 		LOG(GAMNET_INF, "Gamnet::Tcp listener start(port:", port, ", capacity:", max_session, ", keep alive time:", keep_alive, " sec)");
 	}
@@ -25,7 +30,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		int port = ptree_.get<int>("server.tcp.<xmlattr>.port");
 		int max_count = ptree_.get<int>("server.tcp.<xmlattr>.max_count");
 		int keep_alive = ptree_.get<int>("server.tcp.<xmlattr>.keep_alive");
-		Listen<SESSION_T>(port, max_count, keep_alive);
+		Listen<SESSION_T>(port, max_count, keep_alive, 10);
 	}
 
 	template <class SESSION_T, class FUNC, class FACTORY>

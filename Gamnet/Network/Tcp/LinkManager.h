@@ -5,9 +5,9 @@
 #include "Packet.h"
 #include "Link.h"
 #include "SystemMessageHandler.h"
-#include "../LinkManager.h"
 #include "../../Library/Json/json.h"
 #include "../Acceptor.h"
+#include "../LinkManager.h"
 #include <memory>
 #include <atomic>
 #include <mutex>
@@ -17,24 +17,21 @@ namespace Gamnet { namespace Network { namespace Tcp {
 template <class SESSION_T>
 class LinkManager : public Network::LinkManager
 {
-private :
-	Acceptor<Link> acceptor;
-	struct LinkFactory {
+public :
+	struct LinkFactory
+	{
 		LinkManager* const link_manager;
-		LinkFactory(LinkManager* linkManager) : link_manager(linkManager) {}
+		LinkFactory(LinkManager* linkManager) : link_manager(linkManager) 
+		{
+		}
 
 		Link* operator() ()
 		{
 			return new Link(link_manager);
 		}
 	};
-	
-public :
-	SessionManager session_manager;
-	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
-	Pool<Link, std::mutex, Network::Link::InitFunctor, Network::Link::ReleaseFunctor> link_pool;
 
-	LinkManager() : acceptor(65535, LinkFactory(this)), session_pool(), link_pool(65535, LinkFactory(this))
+	LinkManager() : acceptor(65535, LinkFactory(this)), session_pool()
 	{
 		name = "Gamnet::Network::Tcp::LinkManager";
 	}
@@ -43,35 +40,24 @@ public :
 	{
 	}
 
-	void Listen(int port, int max_session, int keep_alive_time, int accept_queue_size)
-	{
-		BindHandler(MSG_ID::MsgID_CliSvr_Connect_Req, "MsgID_CliSvr_Connect_Req", &SystemMessageHandler<SESSION_T>::Recv_Connect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-		BindHandler(MSG_ID::MsgID_CliSvr_Reconnect_Req, "MsgID_CliSvr_Reconnect_Req", &SystemMessageHandler<SESSION_T>::Recv_Reconnect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-		BindHandler(MSG_ID::MsgID_CliSvr_Close_Req, "MsgID_CliSvr_Close_Req", &SystemMessageHandler<SESSION_T>::Recv_Close_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-		BindHandler(MSG_ID::MsgID_CliSvr_HeartBeat_Req, "MsgID_CliSvr_HeartBeat_Req", &SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-		BindHandler(MSG_ID::MsgID_CliSvr_ReliableAck_Ntf, "MsgID_CliSvr_ReliableAck_Ntf", &SystemMessageHandler<SESSION_T>::Recv_ReliableAck_Ntf, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+private:
+	Acceptor<Link>	acceptor;
+	
+public:
+	SessionManager	session_manager;
+	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
 
-		link_pool.Capacity(max_session);
+	void Listen(int port, int max_session, int alive_time, int accept_queue_size)
+	{
 		session_pool.Capacity(65535);
 		session_manager.Init();
-
 		acceptor.Listen(port, max_session, accept_queue_size);
-		//Network::LinkManager::Listen(port, accept_queue_size, keep_alive_time);
+		ActivateIdleLinkTerminator(alive_time);
 	}
 
-	virtual std::shared_ptr<Network::Link> Create() override
+	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) 
 	{
-		std::shared_ptr<Link> link = link_pool.Create();
-		if(nullptr == link) 
-		{
-			LOG(GAMNET_ERR, "[link_manager:", name, "] can not create 'Tcp::Link' instance");
-			return nullptr;
-		}
-		return link;
-	}
-
-	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
-	{
+		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
 		std::shared_ptr<SESSION_T> session = session_pool.Create();
 		if (nullptr == session)
 		{
@@ -79,20 +65,21 @@ public :
 		}
 
 		session->link = link;
-		link->session = session;
+		tcpLink->session = session;
 	}
 	
-	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
+	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) 
 	{
+		acceptor.Release();
 		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(tcpLink->session);
+		std::shared_ptr<Session> session = tcpLink->session;
 		if(nullptr == session)
 		{
 			return;
 		}
 
 		session->OnClose(reason);
-		if (false == session->handover_safe || (0 < tcpLink->link_manager->keep_alive_time && tcpLink->expire_time + tcpLink->link_manager->keep_alive_time < time(nullptr)))
+		if (false == session->handover_safe || (0 < expire_time && tcpLink->expire_time + expire_time < time(nullptr)))
 		{
 			session->OnDestroy();
 			session->link = nullptr;
@@ -103,13 +90,13 @@ public :
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if (nullptr == session)
+		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
+		if (nullptr == tcpLink->session)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[", name, "/", link->link_key, "/0] invalid session");
 		}
 
-		Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(link, buffer);
+		Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(tcpLink, buffer);
 	}
 
 	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key) 
@@ -134,20 +121,14 @@ public :
 		})();
 	}
 
-	template <class FUNC, class FACTORY>
-	bool BindHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
-	{
-		return Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(msg_id, name, func, factory);
-	}
-
 	Json::Value State()
 	{
 		Json::Value root;
 		root["name"] = name;
 
 		Json::Value link;
-		link["max_count"] = link_pool.Capacity();
-		link["idle_count"] = link_pool.Available();
+		link["max_count"] = acceptor.Capacity();
+		link["idle_count"] = acceptor.Available();
 		link["active_count"] = Size();
 		root["link"] = link;
 		
@@ -184,6 +165,9 @@ public :
 #endif
 		return root;
 	}
+
+private :
+	
 };
 
 }}}

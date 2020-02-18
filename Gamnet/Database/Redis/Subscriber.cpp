@@ -2,7 +2,7 @@
 
 namespace Gamnet { namespace Database { namespace Redis {
 
-	Subscriber::Subscriber(Network::LinkManager* linkManager) : Network::Link(linkManager)
+	Subscriber::Subscriber() 
 	{
 		handlers.insert(std::make_pair("subscribe", std::bind(&Subscriber::OnRecv_SubscribeAns, this, std::placeholders::_1)));
 		handlers.insert(std::make_pair("message", std::bind(&Subscriber::OnRecv_PublishReq, this, std::placeholders::_1)));
@@ -85,12 +85,6 @@ namespace Gamnet { namespace Database { namespace Redis {
 		Network::Link::AsyncSend(query.c_str(), query.length());
 	}
 
-	void Subscriber::Publish(const std::string& channel, const std::string& message)
-	{
-		const std::string query = Format("PUBLISH ", channel, " '", message, "'\r\n");
-		Network::Link::AsyncSend(query.c_str(), query.length());
-	}
-
 	void Subscriber::Unsubscribe(const std::string& channel)
 	{
 		{
@@ -124,25 +118,5 @@ namespace Gamnet { namespace Database { namespace Redis {
 			const std::string& message = req[2].asString();
 			itr->second(message);
 		}
-	}
-
-	SubscriberManager::SubscriberManager() 
-	{
-		name = "Gamnet::Database::Redis::SubscriberManager";
-	}
-
-	std::shared_ptr<Network::Link> SubscriberManager::Create()
-	{
-		std::shared_ptr<Subscriber> subscriber = std::make_shared<Subscriber>(this);
-		if (nullptr == subscriber)
-		{
-			LOG(GAMNET_ERR, "can not create 'Tcp::Link' instance");
-			return nullptr;
-		}
-		if(false == subscriber->Init())
-		{
-			return nullptr;
-		}
-		return subscriber;
 	}
 }}}

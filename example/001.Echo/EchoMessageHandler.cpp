@@ -20,7 +20,7 @@ void EchoMessageHandler::Recv_CliSvr_Req(const std::shared_ptr<EchoSession>& ses
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(DEV, "MsgCliSvr_EchoMessage_Req(session_key:", session->session_key, ")");
+		//LOG(DEV, "MsgCliSvr_EchoMessage_Req(session_key:", session->session_key, ")");
 		ans.Message = req.Message;
 		ntf.Message = req.Message;
 		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::MULTI_CAST, "Echo", 0);
@@ -31,7 +31,7 @@ void EchoMessageHandler::Recv_CliSvr_Req(const std::shared_ptr<EchoSession>& ses
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.Error = (ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_EchoMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ans.Error, ")");
+	//LOG(DEV, "MsgSvrCli_EchoMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ans.Error, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
@@ -45,7 +45,6 @@ GAMNET_BIND_TCP_HANDLER(
 void EchoMessageHandler::Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address& addr, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgSvrSvr_EchoMessage_Ntf ntfFromSvr;
-
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntfFromSvr, packet))
 		{
@@ -53,7 +52,7 @@ void EchoMessageHandler::Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address&
 			return;
 		}
 
-		LOG(DEV, "MsgSvrSvr_EchoMessage_Ntf(message:", ntfFromSvr.Message, ")");
+		//LOG(DEV, "MsgSvrSvr_EchoMessage_Ntf(message:", ntfFromSvr.Message, ")");
 		
 	}
 	catch (const Gamnet::Exception& e)
