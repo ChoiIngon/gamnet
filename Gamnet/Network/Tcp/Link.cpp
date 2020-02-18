@@ -38,6 +38,15 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	void Link::OnAccept()
 	{
+		{
+			boost::asio::socket_base::linger option(true, 0);
+			socket.set_option(option);
+		}
+		{
+			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+			socket.set_option(option);
+		}
+
 		link_manager->OnAccept(shared_from_this());
 		if (false == link_manager->Add(shared_from_this()))
 		{
@@ -48,6 +57,14 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	void Link::OnConnect()
 	{
+		{
+			boost::asio::socket_base::linger option(true, 0);
+			socket.set_option(option);
+		}
+		{
+			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
+			socket.set_option(option);
+		}
 		link_manager->OnConnect(shared_from_this());
 		if (false == link_manager->Add(shared_from_this()))
 		{
@@ -101,7 +118,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			assert(false);
 			return;
 		}
-
 		link_manager->OnClose(shared_from_this(), reason);
 		link_manager->Remove(link_key);
 	}

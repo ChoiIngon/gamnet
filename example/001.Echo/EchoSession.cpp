@@ -22,11 +22,15 @@ void EchoSession::OnAccept()
 void EchoSession::OnClose(int reason)
 {
 	assert(nullptr != link);
+	if (0 != reason)
+	{
+		LOG(ERR, "[link_key:", link->link_key, "] socket close(error_code:", reason, ")");
+	}
 }
 
 void EchoSession::OnDestroy()
 {
-	//LOG(DEV, "[session_key:", session_key, "] 'EchoSession' is destroyed");
+	//LOG(DEV, "[link_key:", link->link_key, "] socket destroy");
 }
 
 void TestSession::OnCreate()
@@ -39,9 +43,15 @@ void TestSession::OnConnect()
 
 void TestSession::OnClose(int reason)
 {
+	assert(nullptr != link);
+	if (0 != reason)
+	{
+		LOG(ERR, "[link_key:", link->link_key, "] socket close(error_code:", reason, ")");
+	}
 }
 
 void TestSession::OnDestroy()
 {
+	//LOG(DEV, "[link_key:", link->link_key, "] socket destory");
 }
 

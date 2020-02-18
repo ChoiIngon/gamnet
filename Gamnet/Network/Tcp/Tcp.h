@@ -10,7 +10,7 @@
 namespace Gamnet { namespace Network { namespace Tcp {
 
 	template <class SESSION_T>
-	void Listen(int port, int max_session, int keep_alive, int accept_queue_size = 7)
+	void Listen(int port, int max_session, int keep_alive, int accept_queue_size)
 	{
 		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_Connect_Req, "MsgID_CliSvr_Connect_Req", &SystemMessageHandler<SESSION_T>::Recv_Connect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
 		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_Reconnect_Req, "MsgID_CliSvr_Reconnect_Req", &SystemMessageHandler<SESSION_T>::Recv_Reconnect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
@@ -30,7 +30,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		int port = ptree_.get<int>("server.tcp.<xmlattr>.port");
 		int max_count = ptree_.get<int>("server.tcp.<xmlattr>.max_count");
 		int keep_alive = ptree_.get<int>("server.tcp.<xmlattr>.keep_alive");
-		Listen<SESSION_T>(port, max_count, keep_alive, 10);
+		int accept_queue = ptree_.get<int>("server.tcp.<xmlattr>.accept_queue");
+		Listen<SESSION_T>(port, max_count, keep_alive, accept_queue);
 	}
 
 	template <class SESSION_T, class FUNC, class FACTORY>

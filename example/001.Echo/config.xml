@@ -7,12 +7,12 @@
     <err console="yes" file="yes" sys="no"/>
   </log>
 
-  <tcp port="10000" max_count="8000" keep_alive="60"/>
+  <tcp port="10000" max_count="8000" accept_queue="1" keep_alive="60"/>
   <router name="Echo" port="10001">
     <farm host="127.0.0.1" port="6379"/>
   </router>
   
-  <test host="127.0.0.1" port="10000" session_count="512" loop_count="100">
+  <test host="127.0.0.1" port="10000" session_count="1" loop_count="1">
     <message name="Test_EchoMessage"/>
   </test>
 </server>

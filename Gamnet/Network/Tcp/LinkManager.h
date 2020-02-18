@@ -79,7 +79,7 @@ public:
 		}
 
 		session->OnClose(reason);
-		if (false == session->handover_safe || (0 < expire_time && tcpLink->expire_time + expire_time < time(nullptr)))
+		if (false == session->handover_safe)
 		{
 			session->OnDestroy();
 			session->link = nullptr;

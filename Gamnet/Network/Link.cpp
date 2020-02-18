@@ -76,14 +76,6 @@ void Link::Connect(const char* host, int port, int timeout)
 void Link::OnAcceptHandler()
 {
 	remote_address = socket.remote_endpoint().address();
-	{
-		boost::asio::socket_base::linger option(true, 0);
-		socket.set_option(option);
-	}
-	{
-		boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
-		socket.set_option(option);
-	}
 	OnAccept();
 	AsyncRead();
 }
@@ -100,16 +92,7 @@ void Link::OnConnectHandler(const boost::system::error_code& ec, const boost::as
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", link_key, "] connect fail(dest:", remote_address.to_v4().to_string(), ", message:", ec.message(), ", errno:", ec, ")");
 		} 
-		/*
-		{
-			boost::asio::socket_base::linger option(true, 0);
-			socket.set_option(option);
-		}
-		*/
-		{
-			boost::asio::socket_base::send_buffer_size option(Buffer::MAX_SIZE);
-			socket.set_option(option);
-		}
+				
 		OnConnect();
 		AsyncRead();
 		return;
