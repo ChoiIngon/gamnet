@@ -290,6 +290,7 @@ namespace Gamnet {	namespace Test {
 			std::shared_ptr<Network::Tcp::Link> link = link_pool.Create();
 			if (nullptr == link)
 			{
+				finish_execute_count++;
 				LOG(ERR, "can not create 'Test::Link' instance(", link_pool.Available(), "/", link_pool.Capacity(), ")");
 				return;
 			}
@@ -299,7 +300,9 @@ namespace Gamnet {	namespace Test {
 				session = session_pool.Create();
 				if (nullptr == session)
 				{
-					throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "can not create 'Test::Session' instance");
+					finish_execute_count++;
+					LOG(ERR, "can not create 'Test::Session' instance");
+					return;
 				}
 			}
 
