@@ -110,9 +110,6 @@
     <ClCompile Include="Network\Http\HttpServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network\Http\LinkManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Network\Http\Response.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -331,9 +328,6 @@
     <ClInclude Include="Network\Http\HttpServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network\Http\LinkManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Network\Http\Response.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -389,6 +383,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Library\Delegate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Tcp\SystemMessageHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Acceptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -4,11 +4,10 @@
 #include "../Tcp/Session.h"
 #include "Response.h"
 
-namespace Gamnet {
-namespace Network {
-namespace Http {
+namespace Gamnet { namespace Network { namespace Http {
 
-class Session : public Network::Session {
+class Session : public Network::Session 
+{
 public:
 	Session();
 	virtual ~Session();
@@ -21,7 +20,5 @@ public:
 	virtual void OnDestroy() {}
 };
 
-} /* namespace Http */
-} /* namespace Gamnet */
-}
+}}}
 #endif /* SESSION_H_ */

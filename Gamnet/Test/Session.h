@@ -7,19 +7,20 @@ namespace Gamnet { namespace Test {
 boost::asio::io_service& GetIOService();
 void CreateThreadPool(int threadCount);
 
-class Session : public Network::Tcp::Session {
+class Session : public Network::Tcp::Session 
+{
 public:
-	int repeat_count;
+	Session();
+	virtual ~Session();
+
+	int test_seq;
 	uint32_t server_session_key;
 	std::string server_session_token;
-	int test_seq;
 	bool is_pause;
 	bool is_connected;
 	std::chrono::time_point<std::chrono::steady_clock> send_time;
+	std::function<void(const std::shared_ptr<Session>&)> execute_send_handler;
 	Timer timer;
-
-	Session();
-	virtual ~Session();
 
 	virtual void OnCreate() override {}
 	virtual void OnAccept() override {}

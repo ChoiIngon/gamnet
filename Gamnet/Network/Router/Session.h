@@ -7,7 +7,8 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
-class Session : public Network::Tcp::Session {
+class Session : public Network::Tcp::Session 
+{
 private :
 	struct AnswerWatingSessionManager
 	{
@@ -25,17 +26,12 @@ private :
 		void Clear();
 	};
 public:
-	/*
-	struct Init {
-		Session* operator() (Session* session);
-	};
-	*/
-	AnswerWatingSessionManager watingSessionManager_;
 
 	Session();
 	virtual ~Session();
 
 	Address address;
+	AnswerWatingSessionManager watingSessionManager_;
 	std::function<void(const Address& addr)> onRouterConnect;
 	std::function<void(const Address& addr)> onRouterClose;
 

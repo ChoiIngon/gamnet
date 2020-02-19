@@ -21,13 +21,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 {
 	LinkManager::onRouterAccept = onAccept;
 	LinkManager::onRouterClose = onClose;
-
-	RegisterHandler(MsgRouter_SetAddress_Req::MSG_ID,	"MsgRouter_SetAddress_Req", &RouterHandler::Recv_SetAddress_Req, new Network::HandlerStatic<RouterHandler>());
-	RegisterHandler(MsgRouter_SetAddress_Ans::MSG_ID,	"MsgRouter_SetAddress_Ans", &RouterHandler::Recv_SetAddress_Ans, new Network::HandlerStatic<RouterHandler>());
-	RegisterHandler(MsgRouter_SetAddress_Ntf::MSG_ID,	"MsgRouter_SetAddress_Ntf", &RouterHandler::Recv_SetAddress_Ntf, new Network::HandlerStatic<RouterHandler>());
-	RegisterHandler(MsgRouter_SendMsg_Ntf::MSG_ID,		"MsgRouter_SendMsg_Ntf", &RouterHandler::Recv_SendMsg_Ntf, new Network::HandlerStatic<RouterHandler>());
-	RegisterHandler(MsgRouter_HeartBeat_Ntf::MSG_ID,	"MsgRouter_HeartBeat_Ntf", &RouterHandler::Recv_HeartBeat_Ntf, new Network::HandlerStatic<RouterHandler>());
-
+	
 	local_address.service_name = service_name;
 	local_address.cast_type = ROUTER_CAST_TYPE::UNI_CAST;
 	local_address.id = Network::Tcp::GetLocalAddress().to_v4().to_ulong();
@@ -39,21 +33,23 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	_heartbeat_timer.AutoReset(true);
 	_heartbeat_timer.SetTimer(60000, [this] () {
 		MsgRouter_HeartBeat_Ntf ntf;
-		_cast_group->SendMsg(ntf);
+		AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
+		lockedCastGroup->SendMsg(ntf);
 		LOG(GAMNET_INF, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
 	});
 
-	session_manager.Init(0);
-	Network::LinkManager::Listen(port, accept_queue_size, 0);
+	session_manager.Init();
+	Network::Tcp::LinkManager<Session>::Listen(port, 1024, 0, accept_queue_size);
 }
 
 void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
 {
-	std::shared_ptr<Network::Link> link = Create();
+	std::shared_ptr<Network::Tcp::Link> link = std::make_shared<Network::Tcp::Link>(this);
 	if(nullptr == link)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "cannot create link instance");
 	}
+	link->Init();
 
 	std::shared_ptr<Session> session = session_pool.Create();
 	if (nullptr == session)
@@ -62,125 +58,79 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 	}
 
 	link->session = session;
+	session->link = link;
 	session->onRouterConnect = onConnect;
 	session->onRouterClose = onClose;
-
-	session_manager.Add(session->session_key, session);
-
-	session->strand.wrap([session, link] () {
-		try {
-			session->OnCreate();
-			session->AttachLink(link);
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-	})();
+	session->OnCreate();
 	
+	session_manager.Add(session->session_key, session);
 	link->Connect(host, port, timeout);
 }
 
 void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 {
-	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
-	if (nullptr == link->session)
-	{
-		link->Close(ErrorCode::InvalidSessionError);
-		return;
-	}
-	
-	session->strand.wrap([session] () {
-		try {
-			session->OnConnect();
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		};
-	})(); 
-	_cast_group->AddSession(session);
+	std::shared_ptr<Network::Tcp::Link> tcpLink = std::static_pointer_cast<Network::Tcp::Link>(link);
+	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(tcpLink->session);
+	assert(nullptr != session);
+	session->OnConnect();
+	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
+	lockedCastGroup->AddSession(session);
 }
 
 void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 {
+	std::shared_ptr<Network::Tcp::Link> tcpLink = std::static_pointer_cast<Network::Tcp::Link>(link);
 	std::shared_ptr<Session> session = session_pool.Create();
 	if (nullptr == session)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
 	}
 
-	link->session = session;
-
-	_cast_group->AddSession(session);
-
+	tcpLink->session = session;
+	session->link = tcpLink;
+	session->OnCreate();
+	session->OnAccept();
+	
 	session_manager.Add(session->session_key, session);
 
-	session->strand.wrap([session, link] () {
-		try {
-			session->OnCreate();
-			session->AttachLink(link);
-			session->OnAccept();
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-	})();
+	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
+	lockedCastGroup->AddSession(session);
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)
 {
-	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
+	std::shared_ptr<Network::Tcp::Link> tcpLink = std::static_pointer_cast<Network::Tcp::Link>(link);
+	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(tcpLink->session);
 	if (nullptr == session)
 	{
 		return;
 	}
 
-	session->strand.wrap([session, reason]() {
-		try {
-			if (nullptr == session->link)
-			{
-				LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
-				return;
-			}
-			session->OnClose(reason);
-			session->AttachLink(nullptr);
-			session->OnDestroy();
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-		}
-	})();
-
 	session_manager.Remove(session->session_key);
-	_cast_group->DelSession(session);
+	session->OnClose(reason);
+	session->OnDestroy();
+	session->link = nullptr;
+	tcpLink->session = nullptr;
+
+	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
+	lockedCastGroup->DelSession(session);
 }
 
 void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) 
 {
-	std::shared_ptr<Session> session = std::static_pointer_cast<Session>(link->session);
-	if (nullptr == session)
+	std::shared_ptr<Network::Tcp::Link> tcpLink = std::static_pointer_cast<Network::Tcp::Link>(link);
+	if (nullptr == tcpLink->session)
 	{
 		return;
 	}
 
-	session->expire_time = ::time(nullptr);
-	const std::shared_ptr<Tcp::Packet>& packet = std::static_pointer_cast<Tcp::Packet>(buffer);
-	session->strand.wrap(std::bind(&Tcp::Dispatcher<Session>::OnRecvMsg, &Singleton<Tcp::Dispatcher<Session>>::GetInstance(), session, packet))();
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().OnRecvMsg(tcpLink, buffer);
 }
 
 Json::Value LinkManager::State()
 {
 	Json::Value root;
 	root["name"] = name;
-
-	Json::Value link;
-	link["max_count"] = (unsigned int)link_pool.Capacity();
-	link["idle_count"] = (unsigned int)link_pool.Available();
-	link["active_count"] = (unsigned int)Size();
-	root["link"] = link;
 
 	Json::Value session;
 	session["max_count"] = (unsigned int)session_pool.Capacity();

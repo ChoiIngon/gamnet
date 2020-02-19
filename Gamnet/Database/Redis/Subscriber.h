@@ -3,6 +3,8 @@
 
 #include <boost/asio.hpp>
 #include "Connection.h"
+#include "../../Network/LinkManager.h"
+#include "../../Network/Tcp/Tcp.h"
 #include "../../Library/Delegate.h"
 #include "../../Library/Timer.h"
 #include "../../Library/Exception.h"
@@ -11,9 +13,12 @@
 #include "../../Log/Log.h"
 
 namespace Gamnet { namespace Database { namespace Redis {
-	class Subscriber : public std::enable_shared_from_this<Subscriber> 
+	class Subscriber : public Network::Link
 	{
-		std::map<std::string, Delegate<void(const std::string& message)>> callback_functions;
+		std::mutex lock;
+		std::shared_ptr<Buffer> recv_buffer;
+		std::map<std::string, std::function<void(const std::string& message)>> callback_functions;
+		std::map<std::string, std::function<void(const Json::Value&)>> handlers;
 
 		void OnRecv_SubscribeAns(const Json::Value& ans);
 		void OnRecv_PublishReq(const Json::Value& req);
@@ -21,23 +26,12 @@ namespace Gamnet { namespace Database { namespace Redis {
 		Subscriber();
 		virtual ~Subscriber();
 
-		bool Connect(const char* host, int port, int timeout);
-		void Close(int reason);
-
-		void AsyncSend(const std::string& query);
-		void AsyncRead();
-
-		bool Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback);
+		bool Init();
+		void Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback);
 		void Unsubscribe(const std::string& channel);
-
-	public :
-		boost::asio::ip::tcp::socket	socket;
-		boost::asio::strand				strand;
-		boost::asio::ip::address 		remote_address;
-		boost::asio::deadline_timer		deadline_timer;
-
-		std::map<std::string, std::function<void(const Json::Value&)>> handlers;
-		boost::asio::streambuf streambuf;
+	private :
+		void AsyncSend(const std::string& query);
+		void OnRead(const std::shared_ptr<Buffer>& buffer);
 	};
 }}}
 

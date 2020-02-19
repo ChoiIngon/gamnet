@@ -10,57 +10,59 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
-	LOG(DEV, "[ServerSession] session_key:", session_key);
+//	LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] UserSession::OnCreate");
 }
 
 void UserSession::OnAccept()
 {
-	LOG(DEV, "[ServerSession] session_key:", session_key);
+//	LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] UserSession::OnAccept");
 }
 
 void UserSession::OnClose(int reason)
 {
-	LOG(DEV, "[ServerSession] session_key:", session_key);
+//	LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] UserSession::OnClose");
 }
 
 void UserSession::OnDestroy()
 {
-	LOG(DEV, "[ServerSession] session_key:", session_key);
+//	LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] UserSession::OnDestroy");
 }
 
 void TestSession::OnCreate()
 {
-	LOG(DEV, "[ClientSession] session_key:", server_session_key);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] TestSession::OnCreate");
 }
 
 void TestSession::OnConnect()
 {
-	LOG(DEV, "[ClientSession] session_key:", server_session_key);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] TestSession::OnConnect");
 }
 
 void TestSession::OnClose(int reason)
 {
-	LOG(DEV, "[ClientSession] session_key:", server_session_key);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] TestSession::OnClose");
 }
 
 void TestSession::OnDestroy()
 {
-	LOG(DEV, "[ClientSession] session_key:", server_session_key);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] TestSession::OnDestroy");
 }
 
 void TestSession::Reconnect()
 {
-	std::shared_ptr<Gamnet::Network::Link> prevLink = link;
-	AttachLink(nullptr);
+	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] TestSession::Reconnect");
+	std::shared_ptr<Gamnet::Network::Tcp::Link> prevLink = std::static_pointer_cast<Gamnet::Network::Tcp::Link>(link);
 	prevLink->session = nullptr;
-	prevLink->strand.wrap(std::bind(&Gamnet::Network::Link::Close, prevLink, Gamnet::ErrorCode::Success))();
-	OnClose(0);
-
+	prevLink->Close(Gamnet::ErrorCode::UndefinedError);
+	
+	Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().Connect(std::static_pointer_cast<TestSession>(shared_from_this()));
+	/*
 	std::shared_ptr<Gamnet::Network::Link> newLink = Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().link_pool.Create();
+	this->link = newLink;
 	newLink->session = shared_from_this();
-	AttachLink(newLink);
 
 	const std::string& host = Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().host;
 	int port = Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().port;
 	link->Connect(host.c_str(), port, 5);
+	*/
 }

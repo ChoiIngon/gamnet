@@ -11,7 +11,7 @@ namespace Gamnet { namespace Network {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
-std::atomic<uint32_t> Session::session_key_generator;
+static std::atomic<uint32_t> SESSION_KEY;
 
 std::string Session::GenerateSessionToken(uint32_t session_key)
 {
@@ -22,19 +22,6 @@ std::string Session::GenerateSessionToken(uint32_t session_key)
 Session::Session() :
 	session_key(0),
 	session_token(""),
-	remote_address(nullptr),
-	strand(io_service_),
-	expire_time(0),
-	link(nullptr)
-{
-}
-
-Session::Session(boost::asio::io_service& io_service) :
-	session_key(0),
-	session_token(""),
-	remote_address(nullptr),
-	strand(io_service),
-	expire_time(0),
 	link(nullptr)
 {
 }
@@ -45,8 +32,7 @@ Session::~Session()
 
 bool Session::Init()
 {
-	session_key = ++Session::session_key_generator;
-	expire_time = ::time(nullptr);
+	session_key = ++SESSION_KEY;
 	return true;
 }
 
@@ -54,71 +40,49 @@ void Session::Clear()
 {
 	session_key = 0;
 	session_token = "";
-	remote_address = nullptr;
-	expire_time = 0;
 	link = nullptr;
 	handler_container.Init();
 }
 
 bool Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	std::shared_ptr<Link> _link = link;
-	if(nullptr == _link)
+	if(nullptr == link)
 	{
 		LOG(ERR, "invalid link[session_key:", session_key, "]");
 		return false;
 	}
-	_link->AsyncSend(buffer);
+	link->AsyncSend(buffer);
 	return true;
 }
 
 bool Session::AsyncSend(const char* data, int length)
 {
-	std::shared_ptr<Link> _link = link;
-	if (nullptr == _link)
+	if (nullptr == link)
 	{
 		LOG(ERR, "invalid link[session_key:", session_key, "]");
 		return false;
 	}
-	_link->AsyncSend(data, length);
+	link->AsyncSend(data, length);
 	return true;
 }
 int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	std::shared_ptr<Link> _link = link;
-	if (nullptr == _link)
+	if (nullptr == link)
 	{
 		return -1;
 	}
-	return _link->SyncSend(buffer);
+	return link->SyncSend(buffer);
 }
 int Session::SyncSend(const char* data, int length)
 {
-	std::shared_ptr<Link> _link = link;
-	if (nullptr == _link)
+	if (nullptr == link)
 	{
 		return -1;
 	}
-	return _link->SyncSend(data, length);
+	return link->SyncSend(data, length);
 }
 
-void Session::AttachLink(const std::shared_ptr<Link>& link)
-{
-	if(nullptr != this->link)
-	{
-		this->remote_address = nullptr;
-		this->link = nullptr;
-	}
-
-	if(nullptr != link)
-	{
-		this->link = link;
-		this->remote_address = &(link->remote_address);
-	}
-}
-
-SessionManager::SessionManager() : 
-	_keepalive_time(0) 
+SessionManager::SessionManager() 
 {
 }
 
@@ -126,17 +90,10 @@ SessionManager::~SessionManager()
 {
 }
 
-bool SessionManager::Init(int keepAliveSeconds)
+bool SessionManager::Init()
 {
 	std::lock_guard<std::mutex> lo(_lock);
-
-	_keepalive_time = keepAliveSeconds;
-
 	_sessions.clear();
-	_timer.Cancel();
-	_timer.AutoReset(true);
-	_timer.SetTimer((0 == _keepalive_time ? 3600 * 1000 : _keepalive_time * 1000), std::bind(&SessionManager::OnTimerExpire, this));
-	
 	return true;
 }
 
@@ -176,89 +133,9 @@ size_t SessionManager::Size()
 	return _sessions.size();
 }
 
-void SessionManager::Flush()
+const boost::asio::ip::address& Session::GetRemoteAddress() const
 {
-	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
-	{
-		std::lock_guard<std::mutex> lo(_lock);
-		LOG(WRN, "flush invalid sessions(", _sessions.size(), ")");
-		for (auto itr = _sessions.begin(); itr != _sessions.end();) 
-		{
-			std::shared_ptr<Session> session = itr->second;
-			if (nullptr == session)
-			{
-				sessionsToBeDeleted.push_back(session);
-				_sessions.erase(itr++);
-			}
-			else {
-				++itr;
-			}
-		}
-	}
-
-	for (auto session : sessionsToBeDeleted)
-	{
-		LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
-		session->strand.wrap([session]() {
-			try {
-				session->OnDestroy();
-			}
-			catch (const Exception& e)
-			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-		})();
-	}
+	assert(nullptr != link);
+	return link->remote_address;
 }
-
-void SessionManager::OnTimerExpire()
-{
-	std::list<std::shared_ptr<Session>> sessionsToBeDeleted;
-	{
-		std::lock_guard<std::mutex> lo(_lock);
-		int64_t now_ = time(nullptr);
-		if(0 < _keepalive_time)
-		{
-			for (auto itr = _sessions.begin(); itr != _sessions.end();) {
-				std::shared_ptr<Session> session = itr->second;
-				if (session->expire_time + _keepalive_time < now_)
-				{
-					sessionsToBeDeleted.push_back(session);
-					_sessions.erase(itr++);
-				}
-				else {
-					++itr;
-				}
-			}
-		}
-	}
-
-	for (auto session : sessionsToBeDeleted)
-	{
-		LOG(GAMNET_ERR, "[session_key:", session->session_key, "] destroy idle session");
-		session->strand.wrap([session]() {
-			try {
-				std::shared_ptr<Link> link = session->link;
-				if (nullptr != link)
-				{
-					session->OnClose(ErrorCode::IdleTimeoutError);
-				}
-
-				session->AttachLink(nullptr);
-				session->OnDestroy();
-				/*
-				if(nullptr != link)
-				{
-					link->strand.wrap(std::bind(&Link::Close, link, ErrorCode::IdleTimeoutError))();
-				}
-				*/
-			}
-			catch (const Exception& e)
-			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-		})(); 
-	}
-}
-
 }} /* namespace Gamnet */

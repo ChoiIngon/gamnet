@@ -12,8 +12,6 @@ class Link : public std::enable_shared_from_this<Link>
 {
 	std::shared_ptr<Buffer> 			read_buffer;
 	std::deque<std::shared_ptr<Buffer>>	send_buffers;
-public :
-	static std::atomic<uint32_t> link_key_generator;
 public:
 	struct InitFunctor
 	{
@@ -39,7 +37,7 @@ public:
 			return link;
 		}
 	};
-
+	
 	boost::asio::ip::tcp::socket	socket;
 	boost::asio::strand				strand;
 	boost::asio::ip::address 		remote_address;
@@ -47,11 +45,9 @@ public:
 	Timer 							timer;
 	uint32_t 						link_key;
 	int64_t							expire_time;
-	std::shared_ptr<Session> 		session;
-	LinkManager* const 				link_manager;
 
 public :
-	Link(LinkManager* linkManager);
+	Link();
 	virtual ~Link();
 
 	virtual bool Init();
@@ -63,12 +59,16 @@ public :
 	int  SyncSend(const std::shared_ptr<Buffer>& buffer);
 	virtual void Close(int reason);
 		
-	void AsyncRead();
+	void OnAcceptHandler();
 protected :
-	virtual void OnConnect(const boost::system::error_code& ec);
+	virtual void OnAccept() {};
+	virtual void OnConnect() {};
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) = 0;
-	virtual void OnSend(const boost::system::error_code& ec, std::size_t transferredBytes);
+	virtual void OnClose(int reason) {}
 private :
+	void OnConnectHandler(const boost::system::error_code& ec, const boost::asio::ip::tcp::endpoint& endpoint);
+	void OnSendHandler(const boost::system::error_code& ec, std::size_t transferredBytes);
+	void AsyncRead();
 	void FlushSend();
 };
 

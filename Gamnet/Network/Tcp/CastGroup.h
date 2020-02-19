@@ -1,33 +1,32 @@
 #ifndef GAMNET_NETWORK_TCP_CASTGROUP_H_
 #define GAMNET_NETWORK_TCP_CASTGROUP_H_
 
-#include <list>
 #include <map>
 #include <memory>
-#include <mutex>
 #include "Packet.h"
 #include "Session.h"
-#include "../../Log/Log.h"
+#include "../../Library/Atomic.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
-class CastGroup {
-	static std::atomic<uint32_t> seq_generator;
-	std::mutex lock;
-	std::map<uint32_t, std::shared_ptr<Session>> sessions;
+class CastGroup 
+{
+	template<class T> friend class AtomicPtr;
+	std::mutex _lock;
 public:
-	struct Init {
-		CastGroup* operator () (CastGroup* group) {
-			group->group_seq = ++seq_generator;
-			return group;
-		}
+	struct Init 
+	{
+		CastGroup* operator () (CastGroup* group);
 	};
-	uint32_t group_seq;
 
 	CastGroup();
 	virtual ~CastGroup();
-	virtual void AddSession(const std::shared_ptr<Session>& session);
-	virtual void DelSession(const std::shared_ptr<Session>& session);
+
+	std::map<uint32_t, std::shared_ptr<Session>> sessions;
+	uint32_t group_seq;
+
+	virtual size_t AddSession(const std::shared_ptr<Session>& session);
+	virtual size_t DelSession(const std::shared_ptr<Session>& session);
 	void Clear();
 	size_t Size();
 
@@ -52,7 +51,6 @@ public:
 				return false;
 			}
 
-			std::lock_guard<std::mutex> lo(lock);
 			for (const auto itr : sessions)
 			{
 				std::shared_ptr<Session> session = itr.second;
@@ -61,7 +59,6 @@ public:
 		}
 		else 
 		{
-			std::lock_guard<std::mutex> lo(lock);
 			for (auto itr : sessions)
 			{
 				std::shared_ptr<Session> session = itr.second;
@@ -88,6 +85,11 @@ public:
 	}
 
 	static std::shared_ptr<CastGroup> Create();
+public :
+	void lock();
+	bool try_lock();
+	void unlock();
 };
+
 }}}
 #endif

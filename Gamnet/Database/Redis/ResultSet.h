@@ -14,7 +14,6 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	{
 	private :
 		std::shared_ptr<Connection> conn_;
-		size_t read_index;
 		bool ParseString(Json::Value& output, const std::string& input);
 		bool ParseInt(int& output, const std::string& input);
 		bool ParseBulkString(Json::Value& output, const std::string& input);
@@ -23,7 +22,10 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	public :
 		ResultSetImpl();
 		ResultSetImpl(const std::shared_ptr<Connection> conn);
+
+		size_t read_index;
 		std::string error;
+
 		bool Parse(const std::string& input);
 	};
 
@@ -37,12 +39,9 @@ namespace Gamnet { namespace Database {	namespace Redis {
 		iterator begin();
 		iterator end() const;
 		const Json::Value& operator[](unsigned int index);
-		// std::shared_ptr<ResultSetImpl> operator -> ();
-		Json::ArrayIndex size() const;
 		bool empty() const;
+		Json::ArrayIndex size() const;
 		Json::Value value();
-
-		// const std::string& error() const;
 	};
 } } }
 #endif

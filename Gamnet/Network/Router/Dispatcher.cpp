@@ -37,8 +37,9 @@ namespace Gamnet { namespace Network { namespace Router {
 				LOG(GAMNET_ERR, "can't find session(msg_seq:", from.msg_seq, ")");
 				return;
 			}
-
-			network_session->strand.wrap([network_session, handler_function, msg_id, from, packet]() {
+			
+			assert(nullptr != network_session->link);
+			network_session->link->strand.wrap([=]() {
 				std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
 				if (nullptr == handler)
 				{

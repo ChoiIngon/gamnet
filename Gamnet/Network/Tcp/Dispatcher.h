@@ -22,8 +22,9 @@
 #endif
 
 namespace Gamnet { namespace Network { namespace Tcp {
-#undef max
 
+#undef max
+	
 template <class SESSION_T>
 class Dispatcher
 {
@@ -52,7 +53,6 @@ public :
 		const char* name;
 		std::atomic_int begin_count;
 		std::atomic_int finish_count;
-		std::atomic_int tps;
 		std::atomic<int64_t> elapsed_time;
 		int64_t max_time;
 
@@ -62,7 +62,7 @@ public :
 		HandlerCallStatistics() : 
 			msg_id(0), name(nullptr),
 			begin_count(0), finish_count(0), 
-			tps(0), elapsed_time(0), max_time(0), 
+			elapsed_time(0), max_time(0), 
 			last_check_time(time(nullptr)), last_finish_count(0) 
 		{
 		}
@@ -71,16 +71,18 @@ public :
 	std::map<unsigned int, std::shared_ptr<HandlerCallStatistics>> mapHandlerCallStatistics_;
 #endif
 public:
-	Dispatcher() {}
+	Dispatcher() 
+	{		
+	}
 	~Dispatcher() {}
 
 	template <class FUNC, class FACTORY>
-	bool RegisterHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
+	bool BindHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
 	{
 		HandlerFunction handlerFunction(factory, static_cast<function_type>(func));
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)
 		{
-			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ")");
+			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ", name:", name, ")");
 		}
 
 #ifdef _DEBUG
@@ -92,35 +94,28 @@ public:
 		return true;
 	}
 
-	void OnRecvMsg(const std::shared_ptr<SESSION_T> session, const std::shared_ptr<Packet> packet)
+	void OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer)
 	{
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		assert(nullptr != session);
+		const std::shared_ptr<Packet> packet = std::static_pointer_cast<Packet>(buffer);
 		if (true == packet->reliable && packet->msg_seq <= session->recv_seq)
 		{
-			LOG(WRN, "[session_key:", session->session_key, "] discard message(msg_id:", packet->msg_id, ", received msg_seq:", packet->msg_seq, ", expected msg_seq:", session->recv_seq + 1, ")");
-			return;
-		}
-
-		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
-		if (nullptr == link)
-		{
+			LOG(WRN, "discard message(msg_id:", packet->msg_id, ", received msg_seq:", packet->msg_seq, ", expected msg_seq:", session->recv_seq + 1, ")");
 			return;
 		}
 
 		auto itr = mapHandlerFunction_.find(packet->msg_id);
 		if(itr == mapHandlerFunction_.end())
 		{
-			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->read_index, ")");
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
-			return ;
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
 		}
 
 		const HandlerFunction& handler_function = itr->second;
 		std::shared_ptr<IHandler> handler = handler_function.factory_->GetHandler(&session->handler_container, packet->msg_id);
-		if(NULL == handler)
+		if(nullptr == handler)
 		{
-			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ", session_key:", session->session_key,",packet_size:", packet->Size(), ", packet_read_cursor:", packet->read_index, ")");
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::NullPointerError))();
-			return;
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")"); 
 		}
 #ifdef _DEBUG
 		ElapseTimer elapseTimer;
@@ -130,20 +125,13 @@ public:
 			statistics_itr->second->begin_count++;
 		}
 #endif
-		try {
-			handler_function.function_(handler, session, packet);
-		}
-		catch (const std::exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::UndefinedError))();
-			return;
-		}
+		handler_function.function_(handler, session, packet);
 
-		if(true == packet->reliable)
+		if (true == packet->reliable)
 		{
 			session->recv_seq = packet->msg_seq;
 		}
+
 #ifdef _DEBUG
 		if (mapHandlerCallStatistics_.end() != statistics_itr)
 		{

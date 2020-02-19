@@ -5,7 +5,7 @@
 
 namespace Gamnet { namespace Network { namespace Http {
 
-Link::Link(Network::LinkManager* linkManager) : Network::Link(linkManager)
+Link::Link() : Network::Link(),	recv_buffer(nullptr), session(std::make_shared<Session>())
 {
 }
 
@@ -27,6 +27,16 @@ bool Link::Init()
 		return false;
 	}
 	return true;
+}
+
+void Link::OnAccept()
+{
+	{
+		boost::asio::socket_base::linger option(false, 0);
+		socket.set_option(option);
+	}
+	
+	session->link = shared_from_this();
 }
 
 void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
@@ -67,19 +77,8 @@ void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 
 	uri = uri.substr(0, uri_end);
 	Request req(param);
-	
-	std::shared_ptr<Network::Session> s = this->session;
-	if (nullptr == s)
-	{
-		LOG(GAMNET_ERR, "invalid session(link_key:", link_key, ")");
-		Close(ErrorCode::InvalidSessionError);
-		return;
-	}
-	
 	auto self = shared_from_this();
-	s->strand.wrap([s, self, uri, req] () {
-		Singleton<Dispatcher>::GetInstance().OnRecvMsg(self, uri, req);
-		self->strand.wrap(std::bind(&Link::Close, self, ErrorCode::Success))();
-	})();	
+	Singleton<Dispatcher>::GetInstance().OnRecvMsg(std::static_pointer_cast<Link>(self), uri, req);
+	Close(ErrorCode::Success);
 }
 }}}

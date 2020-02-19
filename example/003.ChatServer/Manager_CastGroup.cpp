@@ -15,18 +15,18 @@ GAMNET_BIND_INIT_HANDLER(Manager_CastGroup, Init);
 std::shared_ptr<Gamnet::Network::Tcp::CastGroup> Manager_CastGroup::GetCastGroup()
 {
 	std::lock_guard<std::mutex> lo(lock);
-	
-	for(auto itr : cast_groups)
+	if(0 == cast_groups.size())
 	{
-		cast_groups.erase(itr.first);
-		return itr.second;
+		cast_groups.push_back(Gamnet::Network::Tcp::CastGroup::Create());
 	}
-
-	return Gamnet::Network::Tcp::CastGroup::Create();
+	
+	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> group = cast_groups.front();
+	cast_groups.pop_front();
+	return group;
 }
 
 void Manager_CastGroup::AddCastGroup(std::shared_ptr<Gamnet::Network::Tcp::CastGroup> group)
 {
 	std::lock_guard<std::mutex> lo(lock);
-	cast_groups.insert(std::make_pair(group->group_seq, group));
+	cast_groups.push_front(group);
 }

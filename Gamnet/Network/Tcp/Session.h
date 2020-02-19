@@ -15,16 +15,16 @@ public:
 	};
 public :
 	Session();
-	Session(boost::asio::io_service& ioService);
 	virtual ~Session();
 
-	virtual bool Init() override;
-	virtual void Clear() override;
-	bool AsyncSend(const std::shared_ptr<Packet>& packet);
 	bool handover_safe;
 	uint32_t recv_seq;
 	uint32_t send_seq;
 	std::deque<std::shared_ptr<Packet>>	send_packets;
+
+	virtual bool Init() override;
+	virtual void Clear() override;
+	bool AsyncSend(const std::shared_ptr<Packet>& packet);
 };
 }}}
 #endif /* NETWORK_SESSION_H_ */

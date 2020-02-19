@@ -15,23 +15,17 @@ namespace Gamnet { namespace Network {
 class Session;
 class SessionManager
 {
-	Timer											_timer;
 	std::mutex										_lock;
 	std::map<uint32_t, std::shared_ptr<Session>>	_sessions;	
-	int64_t											_keepalive_time;
 public :
 	SessionManager();
 	~SessionManager();
 	
-	bool Init(int keepAliveSeconds);
+	bool Init();
 	bool Add(uint32_t key, const std::shared_ptr<Session>& session);
 	void Remove(uint32_t key);
 	std::shared_ptr<Session> Find(uint32_t key);
 	size_t Size();
-
-	void Flush();
-private :
-	void OnTimerExpire();
 };
 
 class Link;
@@ -63,18 +57,14 @@ public :
 			return session;
 		}
 	};
+
 	Session();
-	Session(boost::asio::io_service& io_service);
 	virtual ~Session();
 
 	uint32_t					session_key;
 	std::string					session_token;
-	boost::asio::ip::address*	remote_address;
-	boost::asio::strand			strand;
-	int64_t						expire_time;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;
-
 public :
 	virtual void OnCreate() = 0;
 	virtual void OnAccept() = 0;
@@ -87,10 +77,8 @@ public :
 	bool AsyncSend(const char* data, int length);
 	int SyncSend(const std::shared_ptr<Buffer>& buffer);
 	int SyncSend(const char* data, int length);
-		
-	void AttachLink(const std::shared_ptr<Link>& link);
-
-	static std::atomic<uint32_t> session_key_generator;
+	
+	const boost::asio::ip::address& GetRemoteAddress() const;
 	static std::string GenerateSessionToken(uint32_t session_key);
 };
 

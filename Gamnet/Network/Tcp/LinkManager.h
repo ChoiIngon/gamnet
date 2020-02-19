@@ -4,37 +4,25 @@
 #include "Dispatcher.h"
 #include "Packet.h"
 #include "Link.h"
-#include "../LinkManager.h"
 #include "../../Library/Json/json.h"
-
+#include "../Acceptor.h"
+#include "../LinkManager.h"
 #include <memory>
 #include <atomic>
 #include <mutex>
 
 namespace Gamnet { namespace Network { namespace Tcp {
-
-enum MSG_ID {
-	MsgID_CliSvr_Connect_Req = 1,
-	MsgID_SvrCli_Connect_Ans = 1,
-	MsgID_CliSvr_Reconnect_Req = 2,
-	MsgID_SvrCli_Reconnect_Ans = 2,
-	MsgID_CliSvr_HeartBeat_Req = 3,
-	MsgID_SvrCli_HeartBeat_Ans = 3,
-	MsgID_CliSvr_ReliableAck_Ntf = 4,
-	MsgID_SvrCli_ReliableAck_Ntf = 4,
-	MsgID_SvrCli_Kickout_Ntf = 5,
-	MsgID_CliSvr_Close_Req = 6,
-	MsgID_SvrCli_Close_Ans = 6,
-	MsgID_Max = 7
-};
-
+	
 template <class SESSION_T>
 class LinkManager : public Network::LinkManager
 {
-private :
-	struct LinkFactory {
+public :
+	struct LinkFactory
+	{
 		LinkManager* const link_manager;
-		LinkFactory(LinkManager* linkManager) : link_manager(linkManager) {}
+		LinkFactory(LinkManager* linkManager) : link_manager(linkManager) 
+		{
+		}
 
 		Link* operator() ()
 		{
@@ -42,14 +30,7 @@ private :
 		}
 	};
 
-	std::function<void(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)> handlers[MSG_ID::MsgID_Max];
-
-public :
-	SessionManager session_manager;
-	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
-	Pool<Link, std::mutex, Network::Link::InitFunctor, Network::Link::ReleaseFunctor> link_pool;
-
-	LinkManager() : session_pool(), link_pool(65535, LinkFactory(this))
+	LinkManager() : acceptor(65535, LinkFactory(this)), session_pool()
 	{
 		name = "Gamnet::Network::Tcp::LinkManager";
 	}
@@ -58,100 +39,65 @@ public :
 	{
 	}
 
-	void Listen(int port, int max_session, int keep_alive_time, int accept_queue_size)
+private:
+	Acceptor<Link>	acceptor;
+	
+public:
+	SessionManager	session_manager;
+	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
+
+	void Listen(int port, int max_session, int alive_time, int accept_queue_size)
 	{
 		session_pool.Capacity(65535);
-		session_manager.Init(keep_alive_time);
-
-		link_pool.Capacity(max_session);
-
-		for(int i=0; i<MsgID_Max; i++)
-		{
-			handlers[i] = nullptr;
-		}
-		handlers[MsgID_CliSvr_Connect_Req] = std::bind(&LinkManager::Recv_Connect_Req, this, std::placeholders::_1, std::placeholders::_2);
-		handlers[MsgID_CliSvr_Reconnect_Req] = std::bind(&LinkManager::Recv_Reconnect_Req, this, std::placeholders::_1, std::placeholders::_2);
-		handlers[MsgID_CliSvr_HeartBeat_Req] = std::bind(&LinkManager::Recv_HeartBeat_Req, this, std::placeholders::_1, std::placeholders::_2);
-		handlers[MsgID_CliSvr_ReliableAck_Ntf] = std::bind(&LinkManager::Recv_ReliableAck_Ntf, this, std::placeholders::_1, std::placeholders::_2);
-		handlers[MsgID_CliSvr_Close_Req] = std::bind(&LinkManager::Recv_Close_Req, this, std::placeholders::_1, std::placeholders::_2);
-
-		Network::LinkManager::Listen(port, accept_queue_size, keep_alive_time);
+		session_manager.Init();
+		acceptor.Listen(port, max_session, accept_queue_size);
+		ActivateIdleLinkTerminator(alive_time);
 	}
 
-	virtual std::shared_ptr<Network::Link> Create() override
+	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) 
 	{
-		std::shared_ptr<Link> link = link_pool.Create();
-		if(nullptr == link)
+		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
+		std::shared_ptr<SESSION_T> session = session_pool.Create();
+		if (nullptr == session)
 		{
-			LOG(GAMNET_ERR, "[link_manager:", name, "] can not create 'Tcp::Link' instance");
-			return nullptr;
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[", name, "/", link->link_key, "/0] can not create session instance(availble:", session_pool.Available(), ")");
 		}
-		return link;
-	}
 
-	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
-	{
+		session->link = link;
+		tcpLink->session = session;
 	}
-
 	
-	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
+	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) 
 	{
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
+		acceptor.Release();
+		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
+		std::shared_ptr<Session> session = tcpLink->session;
 		if(nullptr == session)
 		{
 			return;
 		}
-
-		session->strand.wrap([session, reason] (LinkManager* const link_manager) {
-			try {
-				if(nullptr == session->link)
-				{
-//					LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
-					return;
-				}
-				session->OnClose(reason);
-				session->AttachLink(nullptr);
-
-				if(false == session->handover_safe)
-				{
-					session->OnDestroy();
-					link_manager->session_manager.Remove(session->session_key);
-				}
-			}
-			catch (const Exception& e)
-			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-		})(this);
+		if(true == link->socket.is_open())
+		{
+			session->OnClose(reason);
+		}
+		if (false == session->handover_safe)
+		{
+			session->OnDestroy();
+			session->link = nullptr;
+			tcpLink->session = nullptr;
+			session_manager.Remove(session->session_key);
+		}
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
 	{
-		if(nullptr != link->session)
+		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
+		if (nullptr == tcpLink->session)
 		{
-			link->session->expire_time = ::time(nullptr);
-		}			
-
-		const std::shared_ptr<Packet> packet = std::static_pointer_cast<Packet>(buffer);
-		if(MSG_ID::MsgID_Max <= packet->msg_id)
-		{
-			if (nullptr == link->session)
-			{
-				LOG(ERR, "[", name, "::link_key:", link->link_key, "] invalid session(msg_id:", packet->msg_id, ")");
-				link->Close(ErrorCode::NullPointerError);
-				return;
-			}
-
-			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-			session->strand.wrap(std::bind(&Dispatcher<SESSION_T>::OnRecvMsg, &Singleton<Dispatcher<SESSION_T>>::GetInstance(), session, packet))();
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[", name, "/", link->link_key, "/0] invalid session");
 		}
-		else
-		{
-			if(nullptr != handlers[packet->msg_id])
-			{
-				handlers[packet->msg_id](link, buffer);
-			}
-		}
+
+		Singleton<Dispatcher<SESSION_T>>::GetInstance().OnRecvMsg(tcpLink, buffer);
 	}
 
 	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key) 
@@ -161,252 +107,19 @@ public :
 	
 	void DestroySession(uint32_t session_key)
 	{
-		std::shared_ptr<Network::Session> session = session_manager.Find(session_key);
+		std::shared_ptr<SESSION_T> session = session_manager.Find(session_key);
 		if (nullptr == session)
 		{
 			LOG(WRN, "can not find session(", name,"::session_key:", session_key, ")");
 			return;
 		}
 	
-		session->strand.wrap([=] () {
-			if (nullptr != session->link)
-			{
-				//					LOG(ERR, "can not close session(reason:nullptr link, session_key:", session->session_key, ")");
-				session->OnClose(ErrorCode::Success);
-			}
-			session->AttachLink(nullptr);
-			session->OnDestroy();
-			session_manager.Remove(session->session_key);
+		session_manager.Remove(session->session_key);
+		assert(session->link);
+		session->link->strand.wrap([=] () {
+			session->handover_safe = false;
+			this->link->Close(ErrorCode::Success);
 		})();
-		/*
-		std::shared_ptr<Network::Link> link = session->link;
-		if(nullptr != link)
-		{
-			link->strand.wrap(std::bind(&Network::Link::Close, link, ErrorCode::Success))();
-		}
-		*/
-	}
-
-	template <class FUNC, class FACTORY>
-	bool RegisterHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
-	{
-		return Singleton<Dispatcher<SESSION_T>>::GetInstance().RegisterHandler(msg_id, name, func, factory);
-	}
-
-	void Recv_Connect_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) 
-	{
-		Json::Value ans;
-		ans["error_code"] = 0;
-		ans["session_key"] = 0;
-		ans["session_token"] = "";
-
-		try 
-		{
-			std::shared_ptr<SESSION_T> session = session_pool.Create();
-			if(nullptr == session)
-			{
-				session_manager.Flush();
-				session = session_pool.Create();
-				if (nullptr == session)
-				{
-					throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance(availble:", session_pool.Available(), ")");
-				}
-			}
-
-			link->session = session;
-
-			session_manager.Add(session->session_key, session);
-
-			session->strand.wrap([session, link] () {
-				try {
-					session->OnCreate();
-					session->AttachLink(link);
-					session->OnAccept();
-					session->handover_safe = true;
-				}
-				catch(const Exception& e)
-				{
-					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-				}
-			})();
-			
-			ans["session_key"] = session->session_key;
-			ans["session_token"] = session->session_token;
-			//LOG(DEV, "[", name,"::link_key:", link->link_key, "] session_key:", session->session_key, ", session_token:", session->session_token);	
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, name, ":", e.what());
-			ans["error_code"] = e.error_code();
-		}
-
-		std::shared_ptr<Packet> packet = Packet::Create();
-		if (nullptr == packet)
-		{
-			return;
-		}
-
-		Json::FastWriter writer;
-		std::string str = writer.write(ans);
-
-		packet->Write(MSG_ID::MsgID_SvrCli_Connect_Ans, str.c_str(), str.length());
-		link->AsyncSend(packet);
-	}
-
-	void Recv_Reconnect_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
-	{
-		Json::Value req;
-		Json::Value ans;
-		ans["error_code"] = 0;
-		try 
-		{
-			std::string json = std::string(buffer->ReadPtr() + Packet::HEADER_SIZE, buffer->Size());
-			Json::Reader reader;
-			if (false == reader.parse(json, req))
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", link->link_key, "] message format error(data:", json, ")");
-			}
-
-			uint32_t session_key = req["session_key"].asUInt();
-			const std::string session_token = req["session_token"].asString();
-				
-			//LOG(DEV, "[link_key:", link->link_key, "] session_key:", session_key, ", session_token:", session_token);	
-			const std::shared_ptr<SESSION_T> session = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
-			if (nullptr == session)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionKeyError, "[link_key:", link->link_key, " ] can not find session data for reconnect(session_key:", session_key, ")");
-			}
-
-			if(session_token != session->session_token)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "[link_key:", link->link_key, "] invalid session token(expect:", session->session_token, ", receive:", session_token, ")");
-			}
-
-			std::shared_ptr<Link> other = std::static_pointer_cast<Link>(session->link);
-			if(nullptr != other)
-			{
-				other->strand.wrap([other] () {
-					other->session = nullptr;
-					other->Close(ErrorCode::DuplicateConnectionError);
-				})();
-			}
-			
-			link->session = session;
-			for(const std::shared_ptr<Packet>& packet : session->send_packets)
-			{
-				link->AsyncSend(packet);
-			}
-			
-			session->strand.wrap([session, link]() {
-				try {
-					session->AttachLink(link);
-					session->OnAccept();
-				}
-				catch (const Exception& e)
-				{
-					LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-				}
-			})();
-		}
-		catch (const Exception& e)
-		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
-			ans["error_code"] = e.error_code();
-		}
-
-		//LOG(DEV, "[link_key:", link->link_key, "] error_code:", ans["error_code"].asUInt());
-		Json::FastWriter writer;
-		std::string str = writer.write(ans);
-
-		std::shared_ptr<Packet> packet = Packet::Create();
-		if(nullptr == packet)
-		{
-			return;
-		}
-
-		packet->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
-		link->AsyncSend(packet);
-	}
-
-	void Recv_HeartBeat_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
-	{
-		if(nullptr == link->session)
-		{
-			return;
-		}
-
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-
-		std::shared_ptr<Packet> packet = Packet::Create();
-		if (nullptr == packet)
-		{
-			return;
-		}
-
-		Json::Value ans;
-		ans["error_code"] = 0;
-		ans["msg_seq"] = session->recv_seq;
-
-		Json::FastWriter writer;
-		std::string str = writer.write(ans);
-
-		packet->Write(MSG_ID::MsgID_SvrCli_HeartBeat_Ans, str.c_str(), str.length());
-		link->AsyncSend(packet);
-	}
-
-	void Recv_ReliableAck_Ntf(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
-	{
-		//LOG(DEV, "[link_key:", link->link_key, "]");
-		if (nullptr == link->session)
-		{
-			return;
-		}
-
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		std::string json = std::string(buffer->ReadPtr() + Packet::HEADER_SIZE, buffer->Size());
-		Json::Value ntf;
-		Json::Reader reader;
-		if (false == reader.parse(json, ntf))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", link->link_key, "] message format error(data:", json, ")");
-		}
-
-		uint32_t ackSEQ = ntf["ack_seq"].asUInt();
-
-		session->strand.wrap([session, ackSEQ]() {
-			while (0 < session->send_packets.size())
-			{
-				const std::shared_ptr<Packet>& sendPacket = session->send_packets.front();
-				if (ackSEQ < sendPacket->msg_seq)
-				{
-					break;
-				}
-				session->send_packets.pop_front();
-			}
-		})();
-	}
-
-	void Recv_Close_Req(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer)
-	{
-		//LOG(DEV, "[", name, "::link_key:", link->link_key, "] session_key:", (nullptr != link->session) ? link->session->session_key : 0);
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		if (nullptr != session)
-		{
-			session->strand.wrap([session]() {
-				session->handover_safe = false;
-			})();
-		}
-
-		OnClose(link, ErrorCode::Success);
-		link->session = nullptr;
-		std::shared_ptr<Packet> packet = Packet::Create();
-		if (nullptr == packet)
-		{
-			return;
-		}
-
-		packet->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);
-		link->AsyncSend(packet);
 	}
 
 	Json::Value State()
@@ -415,8 +128,8 @@ public :
 		root["name"] = name;
 
 		Json::Value link;
-		link["max_count"] = link_pool.Capacity();
-		link["idle_count"] = link_pool.Available();
+		link["max_count"] = acceptor.Capacity();
+		link["idle_count"] = acceptor.Available();
 		link["active_count"] = Size();
 		root["link"] = link;
 		
@@ -436,14 +149,6 @@ public :
 		for (const auto& itr : Singleton<Dispatcher<SESSION_T>>::GetInstance().mapHandlerCallStatistics_)
 		{
 			time_t now = time(nullptr);
-			time_t delta = now - itr.second->last_check_time;
-			int finish_count = itr.second->finish_count - itr.second->last_finish_count;
-
-			if (0 < delta)
-			{
-				itr.second->tps = finish_count / delta;
-			}
-
 			itr.second->last_check_time = now;
 			itr.second->last_finish_count = itr.second->finish_count;
 			
@@ -454,7 +159,6 @@ public :
 			statistics["finish_count"] = (int)itr.second->finish_count;
 			statistics["elapsed_time"] = (int)itr.second->elapsed_time;
 			statistics["max_time"] = (int)itr.second->max_time;
-			statistics["tps"] = (int)itr.second->tps;
 			
 			message.append(statistics);
 		}
@@ -462,6 +166,9 @@ public :
 #endif
 		return root;
 	}
+
+private :
+	
 };
 
 }}}
