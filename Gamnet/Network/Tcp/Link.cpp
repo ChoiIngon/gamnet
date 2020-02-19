@@ -22,7 +22,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		recv_packet = Packet::Create();
 		if(nullptr == recv_packet)
 		{
-			LOG(GAMNET_ERR, "[", link_manager->name, "/", link_key, "/0] can not create Packet instance");
+			LOG(GAMNET_ERR, "[", link_manager->name, "/", link_key, "/0] ", "ErrorCode::NullPacketError can not create Packet instance");
 			return false;
 		}
 	
@@ -33,6 +33,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 		recv_packet = nullptr;
 		session = nullptr;
+		timer.Cancel();
 		Network::Link::Clear();
 	}
 
@@ -52,6 +53,27 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		{
 			assert(!"duplicated link");
 			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+		}
+
+		if(0 < link_manager->expire_time)
+		{
+			timer.Cancel();
+			timer.AutoReset(true);
+			timer.SetTimer(link_manager->expire_time * 1000, strand.wrap([this](){
+				
+				int64_t now = time(nullptr);
+				if(expire_time + link_manager->expire_time >= now)
+				{
+					return;
+				}
+				timer.Cancel();
+				if (nullptr != session)
+				{
+					session->handover_safe = false;
+				}
+				LOG(INF, "[link_key", link_key, "] delete idle link");
+				Close(ErrorCode::IdleTimeoutError);
+			}));
 		}
 	}
 
@@ -120,12 +142,18 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	void Link::OnClose(int reason)
 	{
+		/*
 		if (true == socket.is_open())
 		{
 			assert(false);
 			return;
 		}
+		*/
 		link_manager->OnClose(shared_from_this(), reason);
+		if(nullptr != session)
+		{
+			return;
+		}
 		link_manager->Remove(link_key);
 	}
 }}}

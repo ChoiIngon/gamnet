@@ -41,24 +41,22 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	template <class SESSION_T, class MSG>
-	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = false)
+	void SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = false)
 	{
 		std::shared_ptr<Packet> packet = Packet::Create();
 		if (nullptr == packet)
 		{
-			LOG(GAMNET_ERR, "fail to create packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 
 		packet->msg_seq = ++session->send_seq;
 		packet->reliable = reliable;
 		if(false == packet->Write(msg))
 		{
-			LOG(GAMNET_ERR, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
-			return false;
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(session_key:", session->session_key, ", msg_id:", MSG::MSG_ID, ")");
 		}
 
-		return session->AsyncSend(packet);
+		session->AsyncSend(packet);
 	}
 
 	const boost::asio::ip::address& GetLocalAddress();

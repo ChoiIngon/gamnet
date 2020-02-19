@@ -236,13 +236,11 @@ int Link::SyncSend(const char* buf, int len)
 
 void Link::Close(int reason)
 {
-	if (false == socket.is_open())
-	{
-		return;
-	}
-	socket.close();
-
 	OnClose(reason);
+	if(true == socket.is_open())
+	{
+		socket.close();
+	}
 }
 
 }}

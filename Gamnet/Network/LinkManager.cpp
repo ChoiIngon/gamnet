@@ -43,6 +43,7 @@ void LinkManager::ActivateIdleLinkTerminator(int timeout)
 
 void LinkManager::OnTimerExpire()
 {
+	/*
 	std::list<std::shared_ptr<Link>> linksToBeDeleted;
 	{
 		std::lock_guard<std::mutex> lo(lock);
@@ -63,5 +64,6 @@ void LinkManager::OnTimerExpire()
 		LOG(GAMNET_ERR, "[", name, "/", link->link_key, "/0] destroy idle link");
 		link->strand.wrap(std::bind(&Link::Close, link, ErrorCode::IdleTimeoutError))();
 	}
+	*/
 }
 }} 

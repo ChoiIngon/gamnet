@@ -121,19 +121,35 @@ public:
 		std::lock_guard<lock_policy> lo(lock_);
 		if(0 == lstObjectPtr_.size() && cur_size_ >= max_size_)
 		{
-			return std::shared_ptr<object>(NULL);
+			return nullptr;
 		}
 
 		if(0 == lstObjectPtr_.size())
 		{
+			object* ptr = factory_();
+			if(nullptr == ptr)
+			{
+				return nullptr;
+			}
 			cur_size_++;
-			return std::shared_ptr<object>(init_(factory_()), Deleter(*this));
+			std::shared_ptr<object> shared(init_(ptr), Deleter(*this));
+			if(nullptr == shared)
+			{
+				lstObjectPtr_.push_front(ptr);
+				return nullptr;
+			}
+			return shared;
 		}
 
 		object* ptr = lstObjectPtr_.front();
 		assert(nullptr != ptr);
+		std::shared_ptr<object> shared(init_(ptr), Deleter(*this));
+		if (nullptr == shared)
+		{
+			return nullptr;
+		}
 		lstObjectPtr_.pop_front();
-		return std::shared_ptr<object>(init_(ptr), Deleter(*this));
+		return shared;
 	}
 
 	void SetFactory(object_factory factory)
