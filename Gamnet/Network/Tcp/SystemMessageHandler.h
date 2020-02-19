@@ -1,6 +1,7 @@
 #ifndef _GAMNET_NETWORK_TCP_SYSTEM_MESSAGE_HANDLER_H_
 #define _GAMNET_NETWORK_TCP_SYSTEM_MESSAGE_HANDLER_H_
 
+#include "LinkManager.h"
 #include "../Handler.h"
 #include "../../Library/Json/json.h"
 #include "../../Library/Singleton.h"

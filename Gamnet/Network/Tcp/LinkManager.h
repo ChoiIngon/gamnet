@@ -4,7 +4,6 @@
 #include "Dispatcher.h"
 #include "Packet.h"
 #include "Link.h"
-#include "SystemMessageHandler.h"
 #include "../../Library/Json/json.h"
 #include "../Acceptor.h"
 #include "../LinkManager.h"
@@ -119,7 +118,7 @@ public:
 		assert(session->link);
 		session->link->strand.wrap([=] () {
 			session->handover_safe = false;
-			link->Close(ErrorCode::Success);
+			this->link->Close(ErrorCode::Success);
 		})();
 	}
 

@@ -297,7 +297,7 @@ namespace Gamnet {	namespace Test {
 
 			if(nullptr == session)
 			{
-				session = session_pool.Create();
+				session = this->session_pool.Create();
 				if (nullptr == session)
 				{
 					finish_execute_count++;
@@ -315,8 +315,8 @@ namespace Gamnet {	namespace Test {
 	private :
 		void OnLogTimerExpire()
 		{
-			log.Write(GAMNET_INF, "[Test] link count..(active:", Size(), ", available:", link_pool.Available(), ", max:", link_pool.Capacity(), ")");
-			log.Write(GAMNET_INF, "[Test] session count..(active:", session_manager.Size(), ", available:", session_pool.Available(), ", max:", session_pool.Capacity(), ")");
+			log.Write(GAMNET_INF, "[Test] link count..(active:", this->Size(), ", available:", link_pool.Available(), ", max:", link_pool.Capacity(), ")");
+			log.Write(GAMNET_INF, "[Test] session count..(active:", this->session_manager.Size(), ", available:", this->session_pool.Available(), ", max:", this->session_pool.Capacity(), ")");
 			log.Write(GAMNET_INF, "[Test] begin count..(", begin_execute_count, "/", max_execute_count, ")");
 
 			for (auto itr : execute_order)

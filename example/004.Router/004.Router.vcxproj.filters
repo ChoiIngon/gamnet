@@ -23,13 +23,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="UserMessage.idl">
-      <Filter>소스 파일</Filter>
-    </Midl>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="UserSession.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="UserMessage.idl">
+      <Filter>소스 파일</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

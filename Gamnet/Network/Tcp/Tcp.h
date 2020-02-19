@@ -2,6 +2,7 @@
 #define GAMNET_NETWORK_TCP_H_
 
 #include "LinkManager.h"
+#include "SystemMessageHandler.h"
 #include "CastGroup.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
