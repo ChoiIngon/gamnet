@@ -58,7 +58,7 @@ namespace Gamnet {	namespace Test {
 		TestHandler<SESSION_T> test_handler;
 		std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 
-		LinkManager() : log_timer(GetIOService()), begin_execute_count(0), finish_execute_count(0), max_execute_count(0), link_pool(65535, BASE_T::LinkFactory(this)), host(""), port(0)
+		LinkManager() : link_pool(65535, typename BASE_T::LinkFactory(this)), begin_execute_count(0), finish_execute_count(0), max_execute_count(0), session_count(0), host(""), port(0)
 		{
 			this->name = "Gamnet::Test::LinkManager";
 
