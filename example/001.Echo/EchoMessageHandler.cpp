@@ -24,7 +24,7 @@ void EchoMessageHandler::Recv_CliSvr_Req(const std::shared_ptr<EchoSession>& ses
 		ans.Message = req.Message;
 		ntf.Message = req.Message;
 		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::MULTI_CAST, "Echo", 0);
-		//Gamnet::Network::Router::SendMsg(dest, ntf);
+		Gamnet::Network::Router::SendMsg(dest, ntf);
 	}
 	catch (const Gamnet::Exception& e)
 	{

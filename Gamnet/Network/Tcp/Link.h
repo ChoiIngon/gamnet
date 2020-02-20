@@ -21,6 +21,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		virtual bool Init() override;
 		virtual void Clear() override;
 
+		void SetKeepAlive(int sec);
 	protected :
 		virtual void OnAccept() override;
 		virtual void OnConnect() override;

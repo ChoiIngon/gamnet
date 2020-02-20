@@ -115,6 +115,12 @@ namespace Gamnet {	namespace Test {
 			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(tcpLink->session);
 			assert(nullptr != session);
 
+			if (false == this->Add(tcpLink))
+			{
+				assert(!"duplicated link");
+				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+			}
+
 			try {
 				if (0 == execute_order.size())
 				{
@@ -161,6 +167,7 @@ namespace Gamnet {	namespace Test {
 				begin_execute_count++;
 				Connect();
 			}
+			this->Remove(tcpLink->link_key);
 		}
 
 		virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override

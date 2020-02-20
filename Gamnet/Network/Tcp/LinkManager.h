@@ -40,21 +40,23 @@ public :
 	}
 
 private:
+	std::mutex lock;
+	std::map<uint32_t, std::shared_ptr<Link>> links;
+
 	Acceptor<Link>	acceptor;
-	
+	int	expire_time; // zero means infinity
 public:
 	SessionManager	session_manager;
 	Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
 
 	void Listen(int port, int max_session, int alive_time, int accept_queue_size)
 	{
-		session_pool.Capacity(65535);
 		session_manager.Init();
 		acceptor.Listen(port, max_session, accept_queue_size);
-		ActivateIdleLinkTerminator(alive_time);
+		expire_time = alive_time;
 	}
 
-	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) 
+	virtual void OnAccept(const std::shared_ptr<Network::Link>& link) override
 	{
 		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
 		std::shared_ptr<SESSION_T> session = session_pool.Create();
@@ -65,9 +67,26 @@ public:
 
 		session->link = link;
 		tcpLink->session = session;
+
+		if (false == Add(tcpLink))
+		{
+			assert(!"duplicated link");
+			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+		}
+
+		tcpLink->SetKeepAlive(expire_time);
 	}
 	
-	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) 
+	virtual void OnConnect(const std::shared_ptr<Network::Link>& link) override
+	{
+		if (false == Add(std::static_pointer_cast<Link>(link)))
+		{
+			assert(!"duplicated link");
+			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+		}
+	}
+
+	virtual void OnClose(const std::shared_ptr<Network::Link>& link, int reason) override
 	{
 		acceptor.Release();
 		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
@@ -76,10 +95,12 @@ public:
 		{
 			return;
 		}
+
 		if(true == link->socket.is_open())
 		{
 			session->OnClose(reason);
 		}
+
 		if (false == session->handover_safe)
 		{
 			session->OnDestroy();
@@ -87,6 +108,12 @@ public:
 			tcpLink->session = nullptr;
 			session_manager.Remove(session->session_key);
 		}
+
+		if (nullptr != tcpLink->session)
+		{
+			return;
+		}
+		Remove(tcpLink->link_key);
 	}
 
 	virtual void OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) override
@@ -167,8 +194,24 @@ public:
 		return root;
 	}
 
-private :
-	
+protected :
+	bool Add(const std::shared_ptr<Link>& link)
+	{
+		std::lock_guard<std::mutex> lo(lock);
+		return links.insert(std::make_pair(link->link_key, link)).second;
+	}
+
+	void Remove(uint32_t linkKey)
+	{
+		std::lock_guard<std::mutex> lo(lock);
+		links.erase(linkKey);
+	}
+
+	size_t Size()
+	{
+		std::lock_guard<std::mutex> lo(lock);
+		return links.size();
+	}
 };
 
 }}}

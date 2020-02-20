@@ -71,8 +71,19 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 {
 	std::shared_ptr<Network::Tcp::Link> tcpLink = std::static_pointer_cast<Network::Tcp::Link>(link);
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(tcpLink->session);
-	assert(nullptr != session);
+	if (nullptr == session)
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
+	}
+
+	if (false == Add(tcpLink))
+	{
+		assert(!"duplicated link");
+		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+	}
+
 	session->OnConnect();
+	
 	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
 	lockedCastGroup->AddSession(session);
 }
@@ -92,6 +103,11 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 	session->OnAccept();
 	
 	session_manager.Add(session->session_key, session);
+	if (false == Add(tcpLink))
+	{
+		assert(!"duplicated link");
+		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
+	}
 
 	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
 	lockedCastGroup->AddSession(session);
@@ -112,6 +128,7 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	session->link = nullptr;
 	tcpLink->session = nullptr;
 
+	Remove(tcpLink->link_key);
 	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
 	lockedCastGroup->DelSession(session);
 }

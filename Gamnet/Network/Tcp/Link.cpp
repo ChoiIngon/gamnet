@@ -49,32 +49,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 
 		link_manager->OnAccept(shared_from_this());
-		if (false == link_manager->Add(shared_from_this()))
-		{
-			assert(!"duplicated link");
-			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
-		}
-
-		if(0 < link_manager->expire_time)
-		{
-			timer.Cancel();
-			timer.AutoReset(true);
-			timer.SetTimer(link_manager->expire_time * 1000, strand.wrap([this](){
-				
-				int64_t now = time(nullptr);
-				if(expire_time + link_manager->expire_time >= now)
-				{
-					return;
-				}
-				timer.Cancel();
-				if (nullptr != session)
-				{
-					session->handover_safe = false;
-				}
-				LOG(INF, "[link_key", link_key, "] delete idle link");
-				Close(ErrorCode::IdleTimeoutError);
-			}));
-		}
 	}
 
 	void Link::OnConnect()
@@ -88,11 +62,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			socket.set_option(option);
 		}
 		link_manager->OnConnect(shared_from_this());
-		if (false == link_manager->Add(shared_from_this()))
-		{
-			assert(!"duplicated link");
-			throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
-		}
 	}
 
 	void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
@@ -142,18 +111,30 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	void Link::OnClose(int reason)
 	{
-		/*
-		if (true == socket.is_open())
-		{
-			assert(false);
-			return;
-		}
-		*/
 		link_manager->OnClose(shared_from_this(), reason);
-		if(nullptr != session)
+	}
+
+	void Link::SetKeepAlive(int expire_seconds)
+	{
+		if (0 < expire_seconds)
 		{
-			return;
+			timer.Cancel();
+			timer.AutoReset(true);
+			timer.SetTimer(expire_seconds * 1000, strand.wrap([this, expire_seconds]() {
+
+				int64_t now = time(nullptr);
+				if (expire_time + expire_seconds >= now)
+				{
+					return;
+				}
+				timer.Cancel();
+				if (nullptr != session)
+				{
+					session->handover_safe = false;
+				}
+				LOG(INF, "[link_key", link_key, "] delete idle link");
+				Close(ErrorCode::IdleTimeoutError);
+			}));
 		}
-		link_manager->Remove(link_key);
 	}
 }}}

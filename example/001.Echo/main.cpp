@@ -8,7 +8,7 @@ int main() {
 
 	try {
 		Gamnet::Network::Tcp::ReadXml<EchoSession>("config.xml");
-		//Gamnet::Network::Router::ReadXml("config.xml");
+		Gamnet::Network::Router::ReadXml("config.xml");
 		Gamnet::Network::Http::Listen(10002);
 		
 		Gamnet::Test::ReadXml<TestSession>("config.xml");
