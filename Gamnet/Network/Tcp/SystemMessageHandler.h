@@ -8,18 +8,18 @@
 
 namespace Gamnet {	namespace Network {		namespace Tcp {
 	enum MSG_ID {
-		MsgID_CliSvr_Connect_Req = 1,
-		MsgID_SvrCli_Connect_Ans = 1,
-		MsgID_CliSvr_Reconnect_Req = 2,
-		MsgID_SvrCli_Reconnect_Ans = 2,
-		MsgID_CliSvr_HeartBeat_Req = 3,
-		MsgID_SvrCli_HeartBeat_Ans = 3,
-		MsgID_CliSvr_ReliableAck_Ntf = 4,
-		MsgID_SvrCli_ReliableAck_Ntf = 4,
-		MsgID_SvrCli_Kickout_Ntf = 5,
-		MsgID_CliSvr_Close_Req = 6,
-		MsgID_SvrCli_Close_Ans = 6,
-		MsgID_Max = 7
+		MsgID_Max = std::numeric_limits<uint32_t>::max(),
+		MsgID_CliSvr_Connect_Req = MsgID_Max - 1,
+		MsgID_SvrCli_Connect_Ans = MsgID_Max - 1,
+		MsgID_CliSvr_Reconnect_Req = MsgID_Max - 2,
+		MsgID_SvrCli_Reconnect_Ans = MsgID_Max - 2,
+		MsgID_CliSvr_HeartBeat_Req = MsgID_Max - 3,
+		MsgID_SvrCli_HeartBeat_Ans = MsgID_Max - 3,
+		MsgID_CliSvr_ReliableAck_Ntf = MsgID_Max - 4,
+		MsgID_SvrCli_ReliableAck_Ntf = MsgID_Max - 4,
+		MsgID_SvrCli_Kickout_Ntf = MsgID_Max - 5,
+		MsgID_CliSvr_Close_Req = MsgID_Max - 6,
+		MsgID_SvrCli_Close_Ans = MsgID_Max - 6		
 	};
 
 template <class SESSION_T>
