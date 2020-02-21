@@ -2,6 +2,12 @@
 #define __GAMNET_LIB_EXCEPTION_H_
 
 #include "String.h"
+#ifdef _WIN32
+#include <Windows.h>
+#include <DbgHelp.h>
+#include <Winbase.h>
+#endif
+#undef min
 
 namespace Gamnet {
 
@@ -63,13 +69,36 @@ public :
 	virtual ~Exception() throw();
 	virtual const char* what() const throw();
 	int error_code() const throw();
+	const char* stack_trace();
 
-private :
-	//void stack_trace();
 };
 
-}
+#ifdef _WIN32
+#pragma comment(lib, "Dbghelp.lib")
 
+class StackTrace
+{
+public :
+	class SymbolHandler
+	{
+	private :
+		bool initialized;
+	public :
+		SymbolHandler();
+		std::string GetSymbolInfo(DWORD64 addr);
+		void CaptureStackTrace(CONTEXT* context, DWORD64* frame_pointers, size_t count, size_t skip);
+	};
+private:
+	static SymbolHandler symbol_handler;
+	static const size_t MAX_FRAME_POINTERS = 256;
+	DWORD64 frame_ptrs[MAX_FRAME_POINTERS];
+public :
+	StackTrace(CONTEXT* context = nullptr, size_t skip = 0);
+	std::string to_string() const;
+};
+#endif
+
+}
 #define GAMNET_EXCEPTION(error, ...) Gamnet::Exception((int)error, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] ", #error, " ", ##__VA_ARGS__)
 
 #endif /* EXCEPTION_H_ */
