@@ -18,7 +18,7 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, const std::share
 		LOG(GAMNET_ERR, "[Router] register same uni-cast address(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", router_session->GetRemoteAddress().to_string(), ")");
 		return false;
 	}
-	LOG(GAMNET_INF, "[Router] register uni-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", router_session->GetRemoteAddress().to_string(), ")");
+	LOG(GAMNET_INF, "[Router] register uni-cast address success(service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", router_session->GetRemoteAddress().to_string(), ")");
 	return true;
 }
 

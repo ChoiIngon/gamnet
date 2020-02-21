@@ -4,7 +4,7 @@
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
-	Link::Link(Network::LinkManager* linkManager) : Network::Link(), link_manager(linkManager), session(nullptr)
+	Link::Link(Network::LinkManager* linkManager) : Network::Link(), expire_time(0), link_manager(linkManager), session(nullptr)
 	{
 	}
 
@@ -26,6 +26,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return false;
 		}
 	
+		expire_time = time(nullptr);
+
 		return true;
 	}
 
@@ -66,6 +68,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	void Link::OnRead(const std::shared_ptr<Buffer>& buffer)
 	{
+		expire_time = time(nullptr);
 		try {
 			while(0 < buffer->Size())
 			{
@@ -132,7 +135,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				{
 					session->handover_safe = false;
 				}
-				LOG(INF, "[link_key", link_key, "] delete idle link");
+				LOG(INF, "delete idle link(link_key:", link_key, ", session_key:", (nullptr != session ? session->session_key : 0), ")");
 				Close(ErrorCode::IdleTimeoutError);
 			}));
 		}

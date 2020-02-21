@@ -10,8 +10,7 @@ Link::Link() :
 	read_buffer(nullptr),
 	socket(io_service_),
 	strand(io_service_),
-	link_key(0),
-	expire_time(0)
+	link_key(0)
 {
 }
 
@@ -29,7 +28,7 @@ bool Link::Init()
 		LOG(GAMNET_ERR, "can not create read buffer");
 		return false;
 	}
-	expire_time = time(nullptr);
+	
 	return true;
 }
 
@@ -126,7 +125,6 @@ void Link::AsyncRead()
 			}
 
 			self->read_buffer->write_index += readbytes;
-			self->expire_time = time(nullptr);
 			try 
 			{
 				self->OnRead(self->read_buffer);

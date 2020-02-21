@@ -41,10 +41,9 @@ public:
 	boost::asio::ip::tcp::socket	socket;
 	boost::asio::strand				strand;
 	boost::asio::ip::address 		remote_address;
-
-	Timer 							timer;
 	uint32_t 						link_key;
-	int64_t							expire_time;
+protected :
+	Timer 							timer;
 
 public :
 	Link();

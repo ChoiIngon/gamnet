@@ -8,13 +8,14 @@
 namespace Gamnet { namespace Network { namespace Tcp {
 	class Link : public Network::Link 
 	{
-	private :
-		std::shared_ptr<Packet> recv_packet;
-
 	public :
 		Link(Network::LinkManager* linkManager);
 		virtual ~Link();
 
+	private:
+		std::shared_ptr<Packet> recv_packet;
+		int64_t expire_time;
+	public :
 		Network::LinkManager* const link_manager;
 		std::shared_ptr<Session>	session;
 

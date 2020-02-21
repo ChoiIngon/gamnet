@@ -14,5 +14,6 @@
   
   <test host="127.0.0.1" port="10000" session_count="1" loop_count="1">
     <message name="Test_EchoMessage"/>
+    <message name="Test_EchoMessage"/>
   </test>
 </server>

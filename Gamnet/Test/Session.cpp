@@ -48,9 +48,16 @@ bool Session::Init()
 	return true;
 }
 
+void Session::Clear()
+{
+	timer.Cancel();
+	Network::Tcp::Session::Clear();
+}
+
 void Session::Pause(int millisecond)
 {
 	is_pause = true;
+	timer.AutoReset(false);
 	timer.SetTimer(millisecond, [=]() {
 		link->strand.wrap(execute_send_handler)(std::static_pointer_cast<Session>(shared_from_this()));
 	}); 

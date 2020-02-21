@@ -157,7 +157,7 @@ std::string StackTrace::to_string() const
 		{
 			continue;
 		}
-		ss << i+1 << " : " << symbol_handler.GetSymbolInfo(frame_ptrs[i]) << "\n";
+		ss << i+1 << " : " << stack << "\n";
 	}
 	return ss.str();
 }

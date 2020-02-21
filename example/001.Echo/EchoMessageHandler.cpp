@@ -52,8 +52,7 @@ void EchoMessageHandler::Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address&
 			return;
 		}
 
-		//LOG(DEV, "MsgSvrSvr_EchoMessage_Ntf(message:", ntfFromSvr.Message, ")");
-		
+		LOG(DEV, "MsgSvrSvr_EchoMessage_Ntf(message:", ntfFromSvr.Message, ")");
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -87,6 +86,7 @@ void Test_EchoMessage_Ans(const std::shared_ptr<TestSession>& session, const std
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 	session->Next();
+	session->Pause(1000);
 }
 
 GAMNET_BIND_TEST_HANDLER(
