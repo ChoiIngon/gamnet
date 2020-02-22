@@ -86,11 +86,11 @@ void Session::OnAccept()
 
 void Session::OnConnect()
 {	
-	LOG(GAMNET_INF, "[Router] connect success..(remote ip:", GetRemoteAddress().to_string(), ")");
+	LOG(GAMNET_INF, "[Router] [", link->link_key, "/", session_key, "/", Singleton<LinkManager>::GetInstance().local_address.service_name.c_str(), "] connect success..(remote ip:", GetRemoteAddress().to_string(), ")");
 	MsgRouter_SetAddress_Req req;
-	req.local_address = Singleton<LinkManager>::GetInstance().local_address;
+	req.router_address = Singleton<LinkManager>::GetInstance().local_address;
 	Network::Tcp::SendMsg(std::static_pointer_cast<Session>(shared_from_this()), req, false);
-	LOG(GAMNET_INF, "[Router] send SetAddress_Req (localhost->", GetRemoteAddress().to_string(), ", service_name:", req.local_address.service_name.c_str(), ")");
+	LOG(GAMNET_INF, "[Router] [", link->link_key, "/", session_key, "/", Singleton<LinkManager>::GetInstance().local_address.service_name.c_str(),"] localhost->", GetRemoteAddress().to_string(), " send MsgRouter_SetAddress_Req(", req.router_address.service_name, ":", ToString<ROUTER_CAST_TYPE>(req.router_address.cast_type), ":", req.router_address.id, ")");
 }
 
 void Session::OnClose(int reason)

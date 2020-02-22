@@ -107,7 +107,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 		catch(const Exception& e)
 		{
-			session->handover_safe = false;
+			if(nullptr != session)
+			{
+				session->handover_safe = false;
+			}
 			throw e;
 		}
 	}
@@ -121,22 +124,22 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 		if (0 < expire_seconds)
 		{
-			timer.Cancel();
-			timer.AutoReset(true);
-			timer.SetTimer(expire_seconds * 1000, strand.wrap([this, expire_seconds]() {
-
+			timer.AutoReset(false);
+			auto self = std::static_pointer_cast<Link>(shared_from_this());
+			timer.SetTimer(expire_seconds * 1000, strand.wrap([self, expire_seconds]() {
 				int64_t now = time(nullptr);
-				if (expire_time + expire_seconds >= now)
+				if (self->expire_time + expire_seconds >= now)
 				{
+					self->SetKeepAlive(expire_seconds);
 					return;
 				}
-				timer.Cancel();
-				if (nullptr != session)
+				
+				if (nullptr != self->session)
 				{
-					session->handover_safe = false;
+					self->session->handover_safe = false;
 				}
-				LOG(INF, "delete idle link(link_key:", link_key, ", session_key:", (nullptr != session ? session->session_key : 0), ")");
-				Close(ErrorCode::IdleTimeoutError);
+				LOG(INF, "delete idle link(", self->link_manager->name, ", link_key:", self->link_key, ", session_key:", (nullptr != self->session ? self->session->session_key : 0), ")");
+				self->Close(ErrorCode::IdleTimeoutError);
 			}));
 		}
 	}

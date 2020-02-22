@@ -392,4 +392,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Network\Router\MsgRouter.idl">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
 </Project>

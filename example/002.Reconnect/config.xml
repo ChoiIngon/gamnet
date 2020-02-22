@@ -7,7 +7,7 @@
     <err console="yes" file="yes" sys="no"/>
   </log>
 
-  <tcp port="20000" max_count="8000" keep_alive="30"/>
+  <tcp port="20000" max_count="8000" accept_queue="100" keep_alive="30"/>
   <router name="Reconnect" port="20001">
     <farm host="127.0.0.1" port="6379"/>
   </router>

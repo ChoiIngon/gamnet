@@ -72,7 +72,7 @@ public:
 		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
 		assert(nullptr != link);
 
-		LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Reconnect_Req");
+		//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Reconnect_Req");
 		Json::Value req;
 		Json::Value ans;
 		ans["error_code"] = 0;
@@ -102,7 +102,12 @@ public:
 
 			assert(nullptr != prevSession->link);
 			prevSession->link->strand.wrap([=]() {
-				prevSession->link->Close(ErrorCode::DuplicateConnectionError);
+				if(nullptr != prevSession->link)
+				{
+					prevSession->link->Close(ErrorCode::DuplicateConnectionError);
+					std::static_pointer_cast<Link>(prevSession->link)->timer.Cancel();
+					Singleton<LinkManager<SESSION_T>>::GetInstance().Remove(prevSession->link->link_key);
+				}
 				link->strand.wrap([=]() {
 					prevSession->link = link;
 					link->session = prevSession;

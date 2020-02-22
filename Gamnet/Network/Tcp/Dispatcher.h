@@ -82,6 +82,9 @@ public:
 		HandlerFunction handlerFunction(factory, static_cast<function_type>(func));
 		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)
 		{
+#ifdef _WIN32
+			MessageBoxA(nullptr, Format("duplicate handler(msg_id:", msg_id, ", name : ", name, ")").c_str(), "Duplicate Handler Error", MB_ICONWARNING);
+#endif
 			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ", name:", name, ")");
 		}
 

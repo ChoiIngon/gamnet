@@ -108,6 +108,9 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 		assert(!"duplicated link");
 		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
 	}
+
+	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
+	lockedCastGroup->AddSession(session);
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)

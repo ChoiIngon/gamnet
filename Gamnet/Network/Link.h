@@ -42,7 +42,7 @@ public:
 	boost::asio::strand				strand;
 	boost::asio::ip::address 		remote_address;
 	uint32_t 						link_key;
-protected :
+//protected :
 	Timer 							timer;
 
 public :

@@ -194,7 +194,6 @@ public:
 		return root;
 	}
 
-protected :
 	bool Add(const std::shared_ptr<Link>& link)
 	{
 		std::lock_guard<std::mutex> lo(lock);

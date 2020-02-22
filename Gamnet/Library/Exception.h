@@ -70,7 +70,6 @@ public :
 	virtual const char* what() const throw();
 	int error_code() const throw();
 	const char* stack_trace();
-
 };
 
 #ifdef _WIN32

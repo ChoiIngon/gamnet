@@ -15,6 +15,30 @@ enum class ROUTER_CAST_TYPE {
 	ANY_CAST,
 	MAX,
 }; // ROUTER_CAST_TYPE
+template <class T> const std::string& ToString(T);
+template <> inline const std::string& ToString<ROUTER_CAST_TYPE>(ROUTER_CAST_TYPE e) { 
+	static const std::map<ROUTER_CAST_TYPE, std::string> table = {
+		{ ROUTER_CAST_TYPE::UNI_CAST, "UNI_CAST"},
+		{ ROUTER_CAST_TYPE::MULTI_CAST, "MULTI_CAST"},
+		{ ROUTER_CAST_TYPE::ANY_CAST, "ANY_CAST"},
+		{ ROUTER_CAST_TYPE::MAX, "MAX"},
+	};
+	auto itr = table.find(e); 
+	if(table.end() == itr) { throw std::runtime_error("ToString<ROUTER_CAST_TYPE>()"); }
+	return itr->second;
+}
+template<class T> T Parse(const std::string&);
+template <> inline ROUTER_CAST_TYPE Parse<ROUTER_CAST_TYPE>(const std::string& s) {
+	static const std::map<std::string, ROUTER_CAST_TYPE> table = {
+		{ "UNI_CAST", ROUTER_CAST_TYPE::UNI_CAST},
+		{ "MULTI_CAST", ROUTER_CAST_TYPE::MULTI_CAST},
+		{ "ANY_CAST", ROUTER_CAST_TYPE::ANY_CAST},
+		{ "MAX", ROUTER_CAST_TYPE::MAX},
+	};
+	auto itr = table.find(s); 
+	if(table.end() == itr) { throw std::runtime_error("Parse<ROUTER_CAST_TYPE>()"); }
+	return itr->second;
+}
 struct ROUTER_CAST_TYPE_Serializer {
 	static bool Store(char** _buf_, const ROUTER_CAST_TYPE& obj) { 
 		(*(ROUTER_CAST_TYPE*)(*_buf_)) = obj;	(*_buf_) += sizeof(ROUTER_CAST_TYPE);
@@ -133,12 +157,12 @@ inline bool operator != (const Address& lhs, const Address& rhs)
 
 struct MsgRouter_SetAddress_Req {
 	enum { MSG_ID = 1 }; 
-	Address	local_address;
+	Address	router_address;
 	MsgRouter_SetAddress_Req()	{
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += Address_Serializer::Size(local_address);
+		nSize += Address_Serializer::Size(router_address);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -152,7 +176,7 @@ struct MsgRouter_SetAddress_Req {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		if(false == Address_Serializer::Store(_buf_, local_address)) { return false; }
+		if(false == Address_Serializer::Store(_buf_, router_address)) { return false; }
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -163,7 +187,7 @@ struct MsgRouter_SetAddress_Req {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(false == Address_Serializer::Load(local_address, _buf_, nSize)) { return false; }
+		if(false == Address_Serializer::Load(router_address, _buf_, nSize)) { return false; }
 		return true;
 	}
 }; //MsgRouter_SetAddress_Req
@@ -175,14 +199,14 @@ struct MsgRouter_SetAddress_Req_Serializer {
 struct MsgRouter_SetAddress_Ans {
 	enum { MSG_ID = 2 }; 
 	int32_t	error_code;
-	Address	remote_address;
+	Address	router_address;
 	MsgRouter_SetAddress_Ans()	{
 		error_code = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += sizeof(int32_t);
-		nSize += Address_Serializer::Size(remote_address);
+		nSize += Address_Serializer::Size(router_address);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -197,7 +221,7 @@ struct MsgRouter_SetAddress_Ans {
 	}
 	bool Store(char** _buf_) const {
 		std::memcpy(*_buf_, &error_code, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
-		if(false == Address_Serializer::Store(_buf_, remote_address)) { return false; }
+		if(false == Address_Serializer::Store(_buf_, router_address)) { return false; }
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -209,7 +233,7 @@ struct MsgRouter_SetAddress_Ans {
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
 		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&error_code, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
-		if(false == Address_Serializer::Load(remote_address, _buf_, nSize)) { return false; }
+		if(false == Address_Serializer::Load(router_address, _buf_, nSize)) { return false; }
 		return true;
 	}
 }; //MsgRouter_SetAddress_Ans

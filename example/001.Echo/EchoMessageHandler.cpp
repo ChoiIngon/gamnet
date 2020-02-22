@@ -49,7 +49,6 @@ void EchoMessageHandler::Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address&
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntfFromSvr, packet))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
-			return;
 		}
 
 		LOG(DEV, "MsgSvrSvr_EchoMessage_Ntf(message:", ntfFromSvr.Message, ")");

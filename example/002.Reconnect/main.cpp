@@ -8,7 +8,14 @@ int main() {
 
 	try {
 		Gamnet::Network::Tcp::ReadXml<UserSession>("config.xml");
-		Gamnet::Network::Router::ReadXml("config.xml");
+		Gamnet::Network::Router::ReadXml("config.xml", 
+			[](const Gamnet::Network::Router::Address& addr) { 
+				LOG(DEV, "on connect(service_name:", addr.service_name, ", cast_type:", (int)addr.cast_type, ", id:", addr.id, ")");
+			},
+			[](const Gamnet::Network::Router::Address& addr) {
+				LOG(DEV, "on close");
+			}
+		);
 		Gamnet::Network::Http::Listen(20002);
 
 		Gamnet::Test::ReadXml<TestSession>("config.xml");

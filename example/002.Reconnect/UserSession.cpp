@@ -10,7 +10,7 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
-//	LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] UserSession::OnCreate");
+	LOG(INF, "[", link->link_key, "/", session_key, "] UserSession::OnCreate");
 }
 
 void UserSession::OnAccept()
@@ -54,7 +54,6 @@ void TestSession::Reconnect()
 	std::shared_ptr<Gamnet::Network::Tcp::Link> prevLink = std::static_pointer_cast<Gamnet::Network::Tcp::Link>(link);
 	prevLink->session = nullptr;
 	prevLink->Close(Gamnet::ErrorCode::UndefinedError);
-	
 	Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().Connect(std::static_pointer_cast<TestSession>(shared_from_this()));
 	/*
 	std::shared_ptr<Gamnet::Network::Link> newLink = Gamnet::Singleton<Gamnet::Test::LinkManager<TestSession>>::GetInstance().link_pool.Create();
