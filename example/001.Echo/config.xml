@@ -8,12 +8,12 @@
   </log>
 
   <tcp port="10000" max_count="8000" accept_queue="100" keep_alive="30"/>
-  <router name="Echo" port="10001">
+  <http port="10001"/>
+  <router name="Echo" port="10002">
     <farm host="127.0.0.1" port="6379"/>
   </router>
   
   <test host="127.0.0.1" port="10000" session_count="1" loop_count="1">
-    <message name="Test_EchoMessage"/>
-    <message name="Test_EchoMessage"/>
+    <message name="Test_SendMessage"/>
   </test>
 </server>

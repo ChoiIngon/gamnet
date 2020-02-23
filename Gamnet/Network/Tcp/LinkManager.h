@@ -44,6 +44,7 @@ private:
 	std::map<uint32_t, std::shared_ptr<Link>> links;
 
 	Acceptor<Link>	acceptor;
+
 	int	expire_time; // zero means infinity
 public:
 	SessionManager	session_manager;
@@ -106,6 +107,7 @@ public:
 			session->OnDestroy();
 			session->link = nullptr;
 			tcpLink->session = nullptr;
+			tcpLink->timer.Cancel();
 			session_manager.Remove(session->session_key);
 		}
 

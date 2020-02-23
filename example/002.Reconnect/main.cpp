@@ -1,72 +1,42 @@
+#include <boost/program_options.hpp>
 #include "UserSession.h"
 
-int main() {
-	Gamnet::Log::ReadXml("config.xml");
-	LOG(INF, "002.Reconnect Example Server Starts..");
+int main(int argc, char** argv)
+{
+	boost::program_options::options_description desc("All Options");
+	desc.add_options()
+		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")
+		("help", "product help message");
+
+	boost::program_options::variables_map vm;
+	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+	boost::program_options::notify(vm);
+
+	if (0 != vm.count("help"))
+	{
+		std::cout << desc << std::endl;
+		return 1;
+	}
+
+	const char* config_path = vm["config"].as<std::string>().c_str();
+	Gamnet::Log::ReadXml(config_path);
+	LOG(INF, argv[0], " Server Starts..");
 	LOG(INF, "build date:", __DATE__, " ", __TIME__);
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 	try {
-		Gamnet::Network::Tcp::ReadXml<UserSession>("config.xml");
-		Gamnet::Network::Router::ReadXml("config.xml", 
-			[](const Gamnet::Network::Router::Address& addr) { 
-				LOG(DEV, "on connect(service_name:", addr.service_name, ", cast_type:", (int)addr.cast_type, ", id:", addr.id, ")");
-			},
-			[](const Gamnet::Network::Router::Address& addr) {
-				LOG(DEV, "on close");
-			}
-		);
-		Gamnet::Network::Http::Listen(20002);
-
-		Gamnet::Test::ReadXml<TestSession>("config.xml");
+		Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);
+		Gamnet::Network::Http::ReadXml(config_path);
+		Gamnet::Network::Router::ReadXml(config_path);
+		Gamnet::Test::ReadXml<TestSession>(config_path);
 		Gamnet::Run(std::thread::hardware_concurrency());
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 		return 1;
 	}
 	return 0;
 }
-
-class Http_ServerStateHandler : public Gamnet::Network::IHandler
-{
-public:
-	Http_ServerStateHandler();
-	virtual ~Http_ServerStateHandler();
-
-	void Recv_Req(const std::shared_ptr<Gamnet::Network::Http::Session>& session, const Gamnet::Network::Http::Request& param);
-};
-
-Http_ServerStateHandler::Http_ServerStateHandler()
-{
-}
-
-
-Http_ServerStateHandler::~Http_ServerStateHandler()
-{
-}
-
-void Http_ServerStateHandler::Recv_Req(const std::shared_ptr<Gamnet::Network::Http::Session>& session, const Gamnet::Network::Http::Request& param)
-{
-	Gamnet::Network::Http::Response res;
-	res.error_code = 200;
-
-	try
-	{
-		Json::Value root = Gamnet::Network::Tcp::ServerState<UserSession>();
-		Json::StyledWriter writer;
-		res.context = writer.write(root);
-	}
-	catch (const Gamnet::Exception& e)
-	{
-		res.error_code = e.error_code();
-		res.context = e.what();
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-	}
-	Gamnet::Network::Http::SendMsg(session, res);
-}
-
-GAMNET_BIND_HTTP_HANDLER("server_state", Http_ServerStateHandler, Recv_Req);
 
 

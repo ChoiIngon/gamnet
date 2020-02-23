@@ -9,7 +9,7 @@
 #define SESSION_H_
 
 #include <Gamnet.h>
-#include "UserMessage.h"
+#include "../idl/Message.h"
 
 class UserSession : public Gamnet::Network::Tcp::Session 
 {
@@ -21,7 +21,7 @@ public:
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 	
-	ChatUserData user_data;
+	UserData user_data;
 	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> chat_channel;
 };
 
@@ -44,7 +44,7 @@ class TestSession : public Gamnet::Test::Session {
 public :
 	int64_t channel_seq;
 	int64_t chat_seq;
-	ChatUserData user_data;
+	UserData user_data;
 	std::set<std::string> user_ids;
 	virtual void OnCreate() override;
 	virtual void OnConnect() override;

@@ -7,6 +7,7 @@
 #include <cstring>
 #include <stdint.h>
 
+#include <sstream>
 namespace Gamnet { namespace Network { namespace Router {
 
 enum class ROUTER_CAST_TYPE {
@@ -55,6 +56,12 @@ struct Address {
 	Address(ROUTER_CAST_TYPE _cast_type, const std::string& _service_name, uint32_t _id)
 		: service_name(_service_name), cast_type(_cast_type), id(_id), msg_seq(0)
 	{
+	}
+	std::string ToString() const
+	{
+		std::stringstream ss;
+		ss << "{\"service_name\":" << service_name << ", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
+		return ss.str();
 	}
 	
 	std::string	service_name;

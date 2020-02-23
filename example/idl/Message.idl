@@ -1,0 +1,93 @@
+enum ErrorCode {
+	Success = 0,
+	MessageFormatError = 1000,
+	MessageSeqOmmitError = 1001,
+	InvalidUserError = 2000,
+	InvalidAccessTokenError = 2001,
+	DuplicateConnectionError = 3000,
+	ReconnectTimeoutError = 4000,
+	ResponseTimeoutError = 4001,
+	AlreadyLoginSessionError = 5000,
+	CanNotCreateCastGroup = 5001
+};
+
+struct UserData {
+	string user_id;
+	uint32 user_seq;
+};
+
+message MsgCliSvr_Login_Req	:			0001
+{
+	string user_id;
+};
+
+message MsgSvrCli_Login_Ans :			0001
+{
+	ErrorCode error_code;
+	UserData user_data;
+};
+
+message MsgCliSvr_JoinChannel_Req :		0002
+{
+};
+
+message MsgSvrCli_JoinChannel_Ans :		0002
+{
+	ErrorCode error_code;
+};
+
+message MsgSvrCli_JoinChannel_Ntf :		1002
+{
+	string session_key;
+	int32 session_count;
+};
+
+message MsgCliSvr_SendMessage_Ntf :		1003
+{
+	string Message;
+};
+
+message MsgSvrCli_SendMessage_Ntf :		1004
+{
+	string Message;
+};
+
+message MsgSvrSvr_SendMessage_Req :		0005
+{
+	string Message;
+};
+
+message MsgSvrSvr_SendMessage_Ans :		0006
+{
+	string Message;
+};
+
+message MsgCliSvr_LeaveChannel_Req : 00010003
+{
+};
+
+message MsgSvrCli_LeaveChannel_Ans : 00010003
+{
+	ErrorCode error_code;
+};
+
+message MsgSvrCli_LeaveChannel_Ntf : 10010003
+{
+	string session_key;
+};
+
+
+message MsgSvrCli_Kickout_Ntf 	: 10000003
+{
+	ErrorCode error_code;
+};
+
+message MsgCliSvr_HeartBeat_Ntf	: 10000004
+{
+	uint32 msg_seq;
+};
+
+message MsgSvrCli_HeartBeat_Ntf : 10000004
+{
+	uint32 msg_seq;
+};

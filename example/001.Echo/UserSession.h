@@ -2,12 +2,12 @@
 #define SESSION_H_
 
 #include <Gamnet.h>
-#include "EchoMessage.h"
+#include "../idl/Message.h"
 
-class EchoSession : public Gamnet::Network::Tcp::Session {
+class UserSession : public Gamnet::Network::Tcp::Session {
 public:
-	EchoSession();
-	virtual ~EchoSession();
+	UserSession();
+	virtual ~UserSession();
 	virtual void OnCreate() override;
 	virtual void OnAccept() override;
 	virtual void OnClose(int reason) override;

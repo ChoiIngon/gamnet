@@ -1,30 +1,30 @@
-#include "EchoSession.h"
+#include "UserSession.h"
 
-EchoSession::EchoSession()
+UserSession::UserSession()
 {
 
 }
-EchoSession::~EchoSession()
+UserSession::~UserSession()
 {
 
 }
 
-void EchoSession::OnCreate()
+void UserSession::OnCreate()
 {
-	//LOG(DEV, "[session_key:", session_key, "] 'EchoSession' is created");
+	//LOG(DEV, "[session_key:", session_key, "] 'UserSession' is created");
 }
 
-void EchoSession::OnAccept()
-{
-	assert(nullptr != link);
-}
-
-void EchoSession::OnClose(int reason)
+void UserSession::OnAccept()
 {
 	assert(nullptr != link);
 }
 
-void EchoSession::OnDestroy()
+void UserSession::OnClose(int reason)
+{
+	assert(nullptr != link);
+}
+
+void UserSession::OnDestroy()
 {
 	//LOG(DEV, "[link_key:", link->link_key, "] socket destroy");
 }

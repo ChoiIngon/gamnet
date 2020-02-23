@@ -34,8 +34,8 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	_heartbeat_timer.SetTimer(60000, [this] () {
 		MsgRouter_HeartBeat_Ntf ntf;
 		AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
-		lockedCastGroup->SendMsg(ntf);
 		LOG(GAMNET_INF, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
+		lockedCastGroup->SendMsg(ntf);
 	});
 
 	session_manager.Init();
@@ -108,9 +108,6 @@ void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
 		assert(!"duplicated link");
 		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
 	}
-
-	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
-	lockedCastGroup->AddSession(session);
 }
 
 void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason)

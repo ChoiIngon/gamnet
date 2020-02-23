@@ -21,14 +21,23 @@
     <ClCompile Include="UserSession.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Handler_SendMessage.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="UserSession.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Handler_SendMessage.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="UserMessage.idl">
+    <Xml Include="config.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\Message.idl">
       <Filter>소스 파일</Filter>
     </CustomBuild>
   </ItemGroup>

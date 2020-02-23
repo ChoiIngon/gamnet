@@ -120,18 +120,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Handler_SendMessage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="UserSession.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="UserMessage.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp %(Filename).idl</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp %(Filename).idl</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).h</Outputs>
-    </CustomBuild>
+    <ClInclude Include="Handler_SendMessage.h" />
+    <ClInclude Include="UserSession.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="UserSession.h" />
+    <Xml Include="config.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\Message.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

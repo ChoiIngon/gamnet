@@ -278,6 +278,9 @@ namespace Gamnet {	namespace Test {
 			auto itr_execute_info = execute_infos.find(test_name);
 			if (execute_infos.end() == itr_execute_info)
 			{
+#ifdef _WIN32
+				MessageBoxA(nullptr, Format("can't find registered test case execute info(test_name:", test_name, ")").c_str(), "No Test Execute Info", MB_ICONWARNING);
+#endif
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "can't find registered test case execute info(test_name:", test_name, ")");
 			}
 			

@@ -11,7 +11,7 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
-	user_data.UserID = "";
+	//user_data.UserID = "";
 	chat_channel = nullptr;
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnCreate");
 }
@@ -25,7 +25,7 @@ void UserSession::OnAccept()
 void UserSession::OnClose(int reason)
 {
 	assert(nullptr != link);
-	Gamnet::Singleton<Manager_Session>::GetInstance().Remove(user_data.UserID);
+	//Gamnet::Singleton<Manager_Session>::GetInstance().Remove(user_data.UserID);
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnClose");
 }
 

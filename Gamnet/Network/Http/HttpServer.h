@@ -15,6 +15,7 @@
 
 namespace Gamnet { namespace Network { namespace Http {
 	void Listen(int port, int accept_queue_size= 5);
+	void ReadXml(const char* xml_path);
 	template <class FUNC, class FACTORY>
 	bool RegisterHandler(const char* uri, FUNC func, FACTORY factory)
 	{

@@ -76,7 +76,7 @@ std::string StackTrace::SymbolHandler::GetSymbolInfo(DWORD64 addr)
 			if (SymGetLineFromAddr64(GetCurrentProcess(), addr, &displacement, &line))
 			{
 				//ss << (boost::format(" (%s:%d)") % line.FileName % line.LineNumber).str();  						
-				ss << Format(line.FileName, "!", symbol->Name, "@", line.LineNumber);
+				ss << line.FileName << "!" << symbol->Name << "@" << line.LineNumber;
 			}
 		}
 		else {
