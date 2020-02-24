@@ -12,52 +12,57 @@ enum ErrorCode {
 };
 
 struct UserData {
-	string user_id;
-	uint32 user_seq;
+	string UserID;
+	uint32 UserSEQ;
 };
 
-message MsgCliSvr_Login_Req	:			0001
+message MsgCliSvr_Login_Req : 10000001
 {
-	string user_id;
+	string	UserID;
 };
 
-message MsgSvrCli_Login_Ans :			0001
+message MsgSvrCli_Login_Ans : 10000001
 {
-	ErrorCode error_code;
-	UserData user_data;
+	ErrorCode	ErrorCode;
+	UserData	UserData;
 };
 
-message MsgCliSvr_JoinChannel_Req :		0002
+message MsgCliSvr_JoinChannel_Req : 00010001
 {
 };
 
-message MsgSvrCli_JoinChannel_Ans :		0002
+message MsgSvrCli_JoinChannel_Ans : 00010001
 {
-	ErrorCode error_code;
+	ErrorCode ErrorCode;
 };
 
-message MsgSvrCli_JoinChannel_Ntf :		1002
+message MsgSvrCli_JoinChannel_Ntf : 10010001
 {
-	string session_key;
-	int32 session_count;
+	string SessionKey;
+	int32 SessionCount;
 };
 
-message MsgCliSvr_SendMessage_Ntf :		1003
-{
-	string Message;
-};
-
-message MsgSvrCli_SendMessage_Ntf :		1004
+message MsgCliSvr_SendMessage_Ntf : 1020
 {
 	string Message;
 };
 
-message MsgSvrSvr_SendMessage_Req :		0005
+message MsgSvrCli_SendMessage_Ntf : 1020
 {
 	string Message;
 };
 
-message MsgSvrSvr_SendMessage_Ans :		0006
+message MsgSvrSvr_SendMessage_Req : 0021
+{
+	string Message;
+};
+
+message MsgSvrSvr_SendMessage_Ans : 0022
+{
+	string Message;
+};
+
+message MsgSvrSvr_SendMessage_Ntf : 1022
 {
 	string Message;
 };
@@ -76,18 +81,17 @@ message MsgSvrCli_LeaveChannel_Ntf : 10010003
 	string session_key;
 };
 
-
-message MsgSvrCli_Kickout_Ntf 	: 10000003
+message MsgSvrCli_Kickout_Ntf : 10000003
 {
-	ErrorCode error_code;
+	ErrorCode	error_code;
 };
 
-message MsgCliSvr_HeartBeat_Ntf	: 10000004
+message MsgCliSvr_HeartBeat_Ntf : 10000004
 {
-	uint32 msg_seq;
+	int32 msg_seq;
 };
 
 message MsgSvrCli_HeartBeat_Ntf : 10000004
 {
-	uint32 msg_seq;
+	int32 msg_seq;
 };

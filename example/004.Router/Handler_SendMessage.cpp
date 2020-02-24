@@ -41,15 +41,14 @@ void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
-
-		LOG(DEV, "MsgSvrSvr_SendMessage_Req(from:", address.ToString(), ", to:", Gamnet::Network::Router::GetRouterAddress().ToString(), ", message:", req.Message, ")");
+		//LOG(INF, "RECV MsgSvrSvr_SendMessage_Req(from:", address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", req.Message, ")");
 		ans.Message = req.Message;
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-	//LOG(DEV, "MsgSvrSvr_SendMessage_Ans(from:", Gamnet::Network::Router::GetRouterAddress().ToString(), ", to:", address.ToString(), ", message:", req.Message, ")");
+	//LOG(INF, "SEND MsgSvrSvr_SendMessage_Ans(from:", Gamnet::Network::Router::GetRouterAddress().service_name, ", to:",address.service_name, ", message:", req.Message, ")");
 	Gamnet::Network::Router::SendMsg(address, ans);
 }
 
@@ -64,7 +63,7 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(DEV, "MsgSvrSvr_SendMessage_Ans(from:", address.ToString(), ", to:", Gamnet::Network::Router::GetRouterAddress().ToString(), ", message:", ans.Message, ")");
+		LOG(INF, "RECV MsgSvrSvr_SendMessage_Ans(from:", address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", ans.Message, ")");
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -116,6 +115,7 @@ void StartRouterMessageTimer()
 		{
 			MsgSvrSvr_SendMessage_Req req;
 			req.Message = "Hello World";
+			LOG(INF, "SEND MsgSvrSvr_SendMessage_Req(from:", Gamnet::Network::Router::GetRouterAddress().service_name, ", to:", itr.service_name, ", message:", req.Message, ")");
 			Gamnet::Network::Router::SendMsg(itr, req);
 		}
 		StartRouterMessageTimer();
@@ -126,12 +126,12 @@ void OnRouterConnect(const Gamnet::Network::Router::Address& address)
 {
 	std::lock_guard<std::mutex> lo(lock);
 	addresses.insert(address);
-	LOG(DEV, address.ToString());
+	LOG(INF, "OnConnect:", address.ToString());
 }
 
 void OnRouterClose(const Gamnet::Network::Router::Address& address)
 {
 	std::lock_guard<std::mutex> lo(lock);
 	addresses.erase(address);
-	LOG(DEV, address.ToString());
+	LOG(DEV, "OnClose:", address.ToString());
 }
