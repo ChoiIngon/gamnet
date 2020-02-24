@@ -84,10 +84,6 @@ message MsgRouter_SetAddress_Ans : 	00002
 	Address router_address;
 };
 
-message MsgRouter_SetAddress_Ntf : 	00003
-{
-};
-
 message MsgRouter_SendMsg_Ntf : 	00004
 {
 	uint32 msg_seq;

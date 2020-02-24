@@ -88,7 +88,7 @@ void Session::OnConnect()
 
 void Session::OnClose(int reason)
 {
-	LOG(GAMNET_INF, "[Router] remote server closed(session_key:", session_key, ", ip:", GetRemoteAddress().to_string(), ", service_name:", address.service_name, ", reason:", reason, ")");
+	LOG(INF, "[Router-", link->link_key, "-", session_key, "] remote server closed(ip:", GetRemoteAddress().to_string(), ", service_name:", address.service_name, ", reason:", reason, ")");
 	if("" != address.service_name)
 	{
 		Singleton<RouterCaster>::GetInstance().UnregisterAddress(address);

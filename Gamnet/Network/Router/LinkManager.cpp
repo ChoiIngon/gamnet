@@ -74,8 +74,8 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
 	}
 
-	LOG(INF, "[Router] [", link->link_key, "/", session->session_key, "] connect success..(remote ip:", session->GetRemoteAddress().to_string(), ")");
-	LOG(INF, "[Router] [", link->link_key, "/", session->session_key, "] localhost->", session->GetRemoteAddress().to_string(), " send MsgRouter_SetAddress_Req(", Singleton<LinkManager>::GetInstance().local_address.ToString(), ")");
+	LOG(INF, "[Router-", link->link_key, "-", session->session_key, "] connect success..(remote ip:", session->GetRemoteAddress().to_string(), ")");
+	LOG(INF, "[Router-", link->link_key, "-", session->session_key, "] localhost->", session->GetRemoteAddress().to_string(), " SEND MsgRouter_SetAddress_Req(router_address:", Singleton<LinkManager>::GetInstance().local_address.ToString(), ")");
 	MsgRouter_SetAddress_Req req;
 	req.router_address = Singleton<LinkManager>::GetInstance().local_address;
 	req.host = Network::Tcp::GetLocalAddress().to_string();
