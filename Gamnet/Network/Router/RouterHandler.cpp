@@ -41,12 +41,10 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 	}
 
-	LOG(INF, "[Router-", session->link->link_key, "-", session->session_key, "] ", session->GetRemoteAddress().to_string(), "->localhost RECV MsgRouter_SetAddress_Ans(eroror_code:", (int)ans.error_code, ", router_address:", ans.router_address.ToString(), ")");
+	LOG(INF, "[Router-", session->link->link_key, "-", session->session_key, "] ", session->GetRemoteAddress().to_string(), "->localhost RECV MsgRouter_SetAddress_Ans(error_code:", (int)ans.error_code, ", router_address:", ans.router_address.ToString(), ")");
 	if(ErrorCode::Success != ans.error_code)
 	{
-		LOG(ERR, "[Router-", session->link->link_key, "-", session->session_key, "] MsgRouter_SetAddress_Ans(error_code:", ans.error_code, ")");
 		throw GAMNET_EXCEPTION(ans.error_code);
-		//return;
 	}
 
 	session->address = ans.router_address;
