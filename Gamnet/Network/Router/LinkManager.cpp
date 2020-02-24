@@ -4,24 +4,17 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
-std::function<void(const Address& addr)> LinkManager::onRouterAccept = [](const Address&) {};
-std::function<void(const Address& addr)> LinkManager::onRouterClose = [](const Address&) {};
-std::mutex LinkManager::lock;
-
 LinkManager::LinkManager()
 {
 	name = "Gamnet::Network::Router::LinkManager";
-	_cast_group = Tcp::CastGroup::Create();
+	heartbeat_group = Tcp::CastGroup::Create();
 }
 
 LinkManager::~LinkManager() {
 }
 
-void LinkManager::Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose, int accept_queue_size)
+void LinkManager::Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose, int accept_queue_size)
 {
-	LinkManager::onRouterAccept = onAccept;
-	LinkManager::onRouterClose = onClose;
-	
 	local_address.service_name = service_name;
 	local_address.cast_type = ROUTER_CAST_TYPE::UNI_CAST;
 	local_address.id = Network::Tcp::GetLocalAddress().to_v4().to_ulong();
@@ -30,11 +23,15 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "unique router id is not set");
 	}
 
-	_heartbeat_timer.AutoReset(true);
-	_heartbeat_timer.SetTimer(60000, [this] () {
+	this->port = port;
+	this->on_connect = onConnect;
+	this->on_close = onClose;
+
+	heartbeat_timer.AutoReset(true);
+	heartbeat_timer.SetTimer(60000, [this] () {
 		MsgRouter_HeartBeat_Ntf ntf;
-		AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
-		LOG(GAMNET_INF, "[Router] send heartbeat message(link count:", _cast_group->Size(), ")");
+		AtomicPtr<Tcp::CastGroup> lockedCastGroup(heartbeat_group);
+		LOG(GAMNET_INF, "[Router] send heartbeat message(connected server count:", heartbeat_group->Size(), ")");
 		lockedCastGroup->SendMsg(ntf);
 	});
 
@@ -42,7 +39,7 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	Network::Tcp::LinkManager<Session>::Listen(port, 1024, 0, accept_queue_size);
 }
 
-void LinkManager::Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose)
+void LinkManager::Connect(const char* host, int port, int timeout)
 {
 	std::shared_ptr<Network::Tcp::Link> link = std::make_shared<Network::Tcp::Link>(this);
 	if(nullptr == link)
@@ -59,8 +56,6 @@ void LinkManager::Connect(const char* host, int port, int timeout, const std::fu
 
 	link->session = session;
 	session->link = link;
-	session->onRouterConnect = onConnect;
-	session->onRouterClose = onClose;
 	session->OnCreate();
 	
 	session_manager.Add(session->session_key, session);
@@ -71,10 +66,7 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 {
 	std::shared_ptr<Network::Tcp::Link> tcpLink = std::static_pointer_cast<Network::Tcp::Link>(link);
 	const std::shared_ptr<Session> session = std::static_pointer_cast<Session>(tcpLink->session);
-	if (nullptr == session)
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "[link_key:", link->link_key, "] can not create session instance");
-	}
+	assert(nullptr != session);
 
 	if (false == Add(tcpLink))
 	{
@@ -82,10 +74,13 @@ void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)
 		throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated link");
 	}
 
-	session->OnConnect();
-	
-	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
-	lockedCastGroup->AddSession(session);
+	LOG(INF, "[Router] [", link->link_key, "/", session->session_key, "] connect success..(remote ip:", session->GetRemoteAddress().to_string(), ")");
+	LOG(INF, "[Router] [", link->link_key, "/", session->session_key, "] localhost->", session->GetRemoteAddress().to_string(), " send MsgRouter_SetAddress_Req(", Singleton<LinkManager>::GetInstance().local_address.ToString(), ")");
+	MsgRouter_SetAddress_Req req;
+	req.router_address = Singleton<LinkManager>::GetInstance().local_address;
+	req.host = Network::Tcp::GetLocalAddress().to_string();
+	req.port = Singleton<LinkManager>::GetInstance().port;
+	Network::Tcp::SendMsg(session, req, false);
 }
 
 void LinkManager::OnAccept(const std::shared_ptr<Network::Link>& link)
@@ -126,7 +121,7 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	tcpLink->session = nullptr;
 
 	Remove(tcpLink->link_key);
-	AtomicPtr<Tcp::CastGroup> lockedCastGroup(_cast_group);
+	AtomicPtr<Tcp::CastGroup> lockedCastGroup(heartbeat_group);
 	lockedCastGroup->DelSession(session);
 }
 

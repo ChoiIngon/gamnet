@@ -28,9 +28,9 @@ void Listen(const char* service_name, int port, const std::function<void(const A
 			"ip:", Network::Tcp::GetLocalAddress().to_string(), ")");
 }
 
-void Connect(const char* host, int port, int timeout, const std::function<void(const Address& addr)>& connect_callback, const std::function<void(const Address& addr)>& close_callback)
+void Connect(const char* host, int port, int timeout)
 {
-	Singleton<LinkManager>::GetInstance().Connect(host, port, timeout, connect_callback, close_callback);
+	Singleton<LinkManager>::GetInstance().Connect(host, port, timeout);
 }
 
 void ReadXml(const char* xml_path, const std::function<void(const Address& addr)>& connect_callback, const std::function<void(const Address& addr)>& close_callback)
@@ -42,7 +42,7 @@ void ReadXml(const char* xml_path, const std::function<void(const Address& addr)
 	int port = router.get<int>("<xmlattr>.port");
 
 	Listen(service_name.c_str(), port, connect_callback, close_callback);
-	Connect(Network::Tcp::GetLocalAddress().to_v4().to_string().c_str(), port, 5, connect_callback, close_callback);
+	Connect(Network::Tcp::GetLocalAddress().to_v4().to_string().c_str(), port, 5);
 
 	auto farm = router.get_child("farm");
 
@@ -70,7 +70,7 @@ void ReadXml(const char* xml_path, const std::function<void(const Address& addr)
 			LOG(ERR, "router message format error(\'port\' is null)");
 			return;
 		}
-		Connect(router_info["host"].asString().c_str(), router_info["port"].asInt(), 5, connect_callback, close_callback);
+		Connect(router_info["host"].asString().c_str(), router_info["port"].asInt(), 5);
 	});
 
 	Json::Value router_info;

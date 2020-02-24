@@ -32,9 +32,7 @@ public:
 
 	Address address;
 	AnswerWatingSessionManager watingSessionManager_;
-	std::function<void(const Address& addr)> onRouterConnect;
-	std::function<void(const Address& addr)> onRouterClose;
-
+	
 	virtual void OnCreate() override;
 	virtual void OnAccept() override;
 	virtual void OnConnect();

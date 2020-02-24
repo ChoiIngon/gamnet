@@ -66,8 +66,6 @@ void Session::AnswerWatingSessionManager::Clear()
 
 Session::Session() : Network::Tcp::Session() 
 {
-	onRouterConnect = [](const Address&) {};
-	onRouterClose = [](const Address&) {};
 }
 
 Session::~Session() 
@@ -81,16 +79,11 @@ void Session::OnCreate()
 
 void Session::OnAccept() 
 {
-	onRouterClose = LinkManager::onRouterClose;
 }
 
 void Session::OnConnect()
 {	
-	LOG(GAMNET_INF, "[Router] [", link->link_key, "/", session_key, "/", Singleton<LinkManager>::GetInstance().local_address.service_name.c_str(), "] connect success..(remote ip:", GetRemoteAddress().to_string(), ")");
-	MsgRouter_SetAddress_Req req;
-	req.router_address = Singleton<LinkManager>::GetInstance().local_address;
-	Network::Tcp::SendMsg(std::static_pointer_cast<Session>(shared_from_this()), req, false);
-	LOG(GAMNET_INF, "[Router] [", link->link_key, "/", session_key, "/", Singleton<LinkManager>::GetInstance().local_address.service_name.c_str(),"] localhost->", GetRemoteAddress().to_string(), " send MsgRouter_SetAddress_Req(", req.router_address.service_name, ":", ToString<ROUTER_CAST_TYPE>(req.router_address.cast_type), ":", req.router_address.id, ")");
+	Singleton<LinkManager>::GetInstance().on_connect(address);
 }
 
 void Session::OnClose(int reason)
@@ -99,7 +92,7 @@ void Session::OnClose(int reason)
 	if("" != address.service_name)
 	{
 		Singleton<RouterCaster>::GetInstance().UnregisterAddress(address);
-		onRouterClose(address);
+		Singleton<LinkManager>::GetInstance().on_close(address);
 	}
 	watingSessionManager_.Clear();
 }

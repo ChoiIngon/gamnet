@@ -16,17 +16,22 @@ void RouterHandler::Recv_SetAddress_Req(const std::shared_ptr<Session>& session,
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 		}
-		LOG(INF, "[Router] [", session->link->link_key, "/", session->session_key, "/", req.router_address.service_name, "] ", session->GetRemoteAddress().to_string(), "->localhost recv MsgRouter_SetAddress_Req(", req.router_address.service_name, ":", ToString<ROUTER_CAST_TYPE>(req.router_address.cast_type), ":", req.router_address.id, ")");
-		LOG(INF, "[Router] [", session->link->link_key, "/", session->session_key, "/", req.router_address.service_name, "] set remote router address(", req.router_address.service_name, ":", ToString<ROUTER_CAST_TYPE>(req.router_address.cast_type), ":", req.router_address.id, ")");
-		session->address = req.router_address;
+		LOG(INF, "[Router] [", session->link->link_key, "/", session->session_key, "] ", session->GetRemoteAddress().to_string(), "->localhost recv MsgRouter_SetAddress_Req(", req.router_address.service_name, ":", ToString<ROUTER_CAST_TYPE>(req.router_address.cast_type), ":", req.router_address.id, ")");
 		ans.router_address = Singleton<LinkManager>::GetInstance().local_address;
+		if (false == Singleton<RouterCaster>::GetInstance().RegisterAddress(req.router_address, session))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::DuplicateRouterAddress, "[Router] [", session->link->link_key, "/", session->session_key, "] MsgRouter_SetAddress_Ans(error_code:", ans.error_code, ")");
+		}
+		
+		session->OnConnect();
+		Singleton<LinkManager>::GetInstance().Connect(req.host.c_str(), req.port, 5);
 	}
 	catch(const Exception& e) {
 		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 		ans.error_code = e.error_code();
 	}
 
-	LOG(INF, "[Router] [", session->link->link_key, "/", session->session_key, "/", req.router_address.service_name, "] localhost->", session->GetRemoteAddress().to_string(), " send MsgRouter_SetAddress_Ans(", ans.router_address.service_name, ":", ToString<ROUTER_CAST_TYPE>(ans.router_address.cast_type), ":", ans.router_address.id, ")");
+	LOG(INF, "[Router] [", session->link->link_key, "/", session->session_key, "/", req.router_address.service_name, "] localhost->", session->GetRemoteAddress().to_string(), " send MsgRouter_SetAddress_Ans(", ans.router_address.ToString(), ")");
 	SendMsg(session, ans, false);
 }
 void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
@@ -42,22 +47,22 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 		{
 			//std::shared_ptr<Link> _link = session->link;
 			//_link->Close(ans.error_code);
-			LOG(ERR, "[Router] [", session->link->link_key, "/", session->session_key, "/", ans.router_address.service_name, "] MsgRouter_SetAddress_Ans(error_code:", ans.error_code, ")");
+			LOG(ERR, "[Router] [", session->link->link_key, "/", session->session_key, "] MsgRouter_SetAddress_Ans(error_code:", ans.error_code, ")");
 			return;
 		}
 
-		LOG(GAMNET_INF, "[Router] [", session->link->link_key, "/", session->session_key, "/", ans.router_address.service_name, "] ", session->GetRemoteAddress().to_string(), "->localhost recv MsgRouter_SetAddress_Ans(", ans.router_address.service_name, ":", ToString<ROUTER_CAST_TYPE>(ans.router_address.cast_type), ":", ans.router_address.id, ")");
-		session->address = ans.router_address;
-		if(false == Singleton<RouterCaster>::GetInstance().RegisterAddress(ans.router_address, session))
-		{
-			LOG(ERR, "[Router] [", session->link->link_key, "/", session->session_key, "/", ans.router_address.service_name, "] MsgRouter_SetAddress_Ans(error_code:", ans.error_code, ")");
-			return;
-		}
+		LOG(GAMNET_INF, "[Router] [", session->link->link_key, "/", session->session_key, "] ", session->GetRemoteAddress().to_string(), "->localhost recv MsgRouter_SetAddress_Ans(", ans.router_address.service_name, ":", ToString<ROUTER_CAST_TYPE>(ans.router_address.cast_type), ":", ans.router_address.id, ")");
+		//session->address = ans.router_address;
+		//if(false == Singleton<RouterCaster>::GetInstance().RegisterAddress(ans.router_address, session))
+		//{
+		//	LOG(ERR, "[Router] [", session->link->link_key, "/", session->session_key, "] MsgRouter_SetAddress_Ans(error_code:", ans.error_code, ")");
+		//	return;
+		//}
 		
-		MsgRouter_SetAddress_Ntf ntf;
-		LOG(GAMNET_INF, "[Router] [", session->link->link_key, "/", session->session_key, "/", ans.router_address.service_name, "] localhost->", session->GetRemoteAddress().to_string(), " send MsgRouter_SetAddress_Ntf()");
-		SendMsg(session, ntf);
-		session->onRouterConnect(session->address);
+		//MsgRouter_SetAddress_Ntf ntf;
+		//LOG(GAMNET_INF, "[Router] [", session->link->link_key, "/", session->session_key, "] localhost->", session->GetRemoteAddress().to_string(), " send MsgRouter_SetAddress_Ntf()");
+		//SendMsg(session, ntf);
+		//session->onRouterConnect(session->address);
 	}
 	catch(const Exception& e) {
 		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code() ,")");
@@ -65,6 +70,7 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 }
 void RouterHandler::Recv_SetAddress_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 {
+	/*
 	MsgRouter_SetAddress_Ntf ntf;
 	try {
 		if(false == Network::Tcp::Packet::Load(ntf, packet))
@@ -82,6 +88,7 @@ void RouterHandler::Recv_SetAddress_Ntf(const std::shared_ptr<Session>& session,
 	catch(const Exception& e) {
 		LOG(Log::Logger::LOG_LEVEL_ERR, "exception(error_code:", e.error_code(), ", message:", e.what(), ")");
 	}
+	*/
 }
 
 void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
