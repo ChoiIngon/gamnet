@@ -17,6 +17,7 @@ void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& se
 		}
 
 		LOG(DEV, "MsgCliSvr_SendMessage_Ntf(session_key:", session->session_key, ", message:", ntfCliSvr.Message, ")");
+		ntfSvrCli.Message = ntfCliSvr.Message;
 	}
 	catch (const Gamnet::Exception& e)
 	{
