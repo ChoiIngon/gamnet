@@ -14,20 +14,26 @@ public class UnityClient : MonoBehaviour
 	public Button button_close;
 	public ScrollRect scrollrect;
 	public Text text_log;
-	public GameObject go;
+	public bool run_in_background;
 
 	private Gamnet.Session session = new Gamnet.Session();
 	private Coroutine coroutine = null;
 	private bool pause_toggle = false;
-	private uint msg_seq = 1;
-	
+		
 	private string host;
 	private int port;
     private int line_count = 0;
     private const int LINE_LIMIT = 1000;
 	private const int TimeoutError = 1000;
 
-	void Start ()
+	private void Awake()
+	{
+		if (true == Application.isEditor)
+		{
+			Application.runInBackground = run_in_background;
+		}
+	}
+	private void Start ()
 	{
 		input_host.text = PlayerPrefs.GetString("host");
 		input_port.text = PlayerPrefs.GetInt("port").ToString();
@@ -54,11 +60,8 @@ public class UnityClient : MonoBehaviour
 
 		button_pause.onClick.AddListener(() =>	
 		{
- 			if (false == pause_toggle)
+ 			if (Gamnet.Session.ConnectionState.Connected == session.state)
 			{
-				button_pause.transform.Find("Text").GetComponent<Text>().text = "Play";
-				pause_toggle = true;
-
 				if (null != coroutine)
 				{
 					StopCoroutine(coroutine);
@@ -68,8 +71,6 @@ public class UnityClient : MonoBehaviour
             }
 			else
 			{
-				button_pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
-				pause_toggle = false;
 				coroutine = StartCoroutine(SendHeartBeat());
 			}
 		});
@@ -79,12 +80,15 @@ public class UnityClient : MonoBehaviour
 
         session.onConnect += () => {
 			Log("connect success to " + host + ":" + port);
+			button_pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
 		};
 		session.onResume += () => {
             Log("resume");
-        };
+			button_pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
+		};
         session.onClose += () => {
-            Log("close");
+			button_pause.transform.Find("Text").GetComponent<Text>().text = "Resume";
+			Log("close");
         };
         session.onError += (Gamnet.Exception e) => {
 			Log(e.ToString());
@@ -160,11 +164,8 @@ public class UnityClient : MonoBehaviour
 		
 		if (Application.platform == RuntimePlatform.WindowsEditor)
 		{
-			idlc_path = idlc_path.Replace('/', '\\');
-			message_path = message_path.Replace('/', '\\');
-			System.Diagnostics.Process.Start(idlc_path + "\\idlc", "/K -lcs " + message_path + "\\Message.idl");
-			Debug.Log("copy " + message_path + "\\Message.cs " + Application.dataPath.Replace('/', '\\') + "\\Scripts\\IDL\\Message.cs");
-			System.Diagnostics.Process.Start("copy", message_path + "\\Message.cs " + Application.dataPath.Replace('/', '\\') + "\\Scripts\\IDL\\Message.cs");
+			System.Diagnostics.Process.Start(idlc_path + "/idlc", "/K -lcs " + message_path + "/Message.idl");
+			System.IO.File.Copy(message_path + "/Message.cs", Application.dataPath + "/Scripts/IDL/Message.cs", true);
 		}
 		/*
 		else if(Application.platform == RuntimePlatform.OSXEditor)

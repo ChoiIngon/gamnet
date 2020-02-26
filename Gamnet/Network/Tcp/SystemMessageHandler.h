@@ -158,7 +158,7 @@ public:
 		Json::FastWriter writer;
 		std::string str = writer.write(ans);
 
-		packet->Write(MSG_ID::MsgID_SvrCli_HeartBeat_Ans, str.c_str(), str.length());
+		sendPacket->Write(MSG_ID::MsgID_SvrCli_HeartBeat_Ans, str.c_str(), str.length());
 		link->AsyncSend(sendPacket);
 	}
 
