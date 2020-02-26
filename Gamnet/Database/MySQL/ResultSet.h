@@ -47,13 +47,15 @@ namespace Gamnet { namespace Database { namespace MySQL {
 			iterator();
 			iterator(const std::shared_ptr<ResultSetImpl>& impl);
 
+			iterator& operator * ();
+			iterator& operator ++ ();
 			iterator& operator ++ (int);
 			iterator* operator -> ();
 
 			bool operator != (const ResultSet::iterator& itr) const;
 			bool operator == (const ResultSet::iterator& itr) const;
 			
-			const std::string getString(const std::string& column_name);
+			const std::string getString(const std::string& column_name) const;
 			uint32_t getUInt(const std::string& column_name);
 			uint16_t getUInt16(const std::string& column_name);
 			uint32_t getUInt32(const std::string& column_name);
@@ -65,7 +67,7 @@ namespace Gamnet { namespace Database { namespace MySQL {
 			bool getBool(const std::string& column_name);
 			float getFloat(const std::string& column_name);
 			double getDouble(const std::string& column_name);
-			Variant operator [] (const std::string& column_name);
+			Variant operator [] (const std::string& column_name) const;
 		};
 
 		ResultSet();

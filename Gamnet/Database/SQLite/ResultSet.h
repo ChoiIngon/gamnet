@@ -32,13 +32,15 @@ namespace Gamnet { namespace Database { namespace SQLite {
 			iterator();
 			iterator(const std::shared_ptr<ResultSetImpl>& impl);
 
+			iterator& operator * ();
+			iterator& operator ++ ();
 			iterator& operator ++ (int);
 			iterator* operator -> ();
 
 			bool operator != (const ResultSet::iterator& itr) const;
 			bool operator == (const ResultSet::iterator& itr) const;
 
-			Variant operator[] (const std::string& name);
+			Variant operator[] (const std::string& name) const;
 		};
 
 		ResultSet();

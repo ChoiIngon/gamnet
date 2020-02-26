@@ -203,6 +203,24 @@ ResultSet::iterator::iterator(const std::shared_ptr<ResultSetImpl>& impl) : impl
 	}
 }
 
+ResultSet::iterator& ResultSet::iterator::operator * ()
+{
+	return *this;
+}
+
+ResultSet::iterator& ResultSet::iterator::operator ++ ()
+{
+	if (nullptr == impl_)
+	{
+		row_ = nullptr;
+	}
+	else
+	{
+		row_ = mysql_fetch_row(impl_->res_);
+	}
+	return *this;
+}
+
 ResultSet::iterator& ResultSet::iterator::operator ++ (int)
 {
 	if (nullptr == impl_)
@@ -261,7 +279,7 @@ ResultSet::iterator ResultSet::operator [] (unsigned int index)
 	return itr;
 }
 
-const std::string ResultSet::iterator::getString(const std::string& column_name)
+const std::string ResultSet::iterator::getString(const std::string& column_name) const
 {
 	auto itr = impl_->mapColumnName_.find(column_name);
 	if (impl_->mapColumnName_.end() == itr)
@@ -402,7 +420,7 @@ double ResultSet::iterator::getDouble(const std::string& column_name)
 	}
 }
 
-Variant ResultSet::iterator::operator [] (const std::string& column_name)
+Variant ResultSet::iterator::operator [] (const std::string& column_name) const
 {
 	Variant var(getString(column_name));
 	return var;

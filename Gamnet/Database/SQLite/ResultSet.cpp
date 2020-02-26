@@ -53,6 +53,16 @@ namespace Gamnet { namespace Database { namespace SQLite {
 		}
 	}
 
+	ResultSet::iterator& ResultSet::iterator::operator * ()
+	{
+		return *this;
+	}
+
+	ResultSet::iterator& ResultSet::iterator::operator ++ ()
+	{
+		++itr_;
+		return *this;
+	}
 	ResultSet::iterator& ResultSet::iterator::operator ++ (int)
 	{
 		itr_++;
@@ -91,7 +101,7 @@ namespace Gamnet { namespace Database { namespace SQLite {
 		return itr;
 	}
 
-	Variant ResultSet::iterator::operator [] (const std::string& column_name)
+	Variant ResultSet::iterator::operator [] (const std::string& column_name) const
 	{
 		auto itr = impl_->mapColumnName_.find(column_name);
 		if (impl_->mapColumnName_.end() == itr)

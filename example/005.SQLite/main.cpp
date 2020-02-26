@@ -1,6 +1,12 @@
 #include <Gamnet.h>
 #include <boost/program_options.hpp>
 
+enum SQLITE_DB
+{
+	INVALID = 0,
+	USER_DATA = 1
+};
+
 int main(int argc, char** argv) 
 {
 	boost::program_options::options_description desc("All Options");
@@ -25,21 +31,26 @@ int main(int argc, char** argv)
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 	try {
-		Gamnet::Database::SQLite::Connect(1, "user_db");
-		Gamnet::Database::SQLite::Execute(1, "DROP TABLE IF EXISTS user_data");
-		Gamnet::Database::SQLite::Execute(1, "CREATE TABLE `user_data` ("
+		Gamnet::Database::SQLite::Connect(SQLITE_DB::USER_DATA, "user_db");
+		Gamnet::Database::SQLite::Execute(SQLITE_DB::USER_DATA, "DROP TABLE IF EXISTS user_data");
+		Gamnet::Database::SQLite::Execute(SQLITE_DB::USER_DATA, 
+			"CREATE TABLE `user_data` ("
 				"`user_id` TEXT NOT NULL PRIMARY KEY,"
 				"`user_seq` INTEGER NOT NULL"
 			")"
 		);
 
-		Gamnet::Database::SQLite::Execute(1, "INSERT INTO `user_data`(`user_id`, `user_seq`) VALUES('USER_001', 1)");
-		Gamnet::Database::SQLite::Execute(1, "INSERT INTO `user_data`(`user_id`, `user_seq`) VALUES('USER_002', 2)");
+		Gamnet::Database::SQLite::Execute(SQLITE_DB::USER_DATA,
+			"INSERT INTO `user_data`(`user_id`, `user_seq`) VALUES('USER_001', 1)"
+		);
+		Gamnet::Database::SQLite::Execute(SQLITE_DB::USER_DATA, 
+			"INSERT INTO `user_data`(`user_id`, `user_seq`) VALUES('USER_002', 2)"
+		);
 
-		Gamnet::Database::SQLite::ResultSet rows = Gamnet::Database::SQLite::Execute(1, "SELECT `user_id`, `user_seq` FROM `user_data`");
-		for(auto& row=rows.begin(); row != rows.end(); row++)
+		Gamnet::Database::SQLite::ResultSet rows = Gamnet::Database::SQLite::Execute(SQLITE_DB::USER_DATA, "SELECT `user_id`, `user_seq` FROM `user_data`");
+		for(const auto& row : rows)
 		{
-			LOG(INF, "user_id:", (std::string)row["user_id"], ", user_seq:", (int)row["user_seq"]);
+			LOG(INF, "user_id:", (std::string)row["user_id"], ", user_seq:", (float)row["user_seq"]);
 		}
 	}
 	catch(const Gamnet::Exception& e)
