@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<server>
+  <log path="log" prefix="server" max_file_size="5">
+    <dev console="yes" file="yes" sys="no"/>
+    <inf console="yes" file="yes" sys="no"/>
+    <wrn console="yes" file="yes" sys="no"/>
+    <err console="yes" file="yes" sys="no"/>
+  </log>
+  
+</server>
