@@ -18,10 +18,10 @@ public class UnityClient : MonoBehaviour
 
 	private Gamnet.Session session = new Gamnet.Session();
 	private Coroutine coroutine = null;
-	private bool pause_toggle = false;
 		
 	private string host;
 	private int port;
+	private int msg_seq;
     private int line_count = 0;
     private const int LINE_LIMIT = 1000;
 	private const int TimeoutError = 1000;
@@ -39,7 +39,7 @@ public class UnityClient : MonoBehaviour
 		input_port.text = PlayerPrefs.GetInt("port").ToString();
 
 		session.RegisterHandler<Message.MsgSvrCli_SendMessage_Ntf>((MsgSvrCli_SendMessage_Ntf ntf) => {
-			Log("RECV MsgSvrCli_SendMessage_Ntf(message:" + ntf.Message + ")");
+			Log("RECV MsgSvrCli_SendMessage_Ntf(" + ntf.Message + ")");
 		});
 
 		button_connect.onClick.AddListener(() => 
@@ -54,7 +54,8 @@ public class UnityClient : MonoBehaviour
 		button_send.onClick.AddListener(() =>
 		{
 			Message.MsgCliSvr_SendMessage_Ntf ntf = new Message.MsgCliSvr_SendMessage_Ntf();
-			ntf.Message = "Hello World";
+			msg_seq++;
+			ntf.Message = "Hello World:" + msg_seq;
 			session.SendMsg(ntf, true);
 		});
 
@@ -62,34 +63,32 @@ public class UnityClient : MonoBehaviour
 		{
  			if (Gamnet.Session.ConnectionState.Connected == session.state)
 			{
-				if (null != coroutine)
-				{
-					StopCoroutine(coroutine);
-				}
-				coroutine = null;
-                session.Pause();
+				session.Pause();
             }
-			else
-			{
-				coroutine = StartCoroutine(SendHeartBeat());
-			}
 		});
 		button_close.onClick.AddListener(() => {
 			session.Close();
 		});
 
-        session.onConnect += () => {
+        session.onConnect += () => 
+		{
+			button_pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
+			coroutine = StartCoroutine(SendHeartBeat());
 			Log("connect success to " + host + ":" + port);
-			button_pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
 		};
-		session.onResume += () => {
+
+		session.onResume += () => 
+		{
+			button_pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
             Log("resume");
-			button_pause.transform.Find("Text").GetComponent<Text>().text = "Pause";
 		};
-        session.onClose += () => {
+
+        session.onClose += () => 
+		{
 			button_pause.transform.Find("Text").GetComponent<Text>().text = "Resume";
 			Log("close");
         };
+
         session.onError += (Gamnet.Exception e) => {
 			Log(e.ToString());
 			if(TimeoutError == e.ErrorCode)
@@ -104,23 +103,16 @@ public class UnityClient : MonoBehaviour
 		};
 	}
 
-	IEnumerator SendHeartBeat() {
-		/*
-		while (true) {
-			
-			//if (Gamnet.Session.ConnectionState.Connected == session.state)
-			{
-				MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
-				ntf.msg_seq = msg_seq++;
-				Log ("MsgCliSvr_HeartBeat_Ntf(msg_seq:" + ntf.msg_seq + ")");
-				session.SendMsg (ntf, true);			
-			}
-
-			yield return new WaitForSeconds(1.0f);
-
+	IEnumerator SendHeartBeat()
+	{
+		while (true)
+		{
+			Message.MsgCliSvr_SendMessage_Ntf ntf = new Message.MsgCliSvr_SendMessage_Ntf();
+			msg_seq++;
+			ntf.Message = "[auto] Hello World:" + msg_seq;
+			session.SendMsg (ntf, true);			
+			yield return new WaitForSeconds(10.0f);
 		}
-		*/
-		yield break;
 	}
 	// Update is called once per frame
 	void Update () {
