@@ -68,9 +68,6 @@
     <ClCompile Include="Database\Redis\ResultSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Database\Database.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Network\Link.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
