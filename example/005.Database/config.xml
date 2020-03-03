@@ -6,5 +6,5 @@
     <wrn console="yes" file="yes" sys="no"/>
     <err console="yes" file="yes" sys="no"/>
   </log>
-  
+
 </server>
