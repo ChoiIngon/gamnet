@@ -1,13 +1,13 @@
 # Gamnet
 
-'gamnet' is boost asio based TCP/IP server framwork. It supports automatic client connction mananging, server to server communication by using logical address(not ip and port number), structured message format(..and serialize/deserialize compiler) and some helpful functions for your service.
+'Gamnet' is boost asio based TCP/IP server framwork. It supports automatic client connction mananging, server to server communication by using logical address(not ip and port number), structured message format(..and serialize/deserialize compiler) and some helpful functions for your service.
 
 # Features
 
 - managing automatic create/delete client session resource
 - managing network event(connect, close, receive, send) and timer event
 - supports structured message and serialize/deserialize code generate compiler
-- supports MySQL
+- supports MySQL, SQLite, Redis
 - supports server to server communication
 - supports log library
 - supports unit test tool
