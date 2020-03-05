@@ -74,13 +74,21 @@ namespace Gamnet { namespace Database {	namespace Redis {
 				size_t readBytes = socket.read_some(boost::asio::buffer(data, 1024 * 6));
 				buffer.insert(buffer.end(), &data[0], &data[readBytes]);
 			} while (false == impl->Parse(std::string(&buffer[0], buffer.size())));
+
+			if ("" != impl->error)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::RedisResultError, impl->error);
+			}
+
 			return impl;
 		}
-		catch (const std::exception& e)
+		catch(const boost::system::system_error& e)
 		{
-			socket.close();
-			throw e;
+			LOG(ERR, "error_code:", e.code(), ", reason:", e.what());
 		}
+		
+		socket.close();
+		return nullptr;
 	}
 
 	

@@ -31,6 +31,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "004.Router", "example\004.R
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "005.Database", "example\005.Database\005.Database.vcxproj", "{840A801A-D81E-4A1D-8FFF-680610888782}"
+	ProjectSection(ProjectDependencies) = postProject
+		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E} = {019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -56,17 +56,17 @@ namespace Gamnet { namespace Database { namespace MySQL {
 			bool operator == (const ResultSet::iterator& itr) const;
 			
 			const std::string getString(const std::string& column_name) const;
-			uint32_t getUInt(const std::string& column_name);
-			uint16_t getUInt16(const std::string& column_name);
-			uint32_t getUInt32(const std::string& column_name);
-			uint64_t getUInt64(const std::string& column_name);
-			int32_t getInt(const std::string& column_name);
-			int16_t getInt16(const std::string& column_name);
-			int32_t getInt32(const std::string& column_name);
-			int64_t getInt64(const std::string& column_name);
-			bool getBool(const std::string& column_name);
-			float getFloat(const std::string& column_name);
-			double getDouble(const std::string& column_name);
+			uint32_t getUInt(const std::string& column_name) const;
+			uint16_t getUInt16(const std::string& column_name) const;
+			uint32_t getUInt32(const std::string& column_name) const;
+			uint64_t getUInt64(const std::string& column_name) const;
+			int32_t getInt(const std::string& column_name) const;
+			int16_t getInt16(const std::string& column_name) const;
+			int32_t getInt32(const std::string& column_name) const;
+			int64_t getInt64(const std::string& column_name) const;
+			bool getBool(const std::string& column_name) const;
+			float getFloat(const std::string& column_name) const;
+			double getDouble(const std::string& column_name) const;
 			Variant operator [] (const std::string& column_name) const;
 		};
 

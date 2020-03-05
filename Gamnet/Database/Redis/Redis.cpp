@@ -77,19 +77,12 @@ namespace Gamnet { namespace Database { namespace Redis {
 	ResultSet Execute(int db_type, const std::string& query)
 	{
 		ResultSet res;
-		try
+		std::shared_ptr<Connection> conn = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
+		if (nullptr == conn)
 		{
-			std::shared_ptr<Connection> conn = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
-			if (nullptr != conn)
-			{
-				res.impl_ = conn->Execute(query);
-			}
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "can not connect redis server(db_type:", db_type, ")");
 		}
-		catch (const std::exception& ex)
-		{
-			LOG(WRN, "redis query failed(error:", ex.what(), ", query:", query, ")");
-			res.impl_ = nullptr;
-		}
+		res.impl_ = conn->Execute(query);
 		return res;
 	}
 

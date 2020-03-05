@@ -54,6 +54,7 @@ public :
 		EncryptFinalFail			= 203,
 		DecryptUpdateFail			= 204,
 		DecryptFinalFail			= 205,
+		RedisResultError			= 300,
 		UndefinedError				= 999
 	};
 };
