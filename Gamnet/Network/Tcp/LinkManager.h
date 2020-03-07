@@ -136,18 +136,17 @@ public:
 	
 	void DestroySession(uint32_t session_key)
 	{
-		std::shared_ptr<SESSION_T> session = session_manager.Find(session_key);
+		std::shared_ptr<Session> session = session_manager.Find(session_key);
 		if (nullptr == session)
 		{
 			LOG(WRN, "can not find session(", name,"::session_key:", session_key, ")");
 			return;
 		}
 	
-		session_manager.Remove(session->session_key);
 		assert(session->link);
 		session->link->strand.wrap([=] () {
 			session->handover_safe = false;
-			this->link->Close(ErrorCode::Success);
+			session->link->Close(ErrorCode::Success);
 		})();
 	}
 
