@@ -81,8 +81,11 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 }}}
 
+#define TOKEN_PASTE(x, y) x##y
+#define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
+
 #define GAMNET_BIND_TCP_HANDLER(session_type, message_type, class_type, func, policy) \
-	static bool Network_##message_type##_##func = Gamnet::Network::Tcp::BindHandler<session_type>( \
+	static bool TOKEN_PASTE2(Network_##message_type##_##func, __LINE__) = Gamnet::Network::Tcp::BindHandler<session_type>( \
 			message_type::MSG_ID, \
 			#message_type, \
 			&class_type::func, \

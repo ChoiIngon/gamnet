@@ -85,9 +85,6 @@ namespace Gamnet { namespace Test {
 	}
 }}
 
-#define TOKEN_PASTE(x, y) x##y
-#define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
-
 #define GAMNET_BIND_TEST_HANDLER(session_type, test_name, send_msg_type, send_func, recv_msg_type, recv_func) \
 	static bool TOKEN_PASTE2(Test_##send_msg_type##_##send_func##_, __LINE__) = Gamnet::Test::BindHandler<session_type, send_msg_type, recv_msg_type>( \
 			test_name, \

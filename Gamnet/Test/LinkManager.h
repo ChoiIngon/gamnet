@@ -1,7 +1,7 @@
 #ifndef GAMNET_TEST_TESTER_H_
 #define GAMNET_TEST_TESTER_H_
 
-#include "../Network/Tcp/LinkManager.h"
+#include "../Network/Tcp/Tcp.h"
 #include "../Library/ThreadPool.h"
 #include "Session.h"
 #include "TestHandler.h"
