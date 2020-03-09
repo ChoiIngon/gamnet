@@ -73,13 +73,11 @@ void Test_LeaveChannel_Ans(const std::shared_ptr<TestSession>& session, const st
 
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_LeaveChannel",
-	MsgCliSvr_LeaveChannel_Req, MsgSvrCli_LeaveChannel_Ans,
-	Test_LeaveChannel_Req, Test_LeaveChannel_Ans
+	MsgCliSvr_LeaveChannel_Req, Test_LeaveChannel_Req, 
+	MsgSvrCli_LeaveChannel_Ans, Test_LeaveChannel_Ans
 );
 
-GAMNET_BIND_TEST_RECV_HANDLER(
-	TestSession, MsgSvrCli_LeaveChannel_Ans, Test_LeaveChannel_Ans
-);
+GAMNET_BIND_TEST_RECV_HANDLER(TestSession, "", MsgSvrCli_LeaveChannel_Ans, Test_LeaveChannel_Ans);
 
 void Test_LeaveChannel_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
@@ -98,5 +96,5 @@ void Test_LeaveChannel_Ntf(const std::shared_ptr<TestSession>& session, const st
 }
 
 GAMNET_BIND_TEST_RECV_HANDLER(
-	TestSession, MsgSvrCli_LeaveChannel_Ntf, Test_LeaveChannel_Ntf
+	TestSession, "", MsgSvrCli_LeaveChannel_Ntf, Test_LeaveChannel_Ntf
 );

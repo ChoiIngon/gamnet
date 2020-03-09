@@ -87,12 +87,13 @@ void Test_JoinChannel_Ans(const std::shared_ptr<TestSession>& session, const std
 
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_JoinChannel",
-	MsgCliSvr_JoinChannel_Req, MsgSvrCli_JoinChannel_Ans,
-	Test_JoinChannel_Req, Test_JoinChannel_Ans
+	MsgCliSvr_JoinChannel_Req, Test_JoinChannel_Req, 
+	MsgSvrCli_JoinChannel_Ans, Test_JoinChannel_Ans
 );
 
 GAMNET_BIND_TEST_RECV_HANDLER(
-	TestSession, MsgSvrCli_JoinChannel_Ans, Test_JoinChannel_Ans
+	TestSession, "", 
+	MsgSvrCli_JoinChannel_Ans, Test_JoinChannel_Ans
 );
 
 void Test_JoinChannel_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
@@ -116,6 +117,4 @@ void Test_JoinChannel_Ntf(const std::shared_ptr<TestSession>& session, const std
 	}
 }
 
-GAMNET_BIND_TEST_RECV_HANDLER(
-	TestSession, MsgSvrCli_JoinChannel_Ntf,	Test_JoinChannel_Ntf
-);
+GAMNET_BIND_TEST_RECV_HANDLER(TestSession, "", MsgSvrCli_JoinChannel_Ntf,	Test_JoinChannel_Ntf);

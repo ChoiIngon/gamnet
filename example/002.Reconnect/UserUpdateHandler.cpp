@@ -63,7 +63,7 @@ void Test_UserUpdate_Ans(const std::shared_ptr<TestSession>& session, const std:
 
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_UserUpdate",
-	MsgCliSvr_UserUpdate_Req, MsgSvrCli_UserUpdate_Ans,
-	Test_UserUpdate_Req, Test_UserUpdate_Ans
+	MsgCliSvr_UserUpdate_Req, Test_UserUpdate_Req, 
+	MsgSvrCli_UserUpdate_Ans, Test_UserUpdate_Ans
 );
 

@@ -28,9 +28,16 @@ namespace Gamnet { namespace Test {
 	}
 
 	template<class SESSION_T, class MSG_T>
-	bool BindRecvHandler(typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	bool BindRecvHandler(const std::string& test_name, typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
-		Singleton<LinkManager<SESSION_T>>::GetInstance().BindGlobalRecvHandler(MSG_T::MSG_ID, recv);
+		if("" != test_name)
+		{
+			Singleton<LinkManager<SESSION_T>>::GetInstance().BindRecvHandler(test_name, MSG_T::MSG_ID, recv);
+		}
+		else
+		{
+			Singleton<LinkManager<SESSION_T>>::GetInstance().BindGlobalRecvHandler(MSG_T::MSG_ID, recv);
+		}
 		return true;
 	}
 
@@ -81,13 +88,13 @@ namespace Gamnet { namespace Test {
 #define TOKEN_PASTE(x, y) x##y
 #define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
 
-#define GAMNET_BIND_TEST_HANDLER(session_type, test_name, send_msg_type, recv_msg_type, send_func, recv_func) \
+#define GAMNET_BIND_TEST_HANDLER(session_type, test_name, send_msg_type, send_func, recv_msg_type, recv_func) \
 	static bool TOKEN_PASTE2(Test_##send_msg_type##_##send_func##_, __LINE__) = Gamnet::Test::BindHandler<session_type, send_msg_type, recv_msg_type>( \
 			test_name, \
 			&send_func, &recv_func \
 	)
 
-#define GAMNET_BIND_TEST_RECV_HANDLER(session_type, msg_type, recv_func) \
-	static bool TOKEN_PASTE2(Test_##msg_type##_##func##_, __LINE__) = Gamnet::Test::BindRecvHandler<session_type, msg_type>(&recv_func)
+#define GAMNET_BIND_TEST_RECV_HANDLER(session_type, test_name, msg_type, recv_func) \
+	static bool TOKEN_PASTE2(Test_##msg_type##_##func##_, __LINE__) = Gamnet::Test::BindRecvHandler<session_type, msg_type>(test_name, &recv_func)
 
 #endif /* TEST_H_ */

@@ -28,11 +28,9 @@ namespace Gamnet {
 		AtomicPtr(const Atomic<T>* obj) : ptr(const_cast<Atomic<T>*>(obj)) {
 			ptr->lock.lock();
 		}
-		/*
 		AtomicPtr(const std::shared_ptr<Atomic<T>>& obj) : ptr(const_cast<Atomic<T>*>(obj.get())) {
 			ptr->lock.lock();
 		}
-		*/
 		~AtomicPtr() {
 			ptr->lock.unlock();
 		}

@@ -68,7 +68,7 @@ void Test_UserLogin_Ans(const std::shared_ptr<TestSession>& session, const std::
 
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_UserLogin",
-	MsgCliSvr_UserLogin_Req, MsgSvrCli_UserLogin_Ans,
-	Test_UserLogin_Req, Test_UserLogin_Ans
+	MsgCliSvr_UserLogin_Req, Test_UserLogin_Req, 
+	MsgSvrCli_UserLogin_Ans, Test_UserLogin_Ans
 );
 

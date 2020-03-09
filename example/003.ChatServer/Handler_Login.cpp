@@ -80,8 +80,8 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_Login",
-	MsgCliSvr_Login_Req, MsgSvrCli_Login_Ans,
-	Test_Login_Req, Test_Login_Ans
+	MsgCliSvr_Login_Req, Test_Login_Req, 
+	MsgSvrCli_Login_Ans, Test_Login_Ans
 );
 
 static std::string USER_IDS[] = {
@@ -102,8 +102,8 @@ void Test_DuplicateLogin_Req(const std::shared_ptr<TestSession>& session)
 
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_DuplicateLogin",
-	MsgCliSvr_Login_Req, MsgSvrCli_Login_Ans,
-	Test_DuplicateLogin_Req, Test_Login_Ans
+	MsgCliSvr_Login_Req, Test_DuplicateLogin_Req, 
+	MsgSvrCli_Login_Ans, Test_Login_Ans
 );
 
 void Test_Kickout_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
@@ -123,8 +123,4 @@ void Test_Kickout_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 	throw GAMNET_EXCEPTION(ErrorCode::DuplicateConnectionError);
 }
 
-GAMNET_BIND_TEST_RECV_HANDLER(
-	TestSession, 
-	MsgSvrCli_Kickout_Ntf,
-	Test_Kickout_Ntf
-);
+GAMNET_BIND_TEST_RECV_HANDLER(TestSession, "", MsgSvrCli_Kickout_Ntf,	Test_Kickout_Ntf);

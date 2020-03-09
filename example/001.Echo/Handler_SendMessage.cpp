@@ -100,8 +100,8 @@ void Test_SvrCli_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, co
 
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_SendMessage",
-	MsgCliSvr_SendMessage_Ntf, MsgSvrCli_SendMessage_Ntf,
-	Test_CliSvr_SendMessage_Ntf, Test_SvrCli_SendMessage_Ntf
+	MsgCliSvr_SendMessage_Ntf, Test_CliSvr_SendMessage_Ntf, 
+	MsgSvrCli_SendMessage_Ntf, Test_SvrCli_SendMessage_Ntf
 );
 
 static std::mutex lock;
