@@ -11,29 +11,42 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 class CastGroup 
 {
-	template<class T> friend class AtomicPtr;
-	std::mutex _lock;
-public:
-	struct Init 
+public :
+	friend class LockGuard;
+	struct Init
 	{
 		CastGroup* operator () (CastGroup* group);
 	};
+	
+	class LockGuard
+	{
+		std::shared_ptr<CastGroup> ptr;
+	public:
+		LockGuard(const std::shared_ptr<CastGroup>& obj);
+		~LockGuard();
 
+		std::shared_ptr<CastGroup> operator -> ();
+	};
+public :
 	CastGroup();
 	virtual ~CastGroup();
 
-	std::map<uint32_t, std::shared_ptr<Session>> sessions;
-	uint32_t group_seq;
+private :
+	std::mutex lock;
 
-	virtual size_t AddSession(const std::shared_ptr<Session>& session);
-	virtual size_t DelSession(const std::shared_ptr<Session>& session);
+public :
+	uint32_t group_seq;
+	std::map<uint32_t, std::shared_ptr<Session>> sessions;
+
+	size_t Insert(const std::shared_ptr<Session>& session);
+	size_t Remove(const std::shared_ptr<Session>& session);
 	void Clear();
 	size_t Size();
 
 	template <class MSG>
 	bool SendMsg(const MSG& msg, bool reliable = false)
 	{
-		if(false == reliable)
+		if (false == reliable)
 		{
 			std::shared_ptr<Packet> packet = Packet::Create();
 			if (nullptr == packet)
@@ -57,7 +70,7 @@ public:
 				session->AsyncSend(packet);
 			}
 		}
-		else 
+		else
 		{
 			for (auto itr : sessions)
 			{
@@ -84,11 +97,8 @@ public:
 		return true;
 	}
 
+public:
 	static std::shared_ptr<CastGroup> Create();
-public :
-	void lock();
-	bool try_lock();
-	void unlock();
 };
 
 }}}

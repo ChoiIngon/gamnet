@@ -4,10 +4,9 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
-LinkManager::LinkManager()
+LinkManager::LinkManager() : heartbeat_group(Tcp::CastGroup::Create())
 {
 	name = "Gamnet::Network::Router::LinkManager";
-	heartbeat_group = Tcp::CastGroup::Create();
 }
 
 LinkManager::~LinkManager() {
@@ -30,8 +29,8 @@ void LinkManager::Listen(const char* service_name, int port, const std::function
 	heartbeat_timer.AutoReset(true);
 	heartbeat_timer.SetTimer(60000, [this] () {
 		MsgRouter_HeartBeat_Ntf ntf;
-		AtomicPtr<Tcp::CastGroup> lockedCastGroup(heartbeat_group);
-		LOG(GAMNET_INF, "[Router] send heartbeat message(connected server count:", heartbeat_group->Size(), ")");
+		Tcp::CastGroup::LockGuard lockedCastGroup(heartbeat_group);
+		LOG(GAMNET_INF, "[Router] send heartbeat message(connected server count:", lockedCastGroup->Size(), ")");
 		lockedCastGroup->SendMsg(ntf);
 	});
 
@@ -121,8 +120,8 @@ void LinkManager::OnClose(const std::shared_ptr<Network::Link>& link, int reason
 	tcpLink->session = nullptr;
 
 	Remove(tcpLink->link_key);
-	AtomicPtr<Tcp::CastGroup> lockedCastGroup(heartbeat_group);
-	lockedCastGroup->DelSession(session);
+	Tcp::CastGroup::LockGuard lockedCastGroup(heartbeat_group);
+	lockedCastGroup->Remove(session);
 }
 
 void LinkManager::OnRecvMsg(const std::shared_ptr<Network::Link>& link, const std::shared_ptr<Buffer>& buffer) 

@@ -26,7 +26,7 @@ void Handler_SendMessage::Recv_Ntf(const std::shared_ptr<ChatSession>& session, 
 		MsgSvrCli_SendMessage_Ntf ntfSvrCli;
 		ntfSvrCli.ChatSEQ = ntfCliSvr.ChatSEQ;
 		ntfSvrCli.ChatMessage = ntfCliSvr.ChatMessage;
-		Gamnet::AtomicPtr<Gamnet::Network::Tcp::CastGroup> lockedPtr(session->chat_channel);
+		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(session->chat_channel);
 		lockedPtr->SendMsg(ntfSvrCli);
 	}
 	catch (const Gamnet::Exception& e)

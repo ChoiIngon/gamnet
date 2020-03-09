@@ -26,8 +26,8 @@ void Handler_LeaveChannel::Recv_Req(const std::shared_ptr<ChatSession>& session,
 
 		ntf.LeaveUserData = session->user_data;
 
-		Gamnet::AtomicPtr<Gamnet::Network::Tcp::CastGroup> lockedPtr(session->chat_channel);
-		lockedPtr->DelSession(session);
+		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(session->chat_channel);
+		lockedPtr->Remove(session);
 		Gamnet::Network::Tcp::SendMsg(session, ans, true);
 		lockedPtr->SendMsg(ntf, true);
 		session->chat_channel = nullptr;

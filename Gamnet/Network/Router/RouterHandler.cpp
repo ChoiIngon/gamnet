@@ -50,8 +50,8 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 	session->address = ans.router_address;
 	session->OnConnect();
 
-	AtomicPtr<Tcp::CastGroup> lockedCastGroup(Singleton<LinkManager>::GetInstance().heartbeat_group);
-	lockedCastGroup->AddSession(session);
+	Tcp::CastGroup::LockGuard lockedCastGroup(Singleton<LinkManager>::GetInstance().heartbeat_group);
+	lockedCastGroup->Insert(session);
 }
 
 void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)

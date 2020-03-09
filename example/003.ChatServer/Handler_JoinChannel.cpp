@@ -25,16 +25,16 @@ void Handler_JoinChannel::Recv_Req(const std::shared_ptr<ChatSession>& session, 
 			throw GAMNET_EXCEPTION(ErrorCode::CanNotCreateCastGroup);
 		}
 
-		ans.ChannelSEQ = session->chat_channel->group_seq;
+		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(session->chat_channel);
+		ans.ChannelSEQ = lockedPtr->group_seq;
 		ntf.NewUserData = session->user_data;
 
-		Gamnet::AtomicPtr<Gamnet::Network::Tcp::CastGroup> lockedPtr(session->chat_channel);
 		for(auto& itr : lockedPtr->sessions)
 		{
 			std::shared_ptr<ChatSession> chatSession = std::static_pointer_cast<ChatSession>(itr.second);
 			ans.ExistingUserData.push_back(chatSession->user_data);
 		}		
-		lockedPtr->AddSession(session);
+		lockedPtr->Insert(session);
 		if(2 > lockedPtr->Size())
 		{
 			Gamnet::Singleton<Manager_CastGroup>::GetInstance().AddCastGroup(session->chat_channel);

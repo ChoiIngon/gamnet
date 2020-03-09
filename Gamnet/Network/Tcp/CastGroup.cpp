@@ -12,6 +12,21 @@ CastGroup* CastGroup::Init::operator() (CastGroup* group)
 	return group;
 }
 
+CastGroup::LockGuard::LockGuard(const std::shared_ptr<CastGroup>& obj) : ptr(obj)
+{
+	ptr->lock.lock();
+}
+
+CastGroup::LockGuard::~LockGuard()
+{
+	ptr->lock.unlock();
+}
+
+std::shared_ptr<CastGroup> CastGroup::LockGuard::operator -> ()
+{
+	return ptr;
+}
+
 CastGroup::CastGroup() : group_seq(0)
 {
 }
@@ -20,7 +35,7 @@ CastGroup::~CastGroup()
 {
 }
 
-size_t CastGroup::AddSession(const std::shared_ptr<Session>& session)
+size_t CastGroup::Insert(const std::shared_ptr<Session>& session)
 {
 	if (false == sessions.insert(std::make_pair(session->session_key, session)).second)
 	{
@@ -29,7 +44,7 @@ size_t CastGroup::AddSession(const std::shared_ptr<Session>& session)
 	return sessions.size();
 }
 
-size_t CastGroup::DelSession(const std::shared_ptr<Session>& session)
+size_t CastGroup::Remove(const std::shared_ptr<Session>& session)
 {
 	sessions.erase(session->session_key);
 	return sessions.size();
@@ -43,21 +58,6 @@ void CastGroup::Clear()
 size_t CastGroup::Size()
 {
 	return sessions.size();
-}
-
-void CastGroup::lock() 
-{
-	_lock.lock();
-}
-
-bool CastGroup::try_lock() 
-{ 
-	return true; 
-}
-
-void CastGroup::unlock()
-{
-	_lock.unlock();
 }
 
 static Pool<CastGroup, std::mutex, CastGroup::Init> _castGroupPool(65535);

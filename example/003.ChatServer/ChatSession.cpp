@@ -34,8 +34,8 @@ void ChatSession::OnDestroy()
 	assert(nullptr != link);
 	if(nullptr != chat_channel)
 	{
-		std::lock_guard<Gamnet::Network::Tcp::CastGroup> lo(*chat_channel);
-		chat_channel->DelSession(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
+		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(chat_channel);
+		lockedPtr->Remove(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
 		chat_channel = nullptr;
 	}
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnDestory");
