@@ -13,7 +13,7 @@ void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& se
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntfCliSvr, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_SendMessage_Ntf(session_key:", session->session_key, ", message:", ntfCliSvr.Message, ")");
@@ -40,7 +40,7 @@ void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
 		//LOG(INF, "RECV MsgSvrSvr_SendMessage_Req(from:", address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", req.Message, ")");
 		ans.Message = req.Message;
@@ -61,7 +61,7 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
 
 		LOG(INF, "RECV MsgSvrSvr_SendMessage_Ans(from:", address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", ans.Message, ")");
@@ -88,7 +88,7 @@ void Test_SvrCli_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, co
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
 		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_SendMessage_Ntf(message:", ntf.Message, ")");
 	}

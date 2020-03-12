@@ -1,4 +1,4 @@
-enum ErrorCode {
+enum GErrorCode {
 	Success = 0,
 	MessageFormatError = 1000,
 	MessageSeqOmmitError = 1001,
@@ -11,7 +11,7 @@ enum ErrorCode {
 	CanNotCreateCastGroup = 5001
 };
 
-struct UserData {
+struct GUserData {
 	string UserID;
 	uint32 UserSEQ;
 };
@@ -23,8 +23,8 @@ message MsgCliSvr_Login_Req : 10000001
 
 message MsgSvrCli_Login_Ans : 10000001
 {
-	ErrorCode	ErrorCode;
-	UserData	UserData;
+	GErrorCode	ErrorCode;
+	GUserData	UserData;
 };
 
 message MsgCliSvr_JoinChannel_Req : 00010001
@@ -33,7 +33,7 @@ message MsgCliSvr_JoinChannel_Req : 00010001
 
 message MsgSvrCli_JoinChannel_Ans : 00010001
 {
-	ErrorCode ErrorCode;
+	GErrorCode ErrorCode;
 };
 
 message MsgSvrCli_JoinChannel_Ntf : 10010001
@@ -73,7 +73,7 @@ message MsgCliSvr_LeaveChannel_Req : 00010003
 
 message MsgSvrCli_LeaveChannel_Ans : 00010003
 {
-	ErrorCode error_code;
+	GErrorCode ErrorCode;
 };
 
 message MsgSvrCli_LeaveChannel_Ntf : 10010003
@@ -83,7 +83,7 @@ message MsgSvrCli_LeaveChannel_Ntf : 10010003
 
 message MsgSvrCli_Kickout_Ntf : 10000003
 {
-	ErrorCode	error_code;
+	GErrorCode	error_code;
 };
 
 message MsgCliSvr_HeartBeat_Ntf : 10000004

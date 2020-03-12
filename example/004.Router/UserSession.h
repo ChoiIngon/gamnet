@@ -21,7 +21,7 @@ public:
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 	
-	UserData user_data;
+	GUserData user_data;
 	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> chat_channel;
 };
 
@@ -44,7 +44,7 @@ class TestSession : public Gamnet::Test::Session {
 public :
 	int64_t channel_seq;
 	int64_t chat_seq;
-	UserData user_data;
+	GUserData user_data;
 	std::set<std::string> user_ids;
 	virtual void OnCreate() override;
 	virtual void OnConnect() override;
