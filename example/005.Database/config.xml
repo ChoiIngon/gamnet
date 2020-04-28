@@ -7,8 +7,8 @@
     <err console="yes" file="yes" sys="no"/>
   </log>
 
-  <redis name="USER_DATA" id="1"  host="localhost" port="6500"/>
-  <mysql name="USER_DATA"	id="1"  host="localhost" port="3306" user="server" db="USER"     passwd="P@ssword"/>
-  <sqlite name="USER_DATA"	id="1"  db="USER"/>
+  <mysql name="USER_DATA"	id="2"  host="localhost" port="3306" db="user_data" user="gamnet" passwd="P@ssword!"/>
+  <sqlite name="USER_DATA"	id="2"  db="user_data.sqlite"/>
+  <redis name="USER_DATA" id="2"  host="localhost" port="6379"/>
   
 </server>

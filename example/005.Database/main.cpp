@@ -4,10 +4,11 @@
 enum DATABASE_TYPE
 {
 	INVALID = 0,
-	USER_DATA = 1
+	USER_DATA = 1,
+	CONFIG_DB_ID = 2
 };
 
-void Example_MySQL()
+void Example_MySQL(const char* config_path)
 {
 	using namespace Gamnet::Database::MySQL;
 
@@ -62,17 +63,30 @@ void Example_MySQL()
 		transaction.Execute("INSERT INTO item_data(user_seq, item_id) values(", i + 1, ",'ITEM_", i + 1, "')");
 		transaction.Commit();
 	}
-
-	ResultSet ret = Execute(DATABASE_TYPE::USER_DATA,
-		"SELECT item_seq, user_seq, item_id from item_data"
-	);
-	for(const auto& row : ret)
 	{
-		LOG(INF, "[MySQL] item_seq:", (int)row["item_seq"], ", user_seq:", (int)row["user_seq"], ", item_id:", (std::string)row["item_id"]);
+		ResultSet ret = Execute(DATABASE_TYPE::USER_DATA,
+			"SELECT item_seq, user_seq, item_id from item_data"
+		);
+		for(const auto& row : ret)
+		{
+			LOG(INF, "[MySQL] item_seq:", (int)row["item_seq"], ", user_seq:", (int)row["user_seq"], ", item_id:", (std::string)row["item_id"]);
+		}
+	}
+
+	// using config file
+	ReadXml(config_path);
+	{
+		ResultSet ret = Execute(DATABASE_TYPE::CONFIG_DB_ID,
+			"SELECT item_seq, user_seq, item_id from item_data"
+		);
+		for (const auto& row : ret)
+		{
+			LOG(INF, "[MySQL] item_seq:", (int)row["item_seq"], ", user_seq:", (int)row["user_seq"], ", item_id:", (std::string)row["item_id"]);
+		}
 	}
 }
 
-void Example_SQLite()
+void Example_SQLite(const char* config_path)
 {
 	using namespace Gamnet::Database::SQLite;
 	// 1. create sqlite database file
@@ -115,16 +129,30 @@ void Example_SQLite()
 		transaction.Commit();
 	}
 
-	ResultSet ret = Execute(DATABASE_TYPE::USER_DATA,
-		"SELECT item_seq, user_seq, item_id from item_data"
-	);
-	for (const auto& row : ret)
 	{
-		LOG(INF, "[SQLite] item_seq:", (int)row["item_seq"], ", user_seq:", (int)row["user_seq"], ", item_id:", (std::string)row["item_id"]);
+		ResultSet ret = Execute(DATABASE_TYPE::USER_DATA,
+			"SELECT item_seq, user_seq, item_id from item_data"
+		);
+		for (const auto& row : ret)
+		{
+			LOG(INF, "[SQLite] item_seq:", (int)row["item_seq"], ", user_seq:", (int)row["user_seq"], ", item_id:", (std::string)row["item_id"]);
+		}
+	}
+
+	// using config file
+	ReadXml(config_path);
+	{
+		ResultSet ret = Execute(DATABASE_TYPE::CONFIG_DB_ID,
+			"SELECT item_seq, user_seq, item_id from item_data"
+		);
+		for (const auto& row : ret)
+		{
+			LOG(INF, "[MySQL] item_seq:", (int)row["item_seq"], ", user_seq:", (int)row["user_seq"], ", item_id:", (std::string)row["item_id"]);
+		}
 	}
 }
 
-void Example_Redis()
+void Example_Redis(const char* config_path)
 {
 	using namespace Gamnet::Database::Redis;
 
@@ -132,7 +160,7 @@ void Example_Redis()
 	//  db_type :			
 	//		you can access this connection by index(DATABASE_TYPE::USER_DATA = 1).
 	//		if connection information(host, port..etc) is changed, the only thing you have to do is chage parameter of 'Connect' function
-	Connect(DATABASE_TYPE::USER_DATA, "127.0.0.1", 6379);
+	Connect(DATABASE_TYPE::USER_DATA, "localhost", 6379);
 	Execute(DATABASE_TYPE::USER_DATA, "FLUSHALL");
 	for(int i=0; i<100; i++)
 	{
@@ -140,6 +168,16 @@ void Example_Redis()
 		std::string value = Get(DATABASE_TYPE::USER_DATA, Gamnet::Format(i + 1));
 		LOG(INF, "[Redis] user_id:", value);
 	}
+
+	ReadXml(config_path);
+
+	for (int i = 0; i < 100; i++)
+	{
+		Set(DATABASE_TYPE::CONFIG_DB_ID, Gamnet::Format(i + 1), Gamnet::Format("USER_", i + 1));
+		std::string value = Get(DATABASE_TYPE::CONFIG_DB_ID, Gamnet::Format(i + 1));
+		LOG(INF, "[Redis] user_id:", value);
+	}
+
 }
 
 int main(int argc, char** argv) 
@@ -166,9 +204,9 @@ int main(int argc, char** argv)
 	LOG(INF, "005.Database Server Starts config=", config_path);
 
 	try {
-		Example_MySQL();
-		Example_SQLite();
-		Example_Redis();
+		Example_MySQL(config_path);
+		Example_SQLite(config_path);
+		Example_Redis(config_path);
 	}
 	catch(const Gamnet::Exception& e)
 	{

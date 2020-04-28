@@ -60,6 +60,10 @@ namespace Gamnet { namespace Database { namespace Redis {
 	{
 		Connection::ConnectionInfo connInfo;
 		connInfo.host = host;
+		if("localhost" == connInfo.host)
+		{
+			connInfo.host = "127.0.0.1";
+		}
 		connInfo.port = port;
 
 		if(false == connectionInfos.insert(std::make_pair(db_type, connInfo)).second)

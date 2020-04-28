@@ -12,6 +12,8 @@ namespace Gamnet { namespace Database { namespace SQLite {
 	{
 		return Execute(db_type, Format(args...));
 	}
+
+	void ReadXml(const char* xml_path);
 }}}
 
 #endif /* DATABASE_H_ */
