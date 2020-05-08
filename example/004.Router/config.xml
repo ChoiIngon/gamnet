@@ -9,8 +9,9 @@
 
   <tcp port="40000" max_count="8000" accept_queue="100" keep_alive="30"/>
   <http port="40001"/>
+
+  <farm host="127.0.0.1" port="6379"/>
   <router name="Router" port="40002">
-    <farm host="127.0.0.1" port="6379"/>
     <remote name="Echo" host="127.0.0.1" port="10002"/>
     <remote name="Router" host="127.0.0.1" port="40002"/>
   </router>

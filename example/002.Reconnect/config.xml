@@ -9,9 +9,8 @@
 
   <tcp port="20000" max_count="8000" accept_queue="100" keep_alive="30"/>
   <http port="20001"/>
-  <router name="Reconnect" port="20002">
-    <farm host="127.0.0.1" port="6379"/>
-  </router>
+  <farm host="127.0.0.1" port="6379"/>
+  <router name="Reconnect" port="20002"/>
   
   <test host="127.0.0.1" port="20000" session_count="1" loop_count="1" interval="1000">
     <message name="Test_UserLogin"/>

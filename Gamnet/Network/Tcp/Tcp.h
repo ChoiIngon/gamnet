@@ -26,13 +26,26 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	void ReadXml(const char* xml_path)
 	{
 		boost::property_tree::ptree ptree_;
-		boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
+		try {
+			boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
+		}
+		catch(const boost::property_tree::xml_parser_error& e)
+		{
+			throw Exception(ErrorCode::FileNotFound, e.what());
+		}
 
-		int port = ptree_.get<int>("server.tcp.<xmlattr>.port");
-		int max_count = ptree_.get<int>("server.tcp.<xmlattr>.max_count");
-		int keep_alive = ptree_.get<int>("server.tcp.<xmlattr>.keep_alive");
-		int accept_queue = ptree_.get<int>("server.tcp.<xmlattr>.accept_queue");
-		Listen<SESSION_T>(port, max_count, keep_alive, accept_queue);
+		try {
+			int port = ptree_.get<int>("server.tcp.<xmlattr>.port");
+			int max_count = ptree_.get<int>("server.tcp.<xmlattr>.max_count");
+			int keep_alive = ptree_.get<int>("server.tcp.<xmlattr>.keep_alive");
+			int accept_queue = ptree_.get<int>("server.tcp.<xmlattr>.accept_queue");
+			Listen<SESSION_T>(port, max_count, keep_alive, accept_queue);
+		}
+		catch (const boost::property_tree::ptree_bad_path& e)
+		{
+			std::cerr << "[Gamnet::Tcp]" << e.what() << std::endl;
+			throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, e.what());
+		}
 	}
 
 	template <class SESSION_T, class FUNC, class FACTORY>
