@@ -2,8 +2,8 @@
 
 UserSession::UserSession()
 {
-
 }
+
 UserSession::~UserSession()
 {
 
@@ -11,7 +11,6 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
-	//LOG(DEV, "[session_key:", session_key, "] 'UserSession' is created");
 }
 
 void UserSession::OnAccept()

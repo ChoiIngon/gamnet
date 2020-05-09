@@ -9,10 +9,8 @@
 
   <tcp port="30000" max_count="8000" accept_queue="100" keep_alive="30"/>
   <http port="30001"/>
-  <farm host="127.0.0.1" port="6379"/>
-  <router name="Chat" port="30002"/>
   
-  <test host="127.0.0.1" port="30000" session_count="2" loop_count="1" interval="1000">
+  <test host="127.0.0.1" port="30000" session_count="4" loop_count="1" interval="1000">
 	  <message name="Test_Login"/>
     <message name="Test_JoinChannel"/>
     <message name="Test_SendMessage"/>

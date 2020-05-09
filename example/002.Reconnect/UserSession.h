@@ -2,7 +2,7 @@
 #define SESSION_H_
 
 #include <Gamnet.h>
-#include "UserMessage.h"
+#include "../idl/Message.h"
 
 class UserSession : public Gamnet::Network::Tcp::Session 
 {
@@ -14,7 +14,7 @@ public:
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 
-	UserData user_data;
+	std::shared_ptr<Gamnet::Component> component;
 };
 
 class TestSession : public Gamnet::Test::Session 

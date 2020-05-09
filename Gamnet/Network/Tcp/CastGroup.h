@@ -44,7 +44,7 @@ public :
 	size_t Size();
 
 	template <class MSG>
-	bool SendMsg(const MSG& msg, bool reliable = false)
+	bool SendMsg(const MSG& msg, bool reliable = true)
 	{
 		if (false == reliable)
 		{

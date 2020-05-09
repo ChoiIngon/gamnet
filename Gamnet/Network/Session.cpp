@@ -20,6 +20,7 @@ std::string Session::GenerateSessionToken(uint32_t session_key)
 
 
 Session::Session() :
+	strand(io_service_),
 	session_key(0),
 	session_token(""),
 	link(nullptr)
@@ -46,40 +47,44 @@ void Session::Clear()
 
 bool Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	if(nullptr == link)
+	auto ln = link;
+	if(nullptr == ln)
 	{
 		LOG(ERR, "invalid link[session_key:", session_key, "]");
 		return false;
 	}
-	link->AsyncSend(buffer);
+	ln->AsyncSend(buffer);
 	return true;
 }
 
 bool Session::AsyncSend(const char* data, int length)
 {
-	if (nullptr == link)
+	auto ln = link;
+	if (nullptr == ln)
 	{
 		LOG(ERR, "invalid link[session_key:", session_key, "]");
 		return false;
 	}
-	link->AsyncSend(data, length);
+	ln->AsyncSend(data, length);
 	return true;
 }
 int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	if (nullptr == link)
+	auto ln = link;
+	if (nullptr == ln)
 	{
 		return -1;
 	}
-	return link->SyncSend(buffer);
+	return ln->SyncSend(buffer);
 }
 int Session::SyncSend(const char* data, int length)
 {
-	if (nullptr == link)
+	auto ln = link;
+	if (nullptr == ln)
 	{
 		return -1;
 	}
-	return link->SyncSend(data, length);
+	return ln->SyncSend(data, length);
 }
 
 const boost::asio::ip::address& Session::GetRemoteAddress() const

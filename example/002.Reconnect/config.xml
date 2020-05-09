@@ -13,7 +13,7 @@
   <router name="Reconnect" port="20002"/>
   
   <test host="127.0.0.1" port="20000" session_count="1" loop_count="1" interval="1000">
-    <message name="Test_UserLogin"/>
-    <message name="Test_UserUpdate"/>
+    <message name="Test_Login"/>
+    <message name="Test_UpdateFrame"/>
   </test>
 </server>

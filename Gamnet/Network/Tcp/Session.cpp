@@ -37,11 +37,16 @@ bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 {
 	if (true == packet->reliable)
 	{
-		link->strand.wrap([=]() {
+		std::shared_ptr<Link> ln = std::static_pointer_cast<Link>(link);
+		if(nullptr == ln)
+		{
+			return false;
+		}
+		ln->strand.wrap([=]() {
 			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
 			{
 				this->handover_safe = false;
-				link->Close(ErrorCode::SendQueueOverflowError);
+				ln->Close(ErrorCode::SendQueueOverflowError);
 				return;
 			}
 

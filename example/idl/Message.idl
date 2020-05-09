@@ -1,4 +1,5 @@
-enum GErrorCode {
+enum GErrorCode 
+{
 	Success = 0,
 	MessageFormatError = 1000,
 	MessageSeqOmmitError = 1001,
@@ -11,20 +12,32 @@ enum GErrorCode {
 	CanNotCreateCastGroup = 5001
 };
 
-struct GUserData {
+struct GUserData 
+{
 	string UserID;
 	uint32 UserSEQ;
+	uint32 Frame;
 };
 
-message MsgCliSvr_Login_Req : 10000001
+message MsgCliSvr_Login_Req : 1
 {
 	string	UserID;
 };
 
-message MsgSvrCli_Login_Ans : 10000001
+message MsgSvrCli_Login_Ans : 1
 {
 	GErrorCode	ErrorCode;
 	GUserData	UserData;
+};
+
+message MsgCliSvr_UpdateFrame_Req : 2
+{
+};
+
+message MsgSvrCli_UpdateFrame_Ans : 2
+{
+	GErrorCode	ErrorCode;
+	uint32 Frame;
 };
 
 message MsgCliSvr_JoinChannel_Req : 00010001
@@ -34,12 +47,14 @@ message MsgCliSvr_JoinChannel_Req : 00010001
 message MsgSvrCli_JoinChannel_Ans : 00010001
 {
 	GErrorCode ErrorCode;
+	uint32 ChannelSEQ;
+	list<GUserData> UserDatas;
 };
 
 message MsgSvrCli_JoinChannel_Ntf : 10010001
 {
-	string SessionKey;
-	int32 SessionCount;
+	uint32 UserCount;
+	GUserData NewUserData;
 };
 
 message MsgCliSvr_SendMessage_Ntf : 1020
@@ -49,21 +64,13 @@ message MsgCliSvr_SendMessage_Ntf : 1020
 
 message MsgSvrCli_SendMessage_Ntf : 1020
 {
-	string Message;
-};
-
-message MsgSvrSvr_SendMessage_Req : 0021
-{
-	string Message;
-};
-
-message MsgSvrSvr_SendMessage_Ans : 0022
-{
+	string UserID;
 	string Message;
 };
 
 message MsgSvrSvr_SendMessage_Ntf : 1022
 {
+	string UserID;
 	string Message;
 };
 
@@ -78,12 +85,12 @@ message MsgSvrCli_LeaveChannel_Ans : 00010003
 
 message MsgSvrCli_LeaveChannel_Ntf : 10010003
 {
-	string session_key;
+	GUserData LeaveUserData;
 };
 
 message MsgSvrCli_Kickout_Ntf : 10000003
 {
-	GErrorCode	error_code;
+	GErrorCode	ErrorCode;
 };
 
 message MsgCliSvr_HeartBeat_Ntf : 10000004

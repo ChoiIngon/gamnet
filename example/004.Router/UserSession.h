@@ -20,32 +20,29 @@ public:
 	virtual void OnAccept() override;
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
-	
-	GUserData user_data;
-	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> chat_channel;
 };
 
-class Manager_Session 
+class Manager_Session
 {
-private:
-	Gamnet::Timer timer;
-	std::mutex lock;
-
-	std::map<std::string, std::shared_ptr<UserSession>> sessions;
+	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> cast_group;
 public:
 	Manager_Session();
 	virtual ~Manager_Session();
 	void Init();
-	const std::shared_ptr<UserSession> Add(const std::string& user_id, const std::shared_ptr<UserSession>& session);
-	void Remove(const std::string& key);
+
+	void Add(std::shared_ptr<Gamnet::Network::Tcp::Session> session);
+	void Remove(std::shared_ptr<Gamnet::Network::Tcp::Session> session);
+
+	template <class MSG>
+	bool SendMsg(const MSG& msg, bool reliable = true)
+	{
+		Gamnet::Network::Tcp::CastGroup::LockGuard lo(cast_group);
+		return lo->SendMsg(msg, reliable);
+	}
 };
 
 class TestSession : public Gamnet::Test::Session {
 public :
-	int64_t channel_seq;
-	int64_t chat_seq;
-	GUserData user_data;
-	std::set<std::string> user_ids;
 	virtual void OnCreate() override;
 	virtual void OnConnect() override;
 	virtual void OnClose(int reason) override;

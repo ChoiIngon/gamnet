@@ -1,13 +1,13 @@
-#ifndef USER_LOGIN_HANDLER_H_
-#define USER_LOGIN_HANDLER_H_
+#ifndef HANDLER_UPDATE_FRAME_H_
+#define HANDLER_UPDATE_FRAME_H_
 
 #include "UserSession.h"
 
-class UserLoginHandler : public Gamnet::Network::IHandler
+class Handler_UpdateFrame : public Gamnet::Network::IHandler
 {
 public:
-	UserLoginHandler();
-	virtual ~UserLoginHandler();
+	Handler_UpdateFrame();
+	virtual ~Handler_UpdateFrame();
 
 	void Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
 };

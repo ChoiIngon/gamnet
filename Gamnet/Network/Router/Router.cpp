@@ -50,9 +50,20 @@ void ReadXml(const char* xml_path, const std::function<void(const Address& addr)
 		int port = router.get<int>("<xmlattr>.port");
 
 		Listen(service_name.c_str(), port, connect_callback, close_callback);
-
-		if(ptree_.find("server.farm") != ptree_.not_found())
+		Connect(Network::Tcp::GetLocalAddress().to_v4().to_string().c_str(), port, 5);
+		for (const auto& remote : router)
 		{
+			if ("remote" != remote.first)
+			{
+				continue;
+			}
+
+			const std::string remote_host = remote.second.get<std::string>("<xmlattr>.host");
+			int remote_port = remote.second.get<int>("<xmlattr>.port");
+			Connect(remote_host.c_str(), remote_port, 5);
+		}
+
+		try {
 			auto farm = ptree_.get_child("server.farm");
 			std::string farm_host = farm.get<std::string>("<xmlattr>.host");
 			int farm_port = farm.get<int>("<xmlattr>.port");
@@ -87,18 +98,9 @@ void ReadXml(const char* xml_path, const std::function<void(const Address& addr)
 			router_info["port"] = port;
 			Database::Redis::Publish(-1, "__router__", router_info);
 		}
-		Connect(Network::Tcp::GetLocalAddress().to_v4().to_string().c_str(), port, 5);
-
-		for(const auto& remote : router)
+		catch(boost::property_tree::ptree_bad_path& e)
 		{
-			if("remote" != remote.first)
-			{
-				continue;
-			}
-
-			const std::string remote_host = remote.second.get<std::string>("<xmlattr>.host");
-			int remote_port = remote.second.get<int>("<xmlattr>.port");
-			Connect(remote_host.c_str(), remote_port, 5);
+			// do nothing
 		}
 	}
 	catch (const boost::property_tree::ptree_bad_path& e)

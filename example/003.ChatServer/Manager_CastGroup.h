@@ -1,21 +1,20 @@
 #ifndef MANAGER_CHANNEL_H_
 #define MANAGER_CHANNEL_H_
 
-#include <Gamnet.h>
+#include "UserSession.h"
 
 class Manager_CastGroup 
 {
 private:
 	std::mutex lock;
 
-	std::deque<std::shared_ptr<Gamnet::Network::Tcp::CastGroup>> cast_groups;
+	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> cast_group;
 public:
 	Manager_CastGroup();
 	~Manager_CastGroup();
 
 	void Init();
-	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> GetCastGroup();
-	void AddCastGroup(std::shared_ptr<Gamnet::Network::Tcp::CastGroup> group);
+	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> JoinCastGroup(std::shared_ptr<UserSession> session);
 };
 
 #endif /* MANAGER_SESSION_H_ */

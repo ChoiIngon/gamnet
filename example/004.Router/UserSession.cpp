@@ -11,9 +11,8 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
-	//user_data.UserID = "";
-	chat_channel = nullptr;
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnCreate");
+	Gamnet::Singleton<Manager_Session>::GetInstance().Add(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
 }
 
 void UserSession::OnAccept()
@@ -31,14 +30,8 @@ void UserSession::OnClose(int reason)
 
 void UserSession::OnDestroy()
 {
-	assert(nullptr != link);
-	if(nullptr != chat_channel)
-	{
-		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(chat_channel);
-		lockedPtr->Remove(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
-		chat_channel = nullptr;
-	}
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnDestory");
+	Gamnet::Singleton<Manager_Session>::GetInstance().Remove(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
 }
 
 Manager_Session::Manager_Session() {
@@ -49,33 +42,25 @@ Manager_Session::~Manager_Session() {
 
 void Manager_Session::Init()
 {
+	cast_group = Gamnet::Network::Tcp::CastGroup::Create();
 }
 
 GAMNET_BIND_INIT_HANDLER(Manager_Session, Init);
 
-const std::shared_ptr<UserSession> Manager_Session::Add(const std::string& user_id, const std::shared_ptr<UserSession>& session)
+void Manager_Session::Add(std::shared_ptr<Gamnet::Network::Tcp::Session> session)
 {
-	std::lock_guard<std::mutex> lo(lock);
-	std::shared_ptr<UserSession> old_value = nullptr;
-	auto itr = sessions.find(user_id);
-	if (sessions.end() != itr)
-	{
-		old_value = itr->second;
-	}
-	sessions[user_id] = session;
-	return old_value;
+	Gamnet::Network::Tcp::CastGroup::LockGuard lo(cast_group);
+	lo->Insert(session);
 }
 
-void Manager_Session::Remove(const std::string& user_id)
+void Manager_Session::Remove(std::shared_ptr<Gamnet::Network::Tcp::Session> session)
 {
-	std::lock_guard<std::mutex> lo(lock);
-	sessions.erase(user_id);
+	Gamnet::Network::Tcp::CastGroup::LockGuard lo(cast_group);
+	lo->Remove(session);
 }
 
 void TestSession::OnCreate()
 {
-	channel_seq = 0;
-	chat_seq = 0;
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnCreate");
 }
 
@@ -91,6 +76,5 @@ void TestSession::OnClose(int reason)
 
 void TestSession::OnDestroy()
 {
-	user_ids.clear();
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnDestroy");
 }

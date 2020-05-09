@@ -12,21 +12,21 @@ void Manager_CastGroup::Init()
 
 GAMNET_BIND_INIT_HANDLER(Manager_CastGroup, Init);
 
-std::shared_ptr<Gamnet::Network::Tcp::CastGroup> Manager_CastGroup::GetCastGroup()
+std::shared_ptr<Gamnet::Network::Tcp::CastGroup> Manager_CastGroup::JoinCastGroup(std::shared_ptr<UserSession> session)
 {
 	std::lock_guard<std::mutex> lo(lock);
-	if(0 == cast_groups.size())
+	if(nullptr == cast_group)
 	{
-		cast_groups.push_back(Gamnet::Network::Tcp::CastGroup::Create());
+		cast_group = Gamnet::Network::Tcp::CastGroup::Create();
 	}
-	
-	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> group = cast_groups.front();
-	cast_groups.pop_front();
-	return group;
+
+	std::shared_ptr<Gamnet::Network::Tcp::CastGroup> ret = cast_group;
+
+	Gamnet::Network::Tcp::CastGroup::LockGuard lockedCastGroup(cast_group);
+	if (CHAT_QUORUM <= cast_group->Insert(session))
+	{
+		cast_group = nullptr;
+	}		
+	return ret;
 }
 
-void Manager_CastGroup::AddCastGroup(std::shared_ptr<Gamnet::Network::Tcp::CastGroup> group)
-{
-	std::lock_guard<std::mutex> lo(lock);
-	cast_groups.push_front(group);
-}

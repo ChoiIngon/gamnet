@@ -32,7 +32,7 @@ GAMNET_BIND_TCP_HANDLER(
 	Handler_SendMessage, Recv_CliSvr_Ntf,
 	HandlerStatic
 );
-
+/*
 void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgSvrSvr_SendMessage_Req req;
@@ -136,3 +136,4 @@ void OnRouterClose(const Gamnet::Network::Router::Address& address)
 	addresses.erase(address);
 	LOG(DEV, "OnClose:", address.ToString());
 }
+*/

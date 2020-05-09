@@ -388,6 +388,9 @@
     <ClInclude Include="Network\Acceptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Library\Component.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Network\Router\MsgRouter.idl">

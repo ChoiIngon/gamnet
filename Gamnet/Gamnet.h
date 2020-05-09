@@ -8,6 +8,7 @@
 #include "Library/Atomic.h"
 #include "Library/Base64.h"
 #include "Library/Buffer.h"
+#include "Library/Component.h"
 #include "Library/Delegate.h"
 #include "Library/Exception.h"
 #include "Library/Json/json.h"
@@ -20,6 +21,7 @@
 #include "Library/ThreadPool.h"
 #include "Library/Timer.h"
 #include "Library/Variant.h"
+
 #include "Log/Log.h"
 #include "Test/Test.h"
 

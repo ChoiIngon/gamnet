@@ -1,10 +1,3 @@
-/*
- * Handler_Login.cpp
- *
- *  Created on: 2017. 8. 12.
- *      Author: kukuta
- */
-
 #include "Handler_Login.h"
 
 Handler_Login::Handler_Login() {
@@ -13,41 +6,41 @@ Handler_Login::Handler_Login() {
 Handler_Login::~Handler_Login() {
 }
 
-void Handler_Login::Recv_Req(const std::shared_ptr<ChatSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgCliSvr_Login_Req req;
 	MsgSvrCli_Login_Ans ans;
-	ans.Error = ErrorCode::Success;
+	ans.ErrorCode = GErrorCode::Success;
 
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
-
+		/*
 		const std::shared_ptr<ChatSession> otherSession = Gamnet::Singleton<Manager_Session>::GetInstance().Add(req.UserID, session);
 		if(nullptr != otherSession)
 		{
 			MsgSvrCli_Kickout_Ntf ntf;
-			ntf.Error = ErrorCode::DuplicateConnectionError;
-			Gamnet::Network::Tcp::SendMsg(otherSession, ntf, true);
+			ntf.ErrorCode = GErrorCode::DuplicateConnectionError;
+			Gamnet::Network::Tcp::SendMsg(otherSession, ntf);
 		}
-		
-		ChatUserData& userData = session->user_data;
-		userData.UserID = req.UserID;
-		ans.UserData = userData;
+		*/
+		std::shared_ptr<GUserData> userData = session->component->AddComponent<GUserData>();
+		userData->UserID = req.UserID;
+		ans.UserData = *userData;
 	}
 	catch(const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		ans.Error = (ErrorCode)e.error_code();
+		ans.ErrorCode = (GErrorCode)e.error_code();
 	}
 	
-	Gamnet::Network::Tcp::SendMsg(session, ans, true);
+	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
 GAMNET_BIND_TCP_HANDLER(
-	ChatSession,
+	UserSession,
 	MsgCliSvr_Login_Req,
 	Handler_Login, Recv_Req,
 	HandlerCreate
@@ -67,10 +60,9 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 	try {
 		if(false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
-		session->user_data = ans.UserData;
-		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Login_Ans(error_code:", ToString<ErrorCode>(ans.Error), ")");
+		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Login_Ans(error_code:", ToString<GErrorCode>(ans.ErrorCode), ")");
 	}
 	catch(const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
@@ -112,15 +104,15 @@ void Test_Kickout_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
-		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Kickout_Ntf(error_code:", ToString<ErrorCode>(ntf.Error), ")");
-		session->link->Close((int)ntf.Error);
+		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Kickout_Ntf(error_code:", ToString<GErrorCode>(ntf.ErrorCode), ")");
+		session->link->Close((int)ntf.ErrorCode);
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-	throw GAMNET_EXCEPTION(ErrorCode::DuplicateConnectionError);
+	throw GAMNET_EXCEPTION(GErrorCode::DuplicateConnectionError);
 }
 
 GAMNET_BIND_TEST_RECV_HANDLER(TestSession, "", MsgSvrCli_Kickout_Ntf,	Test_Kickout_Ntf);

@@ -7,52 +7,65 @@ Handler_JoinChannel::Handler_JoinChannel() {
 Handler_JoinChannel::~Handler_JoinChannel() {
 }
 
-void Handler_JoinChannel::Recv_Req(const std::shared_ptr<ChatSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_JoinChannel::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgCliSvr_JoinChannel_Req req;
 	MsgSvrCli_JoinChannel_Ans ans;
-	ans.Error = ErrorCode::Success;
 	MsgSvrCli_JoinChannel_Ntf ntf;
+
+	ans.ErrorCode = GErrorCode::Success;
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
 
-		session->chat_channel = Gamnet::Singleton<Manager_CastGroup>::GetInstance().GetCastGroup();
-		if(nullptr == session->chat_channel)
+		LOG(DEV, "MsgCliSvr_JoinChannel_Req()");
+		std::shared_ptr<GUserData> userData = session->component->GetComponent<GUserData>();
+		if(nullptr == userData)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::CanNotCreateCastGroup);
+			throw GAMNET_EXCEPTION(GErrorCode::InvalidUserError);
 		}
 
-		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(session->chat_channel);
-		ans.ChannelSEQ = lockedPtr->group_seq;
-		ntf.NewUserData = session->user_data;
+		std::shared_ptr<Gamnet::Network::Tcp::CastGroup> castGroup = Gamnet::Singleton<Manager_CastGroup>::GetInstance().JoinCastGroup(session);
+		if(nullptr == castGroup)
+		{
+			throw GAMNET_EXCEPTION(GErrorCode::CanNotCreateCastGroup);
+		}
 
+		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(castGroup);
+		ans.ChannelSEQ = lockedPtr->group_seq;
 		for(auto& itr : lockedPtr->sessions)
 		{
-			std::shared_ptr<ChatSession> chatSession = std::static_pointer_cast<ChatSession>(itr.second);
-			ans.ExistingUserData.push_back(chatSession->user_data);
+			std::shared_ptr<UserSession> existSession = std::static_pointer_cast<UserSession>(itr.second);
+			std::shared_ptr<GUserData> existUserData = existSession->component->GetComponent<GUserData>();
+			if (nullptr == existUserData)
+			{
+				throw GAMNET_EXCEPTION(GErrorCode::InvalidUserError);
+			}
+
+			ans.UserDatas.push_back(*existUserData);
 		}		
-		lockedPtr->Insert(session);
-		if(2 > lockedPtr->Size())
-		{
-			Gamnet::Singleton<Manager_CastGroup>::GetInstance().AddCastGroup(session->chat_channel);
-		}
-		Gamnet::Network::Tcp::SendMsg(session, ans, true);
-		lockedPtr->SendMsg(ntf, true);
+
+		ntf.UserCount = lockedPtr->Size();
+		ntf.NewUserData = *userData;
+		session->chat_channel = castGroup;
+		
+		Gamnet::Network::Tcp::SendMsg(session, ans);
+		lockedPtr->SendMsg(ntf);
+
 		return;
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		ans.Error = (ErrorCode)e.error_code();
+		ans.ErrorCode = (GErrorCode)e.error_code();
 	}
-	Gamnet::Network::Tcp::SendMsg(session, ans, true);
+	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
 GAMNET_BIND_TCP_HANDLER(
-	ChatSession,
+	UserSession,
 	MsgCliSvr_JoinChannel_Req,
 	Handler_JoinChannel, Recv_Req,
 	HandlerStatic
@@ -71,11 +84,12 @@ void Test_JoinChannel_Ans(const std::shared_ptr<TestSession>& session, const std
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
-		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_JoinChannel_Ans(error_code:", ToString<ErrorCode>(ans.Error), ", channel_seq:", ans.ChannelSEQ, ")");
+		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_JoinChannel_Ans(error_code:", ToString<GErrorCode>(ans.ErrorCode), ", channel_seq:", ans.ChannelSEQ, ")");
+
 		session->channel_seq = ans.ChannelSEQ;
-		for(auto& userData : ans.ExistingUserData)
+		for(auto& userData : ans.UserDatas)
 		{
 			session->user_ids.insert(userData.UserID);
 		}
@@ -102,11 +116,11 @@ void Test_JoinChannel_Ntf(const std::shared_ptr<TestSession>& session, const std
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
 
 		session->user_ids.insert(ntf.NewUserData.UserID);
-		if(2 <= session->user_ids.size())
+		if(CHAT_QUORUM <= ntf.UserCount)
 		{
 			session->Next();
 		}

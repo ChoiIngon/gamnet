@@ -130,7 +130,7 @@
     <ClCompile Include="Handler_SendMessage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Manager_CastGroup.cpp" />
-    <ClCompile Include="ChatSession.cpp" />
+    <ClCompile Include="UserSession.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Handler_Http_ServerState.h" />
@@ -139,7 +139,7 @@
     <ClInclude Include="Handler_Login.h" />
     <ClInclude Include="Handler_SendMessage.h" />
     <ClInclude Include="Manager_CastGroup.h" />
-    <ClInclude Include="ChatSession.h" />
+    <ClInclude Include="UserSession.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="config.xml">
@@ -147,10 +147,10 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="ChatMessage.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp %(Filename).idl</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\idlc\Debug\idlc.exe -lcpp %(Filename).idl</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).h</Outputs>
+    <CustomBuild Include="..\idl\Message.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

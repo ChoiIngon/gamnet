@@ -9,7 +9,7 @@ Handler_SendMessage::~Handler_SendMessage() {
 void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgCliSvr_SendMessage_Ntf ntfCliSvr;
-	MsgSvrCli_SendMessage_Ntf ntfSvrCli;
+	MsgSvrSvr_SendMessage_Ntf ntfSvrSvr;
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntfCliSvr, packet))
 		{
@@ -17,12 +17,20 @@ void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& se
 		}
 
 		LOG(DEV, "MsgCliSvr_SendMessage_Ntf(session_key:", session->session_key, ", message:", ntfCliSvr.Message, ")");
+		ntfSvrSvr.Message = ntfCliSvr.Message;
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-	Gamnet::Network::Tcp::SendMsg(session, ntfSvrCli, true);
+	{
+		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::MULTI_CAST, "ROUTER_1", 0);
+		Gamnet::Network::Router::SendMsg(dest, ntfSvrSvr);
+	}
+	{
+		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::MULTI_CAST, "ROUTER_2", 0);
+		Gamnet::Network::Router::SendMsg(dest, ntfSvrSvr);
+	}
 }
 
 GAMNET_BIND_TCP_HANDLER(
@@ -32,46 +40,31 @@ GAMNET_BIND_TCP_HANDLER(
 	HandlerStatic
 );
 
-void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_SendMessage::Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	MsgSvrSvr_SendMessage_Req req;
-	MsgSvrSvr_SendMessage_Ans ans;
+	MsgSvrSvr_SendMessage_Ntf ntfSvrSvr;
+	MsgSvrCli_SendMessage_Ntf ntfSvrCli;
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
+		if (false == Gamnet::Network::Tcp::Packet::Load(ntfSvrSvr, packet))
 		{
 			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
-		//LOG(INF, "RECV MsgSvrSvr_SendMessage_Req(from:", address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", req.Message, ")");
-		ans.Message = req.Message;
+		LOG(INF, "RECV MsgSvrSvr_SendMessage_Ntf(from:", address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", ntfSvrSvr.Message, ")");
+		ntfSvrCli.Message = ntfSvrSvr.Message;
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-	//LOG(INF, "SEND MsgSvrSvr_SendMessage_Ans(from:", Gamnet::Network::Router::GetRouterAddress().service_name, ", to:",address.service_name, ", message:", req.Message, ")");
-	Gamnet::Network::Router::SendMsg(address, ans);
+	LOG(INF, "SEND MsgSvrCli_SendMessage_Ntf(from:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", ntfSvrCli.Message, ")");
+	Gamnet::Singleton<Manager_Session>::GetInstance().SendMsg(ntfSvrCli);
 }
 
-GAMNET_BIND_ROUTER_HANDLER(MsgSvrSvr_SendMessage_Req, Handler_SendMessage, Recv_SvrSvr_Req, HandlerStatic);
-
-void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
-{
-	MsgSvrSvr_SendMessage_Ans ans;
-	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
-		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
-		}
-
-		LOG(INF, "RECV MsgSvrSvr_SendMessage_Ans(from:", address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", ans.Message, ")");
-	}
-	catch (const Gamnet::Exception& e)
-	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-	}
-}
-
-GAMNET_BIND_ROUTER_HANDLER(MsgSvrSvr_SendMessage_Ans, Handler_SendMessage, Recv_SvrSvr_Ans, HandlerStatic);
+GAMNET_BIND_ROUTER_HANDLER(
+	MsgSvrSvr_SendMessage_Ntf, 
+	Handler_SendMessage, Recv_SvrSvr_Ntf, 
+	HandlerStatic
+);
 
 void Test_CliSvr_SendMessage_Ntf(const std::shared_ptr<TestSession>& session)
 {
@@ -103,6 +96,7 @@ GAMNET_BIND_TEST_HANDLER(
 	MsgSvrCli_SendMessage_Ntf, Test_SvrCli_SendMessage_Ntf
 );
 
+/*
 static std::mutex lock;
 static std::set<Gamnet::Network::Router::Address> addresses;
 static Gamnet::Timer timer;
@@ -122,16 +116,4 @@ void StartRouterMessageTimer()
 	});
 }
 
-void OnRouterConnect(const Gamnet::Network::Router::Address& address)
-{
-	std::lock_guard<std::mutex> lo(lock);
-	addresses.insert(address);
-	LOG(INF, "OnConnect:", address.ToString());
-}
-
-void OnRouterClose(const Gamnet::Network::Router::Address& address)
-{
-	std::lock_guard<std::mutex> lo(lock);
-	addresses.erase(address);
-	LOG(DEV, "OnClose:", address.ToString());
-}
+*/
