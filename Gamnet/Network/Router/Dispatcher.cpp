@@ -39,7 +39,7 @@ namespace Gamnet { namespace Network { namespace Router {
 			}
 			
 			assert(nullptr != network_session->link);
-			network_session->link->strand.wrap([=]() {
+			network_session->strand.wrap([=]() {
 				std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
 				if (nullptr == handler)
 				{

@@ -59,7 +59,7 @@ void Session::Pause(int millisecond)
 	is_pause = true;
 	timer.AutoReset(false);
 	timer.SetTimer(millisecond, [=]() {
-		link->strand.wrap(execute_send_handler)(std::static_pointer_cast<Session>(shared_from_this()));
+		strand.wrap(execute_send_handler)(std::static_pointer_cast<Session>(shared_from_this()));
 	}); 
 }
 

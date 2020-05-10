@@ -7,8 +7,18 @@ namespace Gamnet { namespace Database {	namespace Redis {
 
 	static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
+	class Session : public Network::Session
+	{
+	public:
+		virtual void OnCreate() override {}
+		virtual void OnAccept() override {}
+		virtual void OnClose(int reason) override {}
+		virtual void OnDestroy() override {}
+	};
+
 	Connection::Connection() 
 	{
+		session = std::make_shared<Session>();
 	}
 
 	Connection::~Connection() 
@@ -18,32 +28,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	bool Connection::Connect(const ConnectionInfo& connInfo)
 	{
 		connection_info = connInfo;
-
-		timer.Cancel();
-		timer.AutoReset(false);
-		timer.SetTimer(5000, strand.wrap(std::bind(&Link::Close, this, ErrorCode::ConnectTimeoutError)));
-
-		boost::asio::ip::address remote_address;
-		boost::asio::ip::tcp::resolver resolver_(io_service_);
-		boost::asio::ip::tcp::resolver::query query_(connection_info.host, "");
-		for (auto itr = resolver_.resolve(query_); itr != boost::asio::ip::tcp::resolver::iterator(); ++itr)
-		{
-			boost::asio::ip::tcp::endpoint end = *itr;
-			remote_address = end.address();
-			break;
-		}
-		LOG(INF, "[Redis] connect...(host:", remote_address.to_v4().to_string(), ", port:", connection_info.port, ")");
-		boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ remote_address.to_v4().to_string(), Format(connection_info.port).c_str() }));
-		boost::system::error_code ec;
-		socket.connect(endpoint_, ec);
-		if (0 != ec)
-		{
-			LOG(GAMNET_ERR, "[Redis] connect fail(host:", connection_info.host, ", port:", connection_info.port, ")");
-			return false;
-		}
-
-		timer.Cancel();
-		return true;
+		return SyncConnect(connection_info.host.c_str(), connection_info.port, 5);
 	}
 
 	bool Connection::Reconnect()

@@ -9,7 +9,7 @@ static std::atomic<uint32_t> LINK_KEY;
 Link::Link() :
 	read_buffer(nullptr),
 	socket(io_service_),
-	strand(io_service_),
+	session(nullptr),
 	link_key(0)
 {
 }
@@ -38,8 +38,9 @@ void Link::Clear()
 	send_buffers.clear();
 }
 
-void Link::Connect(const char* host, int port, int timeout)
+void Link::AsyncConnect(const char* host, int port, int timeout)
 {
+	assert(nullptr != session);
 	if(nullptr == host)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "host is null");
@@ -67,9 +68,39 @@ void Link::Connect(const char* host, int port, int timeout)
 	if (0 < timeout)
 	{
 		timer.AutoReset(false);
-		timer.SetTimer(timeout * 1000, strand.wrap(std::bind(&Link::Close, self, ErrorCode::ConnectTimeoutError)));
+		timer.SetTimer(timeout * 1000, session->strand.wrap(std::bind(&Link::Close, self, ErrorCode::ConnectTimeoutError)));
 	}
-	socket.async_connect(endpoint_, std::bind(&Link::OnConnectHandler, self, std::placeholders::_1, endpoint_));
+	socket.async_connect(endpoint_, session->strand.wrap(std::bind(&Link::OnConnectHandler, self, std::placeholders::_1, endpoint_)));
+}
+
+bool Link::SyncConnect(const char* host, int port, int timeout)
+{
+	assert(nullptr != session);
+	timer.Cancel();
+	timer.AutoReset(false);
+	timer.SetTimer(timeout * 1000, session->strand.wrap(std::bind(&Link::Close, this, ErrorCode::ConnectTimeoutError)));
+
+	boost::asio::ip::address remote_address;
+	boost::asio::ip::tcp::resolver resolver_(io_service_);
+	boost::asio::ip::tcp::resolver::query query_(host, "");
+	for (auto itr = resolver_.resolve(query_); itr != boost::asio::ip::tcp::resolver::iterator(); ++itr)
+	{
+		boost::asio::ip::tcp::endpoint end = *itr;
+		remote_address = end.address();
+		break;
+	}
+	
+	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ remote_address.to_v4().to_string(), Format(port).c_str() }));
+	boost::system::error_code ec;
+	socket.connect(endpoint_, ec);
+	if (0 != ec)
+	{
+		LOG(GAMNET_ERR, "connect fail(host:", host, ", port:", port, ")");
+		return false;
+	}
+
+	timer.Cancel();
+	return true;
 }
 
 void Link::OnAcceptHandler()
@@ -109,9 +140,10 @@ void Link::OnConnectHandler(const boost::system::error_code& ec, const boost::as
 
 void Link::AsyncRead()
 {
+	assert(nullptr != session);
 	auto self(shared_from_this());
 	socket.async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
-		strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
+		session->strand.wrap([self](boost::system::error_code ec, std::size_t readbytes) {
 			if (0 != ec)
 			{
 				self->Close(ErrorCode::Success);
@@ -128,6 +160,10 @@ void Link::AsyncRead()
 			try 
 			{
 				self->OnRead(self->read_buffer);
+				if(nullptr == self->session)
+				{
+					return;
+				}
 				assert(nullptr != self->read_buffer);
 			}
 			catch(const Exception& e)
@@ -154,17 +190,14 @@ void Link::AsyncSend(const char* buf, int len)
 	AsyncSend(buffer);
 }
 
-void Link::AsyncSend(const std::shared_ptr<Buffer>& buffer)
+void Link::AsyncSend(const std::shared_ptr<Buffer> buffer)
 {
-	auto self(shared_from_this());
-	strand.wrap([self](std::shared_ptr<Buffer> buffer) {
-		bool needFlush = self->send_buffers.empty();
-		self->send_buffers.push_back(buffer);
-		if(true == needFlush)
-		{
-			self->FlushSend();
-		}
-	})(buffer);
+	bool needFlush = send_buffers.empty();
+	send_buffers.push_back(buffer);
+	if (true == needFlush)
+	{
+		FlushSend();
+	}
 }
 
 void Link::FlushSend()
@@ -173,7 +206,7 @@ void Link::FlushSend()
 	{
 		auto self(shared_from_this());
 		const std::shared_ptr<Buffer> buffer = send_buffers.front();
-		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), strand.wrap(std::bind(&Link::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
+		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), session->strand.wrap(std::bind(&Link::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
 	}
 }
 
@@ -193,7 +226,7 @@ void Link::OnSendHandler(const boost::system::error_code& ec, std::size_t transf
 	FlushSend();
 }
 
-int	Link::SyncSend(const std::shared_ptr<Buffer>& buffer)
+int	Link::SyncSend(const std::shared_ptr<Buffer> buffer)
 {
 	int transferredBytes = SyncSend(buffer->ReadPtr(), buffer->Size());
 	if(0 < transferredBytes)

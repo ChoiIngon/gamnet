@@ -17,12 +17,12 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		int64_t expire_time;
 	public :
 		Network::LinkManager* const link_manager;
-		std::shared_ptr<Session>	session;
 
 		virtual bool Init() override;
 		virtual void Clear() override;
 
 		void SetKeepAlive(int sec);
+
 	protected :
 		virtual void OnAccept() override;
 		virtual void OnConnect() override;

@@ -58,7 +58,7 @@ void LinkManager::Connect(const char* host, int port, int timeout)
 	session->OnCreate();
 	
 	session_manager.Add(session->session_key, session);
-	link->Connect(host, port, timeout);
+	link->AsyncConnect(host, port, timeout);
 }
 
 void LinkManager::OnConnect(const std::shared_ptr<Network::Link>& link)

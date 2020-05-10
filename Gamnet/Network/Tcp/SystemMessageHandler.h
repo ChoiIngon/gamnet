@@ -101,23 +101,22 @@ public:
 			}
 
 			assert(nullptr != prevSession->link);
-			prevSession->link->strand.wrap([=]() {
-				if(nullptr != prevSession->link)
+			prevSession->strand.wrap([=]() {
+				if (nullptr != prevSession->link)
 				{
 					prevSession->link->Close(ErrorCode::DuplicateConnectionError);
 					std::static_pointer_cast<Link>(prevSession->link)->timer.Cancel();
 					Singleton<LinkManager<SESSION_T>>::GetInstance().Remove(prevSession->link->link_key);
 				}
-				link->strand.wrap([=]() {
-					prevSession->link = link;
-					link->session = prevSession;
-					prevSession->OnAccept();
+			
+				link->session = prevSession;
+				prevSession->link = link;
+				prevSession->OnAccept();
 
-					for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
-					{
-						link->AsyncSend(sendPacket);
-					}
-				})();
+				for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
+				{
+					link->AsyncSend(sendPacket);
+				}
 			})();
 		}
 		catch (const Exception& e)

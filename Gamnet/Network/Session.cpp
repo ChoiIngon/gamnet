@@ -5,6 +5,7 @@
 #include "../Library/Random.h"
 #include "../Library/Timer.h"
 #include <list>
+#include <future>
 
 namespace Gamnet { namespace Network {
 	
@@ -45,46 +46,51 @@ void Session::Clear()
 	handler_container.Init();
 }
 
-bool Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
+void Session::AsyncSend(const std::shared_ptr<Buffer> buffer)
 {
-	auto ln = link;
-	if(nullptr == ln)
-	{
-		LOG(ERR, "invalid link[session_key:", session_key, "]");
-		return false;
-	}
-	ln->AsyncSend(buffer);
-	return true;
+	auto self = shared_from_this();
+	strand.wrap([self](const std::shared_ptr<Buffer> buffer) {
+		if(nullptr == self->link)
+		{
+			LOG(ERR, "invalid link[session_key:", self->session_key, "]");
+			return;
+		}
+		self->link->AsyncSend(buffer);
+	})(buffer);
 }
 
-bool Session::AsyncSend(const char* data, int length)
+void Session::AsyncSend(const char* data, size_t length)
 {
-	auto ln = link;
-	if (nullptr == ln)
-	{
-		LOG(ERR, "invalid link[session_key:", session_key, "]");
-		return false;
-	}
-	ln->AsyncSend(data, length);
-	return true;
+	std::shared_ptr<Buffer> buffer = Buffer::Create();
+	buffer->Append(data, length);
+	AsyncSend(buffer);
 }
-int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
+
+int Session::SyncSend(const std::shared_ptr<Buffer> buffer)
 {
-	auto ln = link;
-	if (nullptr == ln)
-	{
-		return -1;
-	}
-	return ln->SyncSend(buffer);
+	std::promise<int> sentBytes;
+	//int sentBytes = -1;
+	auto self = shared_from_this();
+	strand.wrap([self, &sentBytes](const std::shared_ptr<Buffer> buffer) {
+		if (nullptr == self->link)
+		{
+			LOG(ERR, "invalid link[session_key:", self->session_key, "]");
+			sentBytes.set_value(-1);
+			//sentBytes = -1;
+			return;
+		}
+		sentBytes.set_value(self->link->SyncSend(buffer));
+		//sentBytes = self->link->SyncSend(buffer);
+	})(buffer);
+	return sentBytes.get_future().get();
+	//return sentBytes;
 }
+
 int Session::SyncSend(const char* data, int length)
 {
-	auto ln = link;
-	if (nullptr == ln)
-	{
-		return -1;
-	}
-	return ln->SyncSend(data, length);
+	std::shared_ptr<Buffer> buffer = Buffer::Create();
+	buffer->Append(data, length);
+	return SyncSend(buffer);
 }
 
 const boost::asio::ip::address& Session::GetRemoteAddress() const

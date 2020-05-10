@@ -42,22 +42,24 @@ namespace Gamnet { namespace Test {
 	}
 
 	template <class SESSION_T, class MSG>
-	bool SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = false)
+	void SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = false)
 	{
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance(msg_id:", MSG::MSG_ID, ")");
+			LOG(ERR, "can not create Packet instance(msg_id:", MSG::MSG_ID, ")");
+			return;
 		}
 
 		packet->msg_seq = ++session->send_seq;
 		packet->reliable = reliable;
 		if (false == packet->Write(msg))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize packet(msg_id:", MSG::MSG_ID, ")");
+			LOG(ERR, "fail to serialize packet(msg_id:", MSG::MSG_ID, ")");
+			return;
 		}
 		
-		return session->AsyncSend(packet);
+		session->AsyncSend(packet);
 	}
 
 	template<class SESSION_T>

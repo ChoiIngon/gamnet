@@ -45,6 +45,7 @@ public :
 	Session();
 	virtual ~Session();
 
+	boost::asio::strand			strand;
 	uint32_t					session_key;
 	std::string					session_token;
 	std::shared_ptr<Link>		link;
@@ -57,9 +58,9 @@ public :
 
 	virtual bool Init();
 	virtual void Clear();
-	bool AsyncSend(const std::shared_ptr<Buffer>& buffer);
-	bool AsyncSend(const char* data, int length);
-	int SyncSend(const std::shared_ptr<Buffer>& buffer);
+	void AsyncSend(const std::shared_ptr<Buffer> buffer);
+	void AsyncSend(const char* data, size_t length);
+	int SyncSend(const std::shared_ptr<Buffer> buffer);
 	int SyncSend(const char* data, int length);
 	
 	const boost::asio::ip::address& GetRemoteAddress() const;

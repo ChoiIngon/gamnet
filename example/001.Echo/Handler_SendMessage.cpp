@@ -1,4 +1,5 @@
 #include "Handler_SendMessage.h"
+#include <future>
 
 Handler_SendMessage::Handler_SendMessage() {
 }
@@ -6,7 +7,7 @@ Handler_SendMessage::Handler_SendMessage() {
 Handler_SendMessage::~Handler_SendMessage() {
 }
 
-void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_SendMessage::Recv_Ntf(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgCliSvr_SendMessage_Ntf ntfCliSvr;
 	MsgSvrCli_SendMessage_Ntf ntfSvrCli;
@@ -29,7 +30,7 @@ void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& se
 GAMNET_BIND_TCP_HANDLER(
 	UserSession,
 	MsgCliSvr_SendMessage_Ntf,
-	Handler_SendMessage, Recv_CliSvr_Ntf,
+	Handler_SendMessage, Recv_Ntf,
 	HandlerStatic
 );
 /*
@@ -73,6 +74,7 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address
 }
 
 GAMNET_BIND_ROUTER_HANDLER(MsgSvrSvr_SendMessage_Ans, Handler_SendMessage, Recv_SvrSvr_Ans, HandlerStatic);
+*/
 
 void Test_CliSvr_SendMessage_Ntf(const std::shared_ptr<TestSession>& session)
 {
@@ -103,7 +105,7 @@ GAMNET_BIND_TEST_HANDLER(
 	MsgCliSvr_SendMessage_Ntf, Test_CliSvr_SendMessage_Ntf, 
 	MsgSvrCli_SendMessage_Ntf, Test_SvrCli_SendMessage_Ntf
 );
-
+/*
 static std::mutex lock;
 static std::set<Gamnet::Network::Router::Address> addresses;
 static Gamnet::Timer timer;

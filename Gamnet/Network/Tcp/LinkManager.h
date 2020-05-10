@@ -91,7 +91,7 @@ public:
 	{
 		acceptor.Release();
 		std::shared_ptr<Link> tcpLink = std::static_pointer_cast<Link>(link);
-		std::shared_ptr<Session> session = tcpLink->session;
+		std::shared_ptr<Session> session = std::static_pointer_cast<Session>(tcpLink->session);
 		if(nullptr == session)
 		{
 			return;

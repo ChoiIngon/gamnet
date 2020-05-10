@@ -33,30 +33,28 @@ void Session::Clear()
 	Network::Session::Clear();
 }
 
-bool Session::AsyncSend(const std::shared_ptr<Packet>& packet)
+void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 {
 	if (true == packet->reliable)
 	{
-		std::shared_ptr<Link> ln = std::static_pointer_cast<Link>(link);
-		if(nullptr == ln)
-		{
-			return false;
-		}
-		ln->strand.wrap([=]() {
-			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= this->send_packets.size())
+		auto self = std::static_pointer_cast<Session>(shared_from_this());
+		strand.wrap([self](const std::shared_ptr<Packet> packet) {
+			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= self->send_packets.size())
 			{
-				this->handover_safe = false;
-				ln->Close(ErrorCode::SendQueueOverflowError);
+				self->handover_safe = false;
+				if(nullptr != self->link)
+				{
+					self->link->Close(ErrorCode::SendQueueOverflowError);
+				}
 				return;
 			}
-
-			send_packets.push_back(packet); // keep send message util ack received
-			Network::Session::AsyncSend(packet);
-		}) ();
-		return true;
+			self->send_packets.push_back(packet); // keep send message util ack received
+			self->link->AsyncSend(packet);
+		})(packet);
+		return;
 	}
 
-	return Network::Session::AsyncSend(packet);
+	Network::Session::AsyncSend(packet);
 }
 
 SessionManager::SessionManager()

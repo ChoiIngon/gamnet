@@ -24,7 +24,7 @@ public :
 
 	virtual bool Init() override;
 	virtual void Clear() override;
-	bool AsyncSend(const std::shared_ptr<Packet>& packet);
+	void AsyncSend(const std::shared_ptr<Packet> packet);
 };
 
 class SessionManager

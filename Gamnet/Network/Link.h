@@ -39,7 +39,7 @@ public:
 	};
 	
 	boost::asio::ip::tcp::socket	socket;
-	boost::asio::strand				strand;
+	std::shared_ptr<Session>		session;
 	boost::asio::ip::address 		remote_address;
 	uint32_t 						link_key;
 //protected :
@@ -51,11 +51,14 @@ public :
 
 	virtual bool Init();
 	virtual void Clear();
-	void Connect(const char* host, int port, int timeout);
+
+	void AsyncConnect(const char* host, int port, int timeout);
 	void AsyncSend(const char* buf, int len);
-	void AsyncSend(const std::shared_ptr<Buffer>& buffer);
+	void AsyncSend(const std::shared_ptr<Buffer> buffer);
+
+	bool SyncConnect(const char* host, int port, int timeout);
 	int  SyncSend(const char* buf, int len);
-	int  SyncSend(const std::shared_ptr<Buffer>& buffer);
+	int  SyncSend(const std::shared_ptr<Buffer> buffer);
 	virtual void Close(int reason);
 		
 	void OnAcceptHandler();

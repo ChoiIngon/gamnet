@@ -1,9 +1,18 @@
 #include "Subscriber.h"
 
 namespace Gamnet { namespace Database { namespace Redis {
+	class Session : public Network::Session
+	{
+	public:
+		virtual void OnCreate() override {}
+		virtual void OnAccept() override {}
+		virtual void OnClose(int reason) override {}
+		virtual void OnDestroy() override {}
+	};
 
 	Subscriber::Subscriber() 
 	{
+		session = std::make_shared<Session>();
 		handlers.insert(std::make_pair("subscribe", std::bind(&Subscriber::OnRecv_SubscribeAns, this, std::placeholders::_1)));
 		handlers.insert(std::make_pair("message", std::bind(&Subscriber::OnRecv_PublishReq, this, std::placeholders::_1)));
 	}
@@ -14,6 +23,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 
 	bool Subscriber::Init()
 	{
+		session->link = shared_from_this();
 		if(false == Network::Link::Init())
 		{
 			return false;
@@ -39,7 +49,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		}
 		buffer->Append(query.c_str(), query.length());
 		buffer->Append("\r\n", 2);
-		Network::Link::AsyncSend(buffer);
+		session->AsyncSend(buffer);
 	}
 
 	void Subscriber::OnRead(const std::shared_ptr<Buffer>& buffer)
@@ -81,8 +91,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 			callback_functions[channel] = callback;
 		}
 
-		const std::string query = Format("SUBSCRIBE ", channel, "\r\n");
-		Network::Link::AsyncSend(query.c_str(), query.length());
+		AsyncSend(Format("SUBSCRIBE ", channel));
 	}
 
 	void Subscriber::Unsubscribe(const std::string& channel)
@@ -91,8 +100,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 			std::lock_guard<std::mutex> lo(lock);
 			callback_functions.erase(channel);
 		}
-		const std::string query = Format("UNSUBSCRIBE ", channel, "\r\n");
-		Network::Link::AsyncSend(query.c_str(), query.length());
+		AsyncSend(Format("UNSUBSCRIBE ", channel));
 	}
 	
 	void Subscriber::OnRecv_SubscribeAns(const Json::Value& ans)

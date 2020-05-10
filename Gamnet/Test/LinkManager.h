@@ -320,7 +320,7 @@ namespace Gamnet {	namespace Test {
 			link->session = session;
 			session->execute_send_handler = std::bind(&LinkManager<SESSION_T>::ExecuteSendHandler, this, std::placeholders::_1);
 			session->OnCreate();
-			link->Connect(host.c_str(), port, 5);
+			link->AsyncConnect(host.c_str(), port, 5);
 		}
 	private :
 		void OnLogTimerExpire()
