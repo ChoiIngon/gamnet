@@ -50,6 +50,7 @@ public :
 	std::string					session_token;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;
+	std::shared_ptr<boost::asio::ip::tcp::socket> socket;
 public :
 	virtual void OnCreate() = 0;
 	virtual void OnAccept() = 0;
@@ -65,6 +66,8 @@ public :
 	
 	const boost::asio::ip::address& GetRemoteAddress() const;
 	static std::string GenerateSessionToken(uint32_t session_key);
+
+	void OnAcceptHandler();
 };
 
 

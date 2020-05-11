@@ -98,4 +98,9 @@ const boost::asio::ip::address& Session::GetRemoteAddress() const
 	assert(nullptr != link);
 	return link->remote_address;
 }
+
+void Session::OnAcceptHandler()
+{
+}
+
 }} /* namespace Gamnet */

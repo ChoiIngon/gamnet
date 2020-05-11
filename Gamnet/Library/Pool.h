@@ -99,7 +99,7 @@ public:
 	 * \param nSize max object count that this pool can create
 	 * \param object_factory if you need custom create policy. you can use this
 	 */
-	Pool(int nSize = 65535, object_factory factory = Policy::Factory::create<object>()) : cur_size_(0), max_size_(nSize), factory_(factory)
+	Pool(int nSize = 65535, object_factory factory = Policy::Factory::create<object>(), init_policy init = init_policy(), release_policy release = release_policy()) : cur_size_(0), max_size_(nSize), init_(init), release_(release), factory_(factory)
 	{
 	}
 

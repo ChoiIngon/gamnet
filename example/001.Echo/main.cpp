@@ -1,6 +1,6 @@
 #include <boost/program_options.hpp>
 #include "UserSession.h"
-#include "Handler_SendMessage.h"
+
 
 int main(int argc, char** argv) 
 {
