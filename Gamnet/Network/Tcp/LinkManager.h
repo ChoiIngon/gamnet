@@ -214,5 +214,32 @@ public:
 	}
 };
 
+template <class SESSION_T>
+class Service : public Network::Service
+{
+	boost::asio::io_service io_service;
+public:
+
+	void Listen(int port, int max_session, int alive_time, int accept_queue_size)
+	{
+		session_manager.Init();
+		acceptor.Listen(port, max_session, accept_queue_size);
+		expire_time = alive_time;
+
+		std::vector<std::thread > threads;
+		for (int i = 0; i < thread_count; i++)
+		{
+			threads.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &io_service)));
+		}
+	}
+
+	void OnAccept(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) 
+	{
+	}
+	virtual void OnConnect(const std::shared_ptr<Link>& link) {}
+	
+	virtual void OnClose(const std::shared_ptr<Link>& link, int reason) {}
+};
+
 }}}
 #endif /* LISTENER_H_ */

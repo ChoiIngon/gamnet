@@ -48,6 +48,7 @@ public :
 	boost::asio::strand			strand;
 	uint32_t					session_key;
 	std::string					session_token;
+	SessionManager				session_manager;
 	std::shared_ptr<Link>		link;
 	HandlerContainer			handler_container;
 	std::shared_ptr<boost::asio::ip::tcp::socket> socket;

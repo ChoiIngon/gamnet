@@ -3,141 +3,72 @@
 
 #include "../Library/Pool.h"
 #include "../Library/Debugs.h"
+#include "../Library/Delegate.h"
 #include "Link.h"
 
 namespace Gamnet { namespace Network {
-
-template <class LINK_T>
-class Acceptor
-{
-private :
-	GAMNET_WHERE(LINK_T, Link);
-	typedef Pool<LINK_T, std::mutex, Link::InitFunctor, Link::ReleaseFunctor> LINK_POOL_T;
-	typedef typename LINK_POOL_T::object_factory object_factory;
-
-	LINK_POOL_T						link_pool;
-	boost::asio::ip::tcp::acceptor	acceptor;
-	boost::asio::ip::tcp::endpoint	endpoint;
-
-	int								max_accept_size;
-	std::atomic<int>				cur_accept_count;
-public :
-	Acceptor(int nSize = 65535, object_factory factory = Policy::Factory::create<LINK_T>()) :
-		link_pool(nSize, factory),
-		acceptor(Singleton<boost::asio::io_service>::GetInstance()),
-		max_accept_size(0),
-		cur_accept_count(0)
+	class Acceptor
 	{
-	}
-
-	bool Listen(int port, int max_count, int queue_size)
-	{
-		link_pool.Capacity(max_count);
-		endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port);
-		acceptor.open(endpoint.protocol());
-		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-		acceptor.bind(endpoint);
-		acceptor.listen();
-
-		max_accept_size = queue_size;
-		for (int i = 0; i<max_accept_size; i++)
+		struct SocketFactory
 		{
-			cur_accept_count++;
-			Accept();
-		}
-		
-		return true;
-	}
-
-	void Release()
-	{
-		if (cur_accept_count < max_accept_size)
-		{
-			cur_accept_count++;
-			Accept();
-		}
-	}
-
-	size_t Capacity() const
-	{
-		return link_pool.Capacity();
-	}
-
-	size_t Available()
-	{
-		return link_pool.Available();
-	}
-private :
-	void Accept()
-	{
-		std::shared_ptr<Network::Link> link = link_pool.Create();
-		if (nullptr == link)
-		{
-			LOG(GAMNET_ERR, "can not create link. deny addtional connection");
-			cur_accept_count = std::max(cur_accept_count - 1, 0);
-			return;
-		}
-
-		acceptor.async_accept(link->socket, boost::bind(&Acceptor::Callback_Accept, this, link, boost::asio::placeholders::error));
-	}
-
-	void Callback_Accept(const std::shared_ptr<Link> link, const boost::system::error_code& ec)
-	{
-		Accept();
-
-		try {
-			if (0 != ec)
+			boost::asio::ip::tcp::socket* operator() ()
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::AcceptFailError, "link_key:", link->link_key, ", error_code:", ec.value());
+				return new boost::asio::ip::tcp::socket(Gamnet::Singleton<boost::asio::io_service>::GetInstance());
+			}
+		};
+		
+		struct SocketInitFunctor
+		{
+			boost::asio::ip::tcp::socket* operator() (boost::asio::ip::tcp::socket* socket)
+			{
+				return socket;
+			}
+		};
+
+		struct SocketReleaseFunctor
+		{
+			Acceptor& acceptor;
+			SocketReleaseFunctor(Acceptor& acceptor) : acceptor(acceptor)
+			{
 			}
 
-			link->OnAcceptHandler();
-			return;
-		}
-		catch (const Exception& e)
-		{
-			LOG(GAMNET_ERR, "accept fail(errno:", e.error_code(), ")");
-		}
-		catch (const boost::system::system_error& e)
-		{
-			LOG(GAMNET_ERR, "accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
-		}
-		link->Close(ErrorCode::AcceptFailError);
-	}
-};
+			boost::asio::ip::tcp::socket* operator() (boost::asio::ip::tcp::socket* socket)
+			{
+				acceptor.Release();
+				return socket;
+			}
+		};
+	private:
+		boost::asio::ip::tcp::acceptor	acceptor;
+		boost::asio::ip::tcp::endpoint	endpoint;
+		Pool<boost::asio::ip::tcp::socket, std::mutex, SocketInitFunctor, SocketReleaseFunctor> socket_pool;
 
-template <class SESSION_T>
-class Acceptor2
-{
-	struct SocketFactory
-	{
-		boost::asio::ip::tcp::socket* operator() ()
-		{
-			return new boost::asio::ip::tcp::socket(Gamnet::Singleton<boost::asio::io_service>::GetInstance());
-		}
+		int								max_queue_size;
+		std::atomic<int>				cur_queue_size;
+	public:
+		Acceptor(int nSize = 65535);
+
+		Delegate<void(std::shared_ptr<boost::asio::ip::tcp::socket>& socket)> on_accept;
+		void Listen(int port, int max_count, int queue_size);
+		void Release();
+
+	private:
+		void Accept();
+		void Callback_Accept(const std::shared_ptr<SESSION_T> session, const boost::system::error_code& ec);
 	};
-private:
-	GAMNET_WHERE(SESSION_T, Session);
 
-	boost::asio::ip::tcp::acceptor	acceptor;
-	boost::asio::ip::tcp::endpoint	endpoint;
-
-	Gamnet::Pool<SESSION_T, std::mutex, Session::InitFunctor, Session::ReleaseFunctor> session_pool;
-	Gamnet::Pool<boost::asio::ip::tcp::socket, std::mutex> socket_pool;
-
-	int								max_accept_size;
-	std::atomic<int>				cur_accept_count;
-public:
-	Acceptor2(int nSize = 65535) :
+	template<class SESSION_T>
+	Acceptor<SESSION_T>::Acceptor(int nSize) :
 		acceptor(Singleton<boost::asio::io_service>::GetInstance()),
 		session_pool(),
-		socket_pool(nSize, Acceptor2<SESSION_T>::SocketFactory()),
-		max_accept_size(0),
+		socket_pool(nSize, Acceptor<SESSION_T>::SocketFactory(), SocketInitFunctor(), SocketReleaseFunctor(*this)),
+		max_queue_size(0),
 		cur_accept_count(0)
 	{
 	}
 
-	bool Listen(int port, int max_count, int queue_size)
+	template<class SESSION_T>
+	void Acceptor<SESSION_T>::Listen(int port, int max_count, int queue_size)
 	{
 		socket_pool.Capacity(max_count);
 		endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port);
@@ -145,48 +76,38 @@ public:
 		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 		acceptor.bind(endpoint);
 		acceptor.listen();
-
-		max_accept_size = queue_size;
-		for (int i = 0; i < max_accept_size; i++)
+		session_manager.Init();
+		max_queue_size = queue_size;
+		for (int i = 0; i < this->max_queue_size; i++)
 		{
-			cur_accept_count++;
-			Accept();
-		}
-
-		return true;
-	}
-
-	void Release()
-	{
-		if (cur_accept_count < max_accept_size)
-		{
-			cur_accept_count++;
+			cur_queue_size++;
 			Accept();
 		}
 	}
 
-	size_t Capacity() const
+	template<class SESSION_T>
+	void Acceptor<SESSION_T>::Release()
 	{
-		return link_pool.Capacity();
+		if (cur_queue_size < max_queue_size)
+		{
+			cur_queue_size++;
+			Accept();
+		}
 	}
 
-	size_t Available()
-	{
-		return link_pool.Available();
-	}
-private:
-	void Accept()
+	template<class SESSION_T>
+	void Acceptor<SESSION_T>::Accept()
 	{
 		std::shared_ptr<boost::asio::ip::tcp::socket> socket = socket_pool.Create();
 		if (nullptr == socket)
 		{
 			LOG(GAMNET_ERR, "can not create socket. deny addtional connection");
-			cur_accept_count = std::max(cur_accept_count - 1, 0);
+			cur_queue_size = std::max(cur_accept_count - 1, 0);
 			return;
 		}
 
 		std::shared_ptr<SESSION_T> session = session_pool.Create();
-		if(nullptr == session)
+		if (nullptr == session)
 		{
 			LOG(GAMNET_ERR, "can not create session. deny addtional connection");
 			return;
@@ -196,7 +117,8 @@ private:
 		acceptor.async_accept(*socket, boost::bind(&Acceptor2::Callback_Accept, this, session, boost::asio::placeholders::error));
 	}
 
-	void Callback_Accept(const std::shared_ptr<SESSION_T> session, const boost::system::error_code& ec)
+	template<class SESSION_T>
+	void Acceptor<SESSION_T>::Callback_Accept(const std::shared_ptr<SESSION_T> session, const boost::system::error_code& ec)
 	{
 		Accept();
 
@@ -206,6 +128,8 @@ private:
 				throw GAMNET_EXCEPTION(ErrorCode::AcceptFailError, "session_key:", session->session_key, ", error_code:", ec.value());
 			}
 
+			session_manager.Add(session);
+			on_accept(socket);
 			session->OnAcceptHandler();
 			return;
 		}
@@ -218,7 +142,45 @@ private:
 			LOG(GAMNET_ERR, "accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
 		}
 	}
-};
 
+	template<class SESSION_T>
+	bool Acceptor<SESSION_T>::SessionManager::Add(const std::shared_ptr<SESSION_T>& session)
+	{
+		std::lock_guard<std::mutex> lo(lock);
+		if (false == sessions.insert(std::make_pair(session->session_key, session)).second)
+		{
+			LOG(GAMNET_ERR, "[session_key:", session->session_key, "] duplicated session key");
+			assert(!"duplicate session");
+			return false;
+		}
+
+		return true;
+	}
+	
+	template<class SESSION_T>
+	void Acceptor<SESSION_T>::SessionManager::Remove(const std::shared_ptr<SESSION_T>& session)
+	{
+		std::lock_guard<std::mutex> lo(lock);
+		sessions.erase(key);
+	}
+	
+	template<class SESSION_T>
+	std::shared_ptr<SESSION_T> Acceptor<SESSION_T>::SessionManager::Find(uint32_t key)
+	{
+		std::lock_guard<std::mutex> lo(lock);
+		auto itr = sessions.find(key);
+		if (sessions.end() == itr)
+		{
+			return nullptr;
+		}
+		return itr->second;
+	}
+
+	template<class SESSION_T>
+	size_t Acceptor<SESSION_T>::SessionManager::Size()
+	{
+		std::lock_guard<std::mutex> lo(lock);
+		return sessions.size();
+	}
 }}
 #endif
