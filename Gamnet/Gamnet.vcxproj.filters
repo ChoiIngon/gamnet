@@ -167,6 +167,9 @@
     <ClCompile Include="Library\ThreadPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Network\Acceptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Gamnet.h">
@@ -389,6 +392,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Library\Component.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\SessionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Tcp\SessionManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

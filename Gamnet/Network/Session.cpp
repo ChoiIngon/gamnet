@@ -50,12 +50,18 @@ void Session::AsyncSend(const std::shared_ptr<Buffer> buffer)
 {
 	auto self = shared_from_this();
 	strand.wrap([self](const std::shared_ptr<Buffer> buffer) {
-		if(nullptr == self->link)
+		if(nullptr == self->socket)
 		{
 			LOG(ERR, "invalid link[session_key:", self->session_key, "]");
 			return;
 		}
-		self->link->AsyncSend(buffer);
+
+		bool needFlush = send_buffers.empty();
+		send_buffers.push_back(buffer);
+		if (true == needFlush)
+		{
+			FlushSend();
+		}
 	})(buffer);
 }
 
@@ -102,5 +108,52 @@ const boost::asio::ip::address& Session::GetRemoteAddress() const
 void Session::OnAcceptHandler()
 {
 }
+
+void Session::FlushSend()
+{
+	if (false == send_buffers.empty())
+	{
+		auto self(shared_from_this());
+		const std::shared_ptr<Buffer> buffer = send_buffers.front();
+		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), strand.wrap(std::bind(&Link::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
+	}
+}
+
+void Session::OnSendHandler(const boost::system::error_code& ec, std::size_t transferredBytes)
+{
+	if (0 != ec)
+	{
+		//Close(); // no error, just closed socket
+		return;
+	}
+
+	if (true == send_buffers.empty())
+	{
+		return;
+	}
+	send_buffers.pop_front();
+	FlushSend();
+}
+
+void Session::Close(int reason)
+{
+	auto self(shared_from_this());
+	strand.wrap([self](int reason) {
+		if (nullptr == self->socket)
+		{
+			return;
+		}
+
+		self->OnClose(reason);
+
+		if (true == self->socket->is_open())
+		{
+			self->socket->close();
+			self->socket = nullptr;
+		}
+	})(reason);
+	
+}
+
 
 }} /* namespace Gamnet */

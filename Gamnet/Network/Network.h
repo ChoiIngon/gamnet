@@ -1,10 +1,3 @@
-/*
- * Network.h
- *
- *  Created on: 2017. 8. 22.
- *      Author: kukuta
- */
-
 #ifndef NETWORK_NETWORK_H_
 #define NETWORK_NETWORK_H_
 

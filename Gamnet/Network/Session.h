@@ -12,9 +12,10 @@
 
 namespace Gamnet { namespace Network {
 
-class Link;
 class Session : public std::enable_shared_from_this<Session>
 {
+	std::shared_ptr<Buffer> 			read_buffer;
+	std::deque<std::shared_ptr<Buffer>>	send_buffers;
 public :
 	struct InitFunctor
 	{
@@ -45,13 +46,13 @@ public :
 	Session();
 	virtual ~Session();
 
-	boost::asio::strand			strand;
-	uint32_t					session_key;
-	std::string					session_token;
-	SessionManager				session_manager;
-	std::shared_ptr<Link>		link;
-	HandlerContainer			handler_container;
-	std::shared_ptr<boost::asio::ip::tcp::socket> socket;
+	std::shared_ptr<boost::asio::ip::tcp::socket>		socket;
+	std::map<uint32_t, std::shared_ptr<Time::Timer>>	timers;
+	boost::asio::strand									strand;
+	uint32_t											session_key;
+	std::string											session_token;
+	SessionManager*										session_manager;
+	HandlerContainer									handler_container;
 public :
 	virtual void OnCreate() = 0;
 	virtual void OnAccept() = 0;
@@ -69,6 +70,10 @@ public :
 	static std::string GenerateSessionToken(uint32_t session_key);
 
 	void OnAcceptHandler();
+	void FlushSend();
+	void OnSendHandler(const boost::system::error_code& ec, std::size_t transferredBytes);
+
+	void Close(int reason);
 };
 
 

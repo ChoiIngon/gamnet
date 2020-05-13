@@ -168,6 +168,7 @@
     <ClCompile Include="log\File.cpp" />
     <ClCompile Include="log\Log.cpp" />
     <ClCompile Include="log\Logger.cpp" />
+    <ClCompile Include="Network\Acceptor.cpp" />
     <ClCompile Include="network\HandlerContainer.cpp" />
     <ClCompile Include="Network\Http\Dispatcher.cpp" />
     <ClCompile Include="Network\Http\HttpClient.cpp" />
@@ -262,8 +263,10 @@
     <ClInclude Include="Network\Tcp\LinkManager.h" />
     <ClInclude Include="Network\Tcp\Packet.h" />
     <ClInclude Include="Network\Tcp\Session.h" />
+    <ClInclude Include="Network\Tcp\SessionManager.h" />
     <ClInclude Include="Network\Tcp\SystemMessageHandler.h" />
     <ClInclude Include="Network\Tcp\Tcp.h" />
+    <ClInclude Include="Network\SessionManager.h" />
     <ClInclude Include="Test\LinkManager.h" />
     <ClInclude Include="test\Session.h" />
     <ClInclude Include="test\Test.h" />

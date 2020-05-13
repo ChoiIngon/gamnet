@@ -1,7 +1,6 @@
 #include "Timer.h"
 
-namespace Gamnet
-{
+namespace Gamnet { namespace Time {
 
 Timer::Timer()
 	: entry_(nullptr), interval_(0), auto_reset_(false), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
@@ -100,4 +99,4 @@ std::string FromUnixtime(time_t now)
 #endif
 	return buf;
 }
-}
+}}

@@ -6,8 +6,8 @@
 #include <boost/bind.hpp>
 #include "Singleton.h"
 
-namespace Gamnet
-{
+namespace Gamnet { namespace Time {
+
 /*!
  * \brief event timer
  
@@ -89,13 +89,6 @@ public :
 	bool Resume();
 	void AutoReset(bool flag);
 	void Cancel();
-
-	template<class TIMEUNIT_T = std::chrono::milliseconds>
-	static uint64_t Now()
-	{
-		auto now = std::chrono::high_resolution_clock::now();
-		return std::chrono::duration_cast<TIMEUNIT_T>(now.time_since_epoch()).count();
-	}
 };
 
 class ElapseTimer
@@ -121,7 +114,19 @@ public :
 	}
 };
 
+class DateTime
+{
+};
+
 std::string FromUnixtime(time_t now);
+
+template<class TIMEUNIT_T = std::chrono::milliseconds>
+static uint64_t Now()
+{
+	auto now = std::chrono::high_resolution_clock::now();
+	return std::chrono::duration_cast<TIMEUNIT_T>(now.time_since_epoch()).count();
 }
+
+}}
 
 #endif /* TIMER_H_ */
