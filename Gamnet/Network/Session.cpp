@@ -1,6 +1,4 @@
 #include "Session.h"
-#include "Link.h"
-#include "LinkManager.h"
 #include "../Library/MD5.h"
 #include "../Library/Random.h"
 #include "../Library/Timer.h"
@@ -9,9 +7,6 @@
 
 namespace Gamnet { namespace Network {
 	
-
-static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
-
 static std::atomic<uint32_t> SESSION_KEY;
 
 std::string Session::GenerateSessionToken(uint32_t session_key)
@@ -21,10 +16,12 @@ std::string Session::GenerateSessionToken(uint32_t session_key)
 
 
 Session::Session() :
-	strand(io_service_),
+	socket(nullptr),
+	strand(nullptr),
+	read_buffer(nullptr),
 	session_key(0),
 	session_token(""),
-	link(nullptr)
+	session_manager(nullptr)
 {
 }
 
@@ -42,25 +39,24 @@ void Session::Clear()
 {
 	session_key = 0;
 	session_token = "";
-	link = nullptr;
 	handler_container.Init();
 }
 
 void Session::AsyncSend(const std::shared_ptr<Buffer> buffer)
 {
 	auto self = shared_from_this();
-	strand.wrap([self](const std::shared_ptr<Buffer> buffer) {
+	strand->wrap([self](const std::shared_ptr<Buffer> buffer) {
 		if(nullptr == self->socket)
 		{
 			LOG(ERR, "invalid link[session_key:", self->session_key, "]");
 			return;
 		}
 
-		bool needFlush = send_buffers.empty();
-		send_buffers.push_back(buffer);
+		bool needFlush = self->send_buffers.empty();
+		self->send_buffers.push_back(buffer);
 		if (true == needFlush)
 		{
-			FlushSend();
+			self->FlushSend();
 		}
 	})(buffer);
 }
@@ -72,24 +68,58 @@ void Session::AsyncSend(const char* data, size_t length)
 	AsyncSend(buffer);
 }
 
+void Session::FlushSend()
+{
+	if (false == send_buffers.empty())
+	{
+		auto self(shared_from_this());
+		const std::shared_ptr<Buffer> buffer = send_buffers.front();
+		boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), strand->wrap(std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
+	}
+}
+
 int Session::SyncSend(const std::shared_ptr<Buffer> buffer)
 {
-	std::promise<int> sentBytes;
-	//int sentBytes = -1;
+	std::promise<int> promise;
 	auto self = shared_from_this();
-	strand.wrap([self, &sentBytes](const std::shared_ptr<Buffer> buffer) {
-		if (nullptr == self->link)
+	strand->wrap([self, &promise](const std::shared_ptr<Buffer> buffer) {
+		if (nullptr == self->socket)
 		{
 			LOG(ERR, "invalid link[session_key:", self->session_key, "]");
-			sentBytes.set_value(-1);
-			//sentBytes = -1;
+			promise.set_value(-1);
 			return;
 		}
-		sentBytes.set_value(self->link->SyncSend(buffer));
-		//sentBytes = self->link->SyncSend(buffer);
+
+		int totalSentBytes = 0;
+		while (buffer->Size() > totalSentBytes)
+		{
+			try {
+				boost::system::error_code ec;
+				int sentBytes = boost::asio::write(*(self->socket), boost::asio::buffer(buffer->ReadPtr() + totalSentBytes, buffer->Size() - totalSentBytes), ec);
+				if (0 > sentBytes || 0 != ec)
+				{
+					LOG(ERR, "send fail(errno:", errno, ", ec:", ec, ")");
+					promise.set_value(-1);
+					return;
+				}
+				if (0 == sentBytes)
+				{
+					LOG(ERR, "send '0' byte(errno:", errno, ", ec:", ec, ")");
+					promise.set_value(-1);
+					return;
+				}
+				totalSentBytes += sentBytes;
+			}
+			catch (const boost::system::system_error& e)
+			{
+				LOG(ERR, "send exception(errno:", errno, ", errstr:", e.what(), ")");
+				promise.set_value(-1);
+				return;
+			}
+		}
+		promise.set_value(totalSentBytes);
 	})(buffer);
-	return sentBytes.get_future().get();
-	//return sentBytes;
+	return promise.get_future().get();
 }
 
 int Session::SyncSend(const char* data, int length)
@@ -99,24 +129,8 @@ int Session::SyncSend(const char* data, int length)
 	return SyncSend(buffer);
 }
 
-const boost::asio::ip::address& Session::GetRemoteAddress() const
-{
-	assert(nullptr != link);
-	return link->remote_address;
-}
-
 void Session::OnAcceptHandler()
 {
-}
-
-void Session::FlushSend()
-{
-	if (false == send_buffers.empty())
-	{
-		auto self(shared_from_this());
-		const std::shared_ptr<Buffer> buffer = send_buffers.front();
-		boost::asio::async_write(socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), strand.wrap(std::bind(&Link::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
-	}
 }
 
 void Session::OnSendHandler(const boost::system::error_code& ec, std::size_t transferredBytes)
@@ -138,7 +152,7 @@ void Session::OnSendHandler(const boost::system::error_code& ec, std::size_t tra
 void Session::Close(int reason)
 {
 	auto self(shared_from_this());
-	strand.wrap([self](int reason) {
+	strand->wrap([self](int reason) {
 		if (nullptr == self->socket)
 		{
 			return;
@@ -155,5 +169,44 @@ void Session::Close(int reason)
 	
 }
 
+void Session::AsyncRead()
+{
+	assert(nullptr != socket);
+	auto self(shared_from_this());
+	socket->async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
+		strand->wrap([self](boost::system::error_code ec, std::size_t readbytes) 
+	{
+		if (0 != ec)
+		{
+			self->Close(ErrorCode::Success);
+			return;
+		}
+
+		if (0 == readbytes)
+		{
+			self->Close(ErrorCode::Success);
+			return;
+		}
+
+		self->read_buffer->write_index += readbytes;
+		try
+		{
+			self->OnRead(self->read_buffer);
+			if (nullptr == self->socket)
+			{
+				return;
+			}
+			assert(nullptr != self->read_buffer);
+		}
+		catch (const Exception& e)
+		{
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
+			self->Close(e.error_code());
+			return;
+		}
+		self->read_buffer->Clear();
+		self->AsyncRead();
+	}));
+}
 
 }} /* namespace Gamnet */

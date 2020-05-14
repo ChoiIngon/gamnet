@@ -20,26 +20,14 @@ public :
 	bool handover_safe;
 	uint32_t recv_seq;
 	uint32_t send_seq;
+
+	std::shared_ptr<Packet> recv_packet;
 	std::deque<std::shared_ptr<Packet>>	send_packets;
 
 	virtual bool Init() override;
 	virtual void Clear() override;
 	void AsyncSend(const std::shared_ptr<Packet> packet);
-};
-
-class SessionManager
-{
-	std::mutex										_lock;
-	std::map<uint32_t, std::shared_ptr<Session>>	_sessions;
-public:
-	SessionManager();
-	~SessionManager();
-
-	bool Init();
-	bool Add(uint32_t key, const std::shared_ptr<Session>& session);
-	void Remove(uint32_t key);
-	std::shared_ptr<Session> Find(uint32_t key);
-	size_t Size();
+	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 };
 
 }}}

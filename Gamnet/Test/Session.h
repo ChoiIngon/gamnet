@@ -20,7 +20,7 @@ public:
 	bool is_connected;
 	std::chrono::time_point<std::chrono::steady_clock> send_time;
 	std::function<void(const std::shared_ptr<Session>&)> execute_send_handler;
-	Timer timer;
+	Time::Timer timer;
 
 	virtual void OnCreate() override {}
 	virtual void OnAccept() override {}

@@ -24,22 +24,7 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Handler_SendMessage.h" />
-    <ClInclude Include="UserSession.h" />
-    <ClInclude Include="Handler_Http_ServerState.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Handler_SendMessage.cpp" />
-    <ClCompile Include="UserSession.cpp" />
-    <ClCompile Include="Handler_Http_ServerState.cpp" />
     <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\idl\Message.idl">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
-    </CustomBuild>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{10465F8C-3657-4341-BA71-94BD1291BE99}</ProjectGuid>

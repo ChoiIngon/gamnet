@@ -7,7 +7,9 @@
 namespace Gamnet { namespace Network {
 	class SessionManager {
 	public :
-		virtual void OnAccept(std::shared_ptr<boost::asio::ip::tcp::socket> socket) = 0;
+		boost::asio::io_service io_service;
+		virtual void Create(const std::shared_ptr<boost::asio::ip::tcp::socket> socket) = 0;
+		virtual void Destory(uint32_t sessionKey) = 0;
 	};
 }}
 #endif

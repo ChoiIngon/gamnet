@@ -20,6 +20,13 @@ bool Session::Init()
 
 	session_token = Session::GenerateSessionToken(session_key);
 
+	recv_packet = Packet::Create();
+	if (nullptr == recv_packet)
+	{
+		LOG(GAMNET_ERR, "ErrorCode::NullPacketError can not create Packet instance");
+		return false;
+	}
+
 	recv_seq = 0;
 	send_seq = 0;
 	handover_safe = false;
@@ -38,18 +45,25 @@ void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 	if (true == packet->reliable)
 	{
 		auto self = std::static_pointer_cast<Session>(shared_from_this());
-		strand.wrap([self](const std::shared_ptr<Packet> packet) {
+		strand->wrap([self](const std::shared_ptr<Packet> packet) {
+			if(nullptr == self->socket)
+			{
+				return;
+			}
 			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= self->send_packets.size())
 			{
 				self->handover_safe = false;
-				if(nullptr != self->link)
-				{
-					self->link->Close(ErrorCode::SendQueueOverflowError);
-				}
+				self->Close(ErrorCode::SendQueueOverflowError);
 				return;
 			}
 			self->send_packets.push_back(packet); // keep send message util ack received
-			self->link->AsyncSend(packet);
+
+			bool needFlush = self->send_buffers.empty();
+			self->send_buffers.push_back(packet);
+			if (true == needFlush)
+			{
+				self->FlushSend();
+			}
 		})(packet);
 		return;
 	}
@@ -57,55 +71,52 @@ void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 	Network::Session::AsyncSend(packet);
 }
 
-SessionManager::SessionManager()
+void Session::OnRead(const std::shared_ptr<Buffer>& buffer) 
 {
-}
+	try {
+		while (0 < buffer->Size())
+		{
+			size_t readSize = std::min(buffer->Size(), recv_packet->Available());
+			recv_packet->Append(buffer->ReadPtr(), readSize);
+			buffer->Remove(readSize);
 
-SessionManager::~SessionManager()
-{
-}
+			while (Packet::HEADER_SIZE <= (int)recv_packet->Size())
+			{
+				recv_packet->ReadHeader();
+				if (Packet::HEADER_SIZE > recv_packet->length)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::BufferUnderflowError, "buffer underflow(read size:", recv_packet->length, ")");
+				}
 
-bool SessionManager::Init()
-{
-	std::lock_guard<std::mutex> lo(_lock);
-	_sessions.clear();
-	return true;
-}
+				if (recv_packet->length >= (uint16_t)recv_packet->Capacity())
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", recv_packet->length, ")");
+				}
 
-bool SessionManager::Add(uint32_t key, const std::shared_ptr<Session>& session)
-{
-	std::lock_guard<std::mutex> lo(_lock);
-	if (false == _sessions.insert(std::make_pair(key, session)).second)
-	{
-		LOG(GAMNET_ERR, "[link_key:", session->link->link_key, ", session_key:", key, "] duplicated session key");
-		assert(!"duplicate session");
-		return false;
+				if (recv_packet->length > (uint16_t)recv_packet->Size())
+				{
+					break;
+				}
+
+				std::shared_ptr<Packet> packet = recv_packet;
+				recv_packet = Packet::Create();
+				if (nullptr == recv_packet)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
+				}
+				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
+				link_manager->OnRecvMsg(shared_from_this(), packet);
+			}
+		}
 	}
-
-	return true;
-}
-
-void SessionManager::Remove(uint32_t key)
-{
-	std::lock_guard<std::mutex> lo(_lock);
-	_sessions.erase(key);
-}
-
-std::shared_ptr<Session> SessionManager::Find(uint32_t key)
-{
-	std::lock_guard<std::mutex> lo(_lock);
-	auto itr = _sessions.find(key);
-	if (_sessions.end() == itr)
+	catch (const Exception& e)
 	{
-		return nullptr;
+		if (nullptr != session)
+		{
+			std::static_pointer_cast<Session>(session)->handover_safe = false;
+		}
+		throw e;
 	}
-	return itr->second;
-}
-
-size_t SessionManager::Size()
-{
-	std::lock_guard<std::mutex> lo(_lock);
-	return _sessions.size();
 }
 
 }}}

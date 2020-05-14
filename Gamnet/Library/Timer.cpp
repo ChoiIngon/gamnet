@@ -3,19 +3,18 @@
 namespace Gamnet { namespace Time {
 
 Timer::Timer()
-	: entry_(nullptr), interval_(0), auto_reset_(false), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
+	: interval(0), auto_reset(false), entry(nullptr), deadline_timer(Singleton<boost::asio::io_service>::GetInstance())
 {
 }
 
-Timer::Timer(boost::asio::io_service& ioService) :
-	entry_(nullptr), interval_(0), auto_reset_(false), deadline_timer_(ioService)
+Timer::Timer(boost::asio::io_service& ioService) 
+	: interval(0), auto_reset(false), entry(nullptr), deadline_timer(ioService)
 {
 }
 
 Timer::~Timer()
 {
-	deadline_timer_.expires_at(boost::posix_time::pos_infin);
-	entry_ = nullptr;
+	deadline_timer.expires_at(boost::posix_time::pos_infin);
 }
 
 void Timer::OnExpire(const boost::system::error_code& ec)
@@ -25,9 +24,9 @@ void Timer::OnExpire(const boost::system::error_code& ec)
 		return;
 	}
 
-	std::shared_ptr<TimerEntry> entry = entry_;
+	std::shared_ptr<TimerEntry> entry = this->entry;
 	{
-		std::lock_guard<std::mutex> lo(lock_);
+		std::lock_guard<std::mutex> lo(lock);
 		if (nullptr == entry)
 		{
 			return;
@@ -35,7 +34,7 @@ void Timer::OnExpire(const boost::system::error_code& ec)
 	}
 	entry->OnExpire();
 
-	if (true == auto_reset_)
+	if (true == auto_reset)
 	{
 		Resume();
 	}
@@ -44,27 +43,27 @@ void Timer::OnExpire(const boost::system::error_code& ec)
 bool Timer::Resume()
 {
 	{
-		std::lock_guard<std::mutex> lo(lock_);
-		if (nullptr == entry_)
+		std::lock_guard<std::mutex> lo(lock);
+		if (nullptr == entry)
 		{
 			return false;
 		}
 	}
-	deadline_timer_.expires_at(deadline_timer_.expires_at() + boost::posix_time::milliseconds(interval_));
-	deadline_timer_.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
+	deadline_timer.expires_at(deadline_timer.expires_at() + boost::posix_time::milliseconds(interval));
+	deadline_timer.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
 	return true;
 }
 
 void Timer::AutoReset(bool flag)
 {
-	auto_reset_ = flag;
+	auto_reset = flag;
 }
 
 void Timer::Cancel()
 {
-	deadline_timer_.cancel();
-	std::lock_guard<std::mutex> lo(lock_);
-	entry_ = nullptr;
+	deadline_timer.cancel();
+	std::lock_guard<std::mutex> lo(lock);
+	entry = nullptr;
 }
 
 ElapseTimer::ElapseTimer()

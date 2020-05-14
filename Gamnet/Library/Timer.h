@@ -35,42 +35,30 @@ class Timer
 	template<class FUNCTOR>
 	struct TimerEntryT : public TimerEntry
 	{
-	    FUNCTOR functor_;
-	    TimerEntryT(FUNCTOR functor) : functor_(functor) {}
+	    FUNCTOR functor;
+	    TimerEntryT(FUNCTOR functor) : functor(functor) {}
 	    virtual ~TimerEntryT() {}
-	    virtual void OnExpire() { functor_();}
+	    virtual void OnExpire() { functor(); }
 	};
 
-	std::shared_ptr<TimerEntry> entry_;
-	std::mutex lock_;
-	long interval_;
-	bool auto_reset_;
-	boost::asio::deadline_timer deadline_timer_;
+	std::mutex lock;
+	long interval;
+	bool auto_reset;
+	std::shared_ptr<TimerEntry> entry;
+	boost::asio::deadline_timer deadline_timer;
 
 	void OnExpire(const boost::system::error_code& ec);
 public :
 	Timer();
 	Timer(boost::asio::io_service& ioService);
-
 	~Timer();
-
+	
 	/*!
 		\param interval ms(1/1000 sec)
 		\param functor call back funcion
 	*/
 	template <class FUNCTOR>
-	Timer(long interval, FUNCTOR functor) :
-		entry_(nullptr), interval_(interval), deadline_timer_(Singleton<boost::asio::io_service>::GetInstance())
-	{
-		SetTimer(interval, functor);
-	}
-
-	/*!
-		\param interval ms(1/1000 sec)
-		\param functor call back funcion
-	*/
-	template <class FUNCTOR>
-	bool SetTimer(int interval, FUNCTOR functor)
+	void SetTimer(int interval, FUNCTOR functor)
 	{
 		interval_ = interval;
 		{
@@ -79,8 +67,6 @@ public :
 		}
 		deadline_timer_.expires_from_now(boost::posix_time::milliseconds(interval_));
 		deadline_timer_.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
-
-		return true;
 	}
 
     /*!

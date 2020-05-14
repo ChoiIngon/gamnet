@@ -42,9 +42,7 @@ public:
 	std::shared_ptr<Session>		session;
 	boost::asio::ip::address 		remote_address;
 	uint32_t 						link_key;
-//protected :
-	Timer 							timer;
-
+	Time::Timer						timer;
 public :
 	Link();
 	virtual ~Link();

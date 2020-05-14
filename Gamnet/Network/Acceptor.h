@@ -2,16 +2,17 @@
 #define GAMNET_NETWORK_ACCEPTOR_H_
 
 #include "../Library/Pool.h"
-#include "../Library/Debugs.h"
-#include "../Library/Delegate.h"
+#include "SessionManager.h"
 #include <boost/asio.hpp>
-
 namespace Gamnet { namespace Network {
-	class SessionManager;
+
 	class Acceptor
 	{
+	private :
 		struct SocketFactory
 		{
+			SessionManager*	const	session_manager;
+			SocketFactory(SessionManager* const manager);
 			boost::asio::ip::tcp::socket* operator() ();
 		};
 		
@@ -27,16 +28,15 @@ namespace Gamnet { namespace Network {
 			boost::asio::ip::tcp::socket* operator() (boost::asio::ip::tcp::socket* socket);
 		};
 
-	private:
 		boost::asio::ip::tcp::acceptor	acceptor;
 		boost::asio::ip::tcp::endpoint	endpoint;
 		Pool<boost::asio::ip::tcp::socket, std::mutex, SocketInitFunctor, SocketReleaseFunctor> socket_pool;
 
-		SessionManager*	const			session_manager;
-		int								max_queue_size;
-		std::atomic<int>				cur_queue_size;
+		SessionManager*	const	session_manager;
+		int						max_queue_size;
+		std::atomic<int>		cur_queue_size;
 	public:
-		Acceptor(SessionManager* manager);
+		Acceptor(SessionManager* const manager);
 
 		void Listen(int port, int max_count, int queue_size);
 		void Release();

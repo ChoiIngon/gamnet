@@ -4,9 +4,13 @@
 
 namespace Gamnet { namespace Network {
 
+	Acceptor::SocketFactory::SocketFactory(SessionManager* const manager) : session_manager(manager)
+	{
+	}
+
 	boost::asio::ip::tcp::socket* Acceptor::SocketFactory::operator() ()
 	{
-		return new boost::asio::ip::tcp::socket(Singleton<boost::asio::io_service>::GetInstance());
+		return new boost::asio::ip::tcp::socket(session_manager->io_service);
 	}
 
 	boost::asio::ip::tcp::socket* Acceptor::SocketInitFunctor::operator() (boost::asio::ip::tcp::socket* socket)
@@ -24,9 +28,9 @@ namespace Gamnet { namespace Network {
 		return socket;
 	}
 
-	Acceptor::Acceptor(SessionManager* manager) :
-		acceptor(Singleton<boost::asio::io_service>::GetInstance()),
-		socket_pool(65535, SocketFactory(), SocketInitFunctor(), SocketReleaseFunctor(*this)),
+	Acceptor::Acceptor(SessionManager* const manager) :
+		acceptor(manager->io_service),
+		socket_pool(65535, SocketFactory(manager), SocketInitFunctor(), SocketReleaseFunctor(*this)),
 		session_manager(manager),
 		max_queue_size(0),
 		cur_queue_size(0)
@@ -82,7 +86,7 @@ namespace Gamnet { namespace Network {
 				throw GAMNET_EXCEPTION(ErrorCode::AcceptFailError, "error_code:", ec.value());
 			}
 
-			session_manager->OnAccept(socket);
+			session_manager->Create(socket);
 			return;
 		}
 		catch (const Exception& e)
@@ -93,6 +97,7 @@ namespace Gamnet { namespace Network {
 		{
 			LOG(GAMNET_ERR, "accept fail(errno:", e.code().value(), ", errstr:", e.what(), ")");
 		}
+		socket->close();
 	}
 
 }}
