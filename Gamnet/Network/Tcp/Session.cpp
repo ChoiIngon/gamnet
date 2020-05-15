@@ -73,6 +73,7 @@ void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 
 void Session::OnRead(const std::shared_ptr<Buffer>& buffer) 
 {
+	/*
 	try {
 		while (0 < buffer->Size())
 		{
@@ -117,6 +118,7 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 		}
 		throw e;
 	}
+	*/
 }
 
 }}}
