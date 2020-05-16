@@ -2,7 +2,8 @@
 #define _GAMNET_TEST_TESTHANDLER_H_
 
 #include "../Library/Json/json.h"
-#include "../Network/Network.h"
+#include "../Network/Tcp/Packet.h"
+#include "../Network/Tcp/SystemMessageHandler.h"
 
 namespace Gamnet { namespace Test {
 	template <class SESSION_T>
@@ -27,12 +28,12 @@ namespace Gamnet { namespace Test {
 			Json::Reader reader;
 			if (false == reader.parse(json, ans))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[Gamnet::Test] parse error(msg:", json, ")");
 			}
 
 			if (ErrorCode::Success != ans["error_code"].asInt())
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] connect fail(error_code:", ans["error_code"].asInt(), ")");
+				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[Gamnet::Test] connect fail(error_code:", ans["error_code"].asInt(), ")");
 			}
 
 			session->server_session_key = ans["session_key"].asUInt();
@@ -45,9 +46,6 @@ namespace Gamnet { namespace Test {
 
 		void Send_Reconnect_Req(const std::shared_ptr<SESSION_T>& session)
 		{
-			std::shared_ptr<Network::Tcp::Link> link = std::static_pointer_cast<Network::Tcp::Link>(session->link);
-			assert(nullptr != link);
-
 			//LOG(DEV, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Send_Reconnect_Req");
 
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
@@ -75,19 +73,19 @@ namespace Gamnet { namespace Test {
 			Json::Reader reader;
 			if (false == reader.parse(json, ans))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] parse error(msg:", json, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "parse error(msg:", json, ")");
 			}
 
 			if (ErrorCode::Success != ans["error_code"].asInt())
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[link_key:", session->link->link_key, ", session_key:", session->session_key, "] reconnect fail(error_code:", ans["error_code"].asInt(), ")");
+				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[Gamnet::Test] reconnect fail(error_code:", ans["error_code"].asInt(), ")");
 			}
 
 			session->is_connected = true;
 
 			for (const std::shared_ptr<Network::Tcp::Packet>& sendPacket : session->send_packets)
 			{
-				session->link->AsyncSend(sendPacket);
+				session->AsyncSend(sendPacket);
 			}
 			session->OnConnect();
 			//session->Resume();
@@ -131,10 +129,10 @@ namespace Gamnet { namespace Test {
 
 		void Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
-			std::shared_ptr<Network::Link> link = session->link;
-			assert(nullptr != link);
-			//LOG(DEV, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Close_Ans");
-			link->Close(ErrorCode::Success);
+			//std::shared_ptr<Network::Link> link = session->link;
+			//assert(nullptr != link);
+			////LOG(DEV, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Close_Ans");
+			//link->Close(ErrorCode::Success);
 		}
 	};
 }}

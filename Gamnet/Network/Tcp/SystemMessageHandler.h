@@ -1,10 +1,11 @@
 #ifndef _GAMNET_NETWORK_TCP_SYSTEM_MESSAGE_HANDLER_H_
 #define _GAMNET_NETWORK_TCP_SYSTEM_MESSAGE_HANDLER_H_
 
-#include "LinkManager.h"
-#include "../Handler.h"
 #include "../../Library/Json/json.h"
 #include "../../Library/Singleton.h"
+#include "../Handler.h"
+#include "SessionManager.h"
+#undef max
 
 namespace Gamnet {	namespace Network {		namespace Tcp {
 	enum MSG_ID {
@@ -28,11 +29,7 @@ class SystemMessageHandler : public IHandler
 public:
 	void Recv_Connect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 	{
-		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
-		assert(nullptr != link);
-
 		// LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Connect_Req");
-
 		Json::Value ans;
 		ans["error_code"] = 0;
 		ans["session_key"] = 0;
@@ -40,8 +37,6 @@ public:
 
 		try
 		{
-			Singleton<LinkManager<SESSION_T>>::GetInstance().session_manager.Add(session->session_key, session);
-			session->OnCreate();
 			session->OnAccept();
 			session->handover_safe = true;
 
@@ -54,24 +49,21 @@ public:
 			ans["error_code"] = e.error_code();
 		}
 
-		std::shared_ptr<Packet> sendPacket = Packet::Create();
-		if (nullptr == sendPacket)
+		std::shared_ptr<Packet> ansPacket = Packet::Create();
+		if (nullptr == ansPacket)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", link->link_manager->name, " / ", link->link_key, " / ", session->session_key, "] can not create Packet instance");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[Gamnet::Network::Tcp] can not create Packet instance");
 		}
 
 		Json::FastWriter writer;
 		std::string str = writer.write(ans);
 
-		sendPacket->Write(MSG_ID::MsgID_SvrCli_Connect_Ans, str.c_str(), str.length());
-		link->AsyncSend(sendPacket);
+		ansPacket->Write(MSG_ID::MsgID_SvrCli_Connect_Ans, str.c_str(), str.length());
+		session->AsyncSend(ansPacket);
 	}
 
 	void Recv_Reconnect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 	{
-		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
-		assert(nullptr != link);
-
 		//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Reconnect_Req");
 		Json::Value req;
 		Json::Value ans;
@@ -83,41 +75,47 @@ public:
 
 			if (false == reader.parse(json, req))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", link->link_key, "] message format error(data:", json, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[Gamnet::Network::Tcp] message format error(data:", json, ")");
 			}
 
 			uint32_t session_key = req["session_key"].asUInt();
 			const std::string session_token = req["session_token"].asString();
 
-			const std::shared_ptr<SESSION_T> prevSession = Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
+			const std::shared_ptr<SESSION_T> prevSession = Singleton<SessionManager<SESSION_T>>::GetInstance().Find(session_key);
 			if (nullptr == prevSession)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionKeyError, "[link_key:", link->link_key, " ] can not find session data for reconnect(session_key:", session_key, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionKeyError, "[Gamnet::Network::Tcp] can not find session data for reconnect(session_key:", session_key, ")");
 			}
 
 			if (session_token != prevSession->session_token)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "[link_key:", link->link_key, "] invalid session token(expect:", prevSession->session_token, ", receive:", session_token, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "[Gamnet::Network::Tcp] invalid session token(expect:", prevSession->session_token, ", receive:", session_token, ")");
 			}
 
-			assert(nullptr != prevSession->link);
-			prevSession->strand.wrap([=]() {
-				if (nullptr != prevSession->link)
-				{
-					prevSession->link->Close(ErrorCode::DuplicateConnectionError);
-					std::static_pointer_cast<Link>(prevSession->link)->timer.Cancel();
-					Singleton<LinkManager<SESSION_T>>::GetInstance().Remove(prevSession->link->link_key);
-				}
-			
-				link->session = prevSession;
-				prevSession->link = link;
-				prevSession->OnAccept();
+			std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
+			prevSession->strand->wrap([=]() {
+				prevSession->socket = socket;
 
-				for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
+				Json::FastWriter writer;
+				std::string str = writer.write(ans);
+
+				std::shared_ptr<Packet> ansPacket = Packet::Create();
+				if (nullptr == ansPacket)
 				{
-					link->AsyncSend(sendPacket);
+					return;
 				}
+
+				ansPacket->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
+				prevSession->AsyncSend(ansPacket);
+
+				prevSession->OnAccept();
+				for (const std::shared_ptr<Packet>& ansPacket : prevSession->send_packets)
+				{
+					prevSession->AsyncSend(ansPacket);
+				}
+				Singleton<SessionManager<SESSION_T>>::GetInstance().OnDestroy(session->session_key);
 			})();
+			return;
 		}
 		catch (const Exception& e)
 		{
@@ -129,25 +127,22 @@ public:
 		Json::FastWriter writer;
 		std::string str = writer.write(ans);
 
-		std::shared_ptr<Packet> sendPacket = Packet::Create();
-		if (nullptr == sendPacket)
+		std::shared_ptr<Packet> ansPacket = Packet::Create();
+		if (nullptr == ansPacket)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", link->link_manager->name, " / ", link->link_key, " / ", session->session_key, "] can not create Packet instance");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[Gamnet::Network::Tcp] can not create Packet instance");
 		}
 
-		sendPacket->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
-		link->AsyncSend(sendPacket);
+		ansPacket->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
+		session->AsyncSend(ansPacket);
 	}
 
 	void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 	{
-		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
-		assert(nullptr != link);
-
-		std::shared_ptr<Packet> sendPacket = Packet::Create();
-		if (nullptr == sendPacket)
+		std::shared_ptr<Packet> ansPacket = Packet::Create();
+		if (nullptr == ansPacket)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", link->link_manager->name, " / ", link->link_key, " / ", session->session_key, "] can not create Packet instance");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
 		}
 
 		Json::Value ans;
@@ -157,29 +152,26 @@ public:
 		Json::FastWriter writer;
 		std::string str = writer.write(ans);
 
-		sendPacket->Write(MSG_ID::MsgID_SvrCli_HeartBeat_Ans, str.c_str(), str.length());
-		link->AsyncSend(sendPacket);
+		ansPacket->Write(MSG_ID::MsgID_SvrCli_HeartBeat_Ans, str.c_str(), str.length());
+		session->AsyncSend(ansPacket);
 	}
 
 	void Recv_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 	{
-		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
-		assert(nullptr != link);
-
 		std::string json = std::string(packet->ReadPtr() + Packet::HEADER_SIZE, packet->Size());
 		Json::Value ntf;
 		Json::Reader reader;
 		if (false == reader.parse(json, ntf))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[link_key:", link->link_key, "] message format error(data:", json, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[Gamnet::Network::Tcp] message format error(data:", json, ")");
 		}
 
 		uint32_t ackSEQ = ntf["ack_seq"].asUInt();
 
 		while (0 < session->send_packets.size())
 		{
-			const std::shared_ptr<Packet>& sendPacket = session->send_packets.front();
-			if (ackSEQ < sendPacket->msg_seq)
+			const std::shared_ptr<Packet>& ansPacket = session->send_packets.front();
+			if (ackSEQ < ansPacket->msg_seq)
 			{
 				break;
 			}
@@ -189,22 +181,19 @@ public:
 
 	void Recv_Close_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 	{
-		std::shared_ptr<Link> link = std::static_pointer_cast<Link>(session->link);
-		assert(nullptr != link);
-
 		//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", link->session->session_key , "] Recv_Close_Req");
 
 		session->handover_safe = false;
 		//link->strand.wrap(std::bind(&Network::Tcp::LinkManager<SESSION_T>::OnClose, link->link_manager, link, ErrorCode::Success));
 
-		std::shared_ptr<Packet> sendPacket = Packet::Create();
-		if (nullptr == sendPacket)
+		std::shared_ptr<Packet> ansPacket = Packet::Create();
+		if (nullptr == ansPacket)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[", link->link_manager->name, " / ", link->link_key, " / ", link->session->session_key , "] can not create Packet instance");
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[Gamnet::Network::Tcp] can not create Packet instance");
 		}
 
-		sendPacket->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);
-		link->AsyncSend(sendPacket);
+		ansPacket->Write(MSG_ID::MsgID_SvrCli_Close_Ans, nullptr, 0);
+		session->AsyncSend(ansPacket);
 	}
 };
 }}}

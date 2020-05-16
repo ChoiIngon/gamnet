@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/bind.hpp>
+#include <mutex>
 #include "Singleton.h"
 
 namespace Gamnet { namespace Time {
@@ -24,6 +25,9 @@ namespace Gamnet { namespace Time {
  */
 class Timer
 {
+public :
+	static std::shared_ptr<Timer> Create();
+private :
 	struct TimerEntry
 	{
 		virtual ~TimerEntry()
@@ -50,9 +54,8 @@ class Timer
 	void OnExpire(const boost::system::error_code& ec);
 public :
 	Timer();
-	Timer(boost::asio::io_service& ioService);
 	~Timer();
-	
+
 	/*!
 		\param interval ms(1/1000 sec)
 		\param functor call back funcion
@@ -60,13 +63,13 @@ public :
 	template <class FUNCTOR>
 	void SetTimer(int interval, FUNCTOR functor)
 	{
-		interval_ = interval;
+		this->interval = interval;
 		{
-			std::lock_guard<std::mutex> lo(lock_);
-			entry_ = std::shared_ptr<TimerEntryT<FUNCTOR>>(new TimerEntryT<FUNCTOR>(functor));
+			std::lock_guard<std::mutex> lo(lock);
+			entry = std::make_shared<TimerEntryT<FUNCTOR>>(functor);
 		}
-		deadline_timer_.expires_from_now(boost::posix_time::milliseconds(interval_));
-		deadline_timer_.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
+		deadline_timer.expires_from_now(boost::posix_time::milliseconds(this->interval));
+		deadline_timer.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
 	}
 
     /*!

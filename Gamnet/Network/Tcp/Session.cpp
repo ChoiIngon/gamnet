@@ -1,7 +1,15 @@
 #include "Session.h"
-#include "Link.h"
+
+#include "../../Library/MD5.h"
+#include "../../Library/Random.h"
+#include "SessionManager.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {
+
+	std::string Session::GenerateSessionToken(uint32_t session_key)
+	{
+		return md5(Format(session_key, time(nullptr), Random::Range(1, 99999999)));
+	}
 
 Session::Session()
 {
@@ -73,7 +81,6 @@ void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 
 void Session::OnRead(const std::shared_ptr<Buffer>& buffer) 
 {
-	/*
 	try {
 		while (0 < buffer->Size())
 		{
@@ -106,19 +113,16 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 					throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
 				}
 				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
-				link_manager->OnRecvMsg(shared_from_this(), packet);
+				auto self = shared_from_this();
+				session_manager->OnReceive(self, packet);
 			}
 		}
 	}
 	catch (const Exception& e)
 	{
-		if (nullptr != session)
-		{
-			std::static_pointer_cast<Session>(session)->handover_safe = false;
-		}
+		handover_safe = false;
 		throw e;
 	}
-	*/
 }
 
 }}}

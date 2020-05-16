@@ -19,6 +19,8 @@
   </router>
   
   <test host="127.0.0.1" port="10000" session_count="1" loop_count="1">
-    <message name="Test_SendMessage"/>
+    <condition session_state="OnConnect" command="Send_Connect_Req"/>
+    <condition session_state="OnDisconnect" command="Send_Reconnect_Req"/>
+    <condition on_receive="Recv_Connect_Ans" command="Send_Message_Req"/>
   </test>
 </server>

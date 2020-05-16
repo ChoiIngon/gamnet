@@ -32,9 +32,6 @@
     <ClCompile Include="log\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="network\HandlerContainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="network\Session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,6 +60,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Network\Acceptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Tcp\Tcp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Connector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\Session.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\Command.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\HandlerContainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\Tcp\CastGroup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -109,15 +124,6 @@
     <ClInclude Include="log\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="network\Handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="network\HandlerContainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="network\HandlerFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="network\Session.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -161,6 +167,39 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Network\Tcp\SessionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Tcp\Dispatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Tcp\Tcp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Connector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\Session.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\SessionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\TestHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\Command.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\HandlerContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\HandlerFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Tcp\CastGroup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

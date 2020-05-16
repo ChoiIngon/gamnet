@@ -1,8 +1,10 @@
 #include "Acceptor.h"
+#include <boost/bind.hpp>
 #include "../Library/Singleton.h"
 #include "SessionManager.h"
 
 namespace Gamnet { namespace Network {
+	static boost::asio::io_service& io_service = Singleton<boost::asio::io_service>::GetInstance();
 
 	Acceptor::SocketFactory::SocketFactory(SessionManager* const manager) : session_manager(manager)
 	{
@@ -10,7 +12,7 @@ namespace Gamnet { namespace Network {
 
 	boost::asio::ip::tcp::socket* Acceptor::SocketFactory::operator() ()
 	{
-		return new boost::asio::ip::tcp::socket(session_manager->io_service);
+		return new boost::asio::ip::tcp::socket(io_service);
 	}
 
 	boost::asio::ip::tcp::socket* Acceptor::SocketInitFunctor::operator() (boost::asio::ip::tcp::socket* socket)
@@ -25,11 +27,12 @@ namespace Gamnet { namespace Network {
 	boost::asio::ip::tcp::socket* Acceptor::SocketReleaseFunctor::operator() (boost::asio::ip::tcp::socket* socket)
 	{
 		acceptor.Release();
+		socket->close();
 		return socket;
 	}
 
 	Acceptor::Acceptor(SessionManager* const manager) :
-		acceptor(manager->io_service),
+		acceptor(io_service),
 		socket_pool(65535, SocketFactory(manager), SocketInitFunctor(), SocketReleaseFunctor(*this)),
 		session_manager(manager),
 		max_queue_size(0),
@@ -86,7 +89,7 @@ namespace Gamnet { namespace Network {
 				throw GAMNET_EXCEPTION(ErrorCode::AcceptFailError, "error_code:", ec.value());
 			}
 
-			session_manager->Create(socket);
+			session_manager->OnAccept(socket);
 			return;
 		}
 		catch (const Exception& e)

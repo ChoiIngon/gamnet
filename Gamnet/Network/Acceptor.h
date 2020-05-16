@@ -1,11 +1,11 @@
 #ifndef GAMNET_NETWORK_ACCEPTOR_H_
 #define GAMNET_NETWORK_ACCEPTOR_H_
 
-#include "../Library/Pool.h"
-#include "SessionManager.h"
 #include <boost/asio.hpp>
-namespace Gamnet { namespace Network {
+#include "../Library/Pool.h"
 
+namespace Gamnet { namespace Network {
+	class SessionManager;
 	class Acceptor
 	{
 	private :

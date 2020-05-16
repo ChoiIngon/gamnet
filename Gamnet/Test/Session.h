@@ -1,11 +1,9 @@
 #ifndef GAMNET_TEST_SESSION_H_
 #define GAMNET_TEST_SESSION_H_
-#include "../Network/Network.h"
+
+#include "../Network/Tcp/Session.h"
 
 namespace Gamnet { namespace Test {
-
-boost::asio::io_service& GetIOService();
-void CreateThreadPool(int threadCount);
 
 class Session : public Network::Tcp::Session 
 {
@@ -20,7 +18,6 @@ public:
 	bool is_connected;
 	std::chrono::time_point<std::chrono::steady_clock> send_time;
 	std::function<void(const std::shared_ptr<Session>&)> execute_send_handler;
-	Time::Timer timer;
 
 	virtual void OnCreate() override {}
 	virtual void OnAccept() override {}

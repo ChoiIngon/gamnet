@@ -1,19 +1,12 @@
-/*
- * HandlerFactory.h
- *
- *  Created on: Jun 5, 2014
- *      Author: kukuta
- */
-
 #ifndef GAMNET_NETWORK_HANDLERFACTORY_H_
 #define GAMNET_NETWORK_HANDLERFACTORY_H_
 
 #include <memory>
 #include <stdint.h>
-#include "../Library/Pool.h"
 #include "../Library/Debugs.h"
+#include "../Library/Pool.h"
 #include "HandlerContainer.h"
-namespace Gamnet { namespace Network {
+namespace Gamnet { namespace Network { 
 
 struct IHandler;
 struct IHandlerFactory

@@ -7,145 +7,120 @@
 
 #ifndef GAMNET_NETWORK_TCP_DISPATCHER_H_
 #define GAMNET_NETWORK_TCP_DISPATCHER_H_
-#include <memory>
+#include <algorithm>
 #include <map>
-#include <mutex>
 #include <atomic>
-#include <set>
-#include "Packet.h"
-#include "Link.h"
+
+#include "../../Log/Log.h"
 #include "../Handler.h"
 #include "../HandlerFactory.h"
-#include "../../Log/Log.h"
-#ifdef _DEBUG
-#include <chrono>
-#endif
+#include "Packet.h"
+#include "SystemMessageHandler.h"
 
-namespace Gamnet { namespace Network { namespace Tcp {
+namespace Gamnet {	namespace Network { namespace Tcp {
 
-#undef max
-	
-template <class SESSION_T>
-class Dispatcher
-{
-	GAMNET_WHERE(SESSION_T, Session);
-
-	typedef void(IHandler::*function_type)(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Packet>&);
-public :
-	struct HandlerFunction
+	template <class SESSION_T>
+	class Dispatcher
 	{
-		template<class FACTORY, class FUNCTION>
+		GAMNET_WHERE(SESSION_T, Session);
+
+		typedef void(IHandler::*function_type)(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Packet>&);
+#ifdef _DEBUG
+		struct Statistics
+		{
+			std::atomic<int64_t> begin_count;
+			std::atomic<int64_t> finish_count;
+			std::atomic<int64_t> total_time;
+			int64_t max_time;
+
+			Statistics() : begin_count(0), finish_count(0), total_time(0), max_time(0)
+			{
+			}
+		};
+#endif
+		struct HandlerFunctor
+		{
+			template<class FACTORY, class FUNCTION>
 #ifdef _WIN32
-		HandlerFunction(FACTORY* factory, FUNCTION function) : factory_(factory), function_(std::mem_fn(function)) {}
+			HandlerFunctor(const std::string& name, FACTORY* factory, FUNCTION function) : name(name), factory(factory), function(std::mem_fn(function)) {}
 #else
-		HandlerFunction(FACTORY* factory, FUNCTION function) : factory_(factory), function_(function) {}
+			HandlerFunctor(const std::string& name, FACTORY* factory, FUNCTION function) : name(name), factory(factory), function(function) {}
 #endif
-		IHandlerFactory* factory_;
-		//function_type function_;
-		std::function<void(const std::shared_ptr<IHandler>&, const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Packet>&)> function_;
-	};
-
-	std::map<unsigned int, HandlerFunction> mapHandlerFunction_;
+			const std::string& name;
+			IHandlerFactory* factory;
+			std::function<void(const std::shared_ptr<IHandler>&, const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Packet>&)> function;
 #ifdef _DEBUG
-	struct HandlerCallStatistics
-	{
-		unsigned int msg_id;
-		const char* name;
-		std::atomic_int begin_count;
-		std::atomic_int finish_count;
-		std::atomic<int64_t> elapsed_time;
-		int64_t max_time;
-
-		time_t last_check_time;
-		int last_finish_count;
-
-		HandlerCallStatistics() : 
-			msg_id(0), name(nullptr),
-			begin_count(0), finish_count(0), 
-			elapsed_time(0), max_time(0), 
-			last_check_time(time(nullptr)), last_finish_count(0) 
-		{
-		}
-	};
-
-	std::map<unsigned int, std::shared_ptr<HandlerCallStatistics>> mapHandlerCallStatistics_;
+			Statistics* statistics;
 #endif
-public:
-	Dispatcher() 
-	{		
-	}
-	~Dispatcher() {}
-
-	template <class FUNC, class FACTORY>
-	bool BindHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
-	{
-		HandlerFunction handlerFunction(factory, static_cast<function_type>(func));
-		if(false == mapHandlerFunction_.insert(std::make_pair(msg_id, handlerFunction)).second)
+		};
+		std::map<uint32_t, HandlerFunctor> handler_functors;
+	public:
+		Dispatcher()
 		{
+			BindHandler(MSG_ID::MsgID_CliSvr_Connect_Req, "MsgID_CliSvr_Connect_Req", &SystemMessageHandler<SESSION_T>::Recv_Connect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+			BindHandler(MSG_ID::MsgID_CliSvr_Reconnect_Req, "MsgID_CliSvr_Reconnect_Req", &SystemMessageHandler<SESSION_T>::Recv_Reconnect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+			BindHandler(MSG_ID::MsgID_CliSvr_Close_Req, "MsgID_CliSvr_Close_Req", &SystemMessageHandler<SESSION_T>::Recv_Close_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+			BindHandler(MSG_ID::MsgID_CliSvr_HeartBeat_Req, "MsgID_CliSvr_HeartBeat_Req", &SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+			BindHandler(MSG_ID::MsgID_CliSvr_ReliableAck_Ntf, "MsgID_CliSvr_ReliableAck_Ntf", &SystemMessageHandler<SESSION_T>::Recv_ReliableAck_Ntf, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+		}
+		~Dispatcher() {}
+
+		template <class FUNC, class FACTORY>
+		bool BindHandler(uint32_t msg_id, const char* name, FUNC func, FACTORY factory)
+		{
+			HandlerFunctor handlerFunctor(name, factory, static_cast<function_type>(func));
+#ifdef _DEBUG
+			handlerFunctor.statistics = new Statistics();
+#endif
+
+			if (false == handler_functors.insert(std::make_pair(msg_id, handlerFunctor)).second)
+			{
 #ifdef _WIN32
-			MessageBoxA(nullptr, Format("duplicate handler(msg_id:", msg_id, ", name : ", name, ")").c_str(), "Duplicate Handler Error", MB_ICONWARNING);
+				MessageBoxA(nullptr, Format("duplicate handler(msg_id:", msg_id, ", name : ", name, ")").c_str(), "Duplicate Handler Error", MB_ICONWARNING);
 #endif
-			throw Exception(0, "[", __FILE__, ":", __func__, "@" , __LINE__, "] duplicate handler(msg_id:", msg_id, ", name:", name, ")");
+				throw Exception(0, "[", __FILE__, ":", __func__, "@", __LINE__, "] duplicate handler(msg_id:", msg_id, ", name:", name, ")");
+			}
+			return true;
 		}
 
+		void OnReceive(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
+		{
+			if (true == packet->reliable && packet->msg_seq <= session->recv_seq)
+			{
+				LOG(WRN, "discard message(msg_id:", packet->msg_id, ", received msg_seq:", packet->msg_seq, ", expected msg_seq:", session->recv_seq + 1, ")");
+				return;
+			}
+
+			auto itr = handler_functors.find(packet->msg_id);
+			if (handler_functors.end() == itr)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
+			}
+
+			const HandlerFunctor& handlerFunctor = itr->second;
+			std::shared_ptr<IHandler> handler = handlerFunctor.factory->GetHandler(&session->handler_container, packet->msg_id);
+			if (nullptr == handler)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
+			}
 #ifdef _DEBUG
-		std::shared_ptr<HandlerCallStatistics> statistics = std::shared_ptr<HandlerCallStatistics>(new HandlerCallStatistics());
-		statistics->msg_id = msg_id;
-		statistics->name = name;
-		mapHandlerCallStatistics_.insert(std::make_pair(msg_id, statistics));
+			Time::ElapseTimer elapseTimer;
+			Statistics* statistics = handlerFunctor.statistics;
+			statistics->begin_count++;
 #endif
-		return true;
-	}
+			handlerFunctor.function(handler, session, packet);
 
-	void OnRecvMsg(const std::shared_ptr<Link>& link, const std::shared_ptr<Buffer>& buffer)
-	{
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(link->session);
-		assert(nullptr != session);
-		const std::shared_ptr<Packet> packet = std::static_pointer_cast<Packet>(buffer);
-		if (true == packet->reliable && packet->msg_seq <= session->recv_seq)
-		{
-			LOG(WRN, "discard message(msg_id:", packet->msg_id, ", received msg_seq:", packet->msg_seq, ", expected msg_seq:", session->recv_seq + 1, ")");
-			return;
-		}
-
-		auto itr = mapHandlerFunction_.find(packet->msg_id);
-		if(itr == mapHandlerFunction_.end())
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
-		}
-
-		const HandlerFunction& handler_function = itr->second;
-		std::shared_ptr<IHandler> handler = handler_function.factory_->GetHandler(&session->handler_container, packet->msg_id);
-		if(nullptr == handler)
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")"); 
-		}
+			if (true == packet->reliable)
+			{
+				session->recv_seq = packet->msg_seq;
+			}
 #ifdef _DEBUG
-		ElapseTimer elapseTimer;
-		auto statistics_itr = mapHandlerCallStatistics_.find(packet->msg_id);
-		if (mapHandlerCallStatistics_.end() != statistics_itr)
-		{
-			statistics_itr->second->begin_count++;
-		}
+			int64_t elapsedTime = elapseTimer.Count();
+			statistics->max_time = std::max(statistics->max_time, elapsedTime);
+			statistics->total_time += elapsedTime;
+			statistics->finish_count++;
 #endif
-		handler_function.function_(handler, session, packet);
-
-		if (true == packet->reliable)
-		{
-			session->recv_seq = packet->msg_seq;
 		}
-
-#ifdef _DEBUG
-		if (mapHandlerCallStatistics_.end() != statistics_itr)
-		{
-			int64_t elapsed_time = elapseTimer.Count();
-			statistics_itr->second->max_time = std::max(statistics_itr->second->max_time, elapsed_time);
-			statistics_itr->second->elapsed_time += elapsed_time;
-			statistics_itr->second->finish_count++;
-		}
-#endif
-	}
-};
-
+	};
 }}}
 #endif /* DISPATCHER_H_ */

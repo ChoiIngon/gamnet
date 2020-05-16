@@ -1,24 +1,21 @@
 #ifndef GAMNET_NETWORK_TCP_H_
 #define GAMNET_NETWORK_TCP_H_
 
-#include "LinkManager.h"
-#include "SystemMessageHandler.h"
-#include "CastGroup.h"
+#include <boost/exception/diagnostic_information.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <boost/exception/diagnostic_information.hpp>
+
+#include "CastGroup.h"
+#include "Dispatcher.h"
+#include "SessionManager.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
 	template <class SESSION_T>
-	void Listen(int port, int max_session, int keep_alive, int accept_queue_size)
+	void Listen(int port, int max_session, int keep_alive, int accept_queue_size, int thread_count)
 	{
-		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_Connect_Req, "MsgID_CliSvr_Connect_Req", &SystemMessageHandler<SESSION_T>::Recv_Connect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_Reconnect_Req, "MsgID_CliSvr_Reconnect_Req", &SystemMessageHandler<SESSION_T>::Recv_Reconnect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_Close_Req, "MsgID_CliSvr_Close_Req", &SystemMessageHandler<SESSION_T>::Recv_Close_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_HeartBeat_Req, "MsgID_CliSvr_HeartBeat_Req", &SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-		Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(MSG_ID::MsgID_CliSvr_ReliableAck_Ntf, "MsgID_CliSvr_ReliableAck_Ntf", &SystemMessageHandler<SESSION_T>::Recv_ReliableAck_Ntf, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-		Singleton<LinkManager<SESSION_T>>::GetInstance().Listen(port, max_session, keep_alive, accept_queue_size);
+		Singleton<Dispatcher<SESSION_T>>::GetInstance();
+		Singleton<SessionManager<SESSION_T>>::GetInstance().Listen(port, max_session, keep_alive, accept_queue_size, thread_count);
 		LOG(GAMNET_INF, "Gamnet::Tcp listener start(port:", port, ", capacity:", max_session, ", keep alive time:", keep_alive, " sec)");
 	}
 
@@ -78,19 +75,19 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	template <class SESSION_T>
 	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key)
 	{
-		return Singleton<LinkManager<SESSION_T>>::GetInstance().FindSession(session_key);
+		return Singleton<SessionManager<SESSION_T>>::GetInstance().Find(session_key);
 	}
 
 	template <class SESSION_T>
 	void DestroySession(uint32_t session_key)
 	{
-		Singleton<LinkManager<SESSION_T>>::GetInstance().DestroySession(session_key);
+		Singleton<SessionManager<SESSION_T>>::GetInstance().OnDestroy(session_key);
 	}
 
 	template <class SESSION_T>
 	Json::Value  ServerState()
 	{
-		return Singleton<LinkManager<SESSION_T>>::GetInstance().State();
+		return Singleton<SessionManager<SESSION_T>>::GetInstance().State();
 	}
 }}}
 

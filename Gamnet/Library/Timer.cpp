@@ -1,14 +1,16 @@
 #include "Timer.h"
+#include "Pool.h"
 
 namespace Gamnet { namespace Time {
 
+	static Pool<Timer, std::mutex> pool(std::numeric_limits<uint32_t>::max());
+	std::shared_ptr<Timer> Timer::Create()
+	{
+		return pool.Create();
+	}
+
 Timer::Timer()
 	: interval(0), auto_reset(false), entry(nullptr), deadline_timer(Singleton<boost::asio::io_service>::GetInstance())
-{
-}
-
-Timer::Timer(boost::asio::io_service& ioService) 
-	: interval(0), auto_reset(false), entry(nullptr), deadline_timer(ioService)
 {
 }
 

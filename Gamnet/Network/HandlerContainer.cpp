@@ -17,24 +17,24 @@ HandlerContainer::~HandlerContainer() {
 
 void HandlerContainer::Init()
 {
-	mapHandler_.clear();
+	handlers.clear();
 }
 
 std::shared_ptr<IHandler> HandlerContainer::Find(uint32_t msg_id)
 {
-	auto itr = mapHandler_.find(msg_id);
-	if(itr == mapHandler_.end())
+	auto itr = handlers.find(msg_id);
+	if(handlers.end() == itr)
 	{
-		return std::shared_ptr<IHandler>(NULL);
+		return nullptr;
 	}
 	std::shared_ptr<IHandler> handler = itr->second;
-	mapHandler_.erase(itr);
+	handlers.erase(itr);
 	return handler;
 }
 
 void HandlerContainer::Register(uint32_t msg_seq, std::shared_ptr<IHandler> handler)
 {
-	mapHandler_[msg_seq] = handler;
+	handlers[msg_seq] = handler;
 }
 
 }} /* namespace Gamnet */

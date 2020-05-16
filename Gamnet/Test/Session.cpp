@@ -1,25 +1,7 @@
 #include "Session.h"
-#include <thread>
+#include "../Library/Timer.h"
 
 namespace Gamnet { namespace Test {
-
-static std::vector<std::thread > workers_;
-static boost::asio::io_service& io_service_ = GetIOService();
-
-boost::asio::io_service& GetIOService()
-{
-	static boost::asio::io_service _io_service;
-	return _io_service;
-}
-
-void CreateThreadPool(int threadCount)
-{
-	LOG(GAMNET_INF, "[Test] test start...");
-	for (int i = 0; i<threadCount; i++)
-	{
-		workers_.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &io_service_)));
-	}
-}
 
 Session::Session() : 
 	server_session_key(0),
@@ -50,17 +32,17 @@ bool Session::Init()
 
 void Session::Clear()
 {
-	timer.Cancel();
 	Network::Tcp::Session::Clear();
 }
 
 void Session::Pause(int millisecond)
 {
 	is_pause = true;
-	timer.AutoReset(false);
-	timer.SetTimer(millisecond, [=]() {
-		strand.wrap(execute_send_handler)(std::static_pointer_cast<Session>(shared_from_this()));
-	}); 
+	std::shared_ptr<Time::Timer> timer = Time::Timer::Create();
+	std::shared_ptr<Session> self = std::static_pointer_cast<Session>(shared_from_this());
+	timer->SetTimer(millisecond, strand->wrap([self, timer]() {
+		self->execute_send_handler(self);
+	})); 
 }
 
 void Session::Resume()

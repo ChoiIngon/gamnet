@@ -10,16 +10,14 @@
 
 #include <map>
 #include <stdint.h>
-#include <memory>
+#include "Handler.h"
 
 namespace Gamnet { namespace Network {
-
-struct IHandler;
 
 struct HandlerContainer
 {
 private :
-	std::map<uint32_t, std::shared_ptr<IHandler>> mapHandler_;
+	std::map<uint32_t, std::shared_ptr<IHandler>> handlers;
 public :
 	HandlerContainer();
 	virtual ~HandlerContainer();
