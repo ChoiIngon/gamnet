@@ -17,12 +17,11 @@ namespace Gamnet {	namespace Test {
 	class SessionManager : public Network::Tcp::SessionManager<SESSION_T>
 	{
 		GAMNET_WHERE(SESSION_T, Session);
-	public:
+	private:
 		typedef Network::Tcp::SessionManager<SESSION_T> BASE_T;
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
 		
-	private:
 		struct TestExecuteInfo
 		{
 			TestExecuteInfo() : name(""), execute_count(0), fail_count(0), elapse_time(0) {
@@ -46,90 +45,18 @@ namespace Gamnet {	namespace Test {
 		int 					max_execute_count;
 		int						session_count;
 		Network::Connector		connector;
-	public:
-		std::string host;
-		int			port;
-
 		TestHandler<SESSION_T> test_handler;
 		std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
-		
-		SessionManager() : begin_execute_count(0), finish_execute_count(0), max_execute_count(0), session_count(0), connector(this), host(""), port(0)
-		{
-			BindSendHandler("__connect__", std::bind(&TestHandler<SESSION_T>::Send_Connect_Req, &test_handler, std::placeholders::_1));
-			BindRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Connect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
-			BindGlobalRecvHandler((uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Reconnect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
+		std::string host;
+		int			port;
+	public:
+		SessionManager();
+		virtual ~SessionManager();
 
-			BindSendHandler("__close__", std::bind(&TestHandler<SESSION_T>::Send_Close_Req, &test_handler, std::placeholders::_1));
-			BindRecvHandler("__close__", (uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Close_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
-		}
+		void Init(const char* host, int port, int session_count, int loop_count);
+		void Run();
 
-		virtual ~SessionManager()
-		{
-		}
-
-		void Init(const char* host, int port, int session_count, int loop_count)
-		{
-			RegisterTestcase("__connect__", false);
-			RegisterTestcase("__close__", true);
-
-			log.Init("test", "test", 5);
-			if (0 == session_count)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'session_count' should be set");
-			}
-
-			this->host = host;
-			this->port = port;
-			this->begin_execute_count = 0;
-			this->finish_execute_count = 0;
-			this->max_execute_count = session_count * loop_count;
-			this->session_count = session_count;
-		}
-
-		void Run()
-		{
-			log_timer.AutoReset(true);
-			log_timer.SetTimer(3000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
-			
-			for (size_t i = 0; i < this->session_count; i++)
-			{
-				begin_execute_count++;
-				if (max_execute_count < begin_execute_count)
-				{
-					break;
-				}
-				connector.AsyncConnect(host.c_str(), port, 0);
-			}
-		}
-
-		virtual std::shared_ptr<Network::Session> OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override
-		{
-			std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(BASE_T::OnConnect(socket));
-			session->execute_send_handler = std::bind(&SessionManager<SESSION_T>::ExecuteSendHandler, this, std::placeholders::_1);
-			try {
-				if (0 == execute_order.size())
-				{
-					return session;
-				}
-
-				session->send_time = std::chrono::steady_clock::now();
-				if (0 == session->test_seq)
-				{
-					const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
-					info->execute_count++;
-					test_handler.Send_Connect_Req(session);
-				}
-				else
-				{
-					test_handler.Send_Reconnect_Req(session);
-				}
-			}
-			catch (const Exception& e)
-			{
-				LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
-			}
-			return session;
-		}
+		virtual std::shared_ptr<Network::Session> OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override;
 
 		virtual void OnDestroy(uint32_t sessionKey) override
 		{
@@ -206,38 +133,9 @@ namespace Gamnet {	namespace Test {
 			executeInfo->execute_count++;
 		}
 
-		void BindSendHandler(const std::string& test_name, SEND_HANDLER_TYPE send)
-		{
-			std::shared_ptr<TestExecuteInfo> executeInfo = std::shared_ptr<TestExecuteInfo>(new TestExecuteInfo());
-			executeInfo->name = test_name;
-			executeInfo->send_handler = send;
-			if (false == execute_infos.insert(std::make_pair(test_name, executeInfo)).second)
-			{
-				GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "(duplicate test case name(", test_name, ")");
-			}
-		}
-
-		void BindRecvHandler(const std::string& test_name, uint32_t msgID, RECV_HANDLER_TYPE recv)
-		{
-			auto itr = execute_infos.find(test_name);
-			if (execute_infos.end() == itr)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "can't find registered test case execute info(test_name:", test_name, ")");
-			}
-			std::shared_ptr<TestExecuteInfo> executeInfo = itr->second;
-			if (false == executeInfo->recv_handlers.insert(std::make_pair(msgID, recv)).second)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated recv msg id(test_name:", test_name, ", msg_id:", msgID, ")");
-			}
-		}
-
-		void BindGlobalRecvHandler(uint32_t msgID, RECV_HANDLER_TYPE recv)
-		{
-			if (false == global_recv_handlers.insert(std::make_pair(msgID, recv)).second)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated global recv msg id(msg_id:", msgID, ")");
-			}
-		}
+		void BindSendHandler(const std::string& handlerName, SEND_HANDLER_TYPE sendHandler);
+		void BindRecvHandler(const std::string& test_name, uint32_t msgID, RECV_HANDLER_TYPE recv);
+		void BindGlobalRecvHandler(uint32_t msgID, RECV_HANDLER_TYPE recv);
 		
 		void RegisterTestcase(const std::string& test_name, bool tail = true)
 		{
@@ -288,6 +186,125 @@ namespace Gamnet {	namespace Test {
 			}
 		}
 	};
+
+	template <class SESSION_T>
+	SessionManager<SESSION_T>::SessionManager() : begin_execute_count(0), finish_execute_count(0), max_execute_count(0), session_count(0), connector(this), host(""), port(0)
+	{
+		BindSendHandler("__connect__", std::bind(&TestHandler<SESSION_T>::Send_Connect_Req, &test_handler, std::placeholders::_1));
+		BindRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Connect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
+		BindGlobalRecvHandler((uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Reconnect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
+		BindSendHandler("__close__", std::bind(&TestHandler<SESSION_T>::Send_Close_Req, &test_handler, std::placeholders::_1));
+		BindRecvHandler("__close__", (uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Close_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
+	}
+
+	template <class SESSION_T>
+	SessionManager<SESSION_T>::~SessionManager()
+	{
+	}
+
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::Init(const char* host, int port, int session_count, int loop_count)
+	{
+		RegisterTestcase("__connect__", false);
+		RegisterTestcase("__close__", true);
+
+		log.Init("test", "test", 5);
+		if (0 == session_count)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'session_count' should be set");
+		}
+
+		this->host = host;
+		this->port = port;
+		this->begin_execute_count = 0;
+		this->finish_execute_count = 0;
+		this->max_execute_count = session_count * loop_count;
+		this->session_count = session_count;
+	}
+
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::BindSendHandler(const std::string& handlerName, SessionManager<SESSION_T>::SEND_HANDLER_TYPE sendHandler)
+	{
+		std::shared_ptr<TestExecuteInfo> executeInfo = std::make_shared<TestExecuteInfo>();
+		executeInfo->name = handlerName;
+		executeInfo->send_handler = sendHandler;
+		if (false == execute_infos.insert(std::make_pair(handlerName, executeInfo)).second)
+		{
+			GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "(duplicate test case name(", handlerName, ")");
+		}
+	}
+
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::BindRecvHandler(const std::string& handlerName, uint32_t msgID, SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	{
+		auto itr = execute_infos.find(handlerName);
+		if (execute_infos.end() == itr)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "can't find registered test case execute info(test_name:", handlerName, ")");
+		}
+		std::shared_ptr<TestExecuteInfo> executeInfo = itr->second;
+		if (false == executeInfo->recv_handlers.insert(std::make_pair(msgID, recv)).second)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated recv msg id(test_name:", handlerName, ", msg_id:", msgID, ")");
+		}
+	}
+
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::BindGlobalRecvHandler(uint32_t msgID, SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	{
+		if (false == global_recv_handlers.insert(std::make_pair(msgID, recv)).second)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated global recv msg id(msg_id:", msgID, ")");
+		}
+	}
+
+	template <class SESSION_T>
+	std::shared_ptr<Network::Session> SessionManager<SESSION_T>::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
+	{
+		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(BASE_T::OnConnect(socket));
+		session->execute_send_handler = std::bind(&SessionManager<SESSION_T>::ExecuteSendHandler, this, std::placeholders::_1);
+		try {
+			if (0 == execute_order.size())
+			{
+				return session;
+			}
+
+			session->send_time = std::chrono::steady_clock::now();
+			if (0 == session->test_seq)
+			{
+				const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
+				info->execute_count++;
+				test_handler.Send_Connect_Req(session);
+			}
+			else
+			{
+				test_handler.Send_Reconnect_Req(session);
+			}
+		}
+		catch (const Exception& e)
+		{
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		}
+
+		return session;
+	}
+
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::Run()
+	{
+		log_timer.AutoReset(true);
+		log_timer.SetTimer(3000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
+
+		for (size_t i = 0; i < this->session_count; i++)
+		{
+			begin_execute_count++;
+			if (max_execute_count < begin_execute_count)
+			{
+				break;
+			}
+			connector.AsyncConnect(host.c_str(), port, 0);
+		}
+	}
 }} /* namespace Gamnet */
 
 #endif /* TEST_H_ */

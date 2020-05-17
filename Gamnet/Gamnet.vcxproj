@@ -161,7 +161,7 @@
     <ClCompile Include="Network\Tcp\Packet.cpp" />
     <ClCompile Include="Network\Tcp\Session.cpp" />
     <ClCompile Include="Network\Tcp\Tcp.cpp" />
-    <ClCompile Include="Test\Command.cpp" />
+    <ClCompile Include="Test\Config.cpp" />
     <ClCompile Include="Test\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +180,7 @@
     <ClInclude Include="library\Pool.h" />
     <ClInclude Include="Library\Random.h" />
     <ClInclude Include="library\Singleton.h" />
+    <ClInclude Include="Library\StateMachine.h" />
     <ClInclude Include="library\String.h" />
     <ClInclude Include="library\ThreadPool.h" />
     <ClInclude Include="library\Timer.h" />
@@ -201,10 +202,10 @@
     <ClInclude Include="Network\Tcp\SystemMessageHandler.h" />
     <ClInclude Include="Network\SessionManager.h" />
     <ClInclude Include="Network\Tcp\Tcp.h" />
+    <ClInclude Include="Test\Config.h" />
     <ClInclude Include="Test\Session.h" />
     <ClInclude Include="Test\SessionManager.h" />
     <ClInclude Include="Test\TestHandler.h" />
-    <ClInclude Include="Test\Command.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

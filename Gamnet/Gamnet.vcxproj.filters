@@ -71,13 +71,13 @@
     <ClCompile Include="Test\Session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Test\Command.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Network\HandlerContainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Network\Tcp\CastGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\Config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -187,9 +187,6 @@
     <ClInclude Include="Test\TestHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Test\Command.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Network\Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -200,6 +197,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Network\Tcp\CastGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Library\StateMachine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
