@@ -49,7 +49,7 @@ namespace Gamnet { namespace Test {
 		}
 	}
 
-	const Config::Condition& Config::OnCondition(const std::string& name, const std::map<std::string, Variant>& parameter)
+	const Config::Condition& Config::OnCondition(const std::string& name, const std::map<std::string, boost::any>& parameter)
 	{
 		auto itr = conditions.find(MakeKey(name, parameter));
 		if(conditions.end() == itr)
@@ -58,9 +58,9 @@ namespace Gamnet { namespace Test {
 		}
 		return itr->second;
 	}
-	std::map<std::string, Variant> Config::ReadAttribute(const boost::property_tree::ptree& element)
+	std::map<std::string, boost::any> Config::ReadAttribute(const boost::property_tree::ptree& element)
 	{
-		std::map<std::string, Variant> parameters;
+		std::map<std::string, boost::any> parameters;
 		boost::optional<const boost::property_tree::ptree&> child = element.get_child_optional("<xmlattr>");
 		if(false == (bool)child)
 		{
@@ -74,12 +74,12 @@ namespace Gamnet { namespace Test {
 		return parameters;
 	}
 
-	std::string Config::MakeKey(const std::string& name, const std::map<std::string, Variant>& parameter)
+	std::string Config::MakeKey(const std::string& name, const std::map<std::string, boost::any>& parameter)
 	{
 		std::string key = name + ";";
 		for(auto& itr : parameter)
 		{
-			key += itr.first + "=" + (std::string)itr.second + ";";
+			key += itr.first + "=" + boost::any_cast<std::string>(itr.second) + ";";
 		}
 		return key;
 	}

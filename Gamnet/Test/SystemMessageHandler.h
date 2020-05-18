@@ -1,16 +1,21 @@
-#ifndef _GAMNET_TEST_TESTHANDLER_H_
-#define _GAMNET_TEST_TESTHANDLER_H_
+#ifndef _GAMNET_TEST_SYSTEM_MESSAGE_HANDLER_H_
+#define _GAMNET_TEST_SYSTEM_MESSAGE_HANDLER_H_
 
 #include "../Library/Json/json.h"
 #include "../Network/Tcp/Packet.h"
 #include "../Network/Tcp/SystemMessageHandler.h"
+#include "Session.h"
 
 namespace Gamnet { namespace Test {
+	class SessionManager* const session_manager;
 	template <class SESSION_T>
-	class TestHandler
+	class SystemMessageHandler
 	{
 	public :
-		void Send_Connect_Req(const std::shared_ptr<SESSION_T>& session)
+		SystemMessageHandler(SessionManager* const session_manager);
+		~SystemMessageHandler();
+
+		void Send_Connect_Req(const std::shared_ptr<Session>& session)
 		{
 			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 			if (nullptr == packet)
@@ -36,10 +41,8 @@ namespace Gamnet { namespace Test {
 				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[Gamnet::Test] connect fail(error_code:", ans["error_code"].asInt(), ")");
 			}
 
-			session->server_session_key = ans["session_key"].asUInt();
-			session->session_key = session->server_session_key;
-			session->server_session_token = ans["session_token"].asString();
-			session->is_connected = true;
+			session->session_key = ans["session_key"].asUInt();
+			session->session_token = ans["session_token"].asString();
 			session->OnConnect();
 			session->Next();
 		}
@@ -55,8 +58,8 @@ namespace Gamnet { namespace Test {
 			}
 
 			Json::Value req;
-			req["session_key"] = session->server_session_key;
-			req["session_token"] = session->server_session_token;
+			req["session_key"] = session->session_key;
+			req["session_token"] = session->session_token;
 
 			Json::FastWriter writer;
 			std::string str = writer.write(req);
@@ -135,5 +138,15 @@ namespace Gamnet { namespace Test {
 			//link->Close(ErrorCode::Success);
 		}
 	};
+
+#include "SessionManager.h"
+	template <class SESSION_T>
+	SystemMessageHandler<SESSION_T>::SystemMessageHandler(SessionManager* const session_manager) : session_manager(session_manager)
+	{
+	}
+	template <class SESSION_T>
+	SystemMessageHandler<SESSION_T>::~SystemMessageHandler()
+	{
+	}
 }}
 #endif

@@ -1,5 +1,6 @@
 #include "Session.h"
 #include "../Library/Timer.h"
+#include "../Network/Tcp/SystemMessageHandler.h"
 
 namespace Gamnet { namespace Test {
 
@@ -59,5 +60,32 @@ void Session::Next()
 	{
 		send_packets.pop_front();
 	}
+}
+
+void Session::OnConnectHandler()
+{
+	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+	if (nullptr == packet)
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
+	}
+
+	if("" == session_token)
+	{
+		packet->Write(Network::Tcp::MsgID_CliSvr_Connect_Req, nullptr, 0);
+	}
+	else
+	{
+		Json::Value req;
+		req["session_key"] = server_session_key;
+		req["session_token"] = session_token;
+
+		Json::FastWriter writer;
+		std::string str = writer.write(req);
+
+		packet->Write(Network::Tcp::MsgID_CliSvr_Reconnect_Req, str.c_str(), str.length());
+	}
+
+	AsyncSend(packet);
 }
 }}/* namespace Gamnet */

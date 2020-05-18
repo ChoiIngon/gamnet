@@ -184,9 +184,6 @@
     <ClInclude Include="Test\SessionManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Test\TestHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Network\Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -203,6 +200,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Test\Config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\SystemMessageHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3,6 +3,7 @@
 
 #include "../Network/Tcp/SessionManager.h"
 #include "../Network/Connector.h"
+#include "Config.h"
 #include "Session.h"
 #include "TestHandler.h"
 
@@ -49,6 +50,8 @@ namespace Gamnet {	namespace Test {
 		std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 		std::string host;
 		int			port;
+
+		Config config;
 	public:
 		SessionManager();
 		virtual ~SessionManager();
@@ -185,6 +188,100 @@ namespace Gamnet {	namespace Test {
 				log.Write(GAMNET_INF, "[Test] test finished..(", finish_execute_count, "/", max_execute_count, ")");
 			}
 		}
+
+		void Send_Connect_Req(const std::shared_ptr<SESSION_T>& session);
+		void Recv_Connect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet);
+
+		void Send_Reconnect_Req(const std::shared_ptr<SESSION_T>& session)
+		{
+			//LOG(DEV, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Send_Reconnect_Req");
+
+			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+			if (nullptr == packet)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
+			}
+
+			Json::Value req;
+			req["session_key"] = session->session_key;
+			req["session_token"] = session->session_token;
+
+			Json::FastWriter writer;
+			std::string str = writer.write(req);
+
+			packet->Write(Network::Tcp::MsgID_CliSvr_Reconnect_Req, str.c_str(), str.length());
+			session->AsyncSend(packet);
+		}
+
+		void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+		{
+			//LOG(DEV, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Recv_Reconnect_Ans");
+			std::string json = std::string(packet->ReadPtr() + Network::Tcp::Packet::HEADER_SIZE, packet->Size());
+			Json::Value ans;
+			Json::Reader reader;
+			if (false == reader.parse(json, ans))
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "parse error(msg:", json, ")");
+			}
+
+			if (ErrorCode::Success != ans["error_code"].asInt())
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[Gamnet::Test] reconnect fail(error_code:", ans["error_code"].asInt(), ")");
+			}
+
+			session->is_connected = true;
+
+			for (const std::shared_ptr<Network::Tcp::Packet>& sendPacket : session->send_packets)
+			{
+				session->AsyncSend(sendPacket);
+			}
+			session->OnConnect();
+			//session->Resume();
+			//session->Next();
+		}
+
+		void Send_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session)
+		{
+			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+			if (nullptr == packet)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
+			}
+
+			Json::Value ntf;
+			ntf["ack_seq"] = session->recv_seq;
+
+			Json::FastWriter writer;
+			std::string str = writer.write(ntf);
+
+			packet->Write(Network::Tcp::MsgID_CliSvr_ReliableAck_Ntf, str.c_str(), str.length());
+			session->AsyncSend(packet);
+			//LOG(DEV, "[link_key:", link->link_key, "]");
+		}
+
+		void Send_Close_Req(const std::shared_ptr<SESSION_T>& session)
+		{
+			std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+			if (nullptr == packet)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
+			}
+			if (false == packet->Write(Network::Tcp::MsgID_CliSvr_Close_Req, nullptr, 0))
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize packet");
+			}
+
+			//LOG(DEV, "[", session->link->link_manager->name, "::link_key:", session->link->link_key, "]");
+			session->AsyncSend(packet);
+		}
+
+		void Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+		{
+			//std::shared_ptr<Network::Link> link = session->link;
+			//assert(nullptr != link);
+			////LOG(DEV, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Close_Ans");
+			//link->Close(ErrorCode::Success);
+		}
 	};
 
 	template <class SESSION_T>
@@ -220,6 +317,8 @@ namespace Gamnet {	namespace Test {
 		this->finish_execute_count = 0;
 		this->max_execute_count = session_count * loop_count;
 		this->session_count = session_count;
+
+		config.ReadXml("config.xml");
 	}
 
 	template <class SESSION_T>
@@ -262,33 +361,51 @@ namespace Gamnet {	namespace Test {
 	std::shared_ptr<Network::Session> SessionManager<SESSION_T>::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 	{
 		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(BASE_T::OnConnect(socket));
-		session->execute_send_handler = std::bind(&SessionManager<SESSION_T>::ExecuteSendHandler, this, std::placeholders::_1);
-		try {
-			if (0 == execute_order.size())
-			{
-				return session;
-			}
-
-			session->send_time = std::chrono::steady_clock::now();
-			if (0 == session->test_seq)
-			{
-				const std::shared_ptr<TestExecuteInfo>& info = this->execute_order[0];
-				info->execute_count++;
-				test_handler.Send_Connect_Req(session);
-			}
-			else
-			{
-				test_handler.Send_Reconnect_Req(session);
-			}
-		}
-		catch (const Exception& e)
+		if("" == session->session_token)
 		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+			Send_Connect_Req(session);
+		}
+		else
+		{
+			Send_Reconnect_Req(session);
 		}
 
 		return session;
 	}
 
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::Send_Connect_Req(const std::shared_ptr<SESSION_T>& session)
+	{
+		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+		if (nullptr == packet)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::CreateInstanceFailError, "can not create packet");
+		}
+		packet->Write(Network::Tcp::MsgID_CliSvr_Connect_Req, nullptr, 0);
+		session->AsyncSend(packet);
+	}
+
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::Recv_Connect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+	{
+		std::string json = std::string(packet->ReadPtr() + Network::Tcp::Packet::HEADER_SIZE, packet->Size());
+		Json::Value ans;
+		Json::Reader reader;
+		if (false == reader.parse(json, ans))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[Gamnet::Test] parse error(msg:", json, ")");
+		}
+
+		if (ErrorCode::Success != ans["error_code"].asInt())
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[Gamnet::Test] connect fail(error_code:", ans["error_code"].asInt(), ")");
+		}
+
+		session->session_key = ans["session_key"].asUInt();
+		session->session_token = ans["session_token"].asString();
+		session->OnConnect();
+		session->Next();
+	}
 	template <class SESSION_T>
 	void SessionManager<SESSION_T>::Run()
 	{

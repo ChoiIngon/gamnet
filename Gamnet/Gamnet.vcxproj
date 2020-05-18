@@ -205,7 +205,7 @@
     <ClInclude Include="Test\Config.h" />
     <ClInclude Include="Test\Session.h" />
     <ClInclude Include="Test\SessionManager.h" />
-    <ClInclude Include="Test\TestHandler.h" />
+    <ClInclude Include="Test\SystemMessageHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
