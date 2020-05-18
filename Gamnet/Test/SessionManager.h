@@ -404,6 +404,7 @@ namespace Gamnet {	namespace Test {
 		session->session_key = ans["session_key"].asUInt();
 		session->session_token = ans["session_token"].asString();
 		session->OnConnect();
+
 		session->Next();
 	}
 	template <class SESSION_T>
