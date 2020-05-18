@@ -22,19 +22,25 @@
     <ClCompile Include="Library\Base64.cpp" />
     <ClCompile Include="Library\Buffer.cpp" />
     <ClCompile Include="Library\Exception.cpp" />
+    <ClCompile Include="Library\Json\jsoncpp.cpp" />
     <ClCompile Include="Library\MD5.cpp" />
     <ClCompile Include="Library\Random.cpp" />
     <ClCompile Include="Library\Singleton.cpp" />
+    <ClCompile Include="Library\ThreadPool.cpp" />
     <ClCompile Include="Library\Timer.cpp" />
     <ClCompile Include="Library\Variant.cpp" />
     <ClCompile Include="Log\File.cpp" />
     <ClCompile Include="Log\Log.cpp" />
     <ClCompile Include="Log\Logger.cpp" />
     <ClCompile Include="Network\Acceptor.cpp" />
+    <ClCompile Include="Network\Connector.cpp" />
     <ClCompile Include="Network\HandlerContainer.cpp" />
     <ClCompile Include="Network\Session.cpp" />
+    <ClCompile Include="Network\Tcp\CastGroup.cpp" />
     <ClCompile Include="Network\Tcp\Packet.cpp" />
     <ClCompile Include="Network\Tcp\Session.cpp" />
+    <ClCompile Include="Test\Config.cpp" />
+    <ClCompile Include="Test\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Library\Atomic.h" />
@@ -44,26 +50,38 @@
     <ClInclude Include="Library\Debugs.h" />
     <ClInclude Include="Library\Delegate.h" />
     <ClInclude Include="Library\Exception.h" />
+    <ClInclude Include="Library\Json\json-forwards.h" />
+    <ClInclude Include="Library\Json\json.h" />
     <ClInclude Include="Library\MD5.h" />
     <ClInclude Include="Library\MultiLock.h" />
     <ClInclude Include="Library\Pool.h" />
     <ClInclude Include="Library\Random.h" />
     <ClInclude Include="Library\Singleton.h" />
+    <ClInclude Include="Library\StateMachine.h" />
     <ClInclude Include="Library\String.h" />
+    <ClInclude Include="Library\ThreadPool.h" />
     <ClInclude Include="Library\Timer.h" />
     <ClInclude Include="Library\Variant.h" />
     <ClInclude Include="Log\File.h" />
     <ClInclude Include="Log\Log.h" />
     <ClInclude Include="Log\Logger.h" />
     <ClInclude Include="Network\Acceptor.h" />
+    <ClInclude Include="Network\Connector.h" />
     <ClInclude Include="Network\Handler.h" />
     <ClInclude Include="Network\HandlerContainer.h" />
     <ClInclude Include="Network\HandlerFactory.h" />
     <ClInclude Include="Network\Session.h" />
     <ClInclude Include="Network\SessionManager.h" />
+    <ClInclude Include="Network\Tcp\CastGroup.h" />
+    <ClInclude Include="Network\Tcp\Dispatcher.h" />
     <ClInclude Include="Network\Tcp\Packet.h" />
     <ClInclude Include="Network\Tcp\Session.h" />
     <ClInclude Include="Network\Tcp\SessionManager.h" />
+    <ClInclude Include="Network\Tcp\SystemMessageHandler.h" />
+    <ClInclude Include="Test\Config.h" />
+    <ClInclude Include="Test\Session.h" />
+    <ClInclude Include="Test\SessionManager.h" />
+    <ClInclude Include="Test\TestHandler.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FD683537-87A3-4288-9C09-77F9DA5BF31C}</ProjectGuid>
@@ -132,6 +150,7 @@
       <AdditionalIncludeDirectories>C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\OpenSSL-Win64;C:\local\curl-7.43.0-win64;C:\local\boost_1_61_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

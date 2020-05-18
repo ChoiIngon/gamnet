@@ -2,6 +2,7 @@
 #define GAMNET_NETWORK_ACCEPTOR_H_
 
 #include <boost/asio.hpp>
+#include <atomic>
 #include "../Library/Pool.h"
 
 namespace Gamnet { namespace Network {

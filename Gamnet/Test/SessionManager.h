@@ -223,7 +223,7 @@ namespace Gamnet {	namespace Test {
 	}
 
 	template <class SESSION_T>
-	void SessionManager<SESSION_T>::BindSendHandler(const std::string& handlerName, SessionManager<SESSION_T>::SEND_HANDLER_TYPE sendHandler)
+	void SessionManager<SESSION_T>::BindSendHandler(const std::string& handlerName, typename SessionManager<SESSION_T>::SEND_HANDLER_TYPE sendHandler)
 	{
 		std::shared_ptr<TestExecuteInfo> executeInfo = std::make_shared<TestExecuteInfo>();
 		executeInfo->name = handlerName;
@@ -235,7 +235,7 @@ namespace Gamnet {	namespace Test {
 	}
 
 	template <class SESSION_T>
-	void SessionManager<SESSION_T>::BindRecvHandler(const std::string& handlerName, uint32_t msgID, SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	void SessionManager<SESSION_T>::BindRecvHandler(const std::string& handlerName, uint32_t msgID, typename SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
 		auto itr = execute_infos.find(handlerName);
 		if (execute_infos.end() == itr)
@@ -250,7 +250,7 @@ namespace Gamnet {	namespace Test {
 	}
 
 	template <class SESSION_T>
-	void SessionManager<SESSION_T>::BindGlobalRecvHandler(uint32_t msgID, SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	void SessionManager<SESSION_T>::BindGlobalRecvHandler(uint32_t msgID, typename SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
 		if (false == global_recv_handlers.insert(std::make_pair(msgID, recv)).second)
 		{

@@ -1,4 +1,6 @@
 #include "CastGroup.h"
+
+#include <atomic>
 #include "../../Library/Pool.h"
 
 
