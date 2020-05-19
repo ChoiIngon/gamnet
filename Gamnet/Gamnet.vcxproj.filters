@@ -80,6 +80,9 @@
     <ClCompile Include="Test\Config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Test\Executer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="library\Atomic.h">
@@ -202,7 +205,7 @@
     <ClInclude Include="Test\Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Test\SystemMessageHandler.h">
+    <ClInclude Include="Test\Executer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -4,8 +4,8 @@
 #include "../Network/Tcp/SessionManager.h"
 #include "../Network/Connector.h"
 #include "Config.h"
+#include "Executer.h"
 #include "Session.h"
-#include "TestHandler.h"
 
 #include <map>
 #include <memory>
@@ -46,12 +46,13 @@ namespace Gamnet {	namespace Test {
 		int 					max_execute_count;
 		int						session_count;
 		Network::Connector		connector;
-		TestHandler<SESSION_T> test_handler;
+		
 		std::vector<std::shared_ptr<TestExecuteInfo>> 			execute_order;
 		std::string host;
 		int			port;
 
 		Config config;
+		Executer executer;
 	public:
 		SessionManager();
 		virtual ~SessionManager();
@@ -61,66 +62,8 @@ namespace Gamnet {	namespace Test {
 
 		virtual std::shared_ptr<Network::Session> OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override;
 
-		virtual void OnDestroy(uint32_t sessionKey) override
-		{
-			BASE_T::OnDestroy(sessionKey);
-			finish_execute_count += 1;
-			if (max_execute_count > begin_execute_count)
-			{
-				begin_execute_count++;
-				connector.AsyncConnect(host.c_str(), port, 0);
-			}
-		}
-		
-		virtual void OnReceive(const std::shared_ptr<Network::Session>& s, const std::shared_ptr<Buffer>& buffer) override
-		{
-			const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(s);
-			const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
-			
-			if (session->test_seq < (int)this->execute_order.size())
-			{
-				const std::shared_ptr<TestExecuteInfo> execute_info = this->execute_order[session->test_seq];
-				auto itr = execute_info->recv_handlers.find(packet->msg_id);
-				if (execute_info->recv_handlers.end() != itr)
-				{
-					execute_info->elapse_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - session->send_time).count();
-				}
-				else
-				{
-					itr = global_recv_handlers.find(packet->msg_id);
-					if (global_recv_handlers.end() == itr)
-					{
-						throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
-					}
-				}
-
-				RECV_HANDLER_TYPE& handler = itr->second;
-				session->is_pause = true;
-				try {
-					handler(session, packet);
-				}
-				catch (const Exception& /*e*/)
-				{
-					execute_info->fail_count++;
-				}
-				
-				if (session->recv_seq < packet->msg_seq)
-				{
-					session->recv_seq = packet->msg_seq;
-				}
-
-				if (true == packet->reliable)
-				{
-					this->test_handler.Send_ReliableAck_Ntf(session);
-				}
-
-				if (false == session->is_pause)
-				{
-					ExecuteSendHandler(session);
-				}
-			}
-			session->socket = nullptr;
-		}
+		virtual void OnDestroy(uint32_t sessionKey) override;
+		virtual void OnReceive(const std::shared_ptr<Network::Session>& s, const std::shared_ptr<Buffer>& buffer) override;
 		
 		void ExecuteSendHandler(const std::shared_ptr<Session>& session)
 		{
@@ -195,23 +138,17 @@ namespace Gamnet {	namespace Test {
 		void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet);
 		void Send_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session);
 		void Send_Close_Req(const std::shared_ptr<SESSION_T>& session);
-		void Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
-		{
-			//std::shared_ptr<Network::Link> link = session->link;
-			//assert(nullptr != link);
-			////LOG(DEV, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Close_Ans");
-			//link->Close(ErrorCode::Success);
-		}
+		void Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet);
 	};
 
 	template <class SESSION_T>
 	SessionManager<SESSION_T>::SessionManager() : begin_execute_count(0), finish_execute_count(0), max_execute_count(0), session_count(0), connector(this), host(""), port(0)
 	{
-		BindSendHandler("__connect__", std::bind(&TestHandler<SESSION_T>::Send_Connect_Req, &test_handler, std::placeholders::_1));
-		BindRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Connect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
-		BindGlobalRecvHandler((uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Reconnect_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
-		BindSendHandler("__close__", std::bind(&TestHandler<SESSION_T>::Send_Close_Req, &test_handler, std::placeholders::_1));
-		BindRecvHandler("__close__", (uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&TestHandler<SESSION_T>::Recv_Close_Ans, &test_handler, std::placeholders::_1, std::placeholders::_2));
+		BindSendHandler("__connect__", std::bind(&SessionManager<SESSION_T>::Send_Connect_Req, this, std::placeholders::_1));
+		BindRecvHandler("__connect__", (uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2));
+		BindGlobalRecvHandler((uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Reconnect_Ans, this, std::placeholders::_1, std::placeholders::_2));
+		BindSendHandler("__close__", std::bind(&SessionManager<SESSION_T>::Send_Close_Req, this, std::placeholders::_1));
+		BindRecvHandler("__close__", (uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Close_Ans, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	template <class SESSION_T>
@@ -325,6 +262,7 @@ namespace Gamnet {	namespace Test {
 		session->session_token = ans["session_token"].asString();
 		session->OnConnect();
 
+		executer.OnCondition("OnConnect", {}, session);
 		session->Next();
 	}
 
@@ -372,6 +310,7 @@ namespace Gamnet {	namespace Test {
 			session->AsyncSend(sendPacket);
 		}
 		session->OnConnect();
+		executer.OnCondition("OnConnect", {}, session);
 		//session->Resume();
 		//session->Next();
 	}
@@ -416,7 +355,58 @@ namespace Gamnet {	namespace Test {
 	template <class SESSION_T>
 	void SessionManager<SESSION_T>::Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 	{
-		session->Close();
+		session->Close(0);
+	}
+
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::OnReceive(const std::shared_ptr<Network::Session>& s, const std::shared_ptr<Buffer>& buffer)
+	{
+		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(s);
+		const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
+
+		if (session->test_seq < (int)this->execute_order.size())
+		{
+			const std::shared_ptr<TestExecuteInfo> execute_info = this->execute_order[session->test_seq];
+			auto itr = execute_info->recv_handlers.find(packet->msg_id);
+			if (execute_info->recv_handlers.end() != itr)
+			{
+				execute_info->elapse_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - session->send_time).count();
+			}
+			else
+			{
+				itr = global_recv_handlers.find(packet->msg_id);
+				if (global_recv_handlers.end() == itr)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
+				}
+			}
+
+			RECV_HANDLER_TYPE& handler = itr->second;
+			session->is_pause = true;
+			try {
+				handler(session, packet);
+			}
+			catch (const Exception& /*e*/)
+			{
+				execute_info->fail_count++;
+			}
+
+			if (session->recv_seq < packet->msg_seq)
+			{
+				session->recv_seq = packet->msg_seq;
+			}
+
+			if (true == packet->reliable)
+			{
+				Send_ReliableAck_Ntf(session);
+			}
+
+			if (false == session->is_pause)
+			{
+				ExecuteSendHandler(session);
+			}
+		}
+		session->socket = nullptr;
 	}
 
 	template <class SESSION_T>
@@ -432,6 +422,18 @@ namespace Gamnet {	namespace Test {
 			{
 				break;
 			}
+			connector.AsyncConnect(host.c_str(), port, 0);
+		}
+	}
+
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::OnDestroy(uint32_t sessionKey) 
+	{
+		SessionManager<SESSION_T>::BASE_T::OnDestroy(sessionKey);
+		finish_execute_count += 1;
+		if (max_execute_count > begin_execute_count)
+		{
+			begin_execute_count++;
 			connector.AsyncConnect(host.c_str(), port, 0);
 		}
 	}

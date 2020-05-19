@@ -18,7 +18,7 @@
   
 	<test host="127.0.0.1" port="10000" session_count="1" loop_count="1">
 		<OnConnect param="param">
-			<SendMsg msg_id="Send_Connect_Req"/>
+			<Send_Connect_Req/>
 		</OnConnect>
 		<OnDisconnect>
 			<SendMsg msg_id="Send_Reconnect_Req"/>

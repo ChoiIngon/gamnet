@@ -162,6 +162,7 @@
     <ClCompile Include="Network\Tcp\Session.cpp" />
     <ClCompile Include="Network\Tcp\Tcp.cpp" />
     <ClCompile Include="Test\Config.cpp" />
+    <ClCompile Include="Test\Executer.cpp" />
     <ClCompile Include="Test\Session.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -203,9 +204,9 @@
     <ClInclude Include="Network\SessionManager.h" />
     <ClInclude Include="Network\Tcp\Tcp.h" />
     <ClInclude Include="Test\Config.h" />
+    <ClInclude Include="Test\Executer.h" />
     <ClInclude Include="Test\Session.h" />
     <ClInclude Include="Test\SessionManager.h" />
-    <ClInclude Include="Test\SystemMessageHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
