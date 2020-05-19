@@ -81,7 +81,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 		virtual std::shared_ptr<Network::Session> OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override
 		{
-			std::shared_ptr<SESSION_T> session = session_pool.Create();
+			std::shared_ptr<SESSION_T> session = Create();
 			if (nullptr == session)
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Network::Tcp] can not create session instance(availble:", session_pool.Available(), ")");
@@ -90,8 +90,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			session->OnCreate();
 			session->read_buffer = Packet::Create();
 			session->AsyncRead();
-			std::lock_guard<std::mutex> lo(lock);
-			if (false == sessions.insert(std::make_pair(session->session_key, session)).second)
+			
+			if (false == Insert(session))
 			{
 				assert(!"duplicated session");
 				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated session");
@@ -134,6 +134,23 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			session["active_count"] = sessions.size();
 			root["session"] = session;
 			return root;
+		}
+
+		std::shared_ptr<SESSION_T> Create()
+		{
+			return session_pool.Create();
+		}
+
+		bool Insert(const std::shared_ptr<SESSION_T>& session)
+		{
+			std::lock_guard<std::mutex> lo(lock);
+			return sessions.insert(std::make_pair(session->session_key, session)).second;
+		}
+
+		void Remove(const std::shared_ptr<SESSION_T>& session)
+		{
+			std::lock_guard<std::mutex> lo(lock);
+			sessions.erase(session->session_key);
 		}
 	};
 }}}
