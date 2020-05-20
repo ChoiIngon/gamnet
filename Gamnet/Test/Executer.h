@@ -2,6 +2,8 @@
 #define _GAMNET_TEST_EXECUTER_H_
 
 #include "Session.h"
+#include "../Library/Singleton.h"
+#include "../Library/Timer.h"
 
 #include <boost/any.hpp>
 #include <list>
@@ -19,8 +21,8 @@ namespace Gamnet { namespace Test {
 	template <class SESSION_T>
 	class Command_SendMsg : public Command 
 	{
-		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SendFunctor;
-		SendFunctor send_functor;
+		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_FUNCTOR_T;
+		SEND_FUNCTOR_T send_functor;
 	public :
 		Command_SendMsg(SendFunctor& sendFunctor) : send_functor(sendFunctor)
 		{
@@ -33,16 +35,16 @@ namespace Gamnet { namespace Test {
 
 	class Command_Timer : public Command
 	{
+		std::string id;
+		int time;
 	public :
-		virtual void Execute(const std::shared_ptr<Session>& session) override {
-		}
+		Command_Timer(const std::string& id, int time);
+		virtual void Execute(const std::shared_ptr<Session>& session) override;
 	};
 
 	class Executer
 	{
-		
 	private :
-
 		std::map<std::string, std::list<std::shared_ptr<Command>>> command_lists;
 	public :
 		void OnCondition(const std::string& name, const std::map<std::string, boost::any>& parameter, const std::shared_ptr<Session>& session);

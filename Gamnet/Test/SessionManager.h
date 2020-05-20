@@ -23,16 +23,22 @@ namespace Gamnet {	namespace Test {
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
 		
+		struct ReceiveHandlerInfo
+		{
+			std::string name;
+			RECV_HANDLER_TYPE receive_handler;
+		};
+
 		struct TestExecuteInfo
 		{
 			TestExecuteInfo() : name(""), execute_count(0), fail_count(0), elapse_time(0) {
 			}
-			std::string			name;
+			std::string				name;
 			std::atomic<int64_t>	execute_count;
 			std::atomic<int64_t>	fail_count;
 			uint64_t				elapse_time;
 			SEND_HANDLER_TYPE		send_handler;
-			std::map<uint32_t, RECV_HANDLER_TYPE> recv_handlers;
+			std::map<uint32_t, ReceiveHandlerInfo> receive_handlers;
 		};
 
 		std::map<std::string, std::shared_ptr<TestExecuteInfo>>	execute_infos;
@@ -52,7 +58,6 @@ namespace Gamnet {	namespace Test {
 		int			port;
 
 		Config config;
-		Executer executer;
 	public:
 		SessionManager();
 		virtual ~SessionManager();
@@ -179,10 +184,10 @@ namespace Gamnet {	namespace Test {
 	}
 
 	template <class SESSION_T>
-	void SessionManager<SESSION_T>::BindSendHandler(const std::string& handlerName, typename SessionManager<SESSION_T>::SEND_HANDLER_TYPE sendHandler)
+	void SessionManager<SESSION_T>::BindSendHandler(const std::string& messageName, typename SessionManager<SESSION_T>::SEND_HANDLER_TYPE sendHandler)
 	{
 		std::shared_ptr<TestExecuteInfo> executeInfo = std::make_shared<TestExecuteInfo>();
-		executeInfo->name = handlerName;
+		executeInfo->name = messageName;
 		executeInfo->send_handler = sendHandler;
 		if (false == execute_infos.insert(std::make_pair(handlerName, executeInfo)).second)
 		{
@@ -191,7 +196,7 @@ namespace Gamnet {	namespace Test {
 	}
 
 	template <class SESSION_T>
-	void SessionManager<SESSION_T>::BindRecvHandler(const std::string& handlerName, uint32_t msgID, typename SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	void SessionManager<SESSION_T>::BindRecvHandler(const std::string& messageName, uint32_t msgID, typename SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
 		auto itr = execute_infos.find(handlerName);
 		if (execute_infos.end() == itr)
@@ -262,7 +267,7 @@ namespace Gamnet {	namespace Test {
 		session->session_token = ans["session_token"].asString();
 		session->OnConnect();
 
-		executer.OnCondition("OnConnect", {}, session);
+		Singleton<Executer>::GetInstance().OnCondition("OnConnect", {}, session);
 		session->Next();
 	}
 
@@ -310,7 +315,7 @@ namespace Gamnet {	namespace Test {
 			session->AsyncSend(sendPacket);
 		}
 		session->OnConnect();
-		executer.OnCondition("OnConnect", {}, session);
+		Singleton<Executer>::GetInstance().OnCondition("OnReconnect", {}, session);
 		//session->Resume();
 		//session->Next();
 	}
@@ -363,7 +368,9 @@ namespace Gamnet {	namespace Test {
 	{
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(s);
 		const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
-
+		const std::string message = "";
+		Singleton<Executer>::GetInstance().OnCondition("OnReceive", { { "message", message } }, session);
+		/*
 		if (session->test_seq < (int)this->execute_order.size())
 		{
 			const std::shared_ptr<TestExecuteInfo> execute_info = this->execute_order[session->test_seq];
@@ -386,7 +393,7 @@ namespace Gamnet {	namespace Test {
 			try {
 				handler(session, packet);
 			}
-			catch (const Exception& /*e*/)
+			catch (const Exception& e)
 			{
 				execute_info->fail_count++;
 			}
@@ -407,6 +414,7 @@ namespace Gamnet {	namespace Test {
 			}
 		}
 		session->socket = nullptr;
+		*/
 	}
 
 	template <class SESSION_T>

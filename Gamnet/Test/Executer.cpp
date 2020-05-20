@@ -2,6 +2,16 @@
 #include "../Library/Exception.h"
 
 namespace Gamnet { namespace Test {
+	Command_Timer::Command_Timer(const std::string& id_, int time_) : id(id_), time(time_) {
+	}
+
+	void Command_Timer::Execute(const std::shared_ptr<Session>& session) {
+		std::shared_ptr<Time::Timer> timer = Time::Timer::Create();
+		timer->SetTimer(time, [=]() {
+			Singleton<Executer>::GetInstance().OnCondition("OnTimer", {{ "id", this->id }}, session);
+		});
+	}
+
 	void Executer::OnCondition(const std::string& name, const std::map<std::string, boost::any>& parameter, const std::shared_ptr<Session>& session)
 	{
 		const std::string conditionKey = MakeKey(name, parameter);

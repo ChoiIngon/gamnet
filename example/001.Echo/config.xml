@@ -17,24 +17,20 @@
 	</router>
   
 	<test host="127.0.0.1" port="10000" session_count="1" loop_count="1">
-		<OnConnect param="param">
-			<Send_Connect_Req/>
+		<OnConnect>
+			<Send message="MsgCliSvr_Message_Req"/>
 		</OnConnect>
-		<OnDisconnect>
-			<SendMsg msg_id="Send_Reconnect_Req"/>
-			
-		</OnDisconnect>
-		<OnReceive msg_id="Recv_Connect_Ans">
-			<Timer timer_id="timer_id" time="5000" callback="OnTimer"/>
+		<OnReceive message="MsgSvrCli_Message_Ans">
+			<Timer id="Close" time="5000"/>
 		</OnReceive>
-		<OnReceive msg_id="Recv_Connect_Ans2">
+		<OnReceive message="MsgSvrCli_Message_Ntf">
+			<MessageHandler handler="OnMessageNtf"/>
+		</OnReceive>
+		<OnTimer timer_id="Close">
 			<Close/>
-		</OnReceive>
-		<OnTime timer_id="timer_id">
-			<SendMsg msg_id="XX"/>
-			
-		</OnTime>				
+		</OnTimer>
 		<OnClose>
+			<Destroy/>
 		</OnClose>
   </test>
 </server>
