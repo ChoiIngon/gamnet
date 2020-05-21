@@ -1,6 +1,7 @@
 #ifndef GAMNET_TEST_SESSION_H_
 #define GAMNET_TEST_SESSION_H_
 
+#include "../Library/Timer.h"
 #include "../Network/Tcp/Session.h"
 
 namespace Gamnet { namespace Test {
@@ -11,13 +12,10 @@ public:
 	Session();
 	virtual ~Session();
 
+	std::string	host;
+	int	port;
 	int test_seq;
-	uint32_t server_session_key;
-	std::string server_session_token;
-	bool is_pause;
-	bool is_connected;
-	std::chrono::time_point<std::chrono::steady_clock> send_time;
-	std::function<void(const std::shared_ptr<Session>&)> execute_send_handler;
+	uint64_t send_time;
 
 	virtual void OnCreate() override {}
 	virtual void OnAccept() override {}
@@ -26,9 +24,14 @@ public:
 
 	virtual bool Init() override;
 	virtual void Clear() override;
-	void Pause(int millisecond);
-	void Resume();
+
+	void AsyncSend(const std::shared_ptr<Network::Tcp::Packet>& packet);
 	void Next();
+
+private:
+	void AsyncConnect();
+	void Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer, const boost::asio::ip::tcp::endpoint& endpoint, const boost::system::error_code& ec);
+	void Callback_ConnectTimeout(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer);
 };
 
 }} /* namespace Gamnet */

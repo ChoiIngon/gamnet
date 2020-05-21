@@ -24,7 +24,7 @@ namespace Gamnet { namespace Test {
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_FUNCTOR_T;
 		SEND_FUNCTOR_T send_functor;
 	public :
-		Command_SendMsg(SendFunctor& sendFunctor) : send_functor(sendFunctor)
+		Command_SendMsg(SEND_FUNCTOR_T& sendFunctor) : send_functor(sendFunctor)
 		{
 		}
 

@@ -1,15 +1,10 @@
 #include "Session.h"
-#include "../Library/Timer.h"
+
 #include "../Network/Tcp/SystemMessageHandler.h"
 
 namespace Gamnet { namespace Test {
 
-Session::Session() : 
-	server_session_key(0),
-	server_session_token(""),
-	test_seq(-1), 
-	is_pause(false),
-	is_connected(false)
+Session::Session() :  test_seq(0)
 {
 }
 
@@ -22,12 +17,7 @@ bool Session::Init()
 	{
 		return false;
 	}
-	server_session_key = 0;
-	server_session_token = "";
 	test_seq = 0;
-	is_pause = false;
-	is_connected = false;
-
 	return true;
 }
 
@@ -36,30 +26,87 @@ void Session::Clear()
 	Network::Tcp::Session::Clear();
 }
 
-void Session::Pause(int millisecond)
-{
-	is_pause = true;
-	std::shared_ptr<Time::Timer> timer = Time::Timer::Create();
-	std::shared_ptr<Session> self = std::static_pointer_cast<Session>(shared_from_this());
-	timer->SetTimer(millisecond, strand->wrap([self, timer]() {
-		self->execute_send_handler(self);
-	})); 
-}
-
-void Session::Resume()
-{
-	is_pause = false;
-}
-
 void Session::Next()
 {
 	test_seq++;
-	//LOG(DEV, "session_key:", session_key, ", link_key:", link->link_key, ", test_seq:", test_seq);
-	is_pause = false;
-	while (0 < send_packets.size())
+	while(0 < send_packets.size())
 	{
 		send_packets.pop_front();
 	}
 }
 
+void Session::AsyncSend(const std::shared_ptr<Network::Tcp::Packet>& packet)
+{
+	if(nullptr == socket)
+	{
+		AsyncConnect();
+	}
+	Network::Tcp::Session::AsyncSend(packet);
+}
+
+void Session::AsyncConnect()
+{
+	boost::asio::ip::address address_;
+	boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
+	boost::asio::ip::tcp::resolver::query query_(host, "");
+	for (auto itr = resolver_.resolve(query_); itr != boost::asio::ip::tcp::resolver::iterator(); ++itr)
+	{
+		boost::asio::ip::tcp::endpoint end = *itr;
+		address_ = end.address();
+		break;
+	}
+
+	boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ address_.to_v4().to_string(), std::to_string(port).c_str() }));
+	std::shared_ptr<boost::asio::ip::tcp::socket> socket = std::make_shared<boost::asio::ip::tcp::socket>(Singleton<boost::asio::io_service>::GetInstance());
+	if (nullptr == socket)
+	{
+		return;
+	}
+
+	std::shared_ptr<Time::Timer> timer = Time::Timer::Create();
+	timer->AutoReset(false);
+	timer->SetTimer(5000, strand->wrap(std::bind(&Session::Callback_ConnectTimeout, this, socket, timer)));
+
+	socket->async_connect(endpoint_, strand->wrap(boost::bind(&Session::Callback_Connect, this, socket, timer, endpoint_, boost::asio::placeholders::error)));
+}
+
+void Session::Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer, const boost::asio::ip::tcp::endpoint& endpoint, const boost::system::error_code& ec)
+{
+	try {
+		if (nullptr != timer)
+		{
+			timer->Cancel();
+		}
+
+		if (false == socket->is_open())
+		{
+			return;
+		}
+
+		else if (0 != ec)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "connect fail(dest:", endpoint.address().to_v4().to_string(), ", message:", ec.message(), ", errno:", ec, ")");
+		}
+		
+		this->socket = socket;
+		return;
+	}
+	catch (const Exception& e)
+	{
+		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), ", error_code:", e.error_code());
+	}
+	catch (const boost::system::system_error& e)
+	{
+		LOG(ERR, "connect fail(dest:", endpoint.address().to_v4().to_string(), ", errno:", e.code().value(), ", errstr:", e.what(), ")");
+	}
+}
+
+void Session::Callback_ConnectTimeout(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer)
+{
+	if (nullptr == timer)
+	{
+		return;
+	}
+	timer->Cancel();
+}
 }}/* namespace Gamnet */

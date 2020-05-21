@@ -44,11 +44,6 @@ void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	auto self = shared_from_this();
 	strand->wrap([self] (const std::shared_ptr<Buffer>& buffer) {
-		if (nullptr == self->socket)
-		{
-			LOG(ERR, "invalid link[session_key:", self->session_key, "]");
-			return;
-		}
 		bool needFlush = self->send_buffers.empty();
 		self->send_buffers.push_back(buffer);
 		if (true == needFlush)
@@ -60,10 +55,17 @@ void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 
 void Session::FlushSend()
 {
+	if (nullptr == socket)
+	{
+		LOG(ERR, "invalid link[session_key:", session_key, "]");
+		return;
+	}
+
 	if (true == send_buffers.empty())
 	{
 		return;
 	}
+
 	auto self(shared_from_this());
 	const std::shared_ptr<Buffer> buffer = send_buffers.front();
 	boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), strand->wrap(std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));

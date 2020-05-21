@@ -27,7 +27,7 @@ public :
 	HandlerContainer									handler_container;
 	virtual bool Init() override;
 	virtual void Clear() override;
-	void AsyncSend(const std::shared_ptr<Packet> packet);
+	virtual void AsyncSend(const std::shared_ptr<Packet> packet);
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 	static std::string GenerateSessionToken(uint32_t session_key);
 };

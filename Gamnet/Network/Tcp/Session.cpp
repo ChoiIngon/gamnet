@@ -54,10 +54,6 @@ void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 	{
 		auto self = std::static_pointer_cast<Session>(shared_from_this());
 		strand->wrap([self](const std::shared_ptr<Packet> packet) {
-			if(nullptr == self->socket)
-			{
-				return;
-			}
 			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= self->send_packets.size())
 			{
 				self->handover_safe = false;
@@ -65,7 +61,6 @@ void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 				return;
 			}
 			self->send_packets.push_back(packet); // keep send message util ack received
-
 			bool needFlush = self->send_buffers.empty();
 			self->send_buffers.push_back(packet);
 			if (true == needFlush)

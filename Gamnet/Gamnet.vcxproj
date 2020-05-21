@@ -161,9 +161,8 @@
     <ClCompile Include="Network\Tcp\Packet.cpp" />
     <ClCompile Include="Network\Tcp\Session.cpp" />
     <ClCompile Include="Network\Tcp\Tcp.cpp" />
-    <ClCompile Include="Test\Config.cpp" />
-    <ClCompile Include="Test\Executer.cpp" />
     <ClCompile Include="Test\Session.cpp" />
+    <ClCompile Include="Test\SessionManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="library\Atomic.h" />
@@ -203,8 +202,6 @@
     <ClInclude Include="Network\Tcp\SystemMessageHandler.h" />
     <ClInclude Include="Network\SessionManager.h" />
     <ClInclude Include="Network\Tcp\Tcp.h" />
-    <ClInclude Include="Test\Config.h" />
-    <ClInclude Include="Test\Executer.h" />
     <ClInclude Include="Test\Session.h" />
     <ClInclude Include="Test\SessionManager.h" />
   </ItemGroup>
