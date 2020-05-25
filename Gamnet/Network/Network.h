@@ -8,8 +8,6 @@
 #include "Handler.h"
 #include "HandlerContainer.h"
 #include "HandlerFactory.h"
-#include "Link.h"
-#include "LinkManager.h"
 #include "Session.h"
 
 #endif /* NETWORK_NETWORK_H_ */

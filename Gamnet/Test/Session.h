@@ -1,6 +1,7 @@
 #ifndef GAMNET_TEST_SESSION_H_
 #define GAMNET_TEST_SESSION_H_
 
+#include "../Library/Debugs.h"
 #include "../Library/Timer.h"
 #include "../Network/Tcp/Session.h"
 

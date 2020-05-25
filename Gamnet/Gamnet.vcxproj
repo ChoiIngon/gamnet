@@ -163,6 +163,7 @@
     <ClCompile Include="Network\Tcp\Tcp.cpp" />
     <ClCompile Include="Test\Session.cpp" />
     <ClCompile Include="Test\SessionManager.cpp" />
+    <ClCompile Include="Test\Test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="library\Atomic.h" />
@@ -204,6 +205,7 @@
     <ClInclude Include="Network\Tcp\Tcp.h" />
     <ClInclude Include="Test\Session.h" />
     <ClInclude Include="Test\SessionManager.h" />
+    <ClInclude Include="Test\Test.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

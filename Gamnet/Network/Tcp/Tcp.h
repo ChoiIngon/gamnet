@@ -1,10 +1,6 @@
 #ifndef GAMNET_NETWORK_TCP_H_
 #define GAMNET_NETWORK_TCP_H_
 
-#include <boost/exception/diagnostic_information.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-
 #include "CastGroup.h"
 #include "Dispatcher.h"
 #include "SessionManager.h"
@@ -19,30 +15,23 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		LOG(GAMNET_INF, "Gamnet::Tcp listener start(port:", port, ", capacity:", max_session, ", keep alive time:", keep_alive, " sec)");
 	}
 
-	template <class SESSION_T>
-	void ReadXml(const char* xml_path)
+	struct Config
 	{
-		boost::property_tree::ptree ptree_;
-		try {
-			boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
-		}
-		catch(const boost::property_tree::xml_parser_error& e)
-		{
-			throw Exception(ErrorCode::FileNotFound, e.what());
-		}
+		int port;
+		int max_count;
+		int keep_alive;
+		int accept_queue;
+		int thread_count;
 
-		try {
-			int port = ptree_.get<int>("server.tcp.<xmlattr>.port");
-			int max_count = ptree_.get<int>("server.tcp.<xmlattr>.max_count");
-			int keep_alive = ptree_.get<int>("server.tcp.<xmlattr>.keep_alive");
-			int accept_queue = ptree_.get<int>("server.tcp.<xmlattr>.accept_queue");
-			Listen<SESSION_T>(port, max_count, keep_alive, accept_queue);
-		}
-		catch (const boost::property_tree::ptree_bad_path& e)
-		{
-			std::cerr << "[Gamnet::Tcp]" << e.what() << std::endl;
-			throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, e.what());
-		}
+		void ReadXml(const std::string& path);
+	};
+
+	template <class SESSION_T>
+	void ReadXml(const std::string& path)
+	{
+		Config config;
+		config.ReadXml(path);
+		Listen<SESSION_T>(config.port, config.max_count, config.keep_alive, config.accept_queue, config.thread_count);
 	}
 
 	template <class SESSION_T, class FUNC, class FACTORY>

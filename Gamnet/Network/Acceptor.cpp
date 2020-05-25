@@ -4,15 +4,13 @@
 #include "SessionManager.h"
 
 namespace Gamnet { namespace Network {
-	static boost::asio::io_service& io_service = Singleton<boost::asio::io_service>::GetInstance();
-
 	Acceptor::SocketFactory::SocketFactory(SessionManager* const manager) : session_manager(manager)
 	{
 	}
 
 	boost::asio::ip::tcp::socket* Acceptor::SocketFactory::operator() ()
 	{
-		return new boost::asio::ip::tcp::socket(io_service);
+		return new boost::asio::ip::tcp::socket(Singleton<boost::asio::io_service>::GetInstance());
 	}
 
 	boost::asio::ip::tcp::socket* Acceptor::SocketInitFunctor::operator() (boost::asio::ip::tcp::socket* socket)
@@ -32,7 +30,7 @@ namespace Gamnet { namespace Network {
 	}
 
 	Acceptor::Acceptor(SessionManager* const manager) :
-		acceptor(io_service),
+		acceptor(Singleton<boost::asio::io_service>::GetInstance()),
 		socket_pool(65535, SocketFactory(manager), SocketInitFunctor(), SocketReleaseFunctor(*this)),
 		session_manager(manager),
 		max_queue_size(0),

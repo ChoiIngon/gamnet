@@ -1,4 +1,5 @@
 #include "SessionManager.h"
+#include "../Network/Tcp/SystemMessageHandler.h"
 
 namespace Gamnet { namespace Test {
 	void SessionManagerImpl::Init(const char* host_, int port_, int sessionCount_, int loopCount_)
@@ -8,7 +9,7 @@ namespace Gamnet { namespace Test {
 		log_timer->SetTimer(5000, std::bind(&SessionManagerImpl::OnLogTimerExpire, this));
 
 		log.Init("test", "test", 5);
-		if (0 == session_count)
+		if (0 == sessionCount_)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'session_count' should be set");
 		}

@@ -15,12 +15,10 @@ void UserSession::OnCreate()
 
 void UserSession::OnAccept()
 {
-	assert(nullptr != link);
 }
 
 void UserSession::OnClose(int reason)
 {
-	assert(nullptr != link);
 }
 
 void UserSession::OnDestroy()
@@ -38,7 +36,6 @@ void TestSession::OnConnect()
 
 void TestSession::OnClose(int reason)
 {
-	assert(nullptr != link);
 }
 
 void TestSession::OnDestroy()

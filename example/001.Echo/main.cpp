@@ -1,51 +1,34 @@
 #include <boost/program_options.hpp>
 #include <Network/HandlerFactory.h>
-#include <Network/Tcp/Session.h>
-#include <Network/Tcp/SystemMessageHandler.h>
-#include <Network/Tcp/Tcp.h>
 #include <Test/SessionManager.h>
-
-
-class Session : public Gamnet::Network::Tcp::Session {
-public :
-	virtual void OnCreate() override 
-	{
-	}
-	virtual void OnAccept() override
-	{
-	}
-	virtual void OnClose(int reason) override
-	{
-	}
-	virtual void OnDestroy() override
-	{
-	}
-};
-
-class TestSession : public Gamnet::Test::Session {
-public:
-	virtual void OnCreate() override
-	{
-	}
-	virtual void OnAccept() override
-	{
-	}
-	virtual void OnClose(int reason) override
-	{
-	}
-	virtual void OnDestroy() override
-	{
-	}
-};
+#include "UserSession.h"
 
 int main(int argc, char** argv) 
 {
-	//Gamnet::Test::Config config;
-	//config.ReadXml("config.xml");
-	//auto& condition = config.OnCondition("OnReceive", { {"msg_id", "Recv_Connect_Ans"} });
+	boost::program_options::options_description desc("All Options");
+	desc.add_options()
+		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")
+		("thread", boost::program_options::value<int>()->default_value(std::thread::hardware_concurrency()), "working thread count")
+		("help", "");
 
-	Gamnet::Network::Tcp::Listen<Session>(9999, 1000, 300, 500, 2);
-	Gamnet::Singleton<Gamnet::Test::SessionManager<TestSession>>::GetInstance().Init("127.0.0.1", 9999, 1, 1);
+	boost::program_options::variables_map vm;
+	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+	boost::program_options::notify(vm);
+
+	if (0 != vm.count("help"))
+	{
+		std::cerr << desc << std::endl;
+		return 1;
+	}
+
+	const std::string& config_path = vm["config"].as<std::string>();
+	Gamnet::Log::ReadXml(config_path);
+	LOG(INF, argv[0], " Server Starts..");
+	LOG(INF, "build date:", __DATE__, " ", __TIME__);
+	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
+
+	Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);
+	Gamnet::Test::ReadXml<TestSession>(config_path);
 	Gamnet::Singleton<boost::asio::io_service>::GetInstance().run();
 	return 0;
 }

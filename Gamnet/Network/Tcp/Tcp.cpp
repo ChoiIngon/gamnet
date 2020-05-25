@@ -1,12 +1,9 @@
-/*
- * Network.cpp
- *
- *  Created on: Jun 20, 2014
- *      Author: kukuta
- */
-
-#include <sys/types.h>
 #include "Tcp.h"
+
+#include <boost/exception/diagnostic_information.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <sys/types.h>
 #ifdef _WIN32
 #else
 #include <ifaddrs.h>
@@ -57,6 +54,30 @@ const boost::asio::ip::address& GetLocalAddress()
 	return localAddress;
 }
 
+void Config::ReadXml(const std::string& path)
+{
+	boost::property_tree::ptree ptree_;
+	try {
+		boost::property_tree::xml_parser::read_xml(path, ptree_);
+	}
+	catch (const boost::property_tree::xml_parser_error& e)
+	{
+		throw Exception(ErrorCode::FileNotFound, e.what());
+	}
+
+	try {
+		port = ptree_.get<int>("server.tcp.<xmlattr>.port");
+		max_count = ptree_.get<int>("server.tcp.<xmlattr>.max_count");
+		keep_alive = ptree_.get<int>("server.tcp.<xmlattr>.keep_alive");
+		accept_queue = ptree_.get<int>("server.tcp.<xmlattr>.accept_queue");
+		thread_count = ptree_.get<int>("server.tcp.<xmlattr>.thread_count");
+	}
+	catch (const boost::property_tree::ptree_bad_path& e)
+	{
+		std::cerr << "[Gamnet::Tcp]" << e.what() << std::endl;
+		throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, e.what());
+	}
+}
 }}}
 
 

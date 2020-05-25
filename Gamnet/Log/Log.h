@@ -7,7 +7,7 @@ namespace Gamnet { namespace Log {
 	/// \brief Initialize function for Logger lib
 	/// \param log_dir the directory that log file will be created(relative directory path would be recommened)
 	void Init(const char* log_dir = "log", const char* prefix = "log", int max_file_size = 5);
-	void ReadXml(const char* xml_path);
+	void ReadXml(const std::string& xml_path);
 	void SetLevelProperty(Logger::LOG_LEVEL_TYPE level, int flag);
 	template <typename... Args>
 	void Write(Logger::LOG_LEVEL_TYPE level, const Args&... args)

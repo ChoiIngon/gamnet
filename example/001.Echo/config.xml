@@ -7,7 +7,7 @@
 		<err console="yes" file="yes" sys="no"/>
 	</log>
 
-	<tcp port="10000" max_count="8000" accept_queue="4000" keep_alive="86400"/>
+	<tcp port="10000" max_count="8000" accept_queue="4000" keep_alive="86400" thread_count="20"/>
 	<http port="10001"/>
   
 	<farm host="127.0.0.1" port="6379"/>
@@ -17,20 +17,6 @@
 	</router>
   
 	<test host="127.0.0.1" port="10000" session_count="1" loop_count="1">
-		<OnConnect>
-			<Send message="MsgCliSvr_Message_Req"/>
-		</OnConnect>
-		<OnReceive message="MsgSvrCli_Message_Ans">
-			<Timer id="Close" time="5000"/>
-		</OnReceive>
-		<OnReceive message="MsgSvrCli_Message_Ntf">
-			<MessageHandler handler="OnMessageNtf"/>
-		</OnReceive>
-		<OnTimer timer_id="Close">
-			<Close/>
-		</OnTimer>
-		<OnClose>
-			<Destroy/>
-		</OnClose>
-  </test>
+		<message name="Test_SendMessage"/>
+	</test>
 </server>

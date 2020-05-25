@@ -25,6 +25,7 @@ Session::~Session()
 bool Session::Init()
 {
 	session_key = ++SESSION_KEY;
+	read_buffer = Buffer::Create();
 	return true;
 }
 

@@ -1,7 +1,7 @@
 #ifndef GAMNET_TEST_SESSION_MANAGER_H_
 #define GAMNET_TEST_SESSION_MANAGER_H_
 
-#include "../Network/Tcp/SessionManager.h"
+#include "../Network/SessionManager.h"
 #include "../Network/Connector.h"
 #include "Session.h"
 
@@ -40,14 +40,14 @@ namespace Gamnet {	namespace Test {
 	};
 
 	template <class SESSION_T>
-	class SessionManager : public Network::Tcp::SessionManager<SESSION_T>
+	class SessionManager : public Network::SessionManager
 	{
 		GAMNET_WHERE(SESSION_T, Session);
-	private:
-		typedef Network::Tcp::SessionManager<SESSION_T> BASE_T;
+	public:
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
 		
+	private :
 		struct TestCase
 		{
 			TestCase() : name(""), execute_count(0), fail_count(0), elapse_time(0) 
@@ -65,26 +65,16 @@ namespace Gamnet {	namespace Test {
 		std::map<uint32_t, RECV_HANDLER_TYPE> 				global_recv_handlers;
 		std::vector<std::shared_ptr<TestCase>> 				test_sequence;
 		
-		Network::Connector	connector;
 		SessionManagerImpl	impl;
+		Network::Connector	connector;
+		Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
 	public:
 		SessionManager();
 		virtual ~SessionManager();
 
-		void Init(const char* host, int port, int session_count, int loop_count)
-		{
-			impl.Init(host, port, session_count, loop_count);
-			for (size_t i = 0; i < impl.session_count; i++)
-			{
-				impl.begin_execute_count++;
-				if (impl.max_execute_count < impl.begin_execute_count)
-				{
-					break;
-				}
-				connector.AsyncConnect(impl.host.c_str(), impl.port, 0);
-			}
-		}
+		void Init(const char* host, int port, int session_count, int loop_count);
 
+		virtual std::shared_ptr<Network::Session> OnAccept(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override { return nullptr; }
 		virtual std::shared_ptr<Network::Session> OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override;
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override;
 		virtual void OnDestroy(uint32_t sessionKey) override;
@@ -135,6 +125,21 @@ namespace Gamnet {	namespace Test {
 	SessionManager<SESSION_T>::~SessionManager() {}
 
 	template <class SESSION_T>
+	void SessionManager<SESSION_T>::Init(const char* host, int port, int session_count, int loop_count)
+	{
+		impl.Init(host, port, session_count, loop_count);
+		for (size_t i = 0; i < impl.session_count; i++)
+		{
+			impl.begin_execute_count++;
+			if (impl.max_execute_count < impl.begin_execute_count)
+			{
+				break;
+			}
+			connector.AsyncConnect(impl.host.c_str(), impl.port, 0);
+		}
+	}
+
+	template <class SESSION_T>
 	void SessionManager<SESSION_T>::BindSendHandler(const std::string& testName, typename SessionManager<SESSION_T>::SEND_HANDLER_TYPE sendHandler)
 	{
 		std::shared_ptr<TestCase> testCase = std::make_shared<TestCase>();
@@ -150,17 +155,17 @@ namespace Gamnet {	namespace Test {
 	}
 
 	template <class SESSION_T>
-	void SessionManager<SESSION_T>::BindRecvHandler(const std::string& messageName, uint32_t msgID, typename SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	void SessionManager<SESSION_T>::BindRecvHandler(const std::string& testName, uint32_t msgID, typename SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
-		auto itr = test_cases.find(handlerName);
+		auto itr = test_cases.find(testName);
 		if (test_cases.end() == itr)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "can't find registered test case execute info(test_name:", handlerName, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "can't find registered test case execute info(test_name:", testName, ")");
 		}
-		std::shared_ptr<TestCase> executeInfo = itr->second;
-		if (false == executeInfo->recv_handlers.insert(std::make_pair(msgID, recv)).second)
+		std::shared_ptr<TestCase> testCase = itr->second;
+		if (false == testCase->receive_handlers.insert(std::make_pair(msgID, recv)).second)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated recv msg id(test_name:", handlerName, ", msg_id:", msgID, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "duplicated recv msg id(test_name:", testName, ", msg_id:", msgID, ")");
 		}
 	}
 
@@ -176,7 +181,10 @@ namespace Gamnet {	namespace Test {
 	template <class SESSION_T>
 	std::shared_ptr<Network::Session> SessionManager<SESSION_T>::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 	{
-		std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(BASE_T::OnConnect(socket));
+		std::shared_ptr<SESSION_T> session = session_pool.Create();
+		session->socket = socket;
+		session->OnCreate();
+		session->AsyncRead();
 		if("" == session->session_token)
 		{
 			impl.Send_Connect_Req(session);
@@ -215,7 +223,7 @@ namespace Gamnet {	namespace Test {
 			try {
 				recvHandler(session, packet);
 			}
-			catch (const Exception& e)
+			catch (const Exception& /*e*/)
 			{
 				testCase->fail_count++;
 			}
@@ -239,7 +247,6 @@ namespace Gamnet {	namespace Test {
 	template <class SESSION_T>
 	void SessionManager<SESSION_T>::OnDestroy(uint32_t sessionKey) 
 	{
-		SessionManager<SESSION_T>::BASE_T::OnDestroy(sessionKey);
 		impl.finish_execute_count += 1;
 		if (impl.max_execute_count > impl.begin_execute_count)
 		{

@@ -80,7 +80,7 @@ void Test_CliSvr_SendMessage_Ntf(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_SendMessage_Ntf ntf;
 	ntf.Message = "Hello World";
-	LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_SendMessage_Ntf(message:", ntf.Message, ")");
+	LOG(INF, "[C->S/", session->session_key, "] MsgCliSvr_SendMessage_Ntf(message:", ntf.Message, ")");
 	Gamnet::Test::SendMsg(session, ntf);
 }
 
@@ -92,7 +92,7 @@ void Test_SvrCli_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, co
 		{
 			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
-		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_SendMessage_Ntf(message:", ntf.Message, ")");
+		LOG(INF, "[S->C/", session->session_key, "] MsgSvrCli_SendMessage_Ntf(message:", ntf.Message, ")");
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());

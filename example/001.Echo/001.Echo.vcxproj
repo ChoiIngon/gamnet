@@ -24,7 +24,13 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Handler_SendMessage.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="UserSession.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Handler_SendMessage.h" />
+    <ClInclude Include="UserSession.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{10465F8C-3657-4341-BA71-94BD1291BE99}</ProjectGuid>

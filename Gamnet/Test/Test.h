@@ -1,42 +1,37 @@
 #ifndef GAMNET_TEST_TEST_H_
 #define GAMNET_TEST_TEST_H_
 
+#include <list>
 #include <string>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 
-#include "Session.h"
-#include "LinkManager.h"
+#include "SessionManager.h"
 #include "../Library/Singleton.h"
 
 namespace Gamnet { namespace Test {
 	template <class SESSION_T>
 	void Init(const char* host, int port, unsigned int session_count, unsigned int loop_count)
 	{
-		Singleton<LinkManager<SESSION_T>>::GetInstance().Init(host, port, session_count, loop_count);
+		Singleton<SessionManager<SESSION_T>>::GetInstance().Init(host, port, session_count, loop_count);
 	}
 	
-	void Run(int thread_count);
-	void RegisterRun(std::function<void()> runFunctor);
-	
 	template<class SESSION_T, class REQ_T, class ANS_T>
-	bool BindHandler(const std::string& test_name, typename LinkManager<SESSION_T>::SEND_HANDLER_TYPE send, typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	bool BindHandler(const std::string& test_name, typename SessionManager<SESSION_T>::SEND_HANDLER_TYPE send, typename SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
-		Singleton<LinkManager<SESSION_T>>::GetInstance().BindSendHandler(test_name, send);
-		Singleton<LinkManager<SESSION_T>>::GetInstance().BindRecvHandler(test_name, ANS_T::MSG_ID, recv);
+		Singleton<SessionManager<SESSION_T>>::GetInstance().BindSendHandler(test_name, send);
+		Singleton<SessionManager<SESSION_T>>::GetInstance().BindRecvHandler(test_name, ANS_T::MSG_ID, recv);
 		return true;
 	}
 
 	template<class SESSION_T, class MSG_T>
-	bool BindRecvHandler(const std::string& test_name, typename LinkManager<SESSION_T>::RECV_HANDLER_TYPE recv)
+	bool BindRecvHandler(const std::string& test_name, typename SessionManager<SESSION_T>::RECV_HANDLER_TYPE recv)
 	{
 		if("" != test_name)
 		{
-			Singleton<LinkManager<SESSION_T>>::GetInstance().BindRecvHandler(test_name, MSG_T::MSG_ID, recv);
+			Singleton<SessionManager<SESSION_T>>::GetInstance().BindRecvHandler(test_name, MSG_T::MSG_ID, recv);
 		}
 		else
 		{
-			Singleton<LinkManager<SESSION_T>>::GetInstance().BindGlobalRecvHandler(MSG_T::MSG_ID, recv);
+			Singleton<SessionManager<SESSION_T>>::GetInstance().BindGlobalRecvHandler(MSG_T::MSG_ID, recv);
 		}
 		return true;
 	}
@@ -62,28 +57,27 @@ namespace Gamnet { namespace Test {
 		session->AsyncSend(packet);
 	}
 
-	template<class SESSION_T>
-	void ReadXml(const char* xml_path)
+	struct Config
 	{
-		boost::property_tree::ptree ptree_;
-		boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
+		std::string host;
+		int port;
+		int session_count;
+		int loop_count;
+		std::list<std::string> messages;
 
-		const std::string host = ptree_.get<std::string>("server.test.<xmlattr>.host");
-		uint32_t port = ptree_.get<uint32_t>("server.test.<xmlattr>.port");
-		uint32_t session_count = ptree_.get<uint32_t>("server.test.<xmlattr>.session_count");
-		uint32_t loop_count = ptree_.get<uint32_t>("server.test.<xmlattr>.loop_count");
-		auto test_case = ptree_.get_child("server.test");
-
-		for(const auto& elmt : test_case)
+		void ReadXml(const std::string& config);
+	};
+	template<class SESSION_T>
+	void ReadXml(const std::string& path)
+	{
+		Config config;
+		config.ReadXml(path);
+		for(const auto& message : config.messages)
 		{
-			if("message" == elmt.first)
-			{
-				Singleton<LinkManager<SESSION_T>>::GetInstance().RegisterTestcase(elmt.second.get<std::string>("<xmlattr>.name"));
-			}
+			Singleton<SessionManager<SESSION_T>>::GetInstance().RegisterTestcase(message);
 		}
 		
-		Init<SESSION_T>(host.c_str(), port, session_count, loop_count);
-		RegisterRun(std::function<void()>(std::bind(&LinkManager<SESSION_T>::Run, &Singleton<LinkManager<SESSION_T>>::GetInstance())));
+		Init<SESSION_T>(config.host.c_str(), config.port, config.session_count, config.loop_count);
 	}
 }}
 

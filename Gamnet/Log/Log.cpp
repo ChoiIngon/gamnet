@@ -17,7 +17,7 @@ void Init(const char* log_dir, const char* prefix, int max_file_size)
 	Logger::GetInstance().Init(log_dir, prefix, max_file_size);
 }
 
-void ReadXml(const char* xml_path)
+void ReadXml(const std::string& xml_path)
 {
 	boost::property_tree::ptree ptree_;
 	try {
