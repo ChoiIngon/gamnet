@@ -12,8 +12,6 @@ namespace Gamnet { namespace Network {
 	private :
 		struct SocketFactory
 		{
-			SessionManager*	const	session_manager;
-			SocketFactory(SessionManager* const manager);
 			boost::asio::ip::tcp::socket* operator() ();
 		};
 		
@@ -33,7 +31,7 @@ namespace Gamnet { namespace Network {
 		boost::asio::ip::tcp::endpoint	endpoint;
 		Pool<boost::asio::ip::tcp::socket, std::mutex, SocketInitFunctor, SocketReleaseFunctor> socket_pool;
 
-		SessionManager*	const	session_manager;
+		std::function<void(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)> accept_handler;
 		int						max_queue_size;
 		std::atomic<int>		cur_queue_size;
 	public:
