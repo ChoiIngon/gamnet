@@ -22,7 +22,6 @@ public:
 	Request(const std::string& param);
 	virtual ~Request();
 
-
 	const Variant& operator[](const std::string& name) const;
 };
 

@@ -51,7 +51,6 @@ namespace Gamnet { namespace Test {
 		session->session_key = ans["session_key"].asUInt();
 		session->session_token = ans["session_token"].asString();
 		session->OnConnect();
-		session->Next();
 	}
 
 	void SessionManagerImpl::Send_Reconnect_Req(const std::shared_ptr<Session>& session)

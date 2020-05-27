@@ -153,8 +153,8 @@
     <ClCompile Include="log\File.cpp" />
     <ClCompile Include="log\Log.cpp" />
     <ClCompile Include="log\Logger.cpp" />
-    <ClCompile Include="Network\Acceptor.cpp" />
-    <ClCompile Include="Network\Connector.cpp" />
+    <ClCompile Include="Network\Tcp\Acceptor.cpp" />
+    <ClCompile Include="Network\Tcp\Connector.cpp" />
     <ClCompile Include="Network\HandlerContainer.cpp" />
     <ClCompile Include="network\Session.cpp" />
     <ClCompile Include="Network\Tcp\CastGroup.cpp" />
@@ -189,8 +189,8 @@
     <ClInclude Include="log\File.h" />
     <ClInclude Include="log\Log.h" />
     <ClInclude Include="log\Logger.h" />
-    <ClInclude Include="Network\Acceptor.h" />
-    <ClInclude Include="Network\Connector.h" />
+    <ClInclude Include="Network\Tcp\Acceptor.h" />
+    <ClInclude Include="Network\Tcp\Connector.h" />
     <ClInclude Include="Network\Handler.h" />
     <ClInclude Include="Network\HandlerContainer.h" />
     <ClInclude Include="Network\HandlerFactory.h" />

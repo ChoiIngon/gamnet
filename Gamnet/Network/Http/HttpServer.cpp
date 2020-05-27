@@ -1,12 +1,14 @@
 #include "HttpServer.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
 namespace Gamnet { namespace Network { namespace Http {
 
-	static Acceptor<Link> acceptor;
+	static Tcp::Acceptor acceptor;
 
 	void Listen(int port, int accept_queue_size)
 	{
-		acceptor.Listen(port, 1024, accept_queue_size);
+		acceptor.Listen(port, 1024);
 		LOG(GAMNET_INF, "Gamnet::Http listener start(port:", port, ")");
 	}
 

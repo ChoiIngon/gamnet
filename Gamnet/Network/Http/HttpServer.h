@@ -11,7 +11,7 @@
 #include "Dispatcher.h"
 #include "HttpClient.h"
 #include "Request.h"
-#include "../Acceptor.h"
+#include "../Tcp/Acceptor.h"
 
 namespace Gamnet { namespace Network { namespace Http {
 	void Listen(int port, int accept_queue_size= 5);

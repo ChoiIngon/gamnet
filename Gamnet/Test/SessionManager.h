@@ -2,7 +2,7 @@
 #define GAMNET_TEST_SESSION_MANAGER_H_
 
 #include "../Network/SessionManager.h"
-#include "../Network/Connector.h"
+#include "../Network/Tcp/Connector.h"
 #include "Session.h"
 
 #include <map>
@@ -34,7 +34,6 @@ namespace Gamnet {	namespace Test {
 		void Send_ReliableAck_Ntf(const std::shared_ptr<Session>& session);
 		void Send_Close_Req(const std::shared_ptr<Session>& session);
 		void Recv_Close_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet);
-
 	private :
 		void OnLogTimerExpire();
 	};
@@ -48,6 +47,21 @@ namespace Gamnet {	namespace Test {
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
 		
 	private :
+		struct SessionFactory
+		{
+			SessionManager* const session_manager;
+			SessionFactory(SessionManager* manager) : session_manager(manager)
+			{
+			}
+
+			SESSION_T* operator() ()
+			{
+				SESSION_T* session = new SESSION_T();
+				session->session_manager = session_manager;
+				return session;
+			}
+		};
+
 		struct TestCase
 		{
 			TestCase() : name(""), execute_count(0), fail_count(0), elapse_time(0) 
@@ -66,7 +80,7 @@ namespace Gamnet {	namespace Test {
 		std::vector<std::shared_ptr<TestCase>> 				test_sequence;
 		
 		SessionManagerImpl	impl;
-		Network::Connector	connector;
+		Network::Tcp::Connector	connector;
 		Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
 	public:
 		SessionManager();
@@ -74,8 +88,8 @@ namespace Gamnet {	namespace Test {
 
 		void Init(const char* host, int port, int session_count, int loop_count);
 
-		virtual std::shared_ptr<Network::Session> OnAccept(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override { return nullptr; }
-		virtual std::shared_ptr<Network::Session> OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override;
+		virtual void OnAccept(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override {}
+		virtual void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override;
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override;
 		virtual void OnDestroy(uint32_t sessionKey) override;
 		
@@ -102,7 +116,6 @@ namespace Gamnet {	namespace Test {
 		{
 			impl.Recv_Connect_Ans(session, packet);
 		}
-		
 		void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
 			impl.Recv_Reconnect_Ans(session, packet);
@@ -111,11 +124,24 @@ namespace Gamnet {	namespace Test {
 		{
 			impl.Recv_Close_Ans(session, packet);
 		}
+		void ExecuteSendHandler(const std::shared_ptr<SESSION_T>& session)
+		{
+			if (session->test_seq >= (int)this->test_sequence.size())
+			{
+				impl.Send_Close_Req(session);
+				return;
+			}
+			const std::shared_ptr<TestCase>& testCase = test_sequence[session->test_seq];
+			//session->send_time = std::chrono::steady_clock::now();
+			testCase->send_handler(std::static_pointer_cast<SESSION_T>(session));
+			testCase->execute_count++;
+		}
 	};
 
 	template <class SESSION_T>
-	SessionManager<SESSION_T>::SessionManager() : connector(this)
+	SessionManager<SESSION_T>::SessionManager() : session_pool(65535, SessionFactory(this))
 	{
+		connector.connect_handler = std::bind(&SessionManager::OnConnect, this, std::placeholders::_1);
 		BindGlobalRecvHandler((uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2));
 		BindGlobalRecvHandler((uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Reconnect_Ans, this, std::placeholders::_1, std::placeholders::_2));
 		BindGlobalRecvHandler((uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Close_Ans, this, std::placeholders::_1, std::placeholders::_2));
@@ -179,7 +205,7 @@ namespace Gamnet {	namespace Test {
 	}
 
 	template <class SESSION_T>
-	std::shared_ptr<Network::Session> SessionManager<SESSION_T>::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
+	void SessionManager<SESSION_T>::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 	{
 		std::shared_ptr<SESSION_T> session = session_pool.Create();
 		session->socket = socket;
@@ -193,7 +219,6 @@ namespace Gamnet {	namespace Test {
 		{
 			impl.Send_Reconnect_Req(session);
 		}
-		return session;
 	}
 	
 	template <class SESSION_T>
@@ -237,6 +262,8 @@ namespace Gamnet {	namespace Test {
 			{
 				impl.Send_ReliableAck_Ntf(session);
 			}
+
+			ExecuteSendHandler(session);
 		}
 		else
 		{

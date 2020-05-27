@@ -1,25 +1,16 @@
 #include "Connector.h"
-#include "../Library/Singleton.h"
 #include "SessionManager.h"
+#include "../../Library/Singleton.h"
 
-namespace Gamnet { namespace Network {
-	static boost::asio::io_service& io_service = Singleton<boost::asio::io_service>::GetInstance();
-	Connector::SocketFactory::SocketFactory(SessionManager* const manager) : session_manager(manager)
-	{
-	}
-
+namespace Gamnet { namespace Network { namespace Tcp {
 	boost::asio::ip::tcp::socket* Connector::SocketFactory::operator() ()
 	{
-		return new boost::asio::ip::tcp::socket(io_service);
+		return new boost::asio::ip::tcp::socket(Singleton<boost::asio::io_service>::GetInstance());
 	}
 
 	boost::asio::ip::tcp::socket* Connector::SocketInitFunctor::operator() (boost::asio::ip::tcp::socket* socket)
 	{
 		return socket;
-	}
-
-	Connector::SocketReleaseFunctor::SocketReleaseFunctor()
-	{
 	}
 
 	boost::asio::ip::tcp::socket* Connector::SocketReleaseFunctor::operator() (boost::asio::ip::tcp::socket* socket)
@@ -28,9 +19,8 @@ namespace Gamnet { namespace Network {
 		return socket;
 	}
 	
-	Connector::Connector(SessionManager* const manager) :
-		socket_pool(65535, SocketFactory(manager)), 
-		session_manager(manager)
+	Connector::Connector() : socket_pool(65535, SocketFactory())
+
 	{
 	}
 
@@ -46,7 +36,7 @@ namespace Gamnet { namespace Network {
 			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "host is empty");
 		}
 
-		boost::asio::ip::tcp::resolver resolver_(io_service);
+		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
 		boost::asio::ip::tcp::resolver::query query_(host, "");
 		boost::asio::ip::address address_;
 		for (auto itr = resolver_.resolve(query_); itr != boost::asio::ip::tcp::resolver::iterator(); ++itr)
@@ -93,7 +83,7 @@ namespace Gamnet { namespace Network {
 		}
 		
 		boost::asio::ip::address address_;
-		boost::asio::ip::tcp::resolver resolver_(io_service);
+		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
 		boost::asio::ip::tcp::resolver::query query_(host, "");
 		for (auto itr = resolver_.resolve(query_); itr != boost::asio::ip::tcp::resolver::iterator(); ++itr)
 		{
@@ -104,8 +94,6 @@ namespace Gamnet { namespace Network {
 
 		boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ address_.to_v4().to_string(), std::to_string(port).c_str() }));
 
-		
-
 		boost::system::error_code ec;
 		socket->connect(endpoint_, ec);
 		if (0 != ec)
@@ -114,8 +102,8 @@ namespace Gamnet { namespace Network {
 			return false;
 		}
 
-		session_manager->OnConnect(socket);
 		timer->Cancel();
+		connect_handler(socket);
 		return true;
 	}
 
@@ -136,7 +124,7 @@ namespace Gamnet { namespace Network {
 				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "connect fail(dest:", endpoint.address().to_v4().to_string(), ", message:", ec.message(), ", errno:", ec, ")");
 			}
 
-			session_manager->OnConnect(socket);
+			connect_handler(socket);
 			return;
 		}
 		catch (const Exception& e)
@@ -158,4 +146,4 @@ namespace Gamnet { namespace Network {
 		timer->Cancel();
 	}
 
-}}
+}}}

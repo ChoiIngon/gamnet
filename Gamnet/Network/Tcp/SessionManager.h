@@ -6,8 +6,8 @@
 #include <mutex>
 
 #include "../../Library/Json/json.h"
-#include "../Acceptor.h"
 #include "../SessionManager.h"
+#include "Acceptor.h"
 #include "Dispatcher.h"
 #include "Packet.h"
 #include "Session.h"
@@ -44,13 +44,14 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		std::vector<std::thread> threads;
 		int	expire_time; // zero means infinity
 	public:
-		SessionManager() : acceptor(this), session_pool(65535, SessionFactory(this))
+		SessionManager() : session_pool(65535, SessionFactory(this))
 		{
+			acceptor.accept_handler = std::bind(&SessionManager::OnAccept, this, std::placeholders::_1);
 		}
 
 		void Listen(int port, int max_session, int alive_time, int accept_queue_size, int thread_count)
 		{
-			acceptor.Listen(port, max_session, accept_queue_size);
+			acceptor.Listen(port, max_session);
 			expire_time = alive_time;
 
 			for (int i = 0; i < thread_count - 1; i++)
@@ -59,7 +60,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			}
 		}
 
-		virtual std::shared_ptr<Network::Session> OnAccept(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override
+		virtual void OnAccept(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override
 		{
 			std::shared_ptr<SESSION_T> session = session_pool.Create();
 			if (nullptr == session)
@@ -78,21 +79,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				assert(!"duplicated session");
 				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated session");
 			}
-			return session;
 		}
 
-		virtual std::shared_ptr<Network::Session> OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override
+		virtual void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override 
 		{
-			std::shared_ptr<SESSION_T> session = Create();
-			session->socket = socket;
-			session->OnCreate();
-			session->AsyncRead();
-			if (false == Insert(session))
-			{
-				assert(!"duplicated session");
-				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated session");
-			}
-			return session;
 		}
 
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override
@@ -119,16 +109,18 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 		Json::Value State()
 		{
-			std::lock_guard<std::mutex> lo(lock);
-
 			Json::Value root;
 			root["name"] = "Gamnet::Network::Tcp";
 
 			Json::Value session;
 			session["max_count"] = session_pool.Capacity();
 			session["idle_count"] = session_pool.Available();
-			session["active_count"] = sessions.size();
+			{
+				std::lock_guard<std::mutex> lo(lock);
+				session["active_count"] = sessions.size();
+			}
 			root["session"] = session;
+			root["acceptor"] = acceptor.State();
 			return root;
 		}
 	};
