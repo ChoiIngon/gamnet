@@ -120,4 +120,22 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 	}
 }
 
+void Session::Close(int reason)
+{
+	auto self(shared_from_this());
+	strand->wrap([self](int reason) {
+		std::shared_ptr<Session> session = std::static_pointer_cast<Session>(self);
+		if (nullptr == session->socket)
+		{
+			return;
+		}
+		session->OnClose(reason);
+		session->socket = nullptr;
+		if(false == session->handover_safe)
+		{
+			session->session_manager->OnDestroy(session->session_key);
+		}
+	})(reason);
+}
+
 }}}

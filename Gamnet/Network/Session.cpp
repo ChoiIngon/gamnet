@@ -147,7 +147,6 @@ void Session::Close(int reason)
 		{
 			return;
 		}
-
 		self->OnClose(reason);
 		self->socket = nullptr;
 	})(reason);
