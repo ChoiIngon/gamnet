@@ -1,4 +1,5 @@
 #include "Session.h"
+#include "SessionManager.h"
 #include <list>
 #include <future>
 #include "../Log/Log.h"
@@ -149,6 +150,7 @@ void Session::Close(int reason)
 		}
 		self->OnClose(reason);
 		self->socket = nullptr;
+		self->session_manager->OnDestroy(self->session_key);
 	})(reason);
 }
 

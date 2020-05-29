@@ -226,55 +226,58 @@ namespace Gamnet {	namespace Test {
 	{
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(networkSession);
 		const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
-
-		if (session->test_seq < (int)this->test_sequence.size())
+		
+		std::shared_ptr<TestCase> testCase = nullptr;
+		auto itr = global_recv_handlers.find(packet->msg_id);
+		if(global_recv_handlers.end() == itr)
 		{
-			const std::shared_ptr<TestCase> testCase = this->test_sequence[session->test_seq];
-			auto itr = testCase->receive_handlers.find(packet->msg_id);
-			if (testCase->receive_handlers.end() != itr)
+			if (test_sequence.size() > (size_t)session->test_seq)
 			{
-				testCase->elapse_time += Time::Now() - session->send_time;
-			}
-			else
-			{
-				itr = global_recv_handlers.find(packet->msg_id);
-				if (global_recv_handlers.end() == itr)
+				testCase = test_sequence[session->test_seq];
+				itr = testCase->receive_handlers.find(packet->msg_id);
+				if(testCase->receive_handlers.end() == itr)
 				{
 					throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
 				}
+				testCase->elapse_time += Time::Now() - session->send_time;
 			}
+		}
 
-			RECV_HANDLER_TYPE& recvHandler = itr->second;
-			try {
-				recvHandler(session, packet);
-			}
-			catch (const Exception& /*e*/)
+		RECV_HANDLER_TYPE& recvHandler = itr->second;
+		
+		try {
+			recvHandler(session, packet);
+		}
+		catch (const Exception& /*e*/)
+		{
+			if(nullptr != testCase)
 			{
 				testCase->fail_count++;
 			}
-
-			if (session->recv_seq < packet->msg_seq)
-			{
-				session->recv_seq = packet->msg_seq;
-			}
-
-			if (true == packet->reliable)
-			{
-				impl.Send_ReliableAck_Ntf(session);
-			}
-
-			ExecuteSendHandler(session);
 		}
-		else
+
+		if(false == session->handover_safe)
 		{
-			impl.Send_Close_Req(session);
+			return;
 		}
+
+		if (session->recv_seq < packet->msg_seq)
+		{
+			session->recv_seq = packet->msg_seq;
+		}
+
+		if (true == packet->reliable)
+		{
+			impl.Send_ReliableAck_Ntf(session);
+		}
+
+		ExecuteSendHandler(session);
 	}
 	
 	template <class SESSION_T>
 	void SessionManager<SESSION_T>::OnDestroy(uint32_t sessionKey) 
 	{
-		impl.finish_execute_count += 1;
+		impl.finish_execute_count++;
 		if (impl.max_execute_count > impl.begin_execute_count)
 		{
 			impl.begin_execute_count++;

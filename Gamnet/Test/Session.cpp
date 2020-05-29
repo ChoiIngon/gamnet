@@ -28,7 +28,7 @@ bool Session::Init()
 
 	recv_seq = 0;
 	send_seq = 0;
-	handover_safe = true;
+	handover_safe = false;
 	return true;
 }
 
@@ -78,7 +78,6 @@ void Session::AsyncConnect()
 	std::shared_ptr<Time::Timer> timer = Time::Timer::Create();
 	timer->AutoReset(false);
 	timer->SetTimer(5000, strand->wrap(std::bind(&Session::Callback_ConnectTimeout, this, socket, timer)));
-
 	socket->async_connect(endpoint_, strand->wrap(boost::bind(&Session::Callback_Connect, this, socket, timer, endpoint_, boost::asio::placeholders::error)));
 }
 

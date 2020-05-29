@@ -50,6 +50,7 @@ namespace Gamnet { namespace Test {
 
 		session->session_key = ans["session_key"].asUInt();
 		session->session_token = ans["session_token"].asString();
+		session->handover_safe = true;
 		session->OnConnect();
 	}
 
@@ -94,6 +95,7 @@ namespace Gamnet { namespace Test {
 		{
 			session->AsyncSend(sendPacket);
 		}
+		session->handover_safe = true;
 		session->OnConnect();
 		//session->Resume();
 		//session->Next();
@@ -131,12 +133,13 @@ namespace Gamnet { namespace Test {
 		}
 
 		//LOG(DEV, "[", session->link->link_manager->name, "::link_key:", session->link->link_key, "]");
+		session->handover_safe = false;
 		session->AsyncSend(packet);
 	}
 
 	void SessionManagerImpl::Recv_Close_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 	{
-		session->Close(0);
+		session->Close(ErrorCode::Success);
 	}
 
 
