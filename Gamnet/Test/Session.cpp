@@ -77,8 +77,9 @@ void Session::AsyncConnect()
 
 	std::shared_ptr<Time::Timer> timer = Time::Timer::Create();
 	timer->AutoReset(false);
-	timer->SetTimer(5000, strand->wrap(std::bind(&Session::Callback_ConnectTimeout, this, socket, timer)));
-	socket->async_connect(endpoint_, strand->wrap(boost::bind(&Session::Callback_Connect, this, socket, timer, endpoint_, boost::asio::placeholders::error)));
+	auto self = std::static_pointer_cast<Session>(shared_from_this());
+	timer->SetTimer(5000, strand->wrap(std::bind(&Session::Callback_ConnectTimeout, self, socket, timer)));
+	socket->async_connect(endpoint_, strand->wrap(boost::bind(&Session::Callback_Connect, self, socket, timer, endpoint_, boost::asio::placeholders::error)));
 }
 
 void Session::Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer, const boost::asio::ip::tcp::endpoint& endpoint, const boost::system::error_code& ec)
@@ -101,7 +102,23 @@ void Session::Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socke
 		
 		this->socket = socket;
 		AsyncRead();
-		return;
+		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+		if (nullptr == packet)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
+		}
+
+		Json::Value req;
+		req["session_key"] = session_key;
+		req["session_token"] = session_token;
+
+		Json::FastWriter writer;
+		std::string str = writer.write(req);
+
+		packet->Write(Network::Tcp::MsgID_CliSvr_Reconnect_Req, str.c_str(), str.length());
+
+		send_buffers.push_back(packet);
+		FlushSend();
 	}
 	catch (const Exception& e)
 	{

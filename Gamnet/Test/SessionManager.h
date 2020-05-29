@@ -58,6 +58,8 @@ namespace Gamnet {	namespace Test {
 			{
 				SESSION_T* session = new SESSION_T();
 				session->session_manager = session_manager;
+				session->host = static_cast<SessionManager<SESSION_T>*>(session_manager)->impl.host;
+				session->port = static_cast<SessionManager<SESSION_T>*>(session_manager)->impl.port;
 				return session;
 			}
 		};
