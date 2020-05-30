@@ -117,7 +117,7 @@ void Session::Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socke
 
 		packet->Write(Network::Tcp::MsgID_CliSvr_Reconnect_Req, str.c_str(), str.length());
 
-		send_buffers.push_back(packet);
+		send_buffers.push_front(packet);
 		FlushSend();
 	}
 	catch (const Exception& e)

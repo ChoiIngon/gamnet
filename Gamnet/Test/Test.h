@@ -72,11 +72,14 @@ namespace Gamnet { namespace Test {
 	{
 		Config config;
 		config.ReadXml(path);
+
+		//Singleton<SessionManager<SESSION_T>>::GetInstance().RegisterTestcase("__connect__");
 		for(const auto& message : config.messages)
 		{
 			Singleton<SessionManager<SESSION_T>>::GetInstance().RegisterTestcase(message);
 		}
-		
+		//Singleton<SessionManager<SESSION_T>>::GetInstance().RegisterTestcase("__close__");
+
 		Init<SESSION_T>(config.host.c_str(), config.port, config.session_count, config.loop_count);
 	}
 }}

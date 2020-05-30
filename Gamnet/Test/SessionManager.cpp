@@ -52,6 +52,7 @@ namespace Gamnet { namespace Test {
 		session->session_token = ans["session_token"].asString();
 		session->handover_safe = true;
 		session->OnConnect();
+		//session->Next();
 	}
 
 	void SessionManagerImpl::Send_Reconnect_Req(const std::shared_ptr<Session>& session)
