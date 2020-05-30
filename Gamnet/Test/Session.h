@@ -4,11 +4,13 @@
 #include "../Library/Debugs.h"
 #include "../Library/Timer.h"
 #include "../Network/Tcp/Session.h"
+#include "../Network/Tcp/Connector.h"
 
 namespace Gamnet { namespace Test {
 
 class Session : public Network::Tcp::Session 
 {
+	Network::Tcp::Connector reconnector;
 public:
 	Session();
 	virtual ~Session();
@@ -29,10 +31,17 @@ public:
 	void AsyncSend(const std::shared_ptr<Network::Tcp::Packet>& packet);
 	void Next();
 
+	void Send_Connect_Req();
+	void Recv_Connect_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet);
+	void Send_Reconnect_Req();
+	void Recv_Reconnect_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet);
+	void Send_ReliableAck_Ntf();
+	void Send_Close_Req();
+	void Recv_Close_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet);
 private:
-	void AsyncConnect();
-	void Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer, const boost::asio::ip::tcp::endpoint& endpoint, const boost::system::error_code& ec);
-	void Callback_ConnectTimeout(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer);
+	void OnReconnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
+
+	
 };
 
 }} /* namespace Gamnet */

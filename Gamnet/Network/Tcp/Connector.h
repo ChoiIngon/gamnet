@@ -28,10 +28,11 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		Pool<boost::asio::ip::tcp::socket, std::mutex, SocketInitFunctor, SocketReleaseFunctor> socket_pool;
 	public:
 		Connector();
+		Connector(size_t poolSize);
 
 		std::function<void(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)> connect_handler;
-		void AsyncConnect(const char* host, int port, int timeout);
-		bool SyncConnect(const char* host, int port, int timeout);
+		void AsyncConnect(const std::string& host, int port, int timeout);
+		bool SyncConnect(const std::string& host , int port, int timeout);
 	private:
 		void Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer, const boost::asio::ip::tcp::endpoint& endpoint, const boost::system::error_code& ec);
 		void Callback_ConnectTimeout(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer);

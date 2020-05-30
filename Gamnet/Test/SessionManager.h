@@ -26,14 +26,6 @@ namespace Gamnet {	namespace Test {
 		int						port;
 
 		void Init(const char* host, int port, int session_count, int loop_count);
-		
-		void Send_Connect_Req(const std::shared_ptr<Session>& session);
-		void Recv_Connect_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet);
-		void Send_Reconnect_Req(const std::shared_ptr<Session>& session);
-		void Recv_Reconnect_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet);
-		void Send_ReliableAck_Ntf(const std::shared_ptr<Session>& session);
-		void Send_Close_Req(const std::shared_ptr<Session>& session);
-		void Recv_Close_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet);
 	private :
 		void OnLogTimerExpire();
 	};
@@ -115,30 +107,26 @@ namespace Gamnet {	namespace Test {
 			test_sequence.push_back(testCase);
 		}
 	private:
-		void Send_Connect_Req(const std::shared_ptr<SESSION_T>& session)
-		{
-			impl.Send_Connect_Req(session);
-		}
 		void Recv_Connect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
-			impl.Recv_Connect_Ans(session, packet);
+			session->Recv_Connect_Ans(packet);
 			ExecuteSendHandler(session);
 		}
 		void Send_Reconnect_Req(const std::shared_ptr<SESSION_T>& session)
 		{
-			impl.Send_Reconnect_Req(session);
+			session->Send_Reconnect_Req(session);
 		}
 		void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
-			impl.Recv_Reconnect_Ans(session, packet);
+			session->Recv_Reconnect_Ans(packet);
 		}
 		void Send_Close_Req(const std::shared_ptr<SESSION_T>& session)
 		{
-			impl.Send_Close_Req(session);
+			session->Send_Close_Req();
 		}
 		void Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
-			impl.Recv_Close_Ans(session, packet);
+			session->Recv_Close_Ans(packet);
 		}
 		void ExecuteSendHandler(const std::shared_ptr<SESSION_T>& session)
 		{
@@ -228,8 +216,7 @@ namespace Gamnet {	namespace Test {
 		session->socket = socket;
 		session->OnCreate();
 		session->AsyncRead();
-		
-		Send_Connect_Req(session);
+		session->Send_Connect_Req();
 	}
 	
 	template <class SESSION_T>
@@ -290,7 +277,7 @@ namespace Gamnet {	namespace Test {
 		
 			if (true == packet->reliable)
 			{
-				impl.Send_ReliableAck_Ntf(session);
+				session->Send_ReliableAck_Ntf();
 			}
 
 			ExecuteSendHandler(session);

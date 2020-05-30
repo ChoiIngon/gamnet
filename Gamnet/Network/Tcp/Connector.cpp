@@ -20,20 +20,18 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 	
 	Connector::Connector() : socket_pool(65535, SocketFactory())
-
 	{
 	}
 
-	void Connector::AsyncConnect(const char* host, int port, int timeout)
+	Connector::Connector(size_t poolSize) : socket_pool(poolSize, SocketFactory())
 	{
-		if (nullptr == host)
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "host is null");
-		}
+	}
 
-		if (0 == strlen(host))
+	void Connector::AsyncConnect(const std::string& host, int port, int timeout)
+	{
+		if ("" == host)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "host is empty");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "host is empty");
 		}
 
 		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
@@ -65,7 +63,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		socket->async_connect(endpoint_, boost::bind(&Connector::Callback_Connect, this, socket, timer, endpoint_, boost::asio::placeholders::error));
 	}
 
-	bool Connector::SyncConnect(const char* host, int port, int timeout)
+	bool Connector::SyncConnect(const std::string& host, int port, int timeout)
 	{
 		std::shared_ptr<boost::asio::ip::tcp::socket> socket = socket_pool.Create();
 		if (nullptr == socket)
