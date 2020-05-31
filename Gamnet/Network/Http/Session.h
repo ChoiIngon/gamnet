@@ -12,15 +12,18 @@ class Session : public Network::Session
 public:
 	Session();
 	virtual ~Session();
-	
-	void Send(const Response& res);
 
-	virtual void OnCreate() {}
-	virtual void OnAccept()	{}
-	virtual void OnClose(int reason) {}
-	virtual void OnDestroy() {}
+	void Send(const Response& res);
+	virtual bool Init() override;
+
+	virtual void OnCreate() override {}
+	virtual void OnAccept()	override {}
+	virtual void OnClose(int reason) override {}
+	virtual void OnDestroy() override {}
 
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
+
+	virtual void Close(int reason) override;
 };
 
 }}}

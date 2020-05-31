@@ -1,5 +1,5 @@
 #include <boost/program_options.hpp>
-#include <Network/HandlerFactory.h>
+#include <Network/Http/HttpServer.h>
 #include <Test/SessionManager.h>
 #include "UserSession.h"
 
@@ -28,6 +28,7 @@ int main(int argc, char** argv)
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 	Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);
+	Gamnet::Network::Http::ReadXml(config_path);
 	Gamnet::Test::ReadXml<TestSession>(config_path);
 	Gamnet::Singleton<boost::asio::io_service>::GetInstance().run();
 	return 0;

@@ -17,6 +17,7 @@ void Handler_Http_ServerState::Recv_Req(const std::shared_ptr<Gamnet::Network::H
 	try
 	{
 		Json::Value root = Gamnet::Network::Tcp::ServerState<UserSession>();
+		root["http"] = Gamnet::Network::Http::State();
 		Json::StyledWriter writer;
 		res.context = writer.write(root);
 	}

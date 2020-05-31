@@ -93,6 +93,9 @@ public:
 			}
 
 			std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
+			session->socket = nullptr;
+			Singleton<SessionManager<SESSION_T>>::GetInstance().OnDestroy(session->session_key);
+
 			prevSession->strand->wrap([=]() {
 				prevSession->socket = socket;
 
@@ -106,14 +109,14 @@ public:
 				}
 
 				ansPacket->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
+				prevSession->send_buffers.clear();
 				prevSession->AsyncSend(ansPacket);
-
 				prevSession->OnAccept();
 				for (const std::shared_ptr<Packet>& ansPacket : prevSession->send_packets)
 				{
 					prevSession->AsyncSend(ansPacket);
 				}
-				Singleton<SessionManager<SESSION_T>>::GetInstance().OnDestroy(session->session_key);
+				prevSession->AsyncRead();
 			})();
 			return;
 		}

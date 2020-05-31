@@ -46,7 +46,11 @@ namespace Gamnet { namespace Network {
 		std::shared_ptr<boost::asio::strand>				strand;
 		std::shared_ptr<Buffer> 							read_buffer;
 		std::deque<std::shared_ptr<Buffer>>					send_buffers;
+
 	public :
+		virtual bool Init();
+		virtual void Clear();
+
 		virtual void OnCreate() = 0;
 		virtual void OnAccept() = 0;
 		virtual void OnClose(int reason) = 0;
@@ -60,11 +64,10 @@ namespace Gamnet { namespace Network {
 		
 		virtual void Close(int reason);
 		void AsyncRead();
+
 	protected :
-		virtual bool Init();
-		virtual void Clear();
-	
 		void FlushSend();
+
 	private :
 		void OnSendHandler(const boost::system::error_code& ec, std::size_t transferredBytes);
 	};

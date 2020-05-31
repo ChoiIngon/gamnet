@@ -8,7 +8,6 @@
 #include "HandlerContainer.h"
 namespace Gamnet { namespace Network { 
 
-struct IHandler;
 struct IHandlerFactory
 {
 	enum HANDLER_FACTORY_TYPE

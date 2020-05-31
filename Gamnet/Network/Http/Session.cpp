@@ -2,13 +2,25 @@
 #include "Dispatcher.h"
 #include "Session.h"
 #include "../../Library/String.h"
+#include "../../Library/Singleton.h"
 #include <curl/curl.h>
+
 namespace Gamnet { namespace Network { namespace Http {
 
 Session::Session() {
 }
 
 Session::~Session() {
+}
+
+bool Session::Init()
+{
+	if(false == Network::Session::Init())
+	{
+		return false;
+	}
+	recv_buffer = Buffer::Create();
+	return true;
 }
 
 void Session::Send(const Response& res)
@@ -60,7 +72,18 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 	uri = uri.substr(0, uri_end);
 	Request req(param);
 	auto self = shared_from_this();
-	Singleton<Dispatcher>::GetInstance().OnRecvMsg(std::static_pointer_cast<Link>(self), uri, req);
+	Singleton<Dispatcher>::GetInstance().OnReceive(std::static_pointer_cast<Session>(self), uri, req);
+	Close(ErrorCode::Success);
+}
+
+void Session::Close(int reason)
+{
+	if (nullptr == socket)
+	{
+		return;
+	}
+	OnClose(reason);
+	socket = nullptr;
 }
 
 }}}

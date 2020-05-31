@@ -24,11 +24,13 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Handler_Http_ServerState.cpp" />
     <ClCompile Include="Handler_SendMessage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="UserSession.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Handler_Http_ServerState.h" />
     <ClInclude Include="Handler_SendMessage.h" />
     <ClInclude Include="UserSession.h" />
   </ItemGroup>

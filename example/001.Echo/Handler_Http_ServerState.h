@@ -2,6 +2,7 @@
 #define HANDLER_HTTP_ServerState_H_
 
 #include "UserSession.h"
+#include <Network/Http/HttpServer.h>
 
 class Handler_Http_ServerState : public Gamnet::Network::IHandler
 {

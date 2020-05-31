@@ -18,8 +18,12 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		acceptor.Accept(socket);
 	}
 
-	Acceptor::Acceptor() :
-		acceptor(Singleton<boost::asio::io_service>::GetInstance())
+	Acceptor::Acceptor() 
+		: acceptor(Singleton<boost::asio::io_service>::GetInstance())
+		, max_socket_count(0)
+		, accept_count(0)
+		, close_count(0)
+		, fail_count(0)
 	{
 	}
 
@@ -30,7 +34,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 		acceptor.bind(endpoint);
 		acceptor.listen();
-				
+		max_socket_count = max_count;
 		for (int i = 0; i < max_count; i++)
 		{
 			Accept(new boost::asio::ip::tcp::socket(Singleton<boost::asio::io_service>::GetInstance()));

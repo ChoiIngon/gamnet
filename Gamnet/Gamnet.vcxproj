@@ -153,6 +153,12 @@
     <ClCompile Include="log\File.cpp" />
     <ClCompile Include="log\Log.cpp" />
     <ClCompile Include="log\Logger.cpp" />
+    <ClCompile Include="Network\Http\Dispatcher.cpp" />
+    <ClCompile Include="Network\Http\HttpClient.cpp" />
+    <ClCompile Include="Network\Http\HttpServer.cpp" />
+    <ClCompile Include="Network\Http\Request.cpp" />
+    <ClCompile Include="Network\Http\Response.cpp" />
+    <ClCompile Include="Network\Http\Session.cpp" />
     <ClCompile Include="Network\Tcp\Acceptor.cpp" />
     <ClCompile Include="Network\Tcp\Connector.cpp" />
     <ClCompile Include="Network\HandlerContainer.cpp" />
@@ -189,6 +195,12 @@
     <ClInclude Include="log\File.h" />
     <ClInclude Include="log\Log.h" />
     <ClInclude Include="log\Logger.h" />
+    <ClInclude Include="Network\Http\Dispatcher.h" />
+    <ClInclude Include="Network\Http\HttpClient.h" />
+    <ClInclude Include="Network\Http\HttpServer.h" />
+    <ClInclude Include="Network\Http\Request.h" />
+    <ClInclude Include="Network\Http\Response.h" />
+    <ClInclude Include="Network\Http\Session.h" />
     <ClInclude Include="Network\Tcp\Acceptor.h" />
     <ClInclude Include="Network\Tcp\Connector.h" />
     <ClInclude Include="Network\Handler.h" />
