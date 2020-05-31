@@ -10,19 +10,18 @@ namespace Gamnet { namespace Network { namespace Router {
 	{
 	}
 
-	void Dispatcher::OnRecvMsg(const Address& from, const std::shared_ptr<Network::Tcp::Packet>& packet)
+	void Dispatcher::OnReceive(const Address& from, const std::shared_ptr<Network::Tcp::Packet>& packet)
 	{
-		const unsigned int msg_id = packet->msg_id;
-		auto itr = mapHandlerFunction_.find(msg_id);
-		if (itr == mapHandlerFunction_.end())
+		auto itr = handler_functors.find(packet->msg_id);
+		if (handler_functors.end() == itr)
 		{
-			LOG(GAMNET_ERR, "can't find handler function(msg_id:", msg_id, ")");
+			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ")");
 			return;
 		}
 
-		const HandlerFunction& handler_function = itr->second;
+		const HandlerFunctor& handlerFunctor = itr->second;
 
-		if (ROUTER_CAST_TYPE::UNI_CAST == from.cast_type && Network::IHandlerFactory::HANDLER_FACTORY_FIND == handler_function.factory_->GetFactoryType())
+		if (ROUTER_CAST_TYPE::UNI_CAST == from.cast_type && Network::IHandlerFactory::HANDLER_FACTORY_FIND == handlerFunctor.factory_->GetFactoryType())
 		{
 			std::shared_ptr<Session> router_session = Singleton<RouterCaster>::GetInstance().FindSession(from);
 			if (nullptr == router_session)
@@ -38,16 +37,15 @@ namespace Gamnet { namespace Network { namespace Router {
 				return;
 			}
 			
-			assert(nullptr != network_session->link);
-			network_session->strand.wrap([=]() {
-				std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(&network_session->handler_container, msg_id);
+			network_session->strand->wrap([=]() {
+				std::shared_ptr<Network::IHandler> handler = handlerFunctor.factory_->GetHandler(&network_session->handler_container, packet->msg_id);
 				if (nullptr == handler)
 				{
-					LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
+					LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", packet->msg_id, ")");
 					return;
 				}
 				try {
-					handler_function.function_(handler, from, packet);
+					handlerFunctor.function_(handler, from, packet);
 				}
 				catch (const std::exception& e)
 				{
@@ -57,15 +55,15 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 		else
 		{
-			std::shared_ptr<Network::IHandler> handler = handler_function.factory_->GetHandler(nullptr, msg_id);
+			std::shared_ptr<Network::IHandler> handler = handlerFunctor.factory_->GetHandler(nullptr, packet->msg_id);
 			if (nullptr == handler)
 			{
-				LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", msg_id, ")");
+				LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", from.msg_seq, ", msg_id:", packet->msg_id, ")");
 				return;
 			}
 
 			try {
-				handler_function.function_(handler, from, packet);
+				handlerFunctor.function_(handler, from, packet);
 			}
 			catch (const std::exception& e)
 			{

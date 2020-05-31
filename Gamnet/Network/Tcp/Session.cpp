@@ -129,10 +129,13 @@ void Session::Close(int reason)
 		{
 			return;
 		}
+
 		session->OnClose(reason);
 		session->socket = nullptr;
+		
 		if(false == session->handover_safe)
 		{
+			session->OnDestroy();
 			session->session_manager->OnDestroy(session->session_key);
 		}
 	})(reason);

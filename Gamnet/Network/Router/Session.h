@@ -15,7 +15,7 @@ private :
 	private :
 		std::mutex lock_;
 		std::map<uint64_t, std::pair<time_t, std::shared_ptr<Network::Tcp::Session>>> wait_sessions_;
-		Timer timer_;
+		std::shared_ptr<Time::Timer> timer_;
 	public :
 		AnswerWatingSessionManager();
 		~AnswerWatingSessionManager();

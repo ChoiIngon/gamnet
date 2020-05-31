@@ -23,7 +23,7 @@ void UserSession::OnClose(int reason)
 
 void UserSession::OnDestroy()
 {
-	//LOG(DEV, "[link_key:", link->link_key, "] socket destroy");
+	LOG(DEV, "UserSession destroy");
 }
 
 void TestSession::OnCreate()
