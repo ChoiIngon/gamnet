@@ -53,8 +53,8 @@ void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 	MsgCliSvr_Login_Req req;
 	req.UserID = "UserID";
 //	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Req");
+	session->socket = nullptr;
 	Gamnet::Test::SendMsg(session, req);
-	session->Reconnect();
 }
 
 void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)

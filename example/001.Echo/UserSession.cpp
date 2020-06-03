@@ -40,6 +40,6 @@ void TestSession::OnClose(int reason)
 
 void TestSession::OnDestroy()
 {
-	//LOG(DEV, "[link_key:", link->link_key, "] socket destory");
+	//LOG(DEV, "TestSession destroy");
 }
 

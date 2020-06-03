@@ -1,7 +1,12 @@
 #ifndef SESSION_H_
 #define SESSION_H_
 
-#include <Gamnet.h>
+#include <Network/Tcp/Session.h>
+#include <Network/Tcp/Tcp.h>
+#include <Network/Http/HttpServer.h>
+#include <Test/Session.h>
+#include <Test/Test.h>
+#include <Library/Component.h>
 #include "../idl/Message.h"
 
 class UserSession : public Gamnet::Network::Tcp::Session 
@@ -24,8 +29,6 @@ public:
 	virtual void OnConnect() override;
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
-
-	void Reconnect();
 };
 
 #endif

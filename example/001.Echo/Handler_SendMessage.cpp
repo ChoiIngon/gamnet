@@ -39,7 +39,6 @@ void Test_CliSvr_SendMessage_Ntf(const std::shared_ptr<TestSession>& session)
 	MsgCliSvr_SendMessage_Ntf ntf;
 	ntf.Message = "Hello World";
 	LOG(INF, "[C->S/", session->session_key, "] MsgCliSvr_SendMessage_Ntf(message:", ntf.Message, ")");
-	session->socket = nullptr;
 	Gamnet::Test::SendMsg(session, ntf);
 }
 

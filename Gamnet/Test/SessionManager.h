@@ -119,6 +119,7 @@ namespace Gamnet {	namespace Test {
 		void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
 			session->Recv_Reconnect_Ans(packet);
+			ExecuteSendHandler(session);
 		}
 		void Send_Close_Req(const std::shared_ptr<SESSION_T>& session)
 		{

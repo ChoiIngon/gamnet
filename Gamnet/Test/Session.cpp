@@ -78,7 +78,7 @@ void Session::OnReconnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& s
 	packet->Write(Network::Tcp::MsgID_CliSvr_Reconnect_Req, str.c_str(), str.length());
 
 	send_buffers.push_front(packet);
-	FlushSend();
+	Network::Tcp::Session::AsyncSend(packet);
 }
 
 void Session::Send_Connect_Req()
@@ -131,8 +131,8 @@ void Session::Send_Reconnect_Req()
 	std::string str = writer.write(req);
 
 	packet->Write(Network::Tcp::MsgID_CliSvr_Reconnect_Req, str.c_str(), str.length());
-	send_buffers.push_front(packet);
-	FlushSend();
+	send_buffers.clear();
+	Network::Session::AsyncSend(packet); 
 }
 
 void Session::Recv_Reconnect_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet)
@@ -153,6 +153,10 @@ void Session::Recv_Reconnect_Ans(const std::shared_ptr<Network::Tcp::Packet>& pa
 
 	handover_safe = true;
 	OnConnect();
+	for(std::shared_ptr<Network::Tcp::Packet> sentPacket : send_packets)
+	{
+		Network::Session::AsyncSend(packet);
+	}
 }
 
 void Session::Send_ReliableAck_Ntf()
@@ -193,6 +197,6 @@ void Session::Send_Close_Req()
 
 void Session::Recv_Close_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet)
 {
-	Close(ErrorCode::Success);
+	Network::Session::Close(ErrorCode::Success);
 }
 }}/* namespace Gamnet */
