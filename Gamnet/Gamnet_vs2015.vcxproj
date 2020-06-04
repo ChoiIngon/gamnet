@@ -32,15 +32,23 @@
     <ClCompile Include="Log\File.cpp" />
     <ClCompile Include="Log\Log.cpp" />
     <ClCompile Include="Log\Logger.cpp" />
-    <ClCompile Include="Network\Acceptor.cpp" />
-    <ClCompile Include="Network\Connector.cpp" />
     <ClCompile Include="Network\HandlerContainer.cpp" />
+    <ClCompile Include="Network\Http\Dispatcher.cpp" />
+    <ClCompile Include="Network\Http\HttpClient.cpp" />
+    <ClCompile Include="Network\Http\HttpServer.cpp" />
+    <ClCompile Include="Network\Http\Request.cpp" />
+    <ClCompile Include="Network\Http\Response.cpp" />
+    <ClCompile Include="Network\Http\Session.cpp" />
     <ClCompile Include="Network\Session.cpp" />
+    <ClCompile Include="Network\Tcp\Acceptor.cpp" />
     <ClCompile Include="Network\Tcp\CastGroup.cpp" />
+    <ClCompile Include="Network\Tcp\Connector.cpp" />
     <ClCompile Include="Network\Tcp\Packet.cpp" />
     <ClCompile Include="Network\Tcp\Session.cpp" />
-    <ClCompile Include="Test\Config.cpp" />
+    <ClCompile Include="Network\Tcp\Tcp.cpp" />
     <ClCompile Include="Test\Session.cpp" />
+    <ClCompile Include="Test\SessionManager.cpp" />
+    <ClCompile Include="Test\Test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Library\Atomic.h" />
@@ -65,22 +73,29 @@
     <ClInclude Include="Log\File.h" />
     <ClInclude Include="Log\Log.h" />
     <ClInclude Include="Log\Logger.h" />
-    <ClInclude Include="Network\Acceptor.h" />
-    <ClInclude Include="Network\Connector.h" />
     <ClInclude Include="Network\Handler.h" />
     <ClInclude Include="Network\HandlerContainer.h" />
     <ClInclude Include="Network\HandlerFactory.h" />
+    <ClInclude Include="Network\Http\Dispatcher.h" />
+    <ClInclude Include="Network\Http\HttpClient.h" />
+    <ClInclude Include="Network\Http\HttpServer.h" />
+    <ClInclude Include="Network\Http\Request.h" />
+    <ClInclude Include="Network\Http\Response.h" />
+    <ClInclude Include="Network\Http\Session.h" />
     <ClInclude Include="Network\Session.h" />
     <ClInclude Include="Network\SessionManager.h" />
+    <ClInclude Include="Network\Tcp\Acceptor.h" />
     <ClInclude Include="Network\Tcp\CastGroup.h" />
+    <ClInclude Include="Network\Tcp\Connector.h" />
     <ClInclude Include="Network\Tcp\Dispatcher.h" />
     <ClInclude Include="Network\Tcp\Packet.h" />
     <ClInclude Include="Network\Tcp\Session.h" />
     <ClInclude Include="Network\Tcp\SessionManager.h" />
     <ClInclude Include="Network\Tcp\SystemMessageHandler.h" />
-    <ClInclude Include="Test\Config.h" />
+    <ClInclude Include="Network\Tcp\Tcp.h" />
     <ClInclude Include="Test\Session.h" />
     <ClInclude Include="Test\SessionManager.h" />
+    <ClInclude Include="Test\Test.h" />
     <ClInclude Include="Test\TestHandler.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -147,7 +162,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\OpenSSL-Win64;C:\local\curl-7.43.0-win64;C:\local\boost_1_61_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\OpenSSL-Win64\include;C:\local\boost_1_61_0;C:\local\curl-7.43.0-win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
       <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>

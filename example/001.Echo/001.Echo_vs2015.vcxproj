@@ -24,7 +24,15 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Handler_Http_ServerState.cpp" />
+    <ClCompile Include="Handler_SendMessage.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="UserSession.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Handler_Http_ServerState.h" />
+    <ClInclude Include="Handler_SendMessage.h" />
+    <ClInclude Include="UserSession.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{10465F8C-3657-4341-BA71-94BD1291BE99}</ProjectGuid>
@@ -96,8 +104,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>../../Gamnet;C:\local\boost_1_61_0;C:\local\curl-7.43.0-win64\include;C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include</AdditionalIncludeDirectories>
-      <UndefinePreprocessorDefinitions>WIN32_LEAN_AND_MEAN </UndefinePreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)%(RelativeDir)</XMLDocumentationFileName>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>../../x64/Debug;C:\Program Files\MySQL\MySQL Connector C 6.1\lib;C:\local\OpenSSL-Win64\lib;C:\local\curl-7.43.0-win64\lib;C:\local\boost_1_61_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
