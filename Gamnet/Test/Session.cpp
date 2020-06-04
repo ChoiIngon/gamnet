@@ -139,7 +139,7 @@ void Session::Recv_Reconnect_Ans(const std::shared_ptr<Network::Tcp::Packet>& pa
 	OnConnect();
 	for(std::shared_ptr<Network::Tcp::Packet> sentPacket : send_packets)
 	{
-		AsyncSend(packet);
+		Network::Session::AsyncSend(sentPacket);
 	}
 }
 

@@ -64,7 +64,6 @@ public:
 
 	void Recv_Reconnect_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 	{
-		//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session->session_key, "] Recv_Reconnect_Req");
 		Json::Value req;
 		Json::Value ans;
 		ans["error_code"] = 0;
@@ -81,6 +80,7 @@ public:
 			uint32_t session_key = req["session_key"].asUInt();
 			const std::string session_token = req["session_token"].asString();
 
+			LOG(DEV, "[Gamnet::Network::Tcp] Recv_Reconnect_Req(session_key:", session_key, ", session_token:", session_token, ")");
 			const std::shared_ptr<SESSION_T> prevSession = Singleton<SessionManager<SESSION_T>>::GetInstance().Find(session_key);
 			if (nullptr == prevSession)
 			{
@@ -93,7 +93,7 @@ public:
 			}
 
 			std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
-			session->socket = nullptr;
+			session->Close( ErrorCode::Success );
 			Singleton<SessionManager<SESSION_T>>::GetInstance().OnDestroy(session->session_key);
 
 			prevSession->strand->wrap([=]() {

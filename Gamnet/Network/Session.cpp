@@ -177,10 +177,6 @@ void Session::AsyncRead()
 		try
 		{
 			self->OnRead(self->read_buffer);
-			if (nullptr == self->socket)
-			{
-				return;
-			}
 			assert(nullptr != self->read_buffer);
 		}
 		catch (const Exception& e)
@@ -190,6 +186,10 @@ void Session::AsyncRead()
 			return;
 		}
 		self->read_buffer->Clear();
+		if (nullptr == self->socket)
+		{
+			return;
+		}
 		self->AsyncRead();
 	}));
 }
