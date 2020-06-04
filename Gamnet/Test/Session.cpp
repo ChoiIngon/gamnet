@@ -62,23 +62,7 @@ void Session::OnReconnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& s
 {
 	this->socket = socket;
 	AsyncRead();
-	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
-	if (nullptr == packet)
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
-	}
-
-	Json::Value req;
-	req["session_key"] = session_key;
-	req["session_token"] = session_token;
-
-	Json::FastWriter writer;
-	std::string str = writer.write(req);
-
-	packet->Write(Network::Tcp::MsgID_CliSvr_Reconnect_Req, str.c_str(), str.length());
-
-	send_buffers.push_front(packet);
-	Network::Tcp::Session::AsyncSend(packet);
+	Send_Reconnect_Req();
 }
 
 void Session::Send_Connect_Req()
@@ -155,7 +139,7 @@ void Session::Recv_Reconnect_Ans(const std::shared_ptr<Network::Tcp::Packet>& pa
 	OnConnect();
 	for(std::shared_ptr<Network::Tcp::Packet> sentPacket : send_packets)
 	{
-		Network::Session::AsyncSend(packet);
+		AsyncSend(packet);
 	}
 }
 

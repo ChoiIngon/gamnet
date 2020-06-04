@@ -112,19 +112,12 @@ namespace Gamnet {	namespace Test {
 			session->Recv_Connect_Ans(packet);
 			ExecuteSendHandler(session);
 		}
-		void Send_Reconnect_Req(const std::shared_ptr<SESSION_T>& session)
-		{
-			session->Send_Reconnect_Req(session);
-		}
+
 		void Recv_Reconnect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
 			session->Recv_Reconnect_Ans(packet);
-			ExecuteSendHandler(session);
 		}
-		void Send_Close_Req(const std::shared_ptr<SESSION_T>& session)
-		{
-			session->Send_Close_Req();
-		}
+		
 		void Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
 			session->Recv_Close_Ans(packet);
@@ -133,7 +126,7 @@ namespace Gamnet {	namespace Test {
 		{
 			if (test_sequence.size() <= (size_t)session->test_seq)
 			{
-				Send_Close_Req(session);
+				session->Send_Close_Req();
 				return;
 			}
 			const std::shared_ptr<TestCase>& testCase = test_sequence[session->test_seq];
