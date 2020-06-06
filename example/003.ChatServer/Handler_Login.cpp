@@ -50,7 +50,7 @@ void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_Login_Req req;
 	req.UserID = session->session_token;
-	LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_Login_Req(user_id:", req.UserID, ")");
+	//LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_Login_Req(user_id:", req.UserID, ")");
 	Gamnet::Test::SendMsg(session, req);
 }
 
@@ -62,7 +62,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 		{
 			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
-		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Login_Ans(error_code:", ToString<GErrorCode>(ans.ErrorCode), ")");
+		//LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Login_Ans(error_code:", ToString<GErrorCode>(ans.ErrorCode), ")");
 	}
 	catch(const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
@@ -88,7 +88,7 @@ void Test_DuplicateLogin_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_Login_Req req;
 	req.UserID = USER_IDS[Gamnet::Random::Range(0, (int)USER_IDS->size())];
-	LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_Login_Req(user_id:", req.UserID, ")");
+	//LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_Login_Req(user_id:", req.UserID, ")");
 	Gamnet::Test::SendMsg(session, req);
 }
 
@@ -106,8 +106,8 @@ void Test_Kickout_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 		{
 			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
-		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Kickout_Ntf(error_code:", ToString<GErrorCode>(ntf.ErrorCode), ")");
-		session->link->Close((int)ntf.ErrorCode);
+		//LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_Kickout_Ntf(error_code:", ToString<GErrorCode>(ntf.ErrorCode), ")");
+		//session->link->Close((int)ntf.ErrorCode);
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());

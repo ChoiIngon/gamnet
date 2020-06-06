@@ -94,9 +94,8 @@ public:
 
 			std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
 			session->Close( ErrorCode::Success );
-			Singleton<SessionManager<SESSION_T>>::GetInstance().OnDestroy(session->session_key);
-
-			prevSession->strand->wrap([=]() {
+			
+			prevSession->strand->wrap([=](const std::shared_ptr<boost::asio::ip::tcp::socket> socket) {
 				prevSession->socket = socket;
 
 				Json::FastWriter writer;
@@ -117,7 +116,7 @@ public:
 					prevSession->AsyncSend(ansPacket);
 				}
 				prevSession->AsyncRead();
-			})();
+			})(socket);
 			return;
 		}
 		catch (const Exception& e)

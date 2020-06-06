@@ -10,6 +10,7 @@
 
 #include "../HandlerFactory.h"
 #include "MsgRouter.h"
+#include "../Tcp/Packet.h"
 
 namespace Gamnet { namespace Network { namespace Router {
 
@@ -23,7 +24,7 @@ public :
 		Network::IHandlerFactory* factory_;
 		std::function<void(const std::shared_ptr<Network::IHandler>&, const Address&, const std::shared_ptr<Network::Tcp::Packet>&)> function_;
 	};
-	std::map<unsigned int, HandlerFunctor> handler_functors;
+	std::map<uint32_t, HandlerFunctor> handler_functors;
 
 public:
 	Dispatcher();

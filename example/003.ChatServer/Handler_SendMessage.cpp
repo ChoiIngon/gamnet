@@ -46,7 +46,7 @@ void TestCliSvr_SendMessage_Ntf(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_SendMessage_Ntf ntf;
 	ntf.Message = "Hello World";
-	LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_SendMessage_Ntf(channel_seq:", session->channel_seq, ", message:", ntf.Message, ")");
+	//LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_SendMessage_Ntf(channel_seq:", session->channel_seq, ", message:", ntf.Message, ")");
 	Gamnet::Test::SendMsg(session, ntf);
 }
 
@@ -59,7 +59,7 @@ void TestSvrCli_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, con
 			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_SendMessage_Ntf(channel_seq:", session->channel_seq, ", message:", ntf.Message, ")");
+		//LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_SendMessage_Ntf(channel_seq:", session->channel_seq, ", message:", ntf.Message, ")");
 		session->recv_count++;
 		if(CHAT_QUORUM <= session->recv_count)
 		{

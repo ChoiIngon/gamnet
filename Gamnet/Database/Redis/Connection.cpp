@@ -5,20 +5,9 @@
 
 namespace Gamnet { namespace Database {	namespace Redis {
 
-	static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
-
-	class Session : public Network::Session
-	{
-	public:
-		virtual void OnCreate() override {}
-		virtual void OnAccept() override {}
-		virtual void OnClose(int reason) override {}
-		virtual void OnDestroy() override {}
-	};
-
 	Connection::Connection() 
 	{
-		session = std::make_shared<Session>();
+		connector.connect_handler = std::bind(&Connection::OnConnect, this, std::placeholders::_1);
 	}
 
 	Connection::~Connection() 
@@ -28,7 +17,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	bool Connection::Connect(const ConnectionInfo& connInfo)
 	{
 		connection_info = connInfo;
-		return SyncConnect(connection_info.host.c_str(), connection_info.port, 5);
+		return connector.SyncConnect(connection_info.host.c_str(), connection_info.port, 5);
 	}
 
 	bool Connection::Reconnect()
@@ -38,7 +27,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 
 	std::shared_ptr<ResultSetImpl> Connection::Execute(const std::string& query)
 	{	
-		if (false == socket.is_open())
+		if (nullptr == socket)
 		{
 			Reconnect();
 		}
@@ -56,7 +45,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 			std::shared_ptr<ResultSetImpl> impl(new ResultSetImpl(std::static_pointer_cast<Connection>(shared_from_this())));
 			do {
 				char data[1024 * 6] = { 0 };
-				size_t readBytes = socket.read_some(boost::asio::buffer(data, 1024 * 6));
+				size_t readBytes = socket->read_some(boost::asio::buffer(data, 1024 * 6));
 				buffer.insert(buffer.end(), &data[0], &data[readBytes]);
 			} while (false == impl->Parse(std::string(&buffer[0], buffer.size())));
 
@@ -72,9 +61,12 @@ namespace Gamnet { namespace Database {	namespace Redis {
 			LOG(ERR, "error_code:", e.code(), ", reason:", e.what());
 		}
 		
-		socket.close();
+		socket = nullptr;
 		return nullptr;
 	}
 
-	
+	void Connection::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
+	{
+		this->socket = socket;
+	}
 }}}

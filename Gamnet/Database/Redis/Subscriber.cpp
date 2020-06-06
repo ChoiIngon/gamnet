@@ -1,18 +1,9 @@
 #include "Subscriber.h"
+#include "ResultSet.h"
 
 namespace Gamnet { namespace Database { namespace Redis {
-	class Session : public Network::Session
-	{
-	public:
-		virtual void OnCreate() override {}
-		virtual void OnAccept() override {}
-		virtual void OnClose(int reason) override {}
-		virtual void OnDestroy() override {}
-	};
-
 	Subscriber::Subscriber() 
 	{
-		session = std::make_shared<Session>();
 		handlers.insert(std::make_pair("subscribe", std::bind(&Subscriber::OnRecv_SubscribeAns, this, std::placeholders::_1)));
 		handlers.insert(std::make_pair("message", std::bind(&Subscriber::OnRecv_PublishReq, this, std::placeholders::_1)));
 	}
@@ -23,8 +14,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 
 	bool Subscriber::Init()
 	{
-		session->link = shared_from_this();
-		if(false == Network::Link::Init())
+		if(false == Network::Session::Init())
 		{
 			return false;
 		}
@@ -44,12 +34,12 @@ namespace Gamnet { namespace Database { namespace Redis {
 		std::shared_ptr<Buffer> buffer = Buffer::Create();
 		if (nullptr == buffer)
 		{
-			LOG(GAMNET_ERR, "can not create buffer(link_key:", link_key, ")");
+			LOG(GAMNET_ERR, "can not create buffer(session_key:", session_key, ")");
 			return;
 		}
 		buffer->Append(query.c_str(), query.length());
 		buffer->Append("\r\n", 2);
-		session->AsyncSend(buffer);
+		Network::Session::AsyncSend(buffer);
 	}
 
 	void Subscriber::OnRead(const std::shared_ptr<Buffer>& buffer)

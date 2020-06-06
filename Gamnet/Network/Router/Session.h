@@ -15,7 +15,7 @@ private :
 	private :
 		std::mutex lock_;
 		std::map<uint64_t, std::pair<time_t, std::shared_ptr<Network::Tcp::Session>>> wait_sessions_;
-		std::shared_ptr<Time::Timer> timer_;
+		std::shared_ptr<Time::Timer> timer;
 	public :
 		AnswerWatingSessionManager();
 		~AnswerWatingSessionManager();
@@ -38,6 +38,7 @@ public:
 	virtual void OnConnect();
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
+	virtual void Close(int reason) override;
 };
 
 }}} /* namespace Gamnet */

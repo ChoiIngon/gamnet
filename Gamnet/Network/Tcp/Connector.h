@@ -25,10 +25,9 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			boost::asio::ip::tcp::socket* operator() (boost::asio::ip::tcp::socket* socket);
 		};
 
-		Pool<boost::asio::ip::tcp::socket, std::mutex, SocketInitFunctor, SocketReleaseFunctor> socket_pool;
+		static Pool<boost::asio::ip::tcp::socket, std::mutex, SocketInitFunctor, SocketReleaseFunctor> socket_pool;
 	public:
 		Connector();
-		Connector(size_t poolSize);
 
 		std::function<void(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)> connect_handler;
 		void AsyncConnect(const std::string& host, int port, int timeout);

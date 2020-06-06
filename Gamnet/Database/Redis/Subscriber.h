@@ -2,18 +2,18 @@
 #define _GAMNET_DATABASE_REDIS_SUBSCRIBER_H_
 
 #include <boost/asio.hpp>
-#include "Connection.h"
-#include "../../Network/LinkManager.h"
-#include "../../Network/Tcp/Tcp.h"
+#include "../../Network/Session.h"
+#include "../../Network/Tcp/Connector.h"
 #include "../../Library/Delegate.h"
 #include "../../Library/Timer.h"
 #include "../../Library/Exception.h"
 #include "../../Library/Singleton.h"
 #include "../../Library/Buffer.h"
+#include "../../Library/Json/json.h"
 #include "../../Log/Log.h"
 
 namespace Gamnet { namespace Database { namespace Redis {
-	class Subscriber : public Network::Link
+	class Subscriber : public Network::Session
 	{
 		std::mutex lock;
 		std::shared_ptr<Buffer> recv_buffer;
@@ -27,9 +27,11 @@ namespace Gamnet { namespace Database { namespace Redis {
 		virtual ~Subscriber();
 
 		bool Init();
+		void Connect(const std::string& host, int port);
 		void Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback);
 		void Unsubscribe(const std::string& channel);
 	private :
+		Network::Tcp::Connector connector;
 		void AsyncSend(const std::string& query);
 		void OnRead(const std::shared_ptr<Buffer>& buffer);
 	};

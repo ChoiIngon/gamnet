@@ -4,7 +4,7 @@
 
 namespace Gamnet { namespace Test {
 
-Session::Session() :  test_seq(0), reconnector(1)
+Session::Session() :  test_seq(0)
 {
 	reconnector.connect_handler = std::bind(&Session::OnReconnect, this, std::placeholders::_1);
 }

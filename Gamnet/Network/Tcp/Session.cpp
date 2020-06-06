@@ -6,10 +6,10 @@
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
-	std::string Session::GenerateSessionToken(uint32_t session_key)
-	{
-		return md5(Format(session_key, time(nullptr), Random::Range(1, 99999999)));
-	}
+std::string Session::GenerateSessionToken(uint32_t session_key)
+{
+	return md5(Format(session_key, time(nullptr), Random::Range(1, 99999999)));
+}
 
 Session::Session()
 {
@@ -136,7 +136,7 @@ void Session::Close(int reason)
 		if(false == session->handover_safe)
 		{
 			session->OnDestroy();
-			session->session_manager->OnDestroy(session->session_key);
+			session->session_manager->Remove(session);
 		}
 	})(reason);
 }

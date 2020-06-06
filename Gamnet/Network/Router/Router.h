@@ -4,7 +4,7 @@
 #include "../Tcp/Tcp.h"
 #include "RouterCaster.h"
 #include "Dispatcher.h"
-#include "LinkManager.h"
+#include "SessionManager.h"
 
 namespace Gamnet { namespace Network { namespace Router {
 	const Address& GetRouterAddress();

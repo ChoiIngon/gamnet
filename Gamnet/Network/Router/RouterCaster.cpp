@@ -7,7 +7,6 @@
 
 #include "RouterCaster.h"
 #include "../../Log/Log.h"
-#include "../Tcp/Link.h"
 
 namespace Gamnet { namespace Network { namespace Router {
 
@@ -16,10 +15,10 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, const std::share
 	std::lock_guard<std::mutex> lo(lock_);
 	if(false == route_table_.insert(std::make_pair(addr, router_session)).second)
 	{
-		LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] duplicated uni-cast address(address:", addr.ToString(), ")");
+//		LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] duplicated uni-cast address(address:", addr.ToString(), ")");
 		return false;
 	}
-	LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] register uni-cast address success(address:", addr.ToString(), ")");
+//	LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] register uni-cast address success(address:", addr.ToString(), ")");
 	return true;
 }
 
@@ -72,12 +71,12 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, const std::sha
 	{
 		if(addr == session->address)
 		{
-			LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] duplicated multi-cast address(address:", addr.ToString(), ")");
+	//		LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] duplicated multi-cast address(address:", addr.ToString(), ")");
 			return false;
 		}
 	}
 	sessions.push_back(router_session);
-	LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] register multi-cast address success(address:", addr.ToString(), ")");
+	//LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] register multi-cast address success(address:", addr.ToString(), ")");
 	return true;
 }
 
@@ -124,7 +123,7 @@ bool RouterCasterImpl_Multi::UnregisterAddress(const Address& addr)
 	sessions.erase(std::remove_if(sessions.begin(), sessions.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
 		if(addr.id == session->address.id)
 		{
-			LOG(GAMNET_INF, "[Router] unregister multi-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->GetRemoteAddress().to_string(), ")");
+			//LOG(GAMNET_INF, "[Router] unregister multi-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->GetRemoteAddress().to_string(), ")");
 			return true;
 		}
 		return false;
@@ -141,14 +140,14 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, const std::share
 	{
 		if(addr == session->address)
 		{
-			LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] duplicated any-cast address(address:", addr.ToString(), ")");
+		//	LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] duplicated any-cast address(address:", addr.ToString(), ")");
 			return false;
 		}
 	}
 
 	sessions.push_back(router_session);
 	pairSessionArray.first = sessions.size()-1;
-	LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] register any-cast address success(address:", addr.ToString(), ")");
+	//LOG(INF, "[Router-", router_session->link->link_key, "-", router_session->session_key, "] register any-cast address success(address:", addr.ToString(), ")");
 	return true;
 }
 
@@ -200,7 +199,7 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 	arrSession.erase(std::remove_if(arrSession.begin(), arrSession.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
 		if(addr.id == session->address.id)
 		{
-			LOG(GAMNET_INF, "[Router] unregister any-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->GetRemoteAddress().to_string(), ")");
+		//	LOG(GAMNET_INF, "[Router] unregister any-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ", ip:", session->GetRemoteAddress().to_string(), ")");
 			return true;
 		}
 		return false;

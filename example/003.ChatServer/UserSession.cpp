@@ -18,19 +18,16 @@ void UserSession::OnCreate()
 
 void UserSession::OnAccept()
 {
-	assert(nullptr != link);
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnAccept");
 }
 
 void UserSession::OnClose(int reason)
 {
-	assert(nullptr != link);
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnClose");
 }
 
 void UserSession::OnDestroy()
 {
-	assert(nullptr != link);
 	if(nullptr != chat_channel)
 	{
 		MsgSvrCli_LeaveChannel_Ntf ntf;

@@ -11,7 +11,7 @@
 #include "Dispatcher.h"
 #include "Packet.h"
 #include "Session.h"
-
+#include "CastGroup.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
@@ -46,7 +46,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	public:
 		SessionManager() : session_pool(65535, SessionFactory(this))
 		{
-			acceptor.accept_handler = std::bind(&SessionManager::OnAccept, this, std::placeholders::_1);
+			acceptor.accept_handler = std::bind(&SessionManager::OnAcceptHandler, this, std::placeholders::_1);
 		}
 
 		void Listen(int port, int max_session, int alive_time, int accept_queue_size, int thread_count)
@@ -60,29 +60,20 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			}
 		}
 
-		virtual void OnAccept(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override
+		virtual void Add(const std::shared_ptr<Network::Session>& session) override
 		{
-			std::shared_ptr<SESSION_T> session = session_pool.Create();
-			if (nullptr == session)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Network::Tcp] can not create session instance(availble:", session_pool.Available(), ")");
-			}
-
-			session->socket = socket;
-			session->OnCreate();
-			session->read_buffer = Packet::Create();
- 			session->AsyncRead();
-			
 			std::lock_guard<std::mutex> lo(lock);
-			if(false == sessions.insert(std::make_pair(session->session_key, session)).second)
+			if (false == sessions.insert(std::make_pair(session->session_key, std::static_pointer_cast<SESSION_T>(session))).second)
 			{
 				assert(!"duplicated session");
 				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated session");
 			}
 		}
 
-		virtual void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override 
+		virtual void Remove(const std::shared_ptr<Network::Session>& session) override
 		{
+			std::lock_guard<std::mutex> lo(lock);
+			sessions.erase(session->session_key);
 		}
 
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override
@@ -90,12 +81,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			Singleton<Dispatcher<SESSION_T>>::GetInstance().OnReceive(std::static_pointer_cast<SESSION_T>(session), std::static_pointer_cast<Packet>(buffer));
 		}
 
-		virtual void OnDestroy(uint32_t sessionKey) override
-		{
-			std::lock_guard<std::mutex> lo(lock);
-			sessions.erase(sessionKey);
-		}
-				
 		std::shared_ptr<SESSION_T> Find(uint32_t sessionKey)
 		{
 			std::lock_guard<std::mutex> lo(lock);
@@ -122,6 +107,21 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			root["session"] = session;
 			root["acceptor"] = acceptor.State();
 			return root;
+		}
+	private :
+		void OnAcceptHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
+		{
+			std::shared_ptr<SESSION_T> session = session_pool.Create();
+			if (nullptr == session)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Network::Tcp] can not create session instance(availble:", session_pool.Available(), ")");
+			}
+
+			session->socket = socket;
+			session->OnCreate();
+			session->AsyncRead();
+			session->OnAccept();
+			Add(session);
 		}
 	};
 }}}

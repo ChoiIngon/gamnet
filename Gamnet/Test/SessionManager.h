@@ -83,10 +83,9 @@ namespace Gamnet {	namespace Test {
 
 		void Init(const char* host, int port, int session_count, int loop_count);
 
-		virtual void OnAccept(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override {}
-		virtual void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket) override;
+		virtual void Add(const std::shared_ptr<Network::Session>& session) override {}
+		virtual void Remove(const std::shared_ptr<Network::Session>& session) override;
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override;
-		virtual void OnDestroy(uint32_t sessionKey) override;
 		
 		void BindSendHandler(const std::string& testName, SEND_HANDLER_TYPE sendHandler);
 		void BindRecvHandler(const std::string& testName, uint32_t msgID, RECV_HANDLER_TYPE recv);
@@ -134,12 +133,25 @@ namespace Gamnet {	namespace Test {
 			testCase->send_handler(std::static_pointer_cast<SESSION_T>(session));
 			testCase->execute_count++;
 		}
+		void OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
+		{
+			std::shared_ptr<SESSION_T> session = session_pool.Create();
+			if (nullptr == session)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Test] can not create session instance(availble:", session_pool.Available(), ")");
+			}
+			
+			session->socket = socket;
+			session->OnCreate();
+			session->AsyncRead();
+			session->Send_Connect_Req();
+		}
 	};
 
 	template <class SESSION_T>
 	SessionManager<SESSION_T>::SessionManager() : session_pool(65535, SessionFactory(this))
 	{
-		connector.connect_handler = std::bind(&SessionManager::OnConnect, this, std::placeholders::_1);
+		connector.connect_handler = std::bind(&SessionManager::OnConnectHandler, this, std::placeholders::_1);
 		system_recv_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2)));
 		system_recv_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Reconnect_Ans, this, std::placeholders::_1, std::placeholders::_2)));
 		system_recv_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Close_Ans, this, std::placeholders::_1, std::placeholders::_2)));
@@ -202,17 +214,6 @@ namespace Gamnet {	namespace Test {
 		}
 	}
 
-	template <class SESSION_T>
-	void SessionManager<SESSION_T>::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
-	{
-		std::shared_ptr<SESSION_T> session = session_pool.Create();
-		assert(test_sequence.size() > (size_t)session->test_seq);
-		session->socket = socket;
-		session->OnCreate();
-		session->AsyncRead();
-		session->Send_Connect_Req();
-	}
-	
 	template <class SESSION_T>
 	void SessionManager<SESSION_T>::OnReceive(const std::shared_ptr<Network::Session>& networkSession, const std::shared_ptr<Buffer>& buffer)
 	{
@@ -279,7 +280,7 @@ namespace Gamnet {	namespace Test {
 	}
 	
 	template <class SESSION_T>
-	void SessionManager<SESSION_T>::OnDestroy(uint32_t sessionKey) 
+	void SessionManager<SESSION_T>::Remove(const std::shared_ptr<Network::Session>& session) 
 	{
 		impl.finish_execute_count++;
 		if (impl.max_execute_count > impl.begin_execute_count)

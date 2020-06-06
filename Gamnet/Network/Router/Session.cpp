@@ -1,7 +1,7 @@
 #include "Session.h"
 #include "../../Log/Log.h"
 #include "../Tcp/Tcp.h"
-#include "LinkManager.h"
+#include "SessionManager.h"
 #include "RouterCaster.h"
 
 
@@ -20,8 +20,9 @@ Session::AnswerWatingSessionManager::~AnswerWatingSessionManager()
 void Session::AnswerWatingSessionManager::Init()
 {
 	Clear();
-	timer_.AutoReset(true);
-	timer_.SetTimer(10000, [this]() {
+	timer = Time::Timer::Create();
+	timer->AutoReset(true);
+	timer->SetTimer(10000, [this]() {
 		std::lock_guard<std::mutex> lo(this->lock_);
 		time_t now_ = time(nullptr);
 		for (auto itr = this->wait_sessions_.begin(); itr != this->wait_sessions_.end();) {
@@ -61,7 +62,7 @@ void Session::AnswerWatingSessionManager::Clear()
 {
 	std::lock_guard<std::mutex> lo(lock_);
 	wait_sessions_.clear();
-	timer_.Cancel();
+	timer->Cancel();
 }
 
 Session::Session() : Network::Tcp::Session() 
@@ -83,22 +84,36 @@ void Session::OnAccept()
 
 void Session::OnConnect()
 {	
-	Singleton<LinkManager>::GetInstance().on_connect(address);
+	static_cast<SessionManager*>(session_manager)->on_connect(address);
 }
 
 void Session::OnClose(int reason)
 {
-	LOG(INF, "[Router-", link->link_key, "-", session_key, "] remote server closed(ip:", GetRemoteAddress().to_string(), ", service_name:", address.service_name, ", reason:", reason, ")");
+	//LOG(INF, "[", session_key, "] remote server closed(ip:", GetRemoteAddress().to_string(), ", service_name:", address.service_name, ", reason:", reason, ")");
 	if("" != address.service_name)
 	{
 		Singleton<RouterCaster>::GetInstance().UnregisterAddress(address);
-		Singleton<LinkManager>::GetInstance().on_close(address);
+		static_cast<SessionManager*>(session_manager)->on_close(address);
 	}
 	watingSessionManager_.Clear();
 }
 
 void Session::OnDestroy()
 {
+}
+
+void Session::Close(int reason)
+{
+	if(nullptr == socket)
+	{
+		return;
+	}
+
+	OnClose(reason);
+	socket = nullptr;
+
+	OnDestroy();
+	session_manager->Remove(shared_from_this());
 }
 
 }}} /* namespace Gamnet */

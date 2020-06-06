@@ -140,6 +140,12 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Database\MySQL\Connection.cpp" />
+    <ClCompile Include="Database\MySQL\MySQL.cpp" />
+    <ClCompile Include="Database\MySQL\ResultSet.cpp" />
+    <ClCompile Include="Database\MySQL\Transaction.cpp" />
+    <ClCompile Include="Database\Redis\Connection.cpp" />
+    <ClCompile Include="Database\Redis\Subscriber.cpp" />
     <ClCompile Include="library\Base64.cpp" />
     <ClCompile Include="library\Buffer.cpp" />
     <ClCompile Include="library\Exception.cpp" />
@@ -159,6 +165,11 @@
     <ClCompile Include="Network\Http\Request.cpp" />
     <ClCompile Include="Network\Http\Response.cpp" />
     <ClCompile Include="Network\Http\Session.cpp" />
+    <ClCompile Include="Network\Router\Dispatcher.cpp" />
+    <ClCompile Include="Network\Router\RouterCaster.cpp" />
+    <ClCompile Include="Network\Router\RouterHandler.cpp" />
+    <ClCompile Include="Network\Router\Session.cpp" />
+    <ClCompile Include="Network\Router\SessionManager.cpp" />
     <ClCompile Include="Network\Tcp\Acceptor.cpp" />
     <ClCompile Include="Network\Tcp\Connector.cpp" />
     <ClCompile Include="Network\HandlerContainer.cpp" />
@@ -172,6 +183,14 @@
     <ClCompile Include="Test\Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Database\ConnectionPool.h" />
+    <ClInclude Include="Database\Database.h" />
+    <ClInclude Include="Database\MySQL\Connection.h" />
+    <ClInclude Include="Database\MySQL\MySQL.h" />
+    <ClInclude Include="Database\MySQL\ResultSet.h" />
+    <ClInclude Include="Database\MySQL\Transaction.h" />
+    <ClInclude Include="Database\Redis\Connection.h" />
+    <ClInclude Include="Database\Redis\Subscriber.h" />
     <ClInclude Include="library\Atomic.h" />
     <ClInclude Include="library\Base64.h" />
     <ClInclude Include="library\Buffer.h" />
@@ -201,6 +220,12 @@
     <ClInclude Include="Network\Http\Request.h" />
     <ClInclude Include="Network\Http\Response.h" />
     <ClInclude Include="Network\Http\Session.h" />
+    <ClInclude Include="Network\Router\Dispatcher.h" />
+    <ClInclude Include="Network\Router\MsgRouter.h" />
+    <ClInclude Include="Network\Router\RouterCaster.h" />
+    <ClInclude Include="Network\Router\RouterHandler.h" />
+    <ClInclude Include="Network\Router\Session.h" />
+    <ClInclude Include="Network\Router\SessionManager.h" />
     <ClInclude Include="Network\Tcp\Acceptor.h" />
     <ClInclude Include="Network\Tcp\Connector.h" />
     <ClInclude Include="Network\Handler.h" />
@@ -218,6 +243,16 @@
     <ClInclude Include="Test\Session.h" />
     <ClInclude Include="Test\SessionManager.h" />
     <ClInclude Include="Test\Test.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Network\Router\MsgRouter.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\x64\Debug\idlc.exe -lcpp  Network\Router\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\x64\Debug\idlc.exe -lcpp  Network\Router\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Router\%(Filename).idl</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Database\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

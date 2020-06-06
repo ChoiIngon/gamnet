@@ -18,12 +18,9 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		socket->close();
 		return socket;
 	}
-	
-	Connector::Connector() : socket_pool(65535, SocketFactory())
-	{
-	}
 
-	Connector::Connector(size_t poolSize) : socket_pool(poolSize, SocketFactory())
+	Pool<boost::asio::ip::tcp::socket, std::mutex, Connector::SocketInitFunctor, Connector::SocketReleaseFunctor> Connector::socket_pool(65535, Connector::SocketFactory());
+	Connector::Connector() 
 	{
 	}
 
