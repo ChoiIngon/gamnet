@@ -60,9 +60,13 @@ void Session::AsyncSend(const std::shared_ptr<Network::Tcp::Packet>& packet)
 
 void Session::OnReconnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 {
-	this->socket = socket;
-	AsyncRead();
-	Send_Reconnect_Req();
+	auto self = shared_from_this();
+	strand->wrap([self, socket](){
+		std::shared_ptr<Session> session = std::static_pointer_cast<Session>(self);
+		session->socket = socket;
+		session->AsyncRead();
+		session->Send_Reconnect_Req();
+	})();
 }
 
 void Session::Send_Connect_Req()
