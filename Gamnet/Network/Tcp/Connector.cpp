@@ -3,6 +3,9 @@
 #include "../../Library/Singleton.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {
+
+	Pool<boost::asio::ip::tcp::socket, std::mutex, Connector::SocketInitFunctor, Connector::SocketReleaseFunctor> Connector::socket_pool(65535, Connector::SocketFactory());
+
 	boost::asio::ip::tcp::socket* Connector::SocketFactory::operator() ()
 	{
 		return new boost::asio::ip::tcp::socket(Singleton<boost::asio::io_service>::GetInstance());
@@ -19,13 +22,13 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		return socket;
 	}
 
-	Pool<boost::asio::ip::tcp::socket, std::mutex, Connector::SocketInitFunctor, Connector::SocketReleaseFunctor> Connector::socket_pool(65535, Connector::SocketFactory());
 	Connector::Connector() 
 	{
 	}
 
 	void Connector::AsyncConnect(const std::string& host, int port, int timeout)
 	{
+		assert(nullptr != connect_handler);
 		if ("" == host)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "host is empty");
@@ -62,6 +65,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	bool Connector::SyncConnect(const std::string& host, int port, int timeout)
 	{
+		assert(nullptr != connect_handler);
 		std::shared_ptr<boost::asio::ip::tcp::socket> socket = socket_pool.Create();
 		if (nullptr == socket)
 		{

@@ -46,6 +46,7 @@ public :
 		IdleTimeoutError			= 130,
 		DuplicateMessageIDError		= 140,
 		DuplicateRouterAddress		= 141,
+		SetRouterAddressError		= 142,
 		AlreadyCommitTransaction	= 150,
 		AlreadyRegisteredAddress	= 151,
 		CipherContextCreateFail		= 200,

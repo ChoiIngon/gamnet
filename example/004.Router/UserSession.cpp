@@ -17,13 +17,11 @@ void UserSession::OnCreate()
 
 void UserSession::OnAccept()
 {
-	assert(nullptr != link);
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnAccept");
 }
 
 void UserSession::OnClose(int reason)
 {
-	assert(nullptr != link);
 	//Gamnet::Singleton<Manager_Session>::GetInstance().Remove(user_data.UserID);
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnClose");
 }
@@ -34,10 +32,12 @@ void UserSession::OnDestroy()
 	Gamnet::Singleton<Manager_Session>::GetInstance().Remove(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
 }
 
-Manager_Session::Manager_Session() {
+Manager_Session::Manager_Session() 
+{
 }
 
-Manager_Session::~Manager_Session() {
+Manager_Session::~Manager_Session() 
+{
 }
 
 void Manager_Session::Init()

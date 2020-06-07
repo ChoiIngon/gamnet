@@ -9,7 +9,7 @@ namespace Gamnet { namespace Network { namespace Router {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
-Session::AnswerWatingSessionManager::AnswerWatingSessionManager()
+Session::AnswerWatingSessionManager::AnswerWatingSessionManager() : timer(Time::Timer::Create())
 {
 }
 
@@ -20,7 +20,6 @@ Session::AnswerWatingSessionManager::~AnswerWatingSessionManager()
 void Session::AnswerWatingSessionManager::Init()
 {
 	Clear();
-	timer = Time::Timer::Create();
 	timer->AutoReset(true);
 	timer->SetTimer(10000, [this]() {
 		std::lock_guard<std::mutex> lo(this->lock_);
@@ -65,7 +64,9 @@ void Session::AnswerWatingSessionManager::Clear()
 	timer->Cancel();
 }
 
-Session::Session() : Network::Tcp::Session() 
+Session::Session() 
+	: Network::Tcp::Session()
+	, send_session(false)
 {
 }
 
@@ -75,7 +76,10 @@ Session::~Session()
 
 void Session::OnCreate() 
 {
-	watingSessionManager_.Init();
+	if(true == send_session)
+	{
+		watingSessionManager_.Init();
+	}
 }
 
 void Session::OnAccept() 
@@ -84,7 +88,10 @@ void Session::OnAccept()
 
 void Session::OnConnect()
 {	
-	static_cast<SessionManager*>(session_manager)->on_connect(address);
+	if(true == send_session)
+	{
+		static_cast<SessionManager*>(session_manager)->on_connect(address);
+	}
 }
 
 void Session::OnClose(int reason)
@@ -92,8 +99,11 @@ void Session::OnClose(int reason)
 	//LOG(INF, "[", session_key, "] remote server closed(ip:", GetRemoteAddress().to_string(), ", service_name:", address.service_name, ", reason:", reason, ")");
 	if("" != address.service_name)
 	{
-		Singleton<RouterCaster>::GetInstance().UnregisterAddress(address);
-		static_cast<SessionManager*>(session_manager)->on_close(address);
+		if(true == send_session)
+		{
+			Singleton<RouterCaster>::GetInstance().UnregisterAddress(address);
+			static_cast<SessionManager*>(session_manager)->on_close(address);
+		}
 	}
 	watingSessionManager_.Clear();
 }

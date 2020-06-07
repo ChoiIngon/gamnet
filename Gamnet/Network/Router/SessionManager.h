@@ -13,17 +13,25 @@
 #include <set>
 
 namespace Gamnet { namespace Network { namespace Router {
-	struct SessionManager : public Network::SessionManager
+	class SessionManager : public Network::SessionManager
 	{
-		std::shared_ptr<Time::Timer> heartbeat_timer;
-		std::shared_ptr<Tcp::CastGroup> heartbeat_group;
+	public :
+		struct SessionFactory
+		{
+			SessionManager* const session_manager;
+			SessionFactory(SessionManager* manager);
+			Session* operator() ();
+		};
 
-		int port;
-
+	private :
 		Tcp::Acceptor acceptor;
 		Tcp::Connector connector;
+
+		int port;
 		Pool<Session, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
+		std::shared_ptr<Time::Timer> heartbeat_timer;
 	public:
+		std::shared_ptr<Tcp::CastGroup> heartbeat_group;
 		Address local_address;
 
 		std::function<void(const Address& addr)> on_connect;

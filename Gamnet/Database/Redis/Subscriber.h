@@ -30,10 +30,16 @@ namespace Gamnet { namespace Database { namespace Redis {
 		void Connect(const std::string& host, int port);
 		void Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback);
 		void Unsubscribe(const std::string& channel);
+
+		virtual void OnCreate() override {}
+		virtual void OnAccept() override {}
+		virtual void OnClose(int reason) override {}
+		virtual void OnDestroy() override {}
 	private :
 		Network::Tcp::Connector connector;
 		void AsyncSend(const std::string& query);
 		void OnRead(const std::shared_ptr<Buffer>& buffer);
+		void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
 	};
 }}}
 

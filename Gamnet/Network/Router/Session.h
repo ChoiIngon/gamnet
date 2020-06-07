@@ -25,12 +25,14 @@ private :
 		std::shared_ptr<Network::Tcp::Session> FindSession(uint64_t recv_seq);
 		void Clear();
 	};
+
 public:
 
 	Session();
 	virtual ~Session();
 
 	Address address;
+	bool send_session;
 	AnswerWatingSessionManager watingSessionManager_;
 	
 	virtual void OnCreate() override;

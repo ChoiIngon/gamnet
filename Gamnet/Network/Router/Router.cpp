@@ -3,44 +3,48 @@
 #include "../../Log/Log.h"
 #include "../../Database/Redis/Redis.h"
 #include "RouterHandler.h"
+#include "../Tcp/Dispatcher.h"
+#include "../Tcp/Tcp.h"
+#include "SessionManager.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
 namespace Gamnet { namespace Network { namespace Router {
 
 const Address& GetRouterAddress()
 {
-	return Singleton<LinkManager>::GetInstance().local_address;
+	return Singleton<SessionManager>::GetInstance().local_address;
 }
 
-void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& connect_callback, const std::function<void(const Address& addr)>& close_callback)
+void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler, const std::function<void(const Address& addr)>& closeHandler)
 {
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Req::MSG_ID, "MsgRouter_SetAddress_Req", &RouterHandler::Recv_SetAddress_Req, new Network::HandlerStatic<RouterHandler>());
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Ans::MSG_ID, "MsgRouter_SetAddress_Ans", &RouterHandler::Recv_SetAddress_Ans, new Network::HandlerStatic<RouterHandler>());
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SendMsg_Ntf::MSG_ID, "MsgRouter_SendMsg_Ntf", &RouterHandler::Recv_SendMsg_Ntf, new Network::HandlerStatic<RouterHandler>());
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_HeartBeat_Ntf::MSG_ID, "MsgRouter_HeartBeat_Ntf", &RouterHandler::Recv_HeartBeat_Ntf, new Network::HandlerStatic<RouterHandler>());
 
-	Singleton<LinkManager>::GetInstance().Listen(service_name, port, connect_callback, close_callback);
-	LOG(INF, "[Gamnet::Router] listener start(port:", port, ", "
-			"router_address:",
-				Singleton<LinkManager>::GetInstance().local_address.service_name, ":",
-				(int)Singleton<LinkManager>::GetInstance().local_address.cast_type, ":",
-				Singleton<LinkManager>::GetInstance().local_address.id, ", ",
+	Singleton<SessionManager>::GetInstance().Listen(serviceName, port, acceptHandler, closeHandler);
+	LOG(INF, "[Gamnet::Router] listener start(port:", port, ", router_address:",
+				Singleton<SessionManager>::GetInstance().local_address.service_name, ":",
+				(int)Singleton<SessionManager>::GetInstance().local_address.cast_type, ":",
+				Singleton<SessionManager>::GetInstance().local_address.id, ", ",
 			"ip:", Network::Tcp::GetLocalAddress().to_string(), ")");
 }
 
-void Connect(const char* host, int port, int timeout)
+void Connect(const std::string& host, int port, int timeout)
 {
-	Singleton<LinkManager>::GetInstance().Connect(host, port, timeout);
+	Singleton<SessionManager>::GetInstance().Connect(host, port, timeout);
 }
 
-void ReadXml(const char* xml_path, const std::function<void(const Address& addr)>& connect_callback, const std::function<void(const Address& addr)>& close_callback)
+void ReadXml(const std::string& path, const std::function<void(const Address& addr)>& connectHandler, const std::function<void(const Address& addr)>& closeHandler)
 {
 	boost::property_tree::ptree ptree_;
 	try {
-		boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
+		boost::property_tree::xml_parser::read_xml(path, ptree_);
 	}
 	catch (const boost::property_tree::xml_parser_error& e)
 	{
-		std::cerr << "[Gamnet::Tcp] config file not found error(path:" << xml_path << ")" << std::endl;
+		std::cerr << "[Gamnet::Tcp] config file not found error(path:" << path << ")" << std::endl;
 		return;
 	}
 
@@ -49,8 +53,7 @@ void ReadXml(const char* xml_path, const std::function<void(const Address& addr)
 		std::string service_name = router.get<std::string>("<xmlattr>.name");
 		int port = router.get<int>("<xmlattr>.port");
 
-		Listen(service_name.c_str(), port, connect_callback, close_callback);
-		Connect(Network::Tcp::GetLocalAddress().to_v4().to_string().c_str(), port, 5);
+		Listen(service_name.c_str(), port, connectHandler, closeHandler);
 		for (const auto& remote : router)
 		{
 			if ("remote" != remote.first)

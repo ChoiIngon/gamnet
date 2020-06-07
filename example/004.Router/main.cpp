@@ -34,6 +34,7 @@ int main(int argc, char** argv)
 
 	try {
 		Gamnet::Log::ReadXml(config_path);
+		Gamnet::Singleton<Manager_Session>::GetInstance().Init();
 		LOG(INF, argv[0], " Server Starts..");
 		LOG(INF, "build date:", __DATE__, " ", __TIME__);
 		LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
@@ -42,7 +43,8 @@ int main(int argc, char** argv)
 		Gamnet::Network::Http::ReadXml(config_path);
 		Gamnet::Network::Router::ReadXml(config_path, OnRouterConnect, OnRouterClose);
 		Gamnet::Test::ReadXml<TestSession>(config_path);
-		Gamnet::Run(vm["thread"].as<int>());
+		//Gamnet::Run(vm["thread"].as<int>());
+		Gamnet::Singleton<boost::asio::io_service>::GetInstance().run();
 	}
 	catch (const Gamnet::Exception& e)
 	{

@@ -1,9 +1,25 @@
 #include "SessionManager.h"
 #include "RouterHandler.h"
+#include "RouterCaster.h"
 #include "../Tcp/Tcp.h"
 
 namespace Gamnet { namespace Network { namespace Router {
-	SessionManager::SessionManager() : heartbeat_timer(Time::Timer::Create()), heartbeat_group(Tcp::CastGroup::Create())
+	SessionManager::SessionFactory::SessionFactory(SessionManager* manager) : session_manager(manager)
+	{
+	}
+	
+	Session* SessionManager::SessionFactory::operator() ()
+	{
+		Session* session = new Session();
+		session->session_manager = session_manager;
+		return session;
+	}
+
+	SessionManager::SessionManager()
+		: port(0)
+		, session_pool(65535, SessionFactory(this))
+		, heartbeat_timer(Time::Timer::Create())
+		, heartbeat_group(Tcp::CastGroup::Create())
 	{
 		acceptor.accept_handler = std::bind(&SessionManager::OnAcceptHandler, this, std::placeholders::_1);
 		connector.connect_handler = std::bind(&SessionManager::OnConnectHandler, this, std::placeholders::_1);
@@ -32,8 +48,8 @@ namespace Gamnet { namespace Network { namespace Router {
 			LOG(GAMNET_INF, "[Router] send heartbeat message(connected server count:", lockedCastGroup->Size(), ")");
 			lockedCastGroup->SendMsg(ntf);
 		});
-
 		acceptor.Listen(port, 1024);
+		Connect(Tcp::GetLocalAddress().to_string(), port, 0);
 	}
 
 	void SessionManager::Connect(const std::string& host, int port, int timeout)
@@ -47,6 +63,12 @@ namespace Gamnet { namespace Network { namespace Router {
 		heartbeat_group->Insert(std::static_pointer_cast<Session>(session));
 	}
 	
+	void SessionManager::Remove(const std::shared_ptr<Network::Session>& session)
+	{
+		Tcp::CastGroup::LockGuard lo(heartbeat_group);
+		heartbeat_group->Remove(std::static_pointer_cast<Session>(session));
+	}
+
 	void SessionManager::OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer)
 	{
 		Singleton<Tcp::Dispatcher<Session>>::GetInstance().OnReceive(std::static_pointer_cast<Session>(session), std::static_pointer_cast<Tcp::Packet>(buffer));
@@ -73,9 +95,9 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		session->socket = socket;
+		session->send_session = true;
 		session->OnCreate();
-		session->OnAccept();
-		Add(session);
+		session->AsyncRead();
 	}
 
 	void SessionManager::OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
@@ -87,12 +109,12 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		session->socket = socket;
-		session->OnCreate();
+		session->send_session = false;
+		//session->OnCreate();
+		session->AsyncRead();
 
-		Add(session);
-
-		//LOG(INF, "[", session->session_key, "] connect success..(remote ip:", session->GetRemoteAddress().to_string(), ")");
-		//LOG(INF, "[", session->session_key, "] localhost->", session->GetRemoteAddress().to_string(), " SEND MsgRouter_SetAddress_Req(router_address:", Singleton<LinkManager>::GetInstance().local_address.ToString(), ")");
+		LOG(INF, "[Gamnet::Router] connect success..(remote ip:", session->socket->remote_endpoint().address().to_v4().to_string(), ")");
+		//LOG(INF, "[Gamnet::Router] localhost->", session->socket->remote_endpoint().address().to_v4().to_string(), " SEND MsgRouter_SetAddress_Req(router_address:", Singleton<SessionManager>::GetInstance().local_address.ToString(), ")");
 		MsgRouter_SetAddress_Req req;
 		req.router_address = local_address;
 		req.host = Network::Tcp::GetLocalAddress().to_string();

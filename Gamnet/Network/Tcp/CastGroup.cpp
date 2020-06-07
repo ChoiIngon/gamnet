@@ -62,7 +62,7 @@ size_t CastGroup::Size()
 	return sessions.size();
 }
 
-static Pool<CastGroup, std::mutex, CastGroup::Init> _castGroupPool(65535);
+static Pool<CastGroup, std::mutex, CastGroup::Init> _castGroupPool(10);
 
 std::shared_ptr<CastGroup> CastGroup::Create()
 {

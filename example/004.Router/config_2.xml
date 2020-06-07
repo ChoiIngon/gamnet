@@ -7,7 +7,7 @@
     <err console="yes" file="yes" sys="no"/>
   </log>
 
-  <tcp port="40020" max_count="8000" accept_queue="4000" keep_alive="30"/>
+  <tcp port="40020" max_count="8000" accept_queue="4000" keep_alive="30" thread_count="20"/>
   <http port="40021"/>
   <router name="ROUTER_2" port="40022"/>
   

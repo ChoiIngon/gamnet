@@ -26,6 +26,11 @@ namespace Gamnet { namespace Database {	namespace Redis {
 
 		bool Connect(const ConnectionInfo& connInfo);
 		std::shared_ptr<ResultSetImpl> Execute(const std::string& query);
+
+		virtual void OnCreate() override {}
+		virtual void OnAccept() override {}
+		virtual void OnClose(int reason) override {}
+		virtual void OnDestroy() override {}
 	protected :
 		virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override {}
 	private :

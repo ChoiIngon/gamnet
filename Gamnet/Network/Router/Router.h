@@ -1,18 +1,19 @@
 #ifndef GAMNET_NETWORK_ROUTER_H_
 #define GAMNET_NETWORK_ROUTER_H_
 
-#include "../Tcp/Tcp.h"
 #include "RouterCaster.h"
 #include "Dispatcher.h"
-#include "SessionManager.h"
 
-namespace Gamnet { namespace Network { namespace Router {
+
+namespace Gamnet { namespace Network { namespace Router 
+{
+	void ReadXml(const std::string& path, const std::function<void(const Address& addr)>& connectHandler = [](const Address&) {}, const std::function<void(const Address& addr)>& closeHandler = [](const Address&) {});
+
 	const Address& GetRouterAddress();
-
-	void Listen(const char* service_name, int port, const std::function<void(const Address& addr)>& accept_callback = [](const Address&){}, const std::function<void(const Address& addr)>& close_callback = [](const Address&) {});
-	void Connect(const char* host, int port, int timeout);
+	void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler = [](const Address&){}, const std::function<void(const Address& addr)>& closeHandler = [](const Address&) {});
+	void Connect(const std::string& host, int port, int timeout);
 	
-	void ReadXml(const char* xml_path, const std::function<void(const Address& addr)>& connect_callback = [](const Address&) {}, const std::function<void(const Address& addr)>& close_callback = [](const Address&) {});
+	
 
 	template <class FUNC, class FACTORY>
 	bool BindHandler(unsigned int msg_id, FUNC func, FACTORY factory)
