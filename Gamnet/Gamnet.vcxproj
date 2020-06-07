@@ -149,6 +149,12 @@
     <ClCompile Include="Database\Redis\ResultSet.cpp" />
     <ClCompile Include="Database\Redis\Subscriber.cpp" />
     <ClCompile Include="Database\Redis\Transaction.cpp" />
+    <ClCompile Include="Database\SQLite\Connection.cpp" />
+    <ClCompile Include="Database\SQLite\ResultSet.cpp" />
+    <ClCompile Include="Database\SQLite\SQLite.cpp" />
+    <ClCompile Include="Database\SQLite\sqlite3.c" />
+    <ClCompile Include="Database\SQLite\Transaction.cpp" />
+    <ClCompile Include="Gamnet.cpp" />
     <ClCompile Include="library\Base64.cpp" />
     <ClCompile Include="library\Buffer.cpp" />
     <ClCompile Include="library\Exception.cpp" />
@@ -198,6 +204,13 @@
     <ClInclude Include="Database\Redis\ResultSet.h" />
     <ClInclude Include="Database\Redis\Subscriber.h" />
     <ClInclude Include="Database\Redis\Transaction.h" />
+    <ClInclude Include="Database\SQLite\Connection.h" />
+    <ClInclude Include="Database\SQLite\ResultSet.h" />
+    <ClInclude Include="Database\SQLite\SQLite.h" />
+    <ClInclude Include="Database\SQLite\sqlite3.h" />
+    <ClInclude Include="Database\SQLite\sqlite3ext.h" />
+    <ClInclude Include="Database\SQLite\Transaction.h" />
+    <ClInclude Include="Gamnet.h" />
     <ClInclude Include="library\Atomic.h" />
     <ClInclude Include="library\Base64.h" />
     <ClInclude Include="library\Buffer.h" />
@@ -261,6 +274,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Database\README.md" />
+    <None Include="Gamnet.h.in" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

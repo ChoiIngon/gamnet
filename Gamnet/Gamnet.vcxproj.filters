@@ -146,6 +146,24 @@
     <ClCompile Include="Network\Router\Router.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Database\SQLite\Connection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\SQLite\ResultSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\SQLite\SQLite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\SQLite\sqlite3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\SQLite\Transaction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Gamnet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="library\Atomic.h">
@@ -340,6 +358,27 @@
     <ClInclude Include="Network\Router\Router.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Database\SQLite\Connection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\SQLite\ResultSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\SQLite\SQLite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\SQLite\sqlite3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\SQLite\sqlite3ext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\SQLite\Transaction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gamnet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Network\Router\MsgRouter.idl">
@@ -348,5 +387,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Database\README.md" />
+    <None Include="Gamnet.h.in" />
   </ItemGroup>
 </Project>

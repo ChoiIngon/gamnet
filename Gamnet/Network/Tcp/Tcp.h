@@ -8,10 +8,10 @@
 namespace Gamnet { namespace Network { namespace Tcp {
 
 	template <class SESSION_T>
-	void Listen(int port, int max_session, int keep_alive, int accept_queue_size, int thread_count)
+	void Listen(int port, int max_session, int keep_alive, int accept_queue_size)
 	{
 		Singleton<Dispatcher<SESSION_T>>::GetInstance();
-		Singleton<SessionManager<SESSION_T>>::GetInstance().Listen(port, max_session, keep_alive, accept_queue_size, thread_count);
+		Singleton<SessionManager<SESSION_T>>::GetInstance().Listen(port, max_session, keep_alive, accept_queue_size);
 		LOG(GAMNET_INF, "Gamnet::Tcp listener start(port:", port, ", capacity:", max_session, ", keep alive time:", keep_alive, " sec)");
 	}
 
@@ -31,7 +31,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 		Config config;
 		config.ReadXml(path);
-		Listen<SESSION_T>(config.port, config.max_count, config.keep_alive, config.accept_queue, config.thread_count);
+		Listen<SESSION_T>(config.port, config.max_count, config.keep_alive, config.accept_queue);
 	}
 
 	template <class SESSION_T, class FUNC, class FACTORY>

@@ -41,7 +41,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		Acceptor acceptor;
 		
 		Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
-		std::vector<std::thread> threads;
 		int	expire_time; // zero means infinity
 	public:
 		SessionManager() : session_pool(65535, SessionFactory(this))
@@ -49,15 +48,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			acceptor.accept_handler = std::bind(&SessionManager::OnAcceptHandler, this, std::placeholders::_1);
 		}
 
-		void Listen(int port, int max_session, int alive_time, int accept_queue_size, int thread_count)
+		void Listen(int port, int max_session, int alive_time, int accept_queue_size)
 		{
-			acceptor.Listen(port, max_session);
 			expire_time = alive_time;
-
-			for (int i = 0; i < thread_count - 1; i++)
-			{
-				threads.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &(Singleton<boost::asio::io_service>::GetInstance()))));
-			}
+			acceptor.Listen(port, max_session);
 		}
 
 		virtual void Add(const std::shared_ptr<Network::Session>& session) override

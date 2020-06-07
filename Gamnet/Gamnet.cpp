@@ -14,7 +14,7 @@ void Run(int thread_count)
 		threads.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &io_service_)));
 	}
 
-	Test::Run(thread_count);
+	//Test::Run(thread_count);
 	io_service_.run();
 }
 
