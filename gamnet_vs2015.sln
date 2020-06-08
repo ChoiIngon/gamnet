@@ -8,6 +8,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "idlc", "idlc\idlc.2015.vcxproj", "{496460AB-9AC6-45BC-8EA3-A01B443B2FE7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "001.Echo", "example\001.Echo\001.Echo_vs2015.vcxproj", "{10465F8C-3657-4341-BA71-94BD1291BE99}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FD683537-87A3-4288-9C09-77F9DA5BF31C} = {FD683537-87A3-4288-9C09-77F9DA5BF31C}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "002.Reconnect", "example\002.Reconnect\002.Reconnect_vs2015.vcxproj", "{FD6B3BD3-B59C-4C6C-A0CB-CB1821CE14FC}"
 	ProjectSection(ProjectDependencies) = postProject

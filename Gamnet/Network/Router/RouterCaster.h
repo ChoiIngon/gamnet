@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include <mutex>
+#include <atomic>
 #include "Session.h"
 
 namespace Gamnet { namespace Network {namespace Router {

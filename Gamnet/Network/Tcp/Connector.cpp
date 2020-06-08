@@ -49,7 +49,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		std::shared_ptr<boost::asio::ip::tcp::socket> socket = socket_pool.Create();
 		if (nullptr == socket)
 		{
-			LOG(GAMNET_ERR, "can not create socket. deny addtional connection");
+			LOG(GAMNET_ERR, "can not create socket. deny additional connection");
 			return;
 		}
 		
@@ -69,7 +69,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		std::shared_ptr<boost::asio::ip::tcp::socket> socket = socket_pool.Create();
 		if (nullptr == socket)
 		{
-			LOG(GAMNET_ERR, "can not create socket. deny addtional connection");
+			LOG(GAMNET_ERR, "can not create socket. deny additional connection");
 			return false;
 		}
 
