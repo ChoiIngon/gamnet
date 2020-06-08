@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <atomic>
-#include <mutex>
+
 
 #include "../../Library/Json/json.h"
 #include "../SessionManager.h"
@@ -35,13 +35,12 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		};
 
 	private:
-		std::mutex lock;
-		std::map<uint32_t, std::shared_ptr<SESSION_T>> sessions;
+		typedef Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> SessionPool;
 
-		Acceptor acceptor;
-		
-		Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
-		int	expire_time; // zero means infinity
+		Acceptor		acceptor;
+		SessionPool		session_pool;
+		int				expire_time; // zero means infinity
+
 	public:
 		SessionManager() : session_pool(65535, SessionFactory(this))
 		{
@@ -53,37 +52,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			expire_time = alive_time;
 			acceptor.Listen(port, max_session);
 		}
-
-		virtual void Add(const std::shared_ptr<Network::Session>& session) override
-		{
-			std::lock_guard<std::mutex> lo(lock);
-			if (false == sessions.insert(std::make_pair(session->session_key, std::static_pointer_cast<SESSION_T>(session))).second)
-			{
-				assert(!"duplicated session");
-				throw GAMNET_EXCEPTION(ErrorCode::UndefinedError, "duplicated session");
-			}
-		}
-
-		virtual void Remove(const std::shared_ptr<Network::Session>& session) override
-		{
-			std::lock_guard<std::mutex> lo(lock);
-			sessions.erase(session->session_key);
-		}
-
+		
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override
 		{
 			Singleton<Dispatcher<SESSION_T>>::GetInstance().OnReceive(std::static_pointer_cast<SESSION_T>(session), std::static_pointer_cast<Packet>(buffer));
-		}
-
-		std::shared_ptr<SESSION_T> Find(uint32_t sessionKey)
-		{
-			std::lock_guard<std::mutex> lo(lock);
-			auto itr = sessions.find(sessionKey);
-			if (sessions.end() == itr)
-			{
-				return nullptr;
-			}
-			return itr->second;
 		}
 
 		Json::Value State()

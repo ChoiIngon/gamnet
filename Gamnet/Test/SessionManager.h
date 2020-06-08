@@ -69,21 +69,23 @@ namespace Gamnet {	namespace Test {
 			std::map<uint32_t, RECV_HANDLER_TYPE> receive_handlers;
 		};
 
+		typedef Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> SessionPool;
+
 		std::map<std::string, std::shared_ptr<TestCase>>	test_cases;
 		std::map<uint32_t, RECV_HANDLER_TYPE> 				system_recv_handlers;
 		std::map<uint32_t, RECV_HANDLER_TYPE> 				global_recv_handlers;
 		std::vector<std::shared_ptr<TestCase>> 				test_sequence;
 		
-		SessionManagerImpl	impl;
+		SessionManagerImpl		impl;
 		Network::Tcp::Connector	connector;
-		Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
+		SessionPool				session_pool;
+
 	public:
 		SessionManager();
 		virtual ~SessionManager();
 
 		void Init(const char* host, int port, int session_count, int loop_count);
 
-		virtual void Add(const std::shared_ptr<Network::Session>& session) override {}
 		virtual void Remove(const std::shared_ptr<Network::Session>& session) override;
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override;
 		
@@ -109,6 +111,7 @@ namespace Gamnet {	namespace Test {
 		void Recv_Connect_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
 			session->Recv_Connect_Ans(packet);
+			Add(session);
 			ExecuteSendHandler(session);
 		}
 
@@ -282,6 +285,7 @@ namespace Gamnet {	namespace Test {
 	template <class SESSION_T>
 	void SessionManager<SESSION_T>::Remove(const std::shared_ptr<Network::Session>& session) 
 	{
+		Network::SessionManager::Remove(session);
 		impl.finish_execute_count++;
 		if (impl.max_execute_count > impl.begin_execute_count)
 		{

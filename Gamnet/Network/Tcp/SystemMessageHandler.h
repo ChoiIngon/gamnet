@@ -81,7 +81,7 @@ public:
 			const std::string session_token = req["session_token"].asString();
 
 			LOG(DEV, "[Gamnet::Network::Tcp] Recv_Reconnect_Req(session_key:", session_key, ", session_token:", session_token, ")");
-			const std::shared_ptr<SESSION_T> prevSession = Singleton<SessionManager<SESSION_T>>::GetInstance().Find(session_key);
+			const std::shared_ptr<SESSION_T> prevSession = session->session_manager->Find<SESSION_T>(session_key);
 			if (nullptr == prevSession)
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionKeyError, "[Gamnet::Network::Tcp] can not find session data for reconnect(session_key:", session_key, ")");

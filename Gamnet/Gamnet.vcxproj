@@ -180,6 +180,7 @@
     <ClCompile Include="Network\Router\RouterHandler.cpp" />
     <ClCompile Include="Network\Router\Session.cpp" />
     <ClCompile Include="Network\Router\SessionManager.cpp" />
+    <ClCompile Include="Network\SessionManager.cpp" />
     <ClCompile Include="Network\Tcp\Acceptor.cpp" />
     <ClCompile Include="Network\Tcp\Connector.cpp" />
     <ClCompile Include="Network\HandlerContainer.cpp" />
