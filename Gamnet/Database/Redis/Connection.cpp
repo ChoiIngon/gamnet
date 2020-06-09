@@ -34,20 +34,30 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	
 		try 
 		{
-			const std::string sendBytes = query + "\r\n";
-			int sentBytes = SyncSend(sendBytes.c_str(), sendBytes.length());
-			if(0 > sentBytes)
+			int totalSentBytes = 0;
+			const std::string send_buffer = query + "\r\n";
+			while (send_buffer.length() > totalSentBytes)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::SendMsgFailError);
+				boost::system::error_code ec;
+				int sentBytes = boost::asio::write(*(socket), boost::asio::buffer(&send_buffer[0] + totalSentBytes, send_buffer.length() - totalSentBytes), ec);
+				if (0 > sentBytes || 0 != ec)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::SendMsgFailError, "errno:", errno, ", ec:", ec);
+				}
+				if (0 == sentBytes)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::SendMsgFailError, "errno:", errno, ", ec:", ec);
+				}
+				totalSentBytes += sentBytes;
 			}
-
-			std::vector<char> buffer;
+			
+			std::vector<char> recv_buffer;
 			std::shared_ptr<ResultSetImpl> impl(new ResultSetImpl(std::static_pointer_cast<Connection>(shared_from_this())));
 			do {
 				char data[1024 * 6] = { 0 };
 				size_t readBytes = socket->read_some(boost::asio::buffer(data, 1024 * 6));
-				buffer.insert(buffer.end(), &data[0], &data[readBytes]);
-			} while (false == impl->Parse(std::string(&buffer[0], buffer.size())));
+				recv_buffer.insert(recv_buffer.end(), &data[0], &data[readBytes]);
+			} while (false == impl->Parse(std::string(&recv_buffer[0], recv_buffer.size())));
 
 			if ("" != impl->error)
 			{

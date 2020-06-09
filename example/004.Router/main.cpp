@@ -12,6 +12,8 @@ void OnRouterClose(const Gamnet::Network::Router::Address& address)
 	LOG(DEV, "OnClose:", address.ToString());
 }
 
+static boost::asio::io_service& io_service_ = Gamnet::Singleton<boost::asio::io_service>::GetInstance();
+
 int main(int argc, char** argv) 
 {
 	boost::program_options::options_description desc("All Options");
@@ -41,6 +43,7 @@ int main(int argc, char** argv)
 
 		Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);
 		Gamnet::Network::Http::ReadXml(config_path);
+		
 		Gamnet::Network::Router::ReadXml(config_path, OnRouterConnect, OnRouterClose);
 		Gamnet::Test::ReadXml<TestSession>(config_path);
 		//Gamnet::Run(vm["thread"].as<int>());

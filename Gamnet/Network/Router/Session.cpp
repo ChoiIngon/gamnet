@@ -80,7 +80,6 @@ void Session::OnCreate()
 	{
 		wait_session_manager.Init();
 	}
-	remote_endpoint = boost::asio::ip::tcp::endpoint();
 }
 
 void Session::OnAccept() 

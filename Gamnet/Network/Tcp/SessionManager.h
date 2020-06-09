@@ -67,8 +67,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			session["max_count"] = session_pool.Capacity();
 			session["idle_count"] = session_pool.Available();
 			{
-				std::lock_guard<std::mutex> lo(lock);
-				session["active_count"] = sessions.size();
+				//std::lock_guard<std::mutex> lo(lock);
+				//session["active_count"] = sessions.size();
 			}
 			root["session"] = session;
 			root["acceptor"] = acceptor.State();

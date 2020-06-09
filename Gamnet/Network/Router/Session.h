@@ -32,7 +32,6 @@ public:
 	virtual ~Session();
 
 	Address							router_address;
-	boost::asio::ip::tcp::endpoint	remote_endpoint;
 	bool							send_session;
 	AnswerWatingSessionManager		wait_session_manager;
 	

@@ -71,14 +71,19 @@ inline bool operator != (const Address& lhs, const Address& rhs)
 }
 %%
 
-message MsgRouter_SetAddress_Req : 	00001
+message MsgRouter_SetAddress_Ntf :  00001
+{
+	Address router_address;
+};
+
+message MsgRouter_SetAddress_Req : 	00002
 {
 	Address router_address;
 	string host;
 	int32 port;
 };
 
-message MsgRouter_SetAddress_Ans : 	00002
+message MsgRouter_SetAddress_Ans : 	00003
 {
 	int32 error_code;
 	Address router_address;

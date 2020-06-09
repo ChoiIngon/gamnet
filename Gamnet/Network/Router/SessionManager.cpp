@@ -95,10 +95,12 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		session->socket = socket;
-		session->remote_endpoint = socket->remote_endpoint();
 		session->send_session = true;
 		session->OnCreate();
 		session->AsyncRead();
+		MsgRouter_SetAddress_Ntf ntf;
+		ntf.router_address = local_address;
+		Network::Tcp::SendMsg(session, ntf, false);
 	}
 
 	void SessionManager::OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
@@ -110,17 +112,14 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		session->socket = socket;
-		session->remote_endpoint = socket->remote_endpoint();
 		session->send_session = false;
 		//session->OnCreate();
 		session->AsyncRead();
 
 		LOG(INF, "[Gamnet::Router] connect success..(remote ip:", session->socket->remote_endpoint().address().to_v4().to_string(), ")");
 		//LOG(INF, "[Gamnet::Router] localhost->", session->socket->remote_endpoint().address().to_v4().to_string(), " SEND MsgRouter_SetAddress_Req(router_address:", Singleton<SessionManager>::GetInstance().local_address.ToString(), ")");
-		MsgRouter_SetAddress_Req req;
-		req.router_address = local_address;
-		req.host = Network::Tcp::GetLocalAddress().to_string();
-		req.port = port;
-		Network::Tcp::SendMsg(session, req, false);
+		MsgRouter_SetAddress_Ntf ntf;
+		ntf.router_address = local_address;
+		Network::Tcp::SendMsg(session, ntf, false);
 	}
 }}}

@@ -7,6 +7,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/bind.hpp>
 
 namespace Gamnet { namespace Database { namespace Redis {
 

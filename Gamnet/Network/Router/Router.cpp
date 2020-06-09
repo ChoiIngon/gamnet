@@ -18,6 +18,7 @@ const Address& GetRouterAddress()
 
 void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler, const std::function<void(const Address& addr)>& closeHandler)
 {
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Ntf::MSG_ID, "MsgRouter_SetAddress_Ntf", &RouterHandler::Recv_SetAddress_Ntf, new Network::HandlerStatic<RouterHandler>());
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Req::MSG_ID, "MsgRouter_SetAddress_Req", &RouterHandler::Recv_SetAddress_Req, new Network::HandlerStatic<RouterHandler>());
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Ans::MSG_ID, "MsgRouter_SetAddress_Ans", &RouterHandler::Recv_SetAddress_Ans, new Network::HandlerStatic<RouterHandler>());
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SendMsg_Ntf::MSG_ID, "MsgRouter_SendMsg_Ntf", &RouterHandler::Recv_SendMsg_Ntf, new Network::HandlerStatic<RouterHandler>());
