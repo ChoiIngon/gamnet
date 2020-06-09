@@ -51,7 +51,7 @@ void Session::Next()
 
 void Session::AsyncSend(const std::shared_ptr<Network::Tcp::Packet>& packet)
 {
-	if(nullptr == socket)
+	if(nullptr == socket && true == handover_safe)
 	{
 		reconnector.AsyncConnect(host, port, 0);
 	}
@@ -139,7 +139,6 @@ void Session::Recv_Reconnect_Ans(const std::shared_ptr<Network::Tcp::Packet>& pa
 		throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[Gamnet::Test] reconnect fail(error_code:", ans["error_code"].asInt(), ")");
 	}
 
-	handover_safe = true;
 	OnConnect();
 	for(std::shared_ptr<Network::Tcp::Packet> sentPacket : send_packets)
 	{
