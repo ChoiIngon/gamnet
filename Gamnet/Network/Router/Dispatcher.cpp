@@ -30,7 +30,7 @@ namespace Gamnet { namespace Network { namespace Router {
 				return;
 			}
 
-			std::shared_ptr<Network::Tcp::Session> network_session = router_session->watingSessionManager_.FindSession(from.msg_seq);
+			std::shared_ptr<Network::Tcp::Session> network_session = router_session->wait_session_manager.FindSession(from.msg_seq);
 			if (nullptr == network_session)
 			{
 				LOG(GAMNET_ERR, "can't find session(msg_seq:", from.msg_seq, ")");

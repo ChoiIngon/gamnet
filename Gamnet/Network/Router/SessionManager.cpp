@@ -95,6 +95,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		session->socket = socket;
+		session->remote_endpoint = socket->remote_endpoint();
 		session->send_session = true;
 		session->OnCreate();
 		session->AsyncRead();
@@ -109,6 +110,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		session->socket = socket;
+		session->remote_endpoint = socket->remote_endpoint();
 		session->send_session = false;
 		//session->OnCreate();
 		session->AsyncRead();

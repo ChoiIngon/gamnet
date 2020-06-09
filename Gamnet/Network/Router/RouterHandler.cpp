@@ -51,7 +51,7 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::SetRouterAddressError, "error_code:", ans.error_code);
 	}
-	session->address = ans.router_address;
+	session->router_address = ans.router_address;
 	session->OnConnect();
 }
 
@@ -64,7 +64,7 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 	}
 
-	Address addr = session->address;
+	Address addr = session->router_address;
 	addr.msg_seq = ntf.msg_seq;
 	std::shared_ptr<Network::Tcp::Packet> session_packet = Network::Tcp::Packet::Create();
 	if (nullptr == session_packet)
@@ -79,7 +79,7 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 
 void RouterHandler::Recv_HeartBeat_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 {
-	LOG(DEV, "[Router] recv heartbeat message(address:", session->address.service_name, ":", (int)session->address.cast_type, ":", session->address.id,")");
+	LOG(DEV, "[Router] recv heartbeat message(address:", session->router_address.ToString(),")");
 }
 
 }}}

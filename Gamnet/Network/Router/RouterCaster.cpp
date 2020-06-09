@@ -31,7 +31,7 @@ bool RouterCasterImpl_Uni::SendMsg(uint64_t msg_seq, const std::shared_ptr<Netwo
 	}
 	if(nullptr != network_session)
 	{
-		router_session->watingSessionManager_.AddSession(msg_seq, network_session);
+		router_session->wait_session_manager.AddSession(msg_seq, network_session);
 	}
 	router_session->AsyncSend(packet);
 	return true;
@@ -69,7 +69,7 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, const std::sha
 	auto& sessions = route_table_[addr.service_name];
 	for(auto& session : sessions)
 	{
-		if(addr == session->address)
+		if(addr == session->router_address)
 		{
 			LOG(INF, "[Gamnet::Router] duplicated multi-cast address(address:", addr.ToString(), ")");
 			return false;
@@ -102,7 +102,7 @@ bool RouterCasterImpl_Multi::SendMsg(uint64_t msg_seq, const std::shared_ptr<Net
 	{
 		if(nullptr != network_session)
 		{
-			session->watingSessionManager_.AddSession(msg_seq, network_session);
+			session->wait_session_manager.AddSession(msg_seq, network_session);
 		}
 		session->AsyncSend(packet);
 	}
@@ -121,7 +121,7 @@ bool RouterCasterImpl_Multi::UnregisterAddress(const Address& addr)
 
 	auto& sessions = itr->second;
 	sessions.erase(std::remove_if(sessions.begin(), sessions.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
-		if(addr.id == session->address.id)
+		if(addr.id == session->router_address.id)
 		{
 			LOG(GAMNET_INF, "[Gamnet::Router] unregister multi-cast address success (service_name:", addr.service_name.c_str(), ", id:", addr.id, ")");
 			return true;
@@ -138,7 +138,7 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, const std::share
 	SessionArray& sessions = pairSessionArray.second;
 	for(auto& session : sessions)
 	{
-		if(addr == session->address)
+		if(addr == session->router_address)
 		{
 			LOG(INF, "[Gamnet::Router] duplicated any-cast address(address:", addr.ToString(), ")");
 			return false;
@@ -177,7 +177,7 @@ bool RouterCasterImpl_Any::SendMsg(uint64_t msg_seq, const std::shared_ptr<Netwo
 
 	if(nullptr != network_session)
 	{
-		router_session->watingSessionManager_.AddSession(msg_seq, network_session);
+		router_session->wait_session_manager.AddSession(msg_seq, network_session);
 	}
 
 	router_session->AsyncSend(packet);
@@ -197,7 +197,7 @@ bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
 	std::pair<int, SessionArray>& pairSessionArray = itr->second;
 	SessionArray& arrSession = pairSessionArray.second;
 	arrSession.erase(std::remove_if(arrSession.begin(), arrSession.end(), [&addr](const std::shared_ptr<Session> session) -> bool {
-		if(addr.id == session->address.id)
+		if(addr.id == session->router_address.id)
 		{
 			LOG(GAMNET_INF, "[Gamnet::Router] unregister any-cast address success (service_name:", addr.service_name, ", id:", addr.id, ")");
 			return true;
@@ -224,7 +224,7 @@ bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session>
 			return false;
 		}
 	}
-	session->address = addr;
+	session->router_address = addr;
 	return true;
 }
 

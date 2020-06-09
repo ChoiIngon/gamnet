@@ -31,9 +31,10 @@ public:
 	Session();
 	virtual ~Session();
 
-	Address address;
-	bool send_session;
-	AnswerWatingSessionManager watingSessionManager_;
+	Address							router_address;
+	boost::asio::ip::tcp::endpoint	remote_endpoint;
+	bool							send_session;
+	AnswerWatingSessionManager		wait_session_manager;
 	
 	virtual void OnCreate() override;
 	virtual void OnAccept() override;

@@ -78,8 +78,9 @@ void Session::OnCreate()
 {
 	if(true == send_session)
 	{
-		watingSessionManager_.Init();
+		wait_session_manager.Init();
 	}
+	remote_endpoint = boost::asio::ip::tcp::endpoint();
 }
 
 void Session::OnAccept() 
@@ -90,22 +91,22 @@ void Session::OnConnect()
 {	
 	if(true == send_session)
 	{
-		static_cast<SessionManager*>(session_manager)->on_connect(address);
+		static_cast<SessionManager*>(session_manager)->on_connect(router_address);
 	}
 }
 
 void Session::OnClose(int reason)
 {
 	//LOG(INF, "[", session_key, "] remote server closed(ip:", GetRemoteAddress().to_string(), ", service_name:", address.service_name, ", reason:", reason, ")");
-	if("" != address.service_name)
+	if("" != router_address.service_name)
 	{
 		if(true == send_session)
 		{
-			Singleton<RouterCaster>::GetInstance().UnregisterAddress(address);
-			static_cast<SessionManager*>(session_manager)->on_close(address);
+			Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
+			static_cast<SessionManager*>(session_manager)->on_close(router_address);
 		}
 	}
-	watingSessionManager_.Clear();
+	wait_session_manager.Clear();
 }
 
 void Session::OnDestroy()
