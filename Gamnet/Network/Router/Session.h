@@ -32,7 +32,6 @@ public:
 	virtual ~Session();
 
 	Address							router_address;
-	bool							send_session;
 	AnswerWatingSessionManager		wait_session_manager;
 	
 	virtual void OnCreate() override;
@@ -43,7 +42,7 @@ public:
 	virtual void Close(int reason) override;
 };
 
-class LocalSession : public Network::Tcp::Session
+class LocalSession : public Session
 {
 public :
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet> packet) override;

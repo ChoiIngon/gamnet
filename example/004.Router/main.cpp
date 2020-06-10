@@ -46,8 +46,8 @@ int main(int argc, char** argv)
 		
 		Gamnet::Network::Router::ReadXml(config_path, OnRouterConnect, OnRouterClose);
 		Gamnet::Test::ReadXml<TestSession>(config_path);
-		//Gamnet::Run(vm["thread"].as<int>());
-		Gamnet::Singleton<boost::asio::io_service>::GetInstance().run();
+		Gamnet::Run(vm["thread"].as<int>());
+		//Gamnet::Singleton<boost::asio::io_service>::GetInstance().run();
 	}
 	catch (const Gamnet::Exception& e)
 	{

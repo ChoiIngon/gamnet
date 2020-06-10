@@ -24,7 +24,7 @@ void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& se
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 	{
-		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::MULTI_CAST, "ROUTER_1", 0);
+		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::ANY_CAST, "ROUTER_1", 0);
 		Gamnet::Network::Router::SendMsg(dest, ntfSvrSvr);
 	}
 	{

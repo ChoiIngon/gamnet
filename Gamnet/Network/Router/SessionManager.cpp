@@ -49,7 +49,11 @@ namespace Gamnet { namespace Network { namespace Router {
 			lockedCastGroup->SendMsg(ntf);
 		});
 		acceptor.Listen(port, 1024);
-		Connect(Tcp::GetLocalAddress().to_string(), port, 0);
+		
+		std::shared_ptr<LocalSession> session = std::make_shared<LocalSession>();
+		session->session_manager = this;
+		session->Init();
+		Singleton<RouterCaster>::GetInstance().RegisterAddress( local_address, session );
 	}
 
 	void SessionManager::Connect(const std::string& host, int port, int timeout)
@@ -95,7 +99,6 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		session->socket = socket;
-		session->send_session = true;
 		session->OnCreate();
 		session->AsyncRead();
 		MsgRouter_SetAddress_Ntf ntf;
@@ -112,7 +115,6 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		session->socket = socket;
-		session->send_session = false;
 		//session->OnCreate();
 		session->AsyncRead();
 

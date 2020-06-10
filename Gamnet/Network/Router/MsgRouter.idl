@@ -20,7 +20,7 @@ struct Address
 	std::string ToString() const
 	{
 		std::stringstream ss;
-		ss << "{\"service_name\":" << service_name << ", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
+		ss << "{\"service_name\":\"" << service_name << "\", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
 		return ss.str();
 	}
 	%%
