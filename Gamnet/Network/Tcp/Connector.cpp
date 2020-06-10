@@ -100,8 +100,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			LOG(GAMNET_ERR, "connect fail(host:", host, ", port:", port, ")");
 			return false;
 		}
-
-		timer->Cancel();
 		connect_handler(socket);
 		return true;
 	}
@@ -120,7 +118,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			}
 			else if (0 != ec)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "connect fail(dest:", endpoint.address().to_v4().to_string(), ", message:", ec.message(), ", errno:", ec, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "connect fail(dest:", endpoint.address().to_v4().to_string(), ":", endpoint.port(), ", message:", ec.message(), ", errno:", ec, ")");
 			}
 
 			connect_handler(socket);
@@ -128,7 +126,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 		catch (const Exception& e)
 		{
-			LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), ", error_code:", e.error_code());
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
 		catch (const boost::system::system_error& e)
 		{

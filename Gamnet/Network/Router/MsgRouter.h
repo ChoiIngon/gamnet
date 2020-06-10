@@ -60,7 +60,7 @@ struct Address {
 	std::string ToString() const
 	{
 		std::stringstream ss;
-		ss << "{\"service_name\":" << service_name << ", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
+		ss << "{\"service_name\":\"" << service_name << "\", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
 		return ss.str();
 	}
 	
@@ -123,6 +123,27 @@ struct Address_Serializer {
 	static size_t Size(const Address& obj) { return obj.Size(); }
 };
 
+inline bool operator == (const Address& lhs, const Address& rhs)
+{
+	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
+	{
+		return false;
+	}
+	return true;
+}
+
+inline bool operator != (const Address& lhs, const Address& rhs)
+{
+	/*
+	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
+	{
+		return true;
+	}
+	return false;
+	*/
+	return !(lhs == rhs);
+}
+
 inline bool operator < (const Address& lhs, const Address& rhs)
 {
 	if(lhs.id < rhs.id)
@@ -145,22 +166,40 @@ inline bool operator < (const Address& lhs, const Address& rhs)
 	}
 	return false;
 }
-inline bool operator == (const Address& lhs, const Address& rhs)
+
+inline bool operator > (const Address& lhs, const Address& rhs)
 {
-	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
+	if(lhs == rhs)
 	{
 		return false;
-	}	
+	}
+
+	if(lhs < rhs)
+	{
+		return false;
+	}
+
 	return true;
 }
-inline bool operator != (const Address& lhs, const Address& rhs)
+
+inline bool operator <= (const Address& lhs, const Address& rhs)
 {
-	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
+	if(lhs == rhs || lhs < rhs)
 	{
 		return true;
-	}	
+	}
 	return false;
 }
+
+inline bool operator >= (const Address& lhs, const Address& rhs)
+{
+	if(lhs == rhs || lhs > rhs)
+	{
+		return true;
+	}
+	return false;
+}
+
 
 struct MsgRouter_SetAddress_Ntf {
 	enum { MSG_ID = 1 }; 

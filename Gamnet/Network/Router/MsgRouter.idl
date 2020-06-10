@@ -31,6 +31,27 @@ struct Address
 };
  
 .cpp %%
+inline bool operator == (const Address& lhs, const Address& rhs)
+{
+	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
+	{
+		return false;
+	}
+	return true;
+}
+
+inline bool operator != (const Address& lhs, const Address& rhs)
+{
+	/*
+	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
+	{
+		return true;
+	}
+	return false;
+	*/
+	return !(lhs == rhs);
+}
+
 inline bool operator < (const Address& lhs, const Address& rhs)
 {
 	if(lhs.id < rhs.id)
@@ -53,22 +74,40 @@ inline bool operator < (const Address& lhs, const Address& rhs)
 	}
 	return false;
 }
-inline bool operator == (const Address& lhs, const Address& rhs)
+
+inline bool operator > (const Address& lhs, const Address& rhs)
 {
-	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
+	if(lhs == rhs)
 	{
 		return false;
-	}	
+	}
+
+	if(lhs < rhs)
+	{
+		return false;
+	}
+
 	return true;
 }
-inline bool operator != (const Address& lhs, const Address& rhs)
+
+inline bool operator <= (const Address& lhs, const Address& rhs)
 {
-	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
+	if(lhs == rhs || lhs < rhs)
 	{
 		return true;
-	}	
+	}
 	return false;
 }
+
+inline bool operator >= (const Address& lhs, const Address& rhs)
+{
+	if(lhs == rhs || lhs > rhs)
+	{
+		return true;
+	}
+	return false;
+}
+
 %%
 
 message MsgRouter_SetAddress_Ntf :  00001

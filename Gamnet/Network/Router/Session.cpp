@@ -75,15 +75,18 @@ Session::~Session()
 
 void Session::OnCreate() 
 {
+	LOG(INF, "session_key:", session_key, ", OnCreate");
 	wait_session_manager.Init();
 }
 
 void Session::OnAccept() 
 {
+	LOG(INF, "session_key:", session_key, ", OnAccept");
 }
 
 void Session::OnConnect()
 {	
+	LOG(INF, "session_key:", session_key, ", OnConnect");
 	static_cast<SessionManager*>(session_manager)->on_connect(router_address);
 }
 
@@ -96,10 +99,12 @@ void Session::OnClose(int reason)
 		static_cast<SessionManager*>(session_manager)->on_close(router_address);
 	}
 	wait_session_manager.Clear();
+	LOG(INF, "session_key:", session_key, ", OnClose");
 }
 
 void Session::OnDestroy()
 {
+	LOG(INF, "session_key:", session_key, ", OnDestroy");
 }
 
 void Session::Close(int reason)

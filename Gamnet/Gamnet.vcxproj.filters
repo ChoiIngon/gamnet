@@ -382,6 +382,9 @@
     <ClInclude Include="Gamnet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Network\Network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Network\Router\MsgRouter.idl">

@@ -57,7 +57,6 @@ std::shared_ptr<Session> RouterCasterImpl_Uni::FindSession(const Address& addr)
 	auto itr = route_table_.find(addr);
 	if(route_table_.end() == itr)
 	{
-		LOG(GAMNET_WRN, "[Gamnet::Router] Can't find route info(service_name:", addr.service_name.c_str(), ", cast_type:UNI_CAST, server_id:", addr.id, ")");
 		return nullptr;
 	}
 	return itr->second;

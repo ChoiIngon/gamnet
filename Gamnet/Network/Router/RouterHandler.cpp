@@ -15,8 +15,13 @@ void RouterHandler::Recv_SetAddress_Ntf(const std::shared_ptr<Session>& session,
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 		}
-		//LOG(INF, "[Gamnet::Router] ", session->socket->remote_endpoint().address().to_v4().to_string(), "->localhost RECV MsgRouter_SetAddress_Req(router_address:", req.router_address.ToString(), ")");
 		SessionManager* sessionManager = static_cast<SessionManager*>(session->session_manager);
+
+		LOG(INF, "[Gamnet::Router] ",
+			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
+			"localhost:", session->socket->local_endpoint().port(), " "
+			"RECV MsgRouter_SetAddress_Ntf(router_address:", ntf.router_address.ToString(), ")"
+		);
 
 		if(sessionManager->local_address < ntf.router_address)
 		{
@@ -28,6 +33,11 @@ void RouterHandler::Recv_SetAddress_Ntf(const std::shared_ptr<Session>& session,
 			MsgRouter_SetAddress_Req req;
 			req.router_address = sessionManager->local_address;
 			Network::Tcp::SendMsg(session, req, false);
+			LOG(INF, "[Gamnet::Router] ",
+				"localhost:", session->socket->local_endpoint().port(), " -> ",
+				session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " ",
+				"SEND MsgRouter_SetAddress_Req(router_address:", ntf.router_address.ToString(), ")"
+			);
 			return;
 		}
 	}
@@ -35,8 +45,6 @@ void RouterHandler::Recv_SetAddress_Ntf(const std::shared_ptr<Session>& session,
 	{
 		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 	}
-	//LOG(INF, "[Gamnet::Router] localhost->", session->socket->remote_endpoint().address().to_v4().to_string(), " SEND MsgRouter_SetAddress_Ans(error_code:", (int)ans.error_code, ", router_address:", ans.router_address.ToString(), ")");
-	session->Close(ErrorCode::Success);
 }
 
 void RouterHandler::Recv_SetAddress_Req(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
@@ -50,7 +58,11 @@ void RouterHandler::Recv_SetAddress_Req(const std::shared_ptr<Session>& session,
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 		}
-		//LOG(INF, "[Gamnet::Router] ", session->socket->remote_endpoint().address().to_v4().to_string(), "->localhost RECV MsgRouter_SetAddress_Req(router_address:", req.router_address.ToString(), ")");
+		LOG(INF, "[Gamnet::Router] ",
+			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
+			"localhost:", session->socket->local_endpoint().port(), " "
+			"RECV MsgRouter_SetAddress_Req(router_address:", req.router_address.ToString(), ")"
+		);
 		if (false == Singleton<RouterCaster>::GetInstance().RegisterAddress( req.router_address, session ))
 		{
 			throw GAMNET_EXCEPTION( ErrorCode::DuplicateRouterAddress );
@@ -63,7 +75,11 @@ void RouterHandler::Recv_SetAddress_Req(const std::shared_ptr<Session>& session,
 		ans.error_code = e.error_code();
 	}
 
-	//LOG(INF, "[Gamnet::Router] localhost->", session->socket->remote_endpoint().address().to_v4().to_string(), " SEND MsgRouter_SetAddress_Ans(error_code:", (int)ans.error_code, ", router_address:", ans.router_address.ToString(), ")");
+	LOG(INF, "[Gamnet::Router] ",
+		session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
+		"localhost:", session->socket->local_endpoint().port(), " ",
+		"SEND MsgRouter_SetAddress_Ans(error_code:", (int)ans.error_code, ", router_address : ", ans.router_address.ToString(), ")"
+	);
 	Network::Tcp::SendMsg(session, ans, false);
 }
 
@@ -75,7 +91,11 @@ void RouterHandler::Recv_SetAddress_Ans(const std::shared_ptr<Session>& session,
 		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 	}
 
-	//LOG(INF, "[Gamnet::Router] ", session->socket->remote_endpoint().address().to_v4().to_string(), "->localhost RECV MsgRouter_SetAddress_Ans(error_code:", (int)ans.error_code, ", router_address:", ans.router_address.ToString(), ")");
+	LOG(INF, "[Gamnet::Router] ",
+		session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
+		"localhost:", session->socket->local_endpoint().port(), " "
+		"RECV MsgRouter_SetAddress_Ans(error_code:", ans.error_code, ")"
+	);
 	if(ErrorCode::Success != ans.error_code)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::SetRouterAddressError, "error_code:", ans.error_code);

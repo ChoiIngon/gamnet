@@ -3,7 +3,26 @@
 
 namespace Gamnet { namespace Time {
 
-	static Pool<Timer, std::mutex> pool(std::numeric_limits<uint32_t>::max());
+	struct InitFunctor
+	{
+		Timer* operator() (Timer* timer)
+		{
+			return timer;
+		}
+	};
+
+	struct ReleaseFunctor
+	{
+		Timer* operator() (Timer* timer)
+		{
+			if (nullptr != timer)
+			{
+				timer->Cancel();
+			}
+			return timer;
+		}
+	};
+	static Pool<Timer, std::mutex, InitFunctor, ReleaseFunctor> pool(std::numeric_limits<uint32_t>::max());
 	std::shared_ptr<Timer> Timer::Create()
 	{
 		return pool.Create();

@@ -98,12 +98,18 @@ namespace Gamnet { namespace Network { namespace Router {
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Network::Route] can not create session instance(availble:", session_pool.Available(), ")");
 		}
 
+		LOG(INF, "[Gamnet::Router] accept a connection..(remote_endpoint:", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), ")");
 		session->socket = socket;
 		session->OnCreate();
 		session->AsyncRead();
 		MsgRouter_SetAddress_Ntf ntf;
 		ntf.router_address = local_address;
 		Network::Tcp::SendMsg(session, ntf, false);
+		LOG(INF, "[Gamnet::Router] "
+			"localhost:", session->socket->local_endpoint().port(), " -> ",
+			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(),
+			" SEND MsgRouter_SetAddress_Ntf(router_address:", ntf.router_address.ToString(), ")"
+		);
 	}
 
 	void SessionManager::OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
@@ -118,10 +124,14 @@ namespace Gamnet { namespace Network { namespace Router {
 		//session->OnCreate();
 		session->AsyncRead();
 
-		LOG(INF, "[Gamnet::Router] connect success..(remote ip:", session->socket->remote_endpoint().address().to_v4().to_string(), ")");
-		//LOG(INF, "[Gamnet::Router] localhost->", session->socket->remote_endpoint().address().to_v4().to_string(), " SEND MsgRouter_SetAddress_Req(router_address:", Singleton<SessionManager>::GetInstance().local_address.ToString(), ")");
+		LOG(INF, "[Gamnet::Router] connect success..(remote_endpoint:", session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), ")");
 		MsgRouter_SetAddress_Ntf ntf;
 		ntf.router_address = local_address;
 		Network::Tcp::SendMsg(session, ntf, false);
+		LOG(INF, "[Gamnet::Router] "
+			"localhost:", session->socket->local_endpoint().port(), " -> ",
+			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " ",
+			"SEND MsgRouter_SetAddress_Ntf(router_address:", ntf.router_address.ToString(), ")"
+		);
 	}
 }}}
