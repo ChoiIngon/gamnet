@@ -43,6 +43,11 @@ public:
 	virtual void Close(int reason) override;
 };
 
+class LocalSession : public Network::Tcp::Session
+{
+public :
+	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet> packet) override;
+};
 }}} /* namespace Gamnet */
 
 #endif /* SERVERSESSION_H_ */

@@ -3,7 +3,7 @@
 #include "../Tcp/Tcp.h"
 #include "SessionManager.h"
 #include "RouterCaster.h"
-
+#include <boost/bind.hpp>
 
 namespace Gamnet { namespace Network { namespace Router {
 
@@ -126,4 +126,9 @@ void Session::Close(int reason)
 	session_manager->Remove(shared_from_this());
 }
 
+void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet> packet)
+{
+	auto self(shared_from_this());
+	strand->wrap(boost::bind(&Network::SessionManager::OnReceive, session_manager, self, packet))();
+}
 }}} /* namespace Gamnet */
