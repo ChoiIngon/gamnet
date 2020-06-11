@@ -118,7 +118,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			}
 			else if (0 != ec)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "connect fail(dest:", endpoint.address().to_v4().to_string(), ":", endpoint.port(), ", message:", ec.message(), ", errno:", ec, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "(dest:", endpoint.address().to_v4().to_string(), ":", endpoint.port(), ", message:", ec.message(), ", errno:", ec, ")");
 			}
 
 			connect_handler(socket);

@@ -58,6 +58,13 @@ namespace Gamnet { namespace Network { namespace Router {
 
 	void SessionManager::Connect(const std::string& host, int port, int timeout)
 	{
+		if(this->port == port)
+		{
+			if("127.0.0.1" == host || "localhost" == host || Tcp::GetLocalAddress().to_v4().to_string() == host)
+			{
+				return;
+			}
+		}
 		connector.AsyncConnect(host, port, timeout);
 	}
 
