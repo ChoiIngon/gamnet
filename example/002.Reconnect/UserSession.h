@@ -1,12 +1,7 @@
 #ifndef SESSION_H_
 #define SESSION_H_
 
-#include <Network/Tcp/Session.h>
-#include <Network/Tcp/Tcp.h>
-#include <Network/Http/HttpServer.h>
-#include <Test/Session.h>
-#include <Test/Test.h>
-#include <Library/Component.h>
+#include <Gamnet.h>
 #include "../idl/Message.h"
 
 class UserSession : public Gamnet::Network::Tcp::Session 

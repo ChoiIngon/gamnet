@@ -16,12 +16,14 @@ public :
 	Session();
 	virtual ~Session();
 
-	bool handover_safe;
+	bool	 handover_safe;
 	uint32_t recv_seq;
 	uint32_t send_seq;
 
-	std::shared_ptr<Packet> recv_packet;
-	std::deque<std::shared_ptr<Packet>>	send_packets;
+	time_t	 last_recv_time;
+
+	std::shared_ptr<Packet>								recv_packet;
+	std::deque<std::shared_ptr<Packet>>					send_packets;
 
 	std::string											session_token;
 	HandlerContainer									handler_container;

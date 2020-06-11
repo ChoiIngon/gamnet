@@ -7,7 +7,7 @@
 namespace Gamnet { namespace Network {
 	class SessionManager 
 	{
-	private :
+	protected :
 		std::mutex lock;
 		std::map<uint32_t, std::shared_ptr<Session>> sessions;
 	public :

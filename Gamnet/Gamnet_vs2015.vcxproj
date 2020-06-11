@@ -122,6 +122,7 @@
     <ClInclude Include="Network\Http\Request.h" />
     <ClInclude Include="Network\Http\Response.h" />
     <ClInclude Include="Network\Http\Session.h" />
+    <ClInclude Include="Network\Network.h" />
     <ClInclude Include="Network\Router\Dispatcher.h" />
     <ClInclude Include="Network\Router\MsgRouter.h" />
     <ClInclude Include="Network\Router\Router.h" />

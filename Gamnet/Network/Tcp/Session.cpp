@@ -2,6 +2,7 @@
 
 #include "../../Library/MD5.h"
 #include "../../Library/Random.h"
+#include "../../Library/Timer.h"
 #include "SessionManager.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {
@@ -38,6 +39,7 @@ bool Session::Init()
 	recv_seq = 0;
 	send_seq = 0;
 	handover_safe = false;
+	last_recv_time = time(nullptr);
 	
 	return true;
 }
@@ -77,6 +79,7 @@ void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 void Session::OnRead(const std::shared_ptr<Buffer>& buffer) 
 {
 	try {
+		last_recv_time = time( nullptr );
 		while (0 < buffer->Size())
 		{
 			size_t readSize = std::min(buffer->Size(), recv_packet->Available());
@@ -125,18 +128,17 @@ void Session::Close(int reason)
 	auto self(shared_from_this());
 	strand->wrap([self](int reason) {
 		std::shared_ptr<Session> session = std::static_pointer_cast<Session>(self);
-		if (nullptr == session->socket)
+		if (nullptr != session->socket)
 		{
-			return;
+			session->OnClose(reason);
+			session->socket = nullptr;
 		}
-
-		session->OnClose(reason);
-		session->socket = nullptr;
 		
-		if(false == session->handover_safe)
+		if(0 != session->session_key && false == session->handover_safe)
 		{
 			session->OnDestroy();
 			session->session_manager->Remove(session);
+			session->session_key = 0;
 		}
 	})(reason);
 }
