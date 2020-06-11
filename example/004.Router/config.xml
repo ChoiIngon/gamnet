@@ -11,8 +11,10 @@
   <http port="40001"/>
   <farm host="127.0.0.1" port="6379"/>
   <router name="ROUTER_1" port="40002">
+	<remote name="ROUTER_1" host="127.0.0.1" port="40002"/>
     <remote name="ROUTER_1" host="127.0.0.1" port="40002"/>
     <remote name="ROUTER_2" host="127.0.0.1" port="40022"/>
+	<remote name="ROUTER_2" host="127.0.0.1" port="40022"/>
   </router>
   
   <test host="127.0.0.1" port="40000" session_count="1" loop_count="1">

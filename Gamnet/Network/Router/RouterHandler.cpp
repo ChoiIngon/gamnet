@@ -27,7 +27,8 @@ void RouterHandler::Recv_SetAddress_Ntf(const std::shared_ptr<Session>& session,
 		{
 			if (nullptr != Singleton<RouterCaster>::GetInstance().FindSession(ntf.router_address))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::DuplicateRouterAddress);
+				session->Close(ErrorCode::DuplicateConnectionError);
+				return;
 			}
 
 			MsgRouter_SetAddress_Req req;
