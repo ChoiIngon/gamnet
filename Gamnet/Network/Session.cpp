@@ -150,6 +150,7 @@ void Session::Close(int reason)
 		}
 		self->OnClose(reason);
 		self->socket = nullptr;
+		self->OnDestroy();
 		self->session_manager->Remove(self);
 	})(reason);
 }

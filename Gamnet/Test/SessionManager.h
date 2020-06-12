@@ -138,6 +138,12 @@ namespace Gamnet {	namespace Test {
 		}
 		void OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 		{
+			boost::asio::socket_base::linger linger( true, 0 );
+			socket->set_option( linger );
+
+			boost::asio::socket_base::send_buffer_size send_buffer_size( Buffer::MAX_SIZE );
+			socket->set_option( send_buffer_size );
+
 			std::shared_ptr<SESSION_T> session = session_pool.Create();
 			if (nullptr == session)
 			{
