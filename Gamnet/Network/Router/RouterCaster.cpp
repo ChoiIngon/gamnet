@@ -240,7 +240,7 @@ bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 	if(nullptr == packet)
 	{
-		return false;
+		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");
 	}
 
 	packet->msg_seq = 0;
@@ -248,13 +248,12 @@ bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network
 	
 	if(false == packet->Write(ntf))
 	{
-		return false;
+		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");
 	}
 
 	if((unsigned int)ROUTER_CAST_TYPE::MAX <= (unsigned int)addr.cast_type)
 	{
-		LOG(ERR, "cast_type:",  (unsigned int)addr.cast_type, " is undefined cast_type");
-		return false;
+		throw GAMNET_EXCEPTION(ErrorCode::RouterCastTypeErrror, "cast_type:", (unsigned int)addr.cast_type, " is undefined cast_type");
 	}
 	return arrCasterImpl_[(unsigned int)addr.cast_type]->SendMsg(ntf.msg_seq, network_session, addr, packet);
 }

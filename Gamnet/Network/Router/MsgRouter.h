@@ -134,13 +134,6 @@ inline bool operator == (const Address& lhs, const Address& rhs)
 
 inline bool operator != (const Address& lhs, const Address& rhs)
 {
-	/*
-	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
-	{
-		return true;
-	}
-	return false;
-	*/
 	return !(lhs == rhs);
 }
 
@@ -245,16 +238,11 @@ struct MsgRouter_SetAddress_Ntf_Serializer {
 struct MsgRouter_SetAddress_Req {
 	enum { MSG_ID = 2 }; 
 	Address	router_address;
-	std::string	host;
-	int32_t	port;
 	MsgRouter_SetAddress_Req()	{
-		port = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += Address_Serializer::Size(router_address);
-		nSize += sizeof(uint32_t); nSize += host.length();
-		nSize += sizeof(int32_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -269,10 +257,6 @@ struct MsgRouter_SetAddress_Req {
 	}
 	bool Store(char** _buf_) const {
 		if(false == Address_Serializer::Store(_buf_, router_address)) { return false; }
-		size_t host_size = host.length();
-		std::memcpy(*_buf_, &host_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
-		std::memcpy(*_buf_, host.c_str(), host.length()); (*_buf_) += host.length();
-		std::memcpy(*_buf_, &port, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -284,11 +268,6 @@ struct MsgRouter_SetAddress_Req {
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
 		if(false == Address_Serializer::Load(router_address, _buf_, nSize)) { return false; }
-		if(sizeof(int32_t) > nSize) { return false; }
-		uint32_t host_length = 0; std::memcpy(&host_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(nSize < host_length) { return false; }
-		host.assign((char*)*_buf_, host_length); (*_buf_) += host_length; nSize -= host_length;
-		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&port, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
 		return true;
 	}
 }; //MsgRouter_SetAddress_Req

@@ -42,13 +42,6 @@ inline bool operator == (const Address& lhs, const Address& rhs)
 
 inline bool operator != (const Address& lhs, const Address& rhs)
 {
-	/*
-	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
-	{
-		return true;
-	}
-	return false;
-	*/
 	return !(lhs == rhs);
 }
 
@@ -118,8 +111,6 @@ message MsgRouter_SetAddress_Ntf :  00001
 message MsgRouter_SetAddress_Req : 	00002
 {
 	Address router_address;
-	string host;
-	int32 port;
 };
 
 message MsgRouter_SetAddress_Ans : 	00003
