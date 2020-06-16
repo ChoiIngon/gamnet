@@ -32,6 +32,7 @@ public :
 		InvalidHandlerError			= 43,
 		InvalidDatabaseNum			= 44,
 		InvalidLinkError			= 45,
+		InvalidDateTimeFormat		= 46,	
 		NotInitializedError			= 50,
 		NullPointerError			= 60,
 		NullPacketError				= 61,

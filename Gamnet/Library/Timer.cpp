@@ -119,4 +119,22 @@ std::string FromUnixtime(time_t now)
 #endif
 	return buf;
 }
+
+DateTime::DateTime()
+{
+}
+
+DateTime::DateTime(const std::string& date)
+{
+	if(19 != date.length())
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidDateTimeFormat, date);
+	}
+	year = std::stoi(date.substr(0, 4));
+	month = std::stoi(date.substr(5, 2));
+	day = std::stoi(date.substr(8, 2));
+	hour = std::stoi(date.substr(11, 2));
+	minute = std::stoi(date.substr(14, 2));
+	second = std::stoi(date.substr(17, 2));
+}
 }}
