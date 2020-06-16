@@ -58,7 +58,7 @@ bool Compiler::Compile()
 	}
 
 	std::ofstream output;
-	std::streambuf* pOld;
+	std::streambuf* pOld = nullptr;
 	if("" != sFileName)
 	{
 		output.open(sOutFile.c_str());

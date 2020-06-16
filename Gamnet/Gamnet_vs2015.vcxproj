@@ -146,6 +146,13 @@
     <ClInclude Include="Test\Test.h" />
     <ClInclude Include="Test\TestHandler.h" />
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Network\Router\MsgRouter.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\x64\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(FileName).h</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\x64\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Message>
+    </CustomBuild>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FD683537-87A3-4288-9C09-77F9DA5BF31C}</ProjectGuid>
     <RootNamespace>Gamnet</RootNamespace>

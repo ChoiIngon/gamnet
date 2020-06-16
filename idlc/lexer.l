@@ -5,6 +5,9 @@
 #include <string>
 #include <iostream>
 std::string g_sBuf; 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
 %}
 
 %x STATE_COMMENT STATE_LITERAL
