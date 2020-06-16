@@ -105,14 +105,18 @@ public :
 
 class DateTime
 {
+public :
+	DateTime();
+	DateTime(int year, int month, int day, int hour, int minute, int second);
+
 };
 
 std::string FromUnixtime(time_t now);
 
-template<class TIMEUNIT_T = std::chrono::milliseconds>
+template<class TIMEUNIT_T = std::chrono::seconds>
 static uint64_t Now()
 {
-	auto now = std::chrono::high_resolution_clock::now();
+	auto now = std::chrono::system_clock::now();
 	return std::chrono::duration_cast<TIMEUNIT_T>(now.time_since_epoch()).count();
 }
 

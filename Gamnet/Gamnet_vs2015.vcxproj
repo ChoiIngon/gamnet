@@ -149,7 +149,7 @@
   <ItemGroup>
     <CustomBuild Include="Network\Router\MsgRouter.idl">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\x64\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(FileName).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Router\%(Filename).idl</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\x64\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Message>
     </CustomBuild>
   </ItemGroup>
