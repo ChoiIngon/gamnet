@@ -37,7 +37,7 @@ GAMNET_BIND_TCP_HANDLER(
 	UserSession,
 	MsgCliSvr_SendMessage_Ntf,
 	Handler_SendMessage, Recv_CliSvr_Ntf,
-	HandlerStatic
+	HandlerCreate
 );
 
 void Handler_SendMessage::Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)

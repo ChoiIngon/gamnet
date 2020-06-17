@@ -23,8 +23,8 @@ public :
 	virtual ~HandlerContainer();
 
 	void Init();
-	std::shared_ptr<IHandler> Find(uint32_t msg_id);
-	void Register(uint32_t msg_id, std::shared_ptr<IHandler> handler);
+	std::shared_ptr<IHandler> Find(uint32_t msgSEQ);
+	void Register(uint32_t msgSEQ, const std::shared_ptr<IHandler>& handler);
 };
 
 }} /* namespace Gamnet */

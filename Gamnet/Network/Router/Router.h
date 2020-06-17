@@ -12,8 +12,6 @@ namespace Gamnet { namespace Network { namespace Router
 	const Address& GetRouterAddress();
 	void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler = [](const Address&){}, const std::function<void(const Address& addr)>& closeHandler = [](const Address&) {});
 	void Connect(const std::string& host, int port, int timeout);
-	
-	
 
 	template <class FUNC, class FACTORY>
 	bool BindHandler(unsigned int msg_id, FUNC func, FACTORY factory)
@@ -21,8 +19,29 @@ namespace Gamnet { namespace Network { namespace Router
 		return Singleton<Dispatcher>::GetInstance().BindHandler(msg_id, func, factory);
 	}
 
+	class SendResult
+	{
+		uint32_t msg_seq;
+	public:
+		SendResult(uint32_t msgSEQ);
+		template<class MSG>
+		void WaitResponse(const std::shared_ptr<Network::Tcp::Session>& session, std::function<void()> onTimeout)
+		{
+			if(nullptr == session->current_handler)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "current message handler is null");
+			}
+			session->handler_container.Register(msg_seq, session->current_handler);
+
+			std::shared_ptr<Dispatcher::WaitResponse> waitResponse = std::make_shared<Dispatcher::WaitResponse>();
+			waitResponse->expire_time = time(nullptr) + 60;
+			waitResponse->on_timeout = onTimeout;
+			waitResponse->session = session;
+			Singleton<Dispatcher>::GetInstance().RegisterWaitResponse(MSG::MSG_ID, msg_seq, waitResponse);
+		}
+	};
 	template <class MSG>
-	bool SendMsg(const std::shared_ptr<Network::Tcp::Session>& session, const Address& addr, const MSG& msg)
+	SendResult SendMsg(const Address& addr, const MSG& msg)
 	{
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
@@ -38,13 +57,8 @@ namespace Gamnet { namespace Network { namespace Router
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MSG::MSG_ID, ")");
 		}
 
-		return Singleton<RouterCaster>::GetInstance().SendMsg(session, addr, packet->ReadPtr(), (int)packet->Size());
-	}
-
-	template <class MSG>
-	bool SendMsg(const Address& addr, const MSG& msg)
-	{
-		return SendMsg(nullptr, addr, msg);
+		Singleton<RouterCaster>::GetInstance().SendMsg(addr, packet);
+		return SendResult(addr.msg_seq);
 	}
 }}}
 

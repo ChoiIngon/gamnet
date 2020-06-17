@@ -27,7 +27,7 @@ public :
 
 	std::string											session_token;
 	HandlerContainer									handler_container;
-
+	std::shared_ptr<IHandler>							current_handler;
 	virtual bool Init() override;
 	virtual void Clear() override;
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;

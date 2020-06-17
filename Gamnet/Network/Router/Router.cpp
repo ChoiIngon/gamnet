@@ -113,4 +113,8 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 		throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, e.what());
 	}
 }
+
+SendResult::SendResult(uint32_t msgSEQ) : msg_seq(msgSEQ)
+{
+}
 }}}

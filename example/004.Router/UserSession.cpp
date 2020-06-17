@@ -62,6 +62,7 @@ void Manager_Session::Remove(std::shared_ptr<Gamnet::Network::Tcp::Session> sess
 void TestSession::OnCreate()
 {
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnCreate");
+	pause_timer = Gamnet::Time::Timer::Create();
 }
 
 void TestSession::OnConnect()
@@ -72,6 +73,7 @@ void TestSession::OnConnect()
 void TestSession::OnClose(int reason)
 {
 	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnClose");
+	pause_timer = nullptr;
 }
 
 void TestSession::OnDestroy()

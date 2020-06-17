@@ -20,9 +20,9 @@ void HandlerContainer::Init()
 	handlers.clear();
 }
 
-std::shared_ptr<IHandler> HandlerContainer::Find(uint32_t msg_id)
+std::shared_ptr<IHandler> HandlerContainer::Find(uint32_t msgSEQ)
 {
-	auto itr = handlers.find(msg_id);
+	auto itr = handlers.find(msgSEQ);
 	if(handlers.end() == itr)
 	{
 		return nullptr;
@@ -32,9 +32,9 @@ std::shared_ptr<IHandler> HandlerContainer::Find(uint32_t msg_id)
 	return handler;
 }
 
-void HandlerContainer::Register(uint32_t msg_seq, std::shared_ptr<IHandler> handler)
+void HandlerContainer::Register(uint32_t msgSEQ, const std::shared_ptr<IHandler>& handler)
 {
-	handlers[msg_seq] = handler;
+	handlers[msgSEQ] = handler;
 }
 
 }} /* namespace Gamnet */

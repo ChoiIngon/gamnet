@@ -9,31 +9,13 @@ namespace Gamnet { namespace Network { namespace Router {
 
 class Session : public Network::Tcp::Session 
 {
-private :
-	struct AnswerWatingSessionManager
-	{
-	private :
-		std::mutex lock_;
-		std::map<uint64_t, std::pair<time_t, std::shared_ptr<Network::Tcp::Session>>> wait_sessions_;
-		std::shared_ptr<Time::Timer> timer;
-	public :
-		AnswerWatingSessionManager();
-		~AnswerWatingSessionManager();
-
-		void Init();
-		bool AddSession(uint64_t recv_seq, std::shared_ptr<Network::Tcp::Session> session);
-		std::shared_ptr<Network::Tcp::Session> FindSession(uint64_t recv_seq);
-		void Clear();
-	};
-
 public:
 
 	Session();
 	virtual ~Session();
 
 	Address							router_address;
-	AnswerWatingSessionManager		wait_session_manager;
-	
+		
 	virtual void OnCreate() override;
 	virtual void OnAccept() override;
 	virtual void OnConnect();

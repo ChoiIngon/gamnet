@@ -55,9 +55,6 @@ public :
 				return false;
 			}
 
-			packet->reliable = false;
-			packet->msg_seq = 0;
-
 			if (false == packet->Write(msg))
 			{
 				LOG(GAMNET_ERR, "fail to serialize message(castgroup_seq:", group_seq, ", msg_id:", MSG::MSG_ID, ")");

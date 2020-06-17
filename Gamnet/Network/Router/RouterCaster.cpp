@@ -22,17 +22,9 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Uni::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
+bool RouterCasterImpl_Uni::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::shared_ptr<Session> router_session = FindSession(addr);
-	if(nullptr == router_session)
-	{
-		return false;
-	}
-	if(nullptr != network_session)
-	{
-		router_session->wait_session_manager.AddSession(msg_seq, network_session);
-	}
 	router_session->AsyncSend(packet);
 	return true;
 }
@@ -79,7 +71,7 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, const std::sha
 	return true;
 }
 
-bool RouterCasterImpl_Multi::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
+bool RouterCasterImpl_Multi::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::list<std::shared_ptr<Session>> sessions;
 	{
@@ -99,10 +91,6 @@ bool RouterCasterImpl_Multi::SendMsg(uint64_t msg_seq, const std::shared_ptr<Net
 
 	for(auto& session : sessions)
 	{
-		if(nullptr != network_session)
-		{
-			session->wait_session_manager.AddSession(msg_seq, network_session);
-		}
 		session->AsyncSend(packet);
 	}
 	return true;
@@ -150,7 +138,7 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Any::SendMsg(uint64_t msg_seq, const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
+bool RouterCasterImpl_Any::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::shared_ptr<Session> router_session = nullptr;
 
@@ -172,11 +160,6 @@ bool RouterCasterImpl_Any::SendMsg(uint64_t msg_seq, const std::shared_ptr<Netwo
 			return false;
 		}
 		router_session = arrSession[pairSessionArray.first++ % arrSession.size()];
-	}
-
-	if(nullptr != network_session)
-	{
-		router_session->wait_session_manager.AddSession(msg_seq, network_session);
 	}
 
 	router_session->AsyncSend(packet);
@@ -227,16 +210,11 @@ bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session>
 	return true;
 }
 
-bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network_session, const Address& addr, const char* buf, int len)
+bool RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& buffer)
 {
 	MsgRouter_SendMsg_Ntf ntf;
-	ntf.buffer.assign(buf, len);
-	ntf.msg_seq = addr.msg_seq;
-	if(nullptr != network_session)
-	{
-		ntf.msg_seq = ++msg_seq;
-	}
-
+	ntf.buffer.assign(buffer->ReadPtr(), buffer->Size());
+	
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 	if(nullptr == packet)
 	{
@@ -245,7 +223,6 @@ bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network
 
 	packet->msg_seq = 0;
 	packet->reliable = false;
-	
 	if(false == packet->Write(ntf))
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");
@@ -255,7 +232,7 @@ bool RouterCaster::SendMsg(const std::shared_ptr<Network::Tcp::Session>& network
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::RouterCastTypeErrror, "cast_type:", (unsigned int)addr.cast_type, " is undefined cast_type");
 	}
-	return arrCasterImpl_[(unsigned int)addr.cast_type]->SendMsg(ntf.msg_seq, network_session, addr, packet);
+	return arrCasterImpl_[(unsigned int)addr.cast_type]->SendMsg(addr, packet);
 }
 
 bool RouterCaster::UnregisterAddress(const Address& addr)

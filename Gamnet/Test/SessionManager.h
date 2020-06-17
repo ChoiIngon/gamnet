@@ -265,7 +265,7 @@ namespace Gamnet {	namespace Test {
 					RECV_HANDLER_TYPE& recvHandler = itr->second;
 					try {
 						recvHandler(session, packet);
-						testCase->elapse_time += session->elapse_timerTime.Count();;
+						testCase->elapse_time += session->elapse_timer.Count();;
 					}
 					catch (const Exception& /*e*/)
 					{
