@@ -163,7 +163,9 @@
     <ClCompile Include="Library\Random.cpp" />
     <ClCompile Include="Library\Singleton.cpp" />
     <ClCompile Include="Library\ThreadPool.cpp" />
-    <ClCompile Include="Library\Timer.cpp" />
+    <ClCompile Include="Library\Time\DateTime.cpp" />
+    <ClCompile Include="Library\Time\Time.cpp" />
+    <ClCompile Include="Library\Time\Timer.cpp" />
     <ClCompile Include="Library\Variant.cpp" />
     <ClCompile Include="log\File.cpp" />
     <ClCompile Include="log\Log.cpp" />
@@ -230,7 +232,9 @@
     <ClInclude Include="Library\StateMachine.h" />
     <ClInclude Include="library\String.h" />
     <ClInclude Include="library\ThreadPool.h" />
-    <ClInclude Include="library\Timer.h" />
+    <ClInclude Include="Library\Time\DateTime.h" />
+    <ClInclude Include="Library\Time\Time.h" />
+    <ClInclude Include="Library\Time\Timer.h" />
     <ClInclude Include="Library\Variant.h" />
     <ClInclude Include="log\File.h" />
     <ClInclude Include="log\Log.h" />

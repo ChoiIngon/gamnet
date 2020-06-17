@@ -1,7 +1,5 @@
-#include <boost/program_options.hpp>
-#include <Network/Http/HttpServer.h>
-#include <Test/SessionManager.h>
 #include <Gamnet.h>
+#include <boost/program_options.hpp>
 #include "UserSession.h"
 
 int main(int argc, char** argv) 
@@ -24,8 +22,8 @@ int main(int argc, char** argv)
 
 	const std::string& config_path = vm["config"].as<std::string>();
 	Gamnet::Log::ReadXml(config_path);
-	LOG(INF, "binary:", argv[0]);
-	LOG(INF, "build date:", __DATE__, " ", __TIME__);
+	LOG(INF, "version:", argv[0], ".", __DATE__, ".", __TIME__);
+	LOG(INF, "start date:", Gamnet::Time::DateTime(Gamnet::Time::Local::Now()).ToString());
 	LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 	Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);

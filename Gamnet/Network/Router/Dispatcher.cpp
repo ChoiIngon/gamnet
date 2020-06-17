@@ -1,5 +1,6 @@
 #include "Dispatcher.h"
 #include "RouterCaster.h"
+#include "../../Library/Singleton.h"
 
 namespace Gamnet { namespace Network { namespace Router {
 	Dispatcher::Dispatcher() 

@@ -2,7 +2,7 @@
 #define GAMNET_NETWORK_ROUTER_SESSION_MANAGER_H_
 
 #include "Session.h"
-#include "../../Library/Timer.h"
+#include "../../Library/Time/Time.h"
 #include "../../Library/Pool.h"
 #include "../SessionManager.h"
 #include "../Tcp/CastGroup.h"

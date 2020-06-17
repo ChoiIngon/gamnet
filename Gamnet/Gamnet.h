@@ -19,7 +19,7 @@
 #include "Library/Singleton.h"
 #include "Library/String.h"
 #include "Library/ThreadPool.h"
-#include "Library/Timer.h"
+#include "Library/Time/Time.h"
 #include "Library/Variant.h"
 
 #include "Log/Log.h"

@@ -5,7 +5,6 @@
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/bind.hpp>
 #include <mutex>
-#include "Singleton.h"
 
 namespace Gamnet { namespace Time {
 
@@ -102,54 +101,6 @@ public :
 		return diff.count();
 	}
 };
-
-enum WeekDay
-{
-	Sunday,
-	Monday,
-	Tuesday,
-	Wednesday,
-	Thursday,
-	Friday,
-	Saturday
-};
-
-class DateTime
-{
-private :
-	WeekDay weekday;
-	int		year;
-	int		month;
-	int		day;
-	int		hour;
-	int		minute;
-	int		second;
-public :
-	static const DateTime MaxValue;
-	static const DateTime MinValue;
-
-	DateTime();
-	DateTime(time_t unixTimeStamp);
-	DateTime(int year, int month, int day, int hour, int minute, int second);
-	DateTime(const std::string& date);
-
-	bool operator < (const DateTime& rhs) const;
-	bool operator == (const DateTime& rhs) const;
-};
-
-DateTime operator + (const DateTime& lhs, const DateTime& rhs);
-DateTime operator + (const DateTime& lhs, int seconds);
-DateTime operator - (const DateTime& lhs, const DateTime& rhs);
-DateTime operator - (const DateTime& lhs, int seconds);
-
-std::string FromUnixtime(time_t now);
-
-template<class TIMEUNIT_T = std::chrono::seconds>
-static uint64_t Now()
-{
-	auto now = std::chrono::system_clock::now();
-	return std::chrono::duration_cast<TIMEUNIT_T>(now.time_since_epoch()).count();
-}
 
 }}
 

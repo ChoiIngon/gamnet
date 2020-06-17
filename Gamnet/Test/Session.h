@@ -2,7 +2,7 @@
 #define GAMNET_TEST_SESSION_H_
 
 #include "../Library/Debugs.h"
-#include "../Library/Timer.h"
+#include "../Library/Time/Time.h"
 #include "../Network/Tcp/Session.h"
 #include "../Network/Tcp/Connector.h"
 
@@ -18,7 +18,7 @@ public:
 	std::string	host;
 	int	port;
 	int test_seq;
-	uint64_t send_time;
+	Time::ElapseTimer elapse_timer;
 
 	virtual void OnCreate() override {}
 	virtual void OnAccept() override {}

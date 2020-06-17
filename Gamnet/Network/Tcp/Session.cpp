@@ -2,7 +2,7 @@
 
 #include "../../Library/MD5.h"
 #include "../../Library/Random.h"
-#include "../../Library/Timer.h"
+#include "../../Library/Time/Time.h"
 #include "SessionManager.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {

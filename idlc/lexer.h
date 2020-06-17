@@ -221,11 +221,6 @@ extern char *yytext;
 
 #endif
 
-/*windows compatibility case*/
-#include <io.h>
-#define isatty _isatty
-#define fileno _fileno
-    
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
 #endif
@@ -471,6 +466,6 @@ extern int yylex (void);
 #line 114 "lexer.l"
 
 
-#line 474 "lexer.h"
+#line 469 "lexer.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

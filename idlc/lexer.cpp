@@ -558,11 +558,6 @@ std::string g_sBuf;
 #define STATE_COMMENT 1
 #define STATE_LITERAL 2
 
-/*windows compatibility case*/
-#include <io.h>
-#define isatty _isatty
-#define fileno _fileno
-    
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
 #endif
@@ -771,7 +766,7 @@ YY_DECL
 #line 57 "lexer.l"
 
 
-#line 774 "lexer.cpp"
+#line 769 "lexer.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1067,7 +1062,7 @@ YY_RULE_SETUP
 #line 114 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 1070 "lexer.cpp"
+#line 1065 "lexer.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STATE_COMMENT):
 case YY_STATE_EOF(STATE_LITERAL):

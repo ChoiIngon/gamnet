@@ -146,6 +146,22 @@
     <ClInclude Include="parser.h" />
     <ClInclude Include="token.h" />
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="lexer.l">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_flex.exe --header-file=lexer.h --outfile=lexer.cpp --nounistd %(Filename).l</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_flex.exe --header-file=lexer.h --outfile=lexer.cpp --nounistd %(Filename).l</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">lexer.h;lexer.cpp</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="parser.y">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_bison.exe --defines=parser.h --output=parser.cpp %(Filename).y</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_bison.exe --defines=parser.h --output=parser.cpp %(Filename).y</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">parser.h;parser.cpp</Outputs>
+    </CustomBuild>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

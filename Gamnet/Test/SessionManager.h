@@ -132,7 +132,7 @@ namespace Gamnet {	namespace Test {
 				return;
 			}
 			const std::shared_ptr<TestCase>& testCase = test_sequence[session->test_seq];
-			//session->send_time = std::chrono::steady_clock::now();
+			session->elapse_timer.Reset();
 			testCase->send_handler(std::static_pointer_cast<SESSION_T>(session));
 			testCase->execute_count++;
 		}
@@ -265,7 +265,7 @@ namespace Gamnet {	namespace Test {
 					RECV_HANDLER_TYPE& recvHandler = itr->second;
 					try {
 						recvHandler(session, packet);
-						testCase->elapse_time += Time::Now() - session->send_time;
+						testCase->elapse_time += session->elapse_timerTime.Count();;
 					}
 					catch (const Exception& /*e*/)
 					{

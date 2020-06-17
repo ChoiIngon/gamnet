@@ -1,5 +1,7 @@
 #include "Timer.h"
-#include "Pool.h"
+#include "../Pool.h"
+#include "../Singleton.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace Gamnet { namespace Time {
 
@@ -102,39 +104,4 @@ void ElapseTimer::Reset()
 	t0_ = std::chrono::high_resolution_clock::now();
 }
 
-std::string FromUnixtime(time_t now)
-{
-	if(0 == now)
-	{
-		return "0000-00-00 00:00:00";
-	}
-	struct tm when;
-	char buf[20] = { 0 };
-#ifdef _WIN32 // build Static multithreaded library "libcmt"
-	gmtime_s(&when, &now);
-	_snprintf_s(buf, 20, 19, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
-#else
-	gmtime_r(&now, &when);
-	snprintf(buf, 20, "%04d-%02d-%02d %02d:%02d:%02d", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
-#endif
-	return buf;
-}
-
-DateTime::DateTime()
-{
-}
-
-DateTime::DateTime(const std::string& date)
-{
-	if(19 != date.length())
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::InvalidDateTimeFormat, date);
-	}
-	year = std::stoi(date.substr(0, 4));
-	month = std::stoi(date.substr(5, 2));
-	day = std::stoi(date.substr(8, 2));
-	hour = std::stoi(date.substr(11, 2));
-	minute = std::stoi(date.substr(14, 2));
-	second = std::stoi(date.substr(17, 2));
-}
 }}

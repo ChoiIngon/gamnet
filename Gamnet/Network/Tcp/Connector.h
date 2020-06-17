@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include <atomic>
 #include "../../Library/Pool.h"
-#include "../../Library/Timer.h"
+#include "../../Library/Time/Time.h"
 
 namespace Gamnet { namespace Network { namespace Tcp {
 	class Connector

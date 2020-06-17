@@ -5,7 +5,7 @@
 #include "../../Network/Session.h"
 #include "../../Network/Tcp/Connector.h"
 #include "../../Library/Delegate.h"
-#include "../../Library/Timer.h"
+#include "../../Library/Time/Time.h"
 #include "../../Library/Exception.h"
 #include "../../Library/Singleton.h"
 #include "../../Library/Buffer.h"
