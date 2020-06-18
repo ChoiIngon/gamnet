@@ -27,6 +27,13 @@
     <ClInclude Include="Handler_SendMessage.h" />
     <ClInclude Include="UserSession.h" />
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\Message.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp ..\idl\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Performing IDL Build Tools</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C1401F5D-8324-404B-9CF9-63E6DA69ED2F}</ProjectGuid>
     <RootNamespace>server</RootNamespace>

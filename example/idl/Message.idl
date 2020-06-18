@@ -1,4 +1,4 @@
-enum GErrorCode 
+enum ErrorCode 
 {
 	Success = 0,
 	MessageFormatError = 1000,
@@ -12,22 +12,22 @@ enum GErrorCode
 	CanNotCreateCastGroup = 5001
 };
 
-struct GUserData 
+struct UserData 
 {
-	string UserID;
-	uint32 UserSEQ;
-	uint32 Frame;
+	string user_id;
+	uint32 user_seq;
+	uint32 frame;
 };
 
 message MsgCliSvr_Login_Req : 1
 {
-	string	UserID;
+	string user_id;
 };
 
 message MsgSvrCli_Login_Ans : 1
 {
-	GErrorCode	ErrorCode;
-	GUserData	UserData;
+	ErrorCode error_code;
+	UserData user_data;
 };
 
 message MsgCliSvr_UpdateFrame_Req : 2
@@ -36,8 +36,8 @@ message MsgCliSvr_UpdateFrame_Req : 2
 
 message MsgSvrCli_UpdateFrame_Ans : 2
 {
-	GErrorCode	ErrorCode;
-	uint32 Frame;
+	ErrorCode error_code;
+	uint32 frame;
 };
 
 message MsgCliSvr_JoinChannel_Req : 00010001
@@ -46,32 +46,42 @@ message MsgCliSvr_JoinChannel_Req : 00010001
 
 message MsgSvrCli_JoinChannel_Ans : 00010001
 {
-	GErrorCode ErrorCode;
-	uint32 ChannelSEQ;
-	list<GUserData> UserDatas;
+	ErrorCode error_code;
+	uint32 channel_seq;
+	list<UserData> user_datas;
 };
 
 message MsgSvrCli_JoinChannel_Ntf : 10010001
 {
-	uint32 UserCount;
-	GUserData NewUserData;
+	uint32 user_count;
+	UserData new_user_data;
+};
+
+message MsgCliSvr_SendMessage_Req : 0020
+{
+	string text;
+};
+
+message MsgSvrCli_SendMessage_Ans : 2020
+{
+	ErrorCode error_code;
 };
 
 message MsgCliSvr_SendMessage_Ntf : 1020
 {
-	string Message;
+	string text;
 };
 
 message MsgSvrCli_SendMessage_Ntf : 1020
 {
-	string UserID;
-	string Message;
+	string user_id;
+	string text;
 };
 
 message MsgSvrSvr_SendMessage_Ntf : 1022
 {
-	string UserID;
-	string Message;
+	string user_id;
+	string text;
 };
 
 message MsgCliSvr_LeaveChannel_Req : 00010003
@@ -80,17 +90,17 @@ message MsgCliSvr_LeaveChannel_Req : 00010003
 
 message MsgSvrCli_LeaveChannel_Ans : 00010003
 {
-	GErrorCode ErrorCode;
+	ErrorCode error_code;
 };
 
 message MsgSvrCli_LeaveChannel_Ntf : 10010003
 {
-	GUserData LeaveUserData;
+	UserData leave_user_data;
 };
 
 message MsgSvrCli_Kickout_Ntf : 10000003
 {
-	GErrorCode	ErrorCode;
+	ErrorCode error_code;
 };
 
 message MsgCliSvr_HeartBeat_Ntf : 10000004
