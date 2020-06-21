@@ -22,11 +22,10 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Uni::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
+void RouterCasterImpl_Uni::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::shared_ptr<Session> router_session = FindSession(addr);
 	router_session->AsyncSend(packet);
-	return true;
 }
 
 bool RouterCasterImpl_Uni::UnregisterAddress(const Address& addr)
@@ -71,7 +70,7 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, const std::sha
 	return true;
 }
 
-bool RouterCasterImpl_Multi::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
+void RouterCasterImpl_Multi::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::list<std::shared_ptr<Session>> sessions;
 	{
@@ -79,8 +78,7 @@ bool RouterCasterImpl_Multi::SendMsg(const Address& addr, const std::shared_ptr<
 		auto itr = route_table_.find(addr.service_name);
 		if(route_table_.end() == itr)
 		{
-			LOG(GAMNET_WRN, "[Gamnet::Router] Can't find route info(service_name:", addr.service_name.c_str(), ", cast_type:MULTI_CAST, server_id:", addr.id, ")");
-			return false;
+			throw Exception(ErrorCode::InvalidAddressError, "[Gamnet::Router] Can't find route info(service_name:", addr.service_name.c_str(), ", cast_type:MULTI_CAST, server_id:", addr.id, ")");
 		}
 
 		for(auto& session : itr->second)
@@ -93,7 +91,6 @@ bool RouterCasterImpl_Multi::SendMsg(const Address& addr, const std::shared_ptr<
 	{
 		session->AsyncSend(packet);
 	}
-	return true;
 }
 
 bool RouterCasterImpl_Multi::UnregisterAddress(const Address& addr)
@@ -138,7 +135,7 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Any::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
+void RouterCasterImpl_Any::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::shared_ptr<Session> router_session = nullptr;
 
@@ -147,8 +144,7 @@ bool RouterCasterImpl_Any::SendMsg(const Address& addr, const std::shared_ptr<Tc
 		auto itr = route_table_.find(addr.service_name);
 		if(route_table_.end() == itr)
 		{
-			LOG(GAMNET_ERR, "[Gamnet::Router] Cant find route info(service_name:", addr.service_name.c_str(), ")");
-			return false;
+			throw Exception(ErrorCode::InvalidAddressError, "[Gamnet::Router] Can't find route info(service_name:", addr.service_name.c_str(), ", cast_type:ANY_CAST)");
 		}
 
 		std::pair<int, SessionArray>& pairSessionArray = itr->second;
@@ -156,14 +152,12 @@ bool RouterCasterImpl_Any::SendMsg(const Address& addr, const std::shared_ptr<Tc
 
 		if(0 >= arrSession.size())
 		{
-			LOG(GAMNET_ERR, "[Gamnet::Router] Cant find Session");
-			return false;
+			throw Exception(ErrorCode::InvalidAddressError, "[Gamnet::Router] Cant find Session(service_name:", addr.service_name.c_str(), ", cast_type:ANY_CAST)");
 		}
 		router_session = arrSession[pairSessionArray.first++ % arrSession.size()];
 	}
 
 	router_session->AsyncSend(packet);
-	return true;
 }
 
 bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
@@ -210,9 +204,10 @@ bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session>
 	return true;
 }
 
-bool RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& buffer)
+void RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& buffer)
 {
 	MsgRouter_SendMsg_Ntf ntf;
+	ntf.msg_seq = addr.msg_seq;
 	ntf.buffer.assign(buffer->ReadPtr(), buffer->Size());
 	
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
@@ -221,8 +216,6 @@ bool RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& b
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");
 	}
 
-	packet->msg_seq = 0;
-	packet->reliable = false;
 	if(false == packet->Write(ntf))
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");
@@ -232,7 +225,8 @@ bool RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& b
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::RouterCastTypeErrror, "cast_type:", (unsigned int)addr.cast_type, " is undefined cast_type");
 	}
-	return arrCasterImpl_[(unsigned int)addr.cast_type]->SendMsg(addr, packet);
+
+	arrCasterImpl_[(unsigned int)addr.cast_type]->SendMsg(addr, packet);
 }
 
 bool RouterCaster::UnregisterAddress(const Address& addr)

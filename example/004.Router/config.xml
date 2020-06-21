@@ -18,6 +18,6 @@
   </router>
   
   <test host="127.0.0.1" port="40000" session_count="1" loop_count="1">
-    <message name="Test_SendMessage"/>
+    <message name="Test_SendMessage_WithResponse"/>
   </test>
 </server>

@@ -18,6 +18,6 @@
   <!-- <farm host="127.0.0.1" port="6379"/> -->
   
   <test host="127.0.0.1" port="40020" session_count="1" loop_count="1">
-    <message name="Test_SendMessage"/>
+    <message name="Test_SendMessage_WithResponse"/>
   </test>
 </server>

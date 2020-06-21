@@ -1,15 +1,16 @@
 enum ErrorCode 
 {
-	Success = 0,
-	MessageFormatError = 1000,
-	MessageSeqOmmitError = 1001,
-	InvalidUserError = 2000,
-	InvalidAccessTokenError = 2001,
-	DuplicateConnectionError = 3000,
-	ReconnectTimeoutError = 4000,
-	ResponseTimeoutError = 4001,
-	AlreadyLoginSessionError = 5000,
-	CanNotCreateCastGroup = 5001
+	Success						= 0,
+	MessageFormatError			= 1000,
+	MessageSeqOmmitError		= 1001,
+	InvalidUserError			= 2000,
+	InvalidAccessTokenError		= 2001,
+	InvalidSeviceName			= 2002,
+	DuplicateConnectionError	= 3000,
+	ReconnectTimeoutError		= 4000,
+	ResponseTimeoutError		= 4001,
+	AlreadyLoginSessionError	= 5000,
+	CanNotCreateCastGroup		= 5001
 };
 
 struct UserData 
@@ -19,96 +20,104 @@ struct UserData
 	uint32 frame;
 };
 
-message MsgCliSvr_Login_Req : 1
+message MsgCliSvr_Login_Req			: 00011
 {
 	string user_id;
 };
 
-message MsgSvrCli_Login_Ans : 1
+message MsgSvrCli_Login_Ans			: 00012
 {
 	ErrorCode error_code;
 	UserData user_data;
 };
 
-message MsgCliSvr_UpdateFrame_Req : 2
+message MsgCliSvr_UpdateFrame_Req	: 00021
 {
 };
 
-message MsgSvrCli_UpdateFrame_Ans : 2
+message MsgSvrCli_UpdateFrame_Ans	: 00022
 {
 	ErrorCode error_code;
 	uint32 frame;
 };
 
-message MsgCliSvr_JoinChannel_Req : 00010001
+message MsgCliSvr_JoinChannel_Req	: 00031
 {
 };
 
-message MsgSvrCli_JoinChannel_Ans : 00010001
+message MsgSvrCli_JoinChannel_Ans	: 00032
 {
 	ErrorCode error_code;
 	uint32 channel_seq;
 	list<UserData> user_datas;
 };
 
-message MsgSvrCli_JoinChannel_Ntf : 10010001
+message MsgSvrCli_JoinChannel_Ntf	: 00033
 {
 	uint32 user_count;
 	UserData new_user_data;
 };
 
-message MsgCliSvr_SendMessage_Req : 0020
+message MsgCliSvr_SendMessage_Req	: 00041
 {
 	string text;
 };
 
-message MsgSvrCli_SendMessage_Ans : 2020
+message MsgSvrCli_SendMessage_Ans	: 00042
 {
 	ErrorCode error_code;
 };
 
-message MsgCliSvr_SendMessage_Ntf : 1020
+message MsgSvrSvr_SendMessage_Req	: 00043
 {
 	string text;
 };
 
-message MsgSvrCli_SendMessage_Ntf : 1020
-{
-	string user_id;
-	string text;
-};
-
-message MsgSvrSvr_SendMessage_Ntf : 1022
-{
-	string user_id;
-	string text;
-};
-
-message MsgCliSvr_LeaveChannel_Req : 00010003
-{
-};
-
-message MsgSvrCli_LeaveChannel_Ans : 00010003
+message MsgSvrSvr_SendMessage_Ans	: 00044
 {
 	ErrorCode error_code;
 };
 
-message MsgSvrCli_LeaveChannel_Ntf : 10010003
+message MsgCliSvr_SendMessage_Ntf	: 00045
+{
+	string text;
+};
+
+message MsgSvrCli_SendMessage_Ntf	: 00046
+{
+	string text;
+};
+
+message MsgSvrSvr_SendMessage_Ntf	: 00047
+{
+	string text;
+};
+
+message MsgCliSvr_LeaveChannel_Req	: 00051
+{
+};
+
+message MsgSvrCli_LeaveChannel_Ans	: 00052
+{
+	ErrorCode error_code;
+};
+
+message MsgSvrCli_LeaveChannel_Ntf	: 00053
 {
 	UserData leave_user_data;
 };
 
-message MsgSvrCli_Kickout_Ntf : 10000003
+message MsgSvrCli_Kickout_Ntf		: 00061
 {
 	ErrorCode error_code;
 };
 
-message MsgCliSvr_HeartBeat_Ntf : 10000004
+message MsgCliSvr_HeartBeat_Ntf		: 00071
 {
 	int32 msg_seq;
 };
 
-message MsgSvrCli_HeartBeat_Ntf : 10000004
+message MsgSvrCli_HeartBeat_Ntf		: 00072
 {
 	int32 msg_seq;
 };

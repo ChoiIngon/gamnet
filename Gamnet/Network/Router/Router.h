@@ -21,9 +21,9 @@ namespace Gamnet { namespace Network { namespace Router
 
 	class SendResult
 	{
-		uint32_t msg_seq;
+		uint64_t msg_seq;
 	public:
-		SendResult(uint32_t msgSEQ);
+		SendResult(uint64_t msgSEQ);
 		template<class MSG>
 		void WaitResponse(const std::shared_ptr<Network::Tcp::Session>& session, std::function<void()> onTimeout)
 		{
