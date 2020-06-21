@@ -49,9 +49,6 @@ namespace Gamnet { namespace Network { namespace Router
 			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", MSG::MSG_ID, ")");
 		}
 
-		packet->msg_seq = 0;
-		packet->reliable = false;
-
 		if(false == packet->Write(msg))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MSG::MSG_ID, ")");
