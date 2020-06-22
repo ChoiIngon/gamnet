@@ -47,7 +47,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		if(1 == wait_responses.size())
 		{
 			expire_timer.AutoReset(true);
-			expire_timer.SetTimer(5000, std::bind(&Dispatcher::HandlerFunctor::OnTimeout, this));
+			expire_timer.SetTimer(1000, std::bind(&Dispatcher::HandlerFunctor::OnTimeout, this));
 		}
 	}
 

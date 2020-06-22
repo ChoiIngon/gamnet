@@ -22,8 +22,7 @@ void UserSession::OnAccept()
 
 void UserSession::OnClose(int reason)
 {
-	//Gamnet::Singleton<Manager_Session>::GetInstance().Remove(user_data.UserID);
-	//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", session_key, "] OnClose");
+	LOG(INF, "[", session_key, "] OnClose");
 }
 
 void UserSession::OnDestroy()

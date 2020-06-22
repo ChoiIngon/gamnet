@@ -32,7 +32,6 @@ bool Session::Init()
 
 void Session::Clear()
 {
-	session_key = 0;
 }
 
 void Session::AsyncSend(const char* data, size_t length)

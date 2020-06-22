@@ -34,7 +34,7 @@ namespace Gamnet { namespace Network { namespace Router
 			session->handler_container.Register(msg_seq, session->current_handler);
 
 			std::shared_ptr<Dispatcher::WaitResponse> waitResponse = std::make_shared<Dispatcher::WaitResponse>();
-			waitResponse->expire_time = time(nullptr) + 60;
+			waitResponse->expire_time = time(nullptr) + 10;
 			waitResponse->on_timeout = onTimeout;
 			waitResponse->session = session;
 			Singleton<Dispatcher>::GetInstance().RegisterWaitResponse(MSG::MSG_ID, msg_seq, waitResponse);
