@@ -25,6 +25,10 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, const std::share
 void RouterCasterImpl_Uni::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::shared_ptr<Session> router_session = FindSession(addr);
+	if(nullptr == router_session)
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "router_address:", addr.ToString());
+	}
 	router_session->AsyncSend(packet);
 }
 
