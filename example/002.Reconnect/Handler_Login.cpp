@@ -14,30 +14,30 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 {
 	MsgCliSvr_Login_Req req;
 	MsgSvrCli_Login_Ans ans;
-	ans.ErrorCode = GErrorCode::Success;
-	ans.UserData.UserID = "";
-	ans.UserData.UserSEQ = 0;
+	ans.error_code = ErrorCode::Success;
+	ans.user_data.user_id = "";
+	ans.user_data.user_seq = 0;
 
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(DEV, "MsgCliSvr_Login_Req(user_id:", req.UserID,")");
+		LOG(DEV, "MsgCliSvr_Login_Req(user_id:", req.user_id,")");
 		
-		std::shared_ptr<GUserData> userData = session->component->AddComponent<GUserData>();
-		userData->UserID = req.UserID;
-		userData->UserSEQ = ++USER_SEQ;
-		userData->Frame = 1;
-		ans.UserData = *userData;
+		std::shared_ptr<UserData> userData = session->AddComponent<UserData>();
+		userData->user_id = req.user_id;
+		userData->user_seq = ++USER_SEQ;
+		userData->frame = 1;
+		ans.user_data = *userData;
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		ans.ErrorCode = (GErrorCode)e.error_code();
+		ans.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_Login_Ans(error_code:", (int)ans.ErrorCode, ", user_seq:", ans.UserData.UserSEQ, ")");
+	LOG(DEV, "MsgSvrCli_Login_Ans(error_code:", (int)ans.error_code, ", user_seq:", ans.user_data.user_seq, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
@@ -51,7 +51,7 @@ GAMNET_BIND_TCP_HANDLER(
 void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_Login_Req req;
-	req.UserID = "UserID";
+	req.user_id = "UserID";
 //	LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Req");
 	session->socket = nullptr;
 	Gamnet::Test::SendMsg(session, req);
@@ -63,7 +63,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 //		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Ans");
 	}

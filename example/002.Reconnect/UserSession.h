@@ -4,7 +4,9 @@
 #include <Gamnet.h>
 #include "../idl/Message.h"
 
-class UserSession : public Gamnet::Network::Tcp::Session 
+class UserSession 
+	: public Gamnet::Network::Tcp::Session
+	, public Gamnet::Component
 {
 public:
 	UserSession();

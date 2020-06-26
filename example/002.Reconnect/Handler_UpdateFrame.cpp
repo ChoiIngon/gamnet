@@ -14,31 +14,31 @@ void Handler_UpdateFrame::Recv_Req(const std::shared_ptr<UserSession>& session, 
 {
 	MsgCliSvr_UpdateFrame_Req req;
 	MsgSvrCli_UpdateFrame_Ans ans;
-	ans.ErrorCode = GErrorCode::Success;
-	ans.Frame = 0;
+	ans.error_code = ErrorCode::Success;
+	ans.frame = 0;
 
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_UpdateFrame_Req()");
 
-		std::shared_ptr<GUserData> userData = session->component->GetComponent<GUserData>();
+		std::shared_ptr<UserData> userData = session->GetComponent<UserData>();
 		if(nullptr == userData)
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::InvalidUserError);
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError);
 		}
-		userData->Frame++;
-		ans.Frame = userData->Frame;
+		userData->frame++;
+		ans.frame = userData->frame;
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		ans.ErrorCode = (GErrorCode)e.error_code();
+		ans.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_UpdateFrame_Ans(error_code:", (int)ans.ErrorCode, ")");
+	LOG(DEV, "MsgSvrCli_UpdateFrame_Ans(error_code:", (int)ans.error_code, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
@@ -62,7 +62,7 @@ void Test_UpdateFrame_Ans(const std::shared_ptr<TestSession>& session, const std
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 		//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUpdateFrame_Ans");
 	}
