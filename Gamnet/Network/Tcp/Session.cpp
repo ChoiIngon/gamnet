@@ -55,7 +55,7 @@ void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 	if (true == packet->reliable)
 	{
 		auto self = std::static_pointer_cast<Session>(shared_from_this());
-		strand->wrap([self](const std::shared_ptr<Packet> packet) {
+		strand->dispatch([self, packet]() {
 			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= self->send_packets.size())
 			{
 				self->handover_safe = false;
@@ -69,7 +69,7 @@ void Session::AsyncSend(const std::shared_ptr<Packet> packet)
 			{
 				self->FlushSend();
 			}
-		})(packet);
+		});
 		return;
 	}
 
@@ -126,7 +126,7 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 void Session::Close(int reason)
 {
 	auto self(shared_from_this());
-	strand->wrap([self](int reason) {
+	strand->dispatch([self, reason]() {
 		std::shared_ptr<Session> session = std::static_pointer_cast<Session>(self);
 		if (nullptr != session->socket)
 		{
@@ -139,7 +139,7 @@ void Session::Close(int reason)
 			session->OnDestroy();
 			session->session_manager->Remove(session);
 		}
-	})(reason);
+	});
 }
 
 }}}

@@ -40,6 +40,7 @@ namespace Gamnet { namespace Network { namespace Router
 			Singleton<Dispatcher>::GetInstance().RegisterWaitResponse(MSG::MSG_ID, msg_seq, waitResponse);
 		}
 	};
+
 	template <class MSG>
 	SendResult SendMsg(const Address& addr, const MSG& msg)
 	{

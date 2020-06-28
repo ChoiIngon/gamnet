@@ -44,14 +44,14 @@ void Session::AsyncSend(const char* data, size_t length)
 void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	auto self = shared_from_this();
-	strand->wrap([self] (const std::shared_ptr<Buffer>& buffer) {
+	strand->dispatch([self, buffer] () {
 		bool needFlush = self->send_buffers.empty();
 		self->send_buffers.push_back(buffer);
 		if (true == needFlush)
 		{
 			self->FlushSend();
 		}
-	})(buffer);
+	});
 }
 
 void Session::FlushSend()
@@ -92,7 +92,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	std::promise<int> promise;
 	auto self = shared_from_this();
-	strand->wrap([self, &promise](const std::shared_ptr<Buffer> buffer) {
+	strand->dispatch([self, &promise, buffer]() {
 		if (nullptr == self->socket)
 		{
 			LOG(ERR, "invalid link[session_key:", self->session_key, "]");
@@ -128,7 +128,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 			}
 		}
 		promise.set_value(totalSentBytes);
-	})(buffer);
+	});
 	return promise.get_future().get();
 }
 
@@ -142,7 +142,7 @@ int Session::SyncSend(const char* data, int length)
 void Session::Close(int reason)
 {
 	auto self(shared_from_this());
-	strand->wrap([self](int reason) {
+	strand->dispatch([self, reason]() {
 		if (nullptr == self->socket)
 		{
 			return;
@@ -151,7 +151,7 @@ void Session::Close(int reason)
 		self->socket = nullptr;
 		self->OnDestroy();
 		self->session_manager->Remove(self);
-	})(reason);
+	});
 }
 
 void Session::AsyncRead()
@@ -192,6 +192,10 @@ void Session::AsyncRead()
 		}
 		self->AsyncRead();
 	}));
+}
+
+void Session::PostTask(std::function<void()> task)
+{
 }
 
 }} /* namespace Gamnet */

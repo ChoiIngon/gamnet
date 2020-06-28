@@ -22,9 +22,9 @@ namespace Gamnet { namespace Network { namespace Router {
 				std::shared_ptr<Network::Tcp::Session> session = waitResponse->session;
 				
 				waitResponse->on_timeout();
-				session->strand->wrap([session, msgSEQ](){
+				session->strand->dispatch([session, msgSEQ](){
 					session->handler_container.Find(msgSEQ);
-				})();
+				});
 				expiredMsgSEQs.push_back(msgSEQ);
 			}
 		}
@@ -116,7 +116,7 @@ namespace Gamnet { namespace Network { namespace Router {
 				return;
 			}
 			
-			session->strand->wrap([=]() {
+			session->strand->dispatch([=]() {
 				std::shared_ptr<Network::IHandler> handler = handlerFunctor->factory_->GetHandler(&session->handler_container, from.msg_seq);
 				if (nullptr == handler)
 				{
@@ -130,7 +130,7 @@ namespace Gamnet { namespace Network { namespace Router {
 				{
 					LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
 				}
-			})();
+			});
 		}
 		else
 		{

@@ -62,6 +62,6 @@ void Session::Close(int reason)
 void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet> packet)
 {
 	auto self(shared_from_this());
-	strand->wrap(boost::bind(&Network::SessionManager::OnReceive, session_manager, self, packet))();
+	strand->dispatch(boost::bind(&Network::SessionManager::OnReceive, session_manager, self, packet));
 }
 }}} /* namespace Gamnet */

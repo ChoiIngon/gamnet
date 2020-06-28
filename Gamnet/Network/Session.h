@@ -64,7 +64,6 @@ namespace Gamnet { namespace Network {
 		
 		virtual void Close(int reason);
 		void AsyncRead();
-
 	protected :
 		void FlushSend();
 

@@ -95,7 +95,7 @@ public:
 			std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
 			session->Close( ErrorCode::Success );
 			
-			prevSession->strand->wrap([=](const std::shared_ptr<boost::asio::ip::tcp::socket> socket) {
+			prevSession->strand->dispatch([=]() {
 				prevSession->socket = socket;
 
 				Json::FastWriter writer;
@@ -116,7 +116,7 @@ public:
 					prevSession->AsyncSend(ansPacket);
 				}
 				prevSession->AsyncRead();
-			})(socket);
+			});
 			return;
 		}
 		catch (const Exception& e)
@@ -186,7 +186,6 @@ public:
 		//LOG(INF, "[", link->link_manager->name, "/", link->link_key, "/", link->session->session_key , "] Recv_Close_Req");
 
 		session->handover_safe = false;
-		//link->strand.wrap(std::bind(&Network::Tcp::LinkManager<SESSION_T>::OnClose, link->link_manager, link, ErrorCode::Success));
 
 		std::shared_ptr<Packet> ansPacket = Packet::Create();
 		if (nullptr == ansPacket)

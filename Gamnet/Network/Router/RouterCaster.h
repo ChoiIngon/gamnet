@@ -15,8 +15,9 @@ struct RouterCasterImpl {
 	RouterCasterImpl() {}
 	virtual ~RouterCasterImpl() {}
 	virtual bool RegisterAddress(const Address& addr, const std::shared_ptr<Session>& router_session) = 0;
-	virtual void SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet) = 0;
+	virtual bool SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet) = 0;
 	virtual bool UnregisterAddress(const Address& addr) = 0;
+	virtual std::shared_ptr<Session> FindSession(const Address& addr) = 0;
 };
 
 struct RouterCasterImpl_Uni : public RouterCasterImpl
@@ -27,9 +28,9 @@ private :
 
 public :
 	virtual bool RegisterAddress(const Address& addr, const std::shared_ptr<Session>& router_session) override;
-	virtual void SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet) override;
+	virtual bool SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet) override;
 	virtual bool UnregisterAddress(const Address& addr) override;
-	std::shared_ptr<Session> FindSession(const Address& addr);
+	virtual std::shared_ptr<Session> FindSession(const Address& addr) override;
 };
 
 struct RouterCasterImpl_Multi : public RouterCasterImpl
@@ -40,8 +41,9 @@ private :
 
 public :
 	virtual bool RegisterAddress(const Address& addr, const std::shared_ptr<Session>& router_session) override;
-	virtual void SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet) override;
+	virtual bool SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet) override;
 	virtual bool UnregisterAddress(const Address& addr) override;
+	virtual std::shared_ptr<Session> FindSession(const Address& addr) override;
 };
 
 struct RouterCasterImpl_Any : public RouterCasterImpl
@@ -54,8 +56,9 @@ private :
 	RoutingTableMap route_table_;
 public :
 	virtual bool RegisterAddress(const Address& addr, const std::shared_ptr<Session>& router_session) override;
-	virtual void SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet) override;
+	virtual bool SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet) override;
 	virtual bool UnregisterAddress(const Address& addr) override;
+	virtual std::shared_ptr<Session> FindSession(const Address& addr) override;
 };
 
 struct RouterCaster
@@ -67,7 +70,7 @@ private :
 public :
 	RouterCaster();
 	bool RegisterAddress(const Address& addr, std::shared_ptr<Session> router_session);
-	void SendMsg(const Address& addr, const std::shared_ptr<Buffer>& buffer);
+	bool SendMsg(const Address& addr, const std::shared_ptr<Buffer>& buffer);
 	bool UnregisterAddress(const Address& addr);
 	std::shared_ptr<Session> FindSession(const Address& addr);
 };
