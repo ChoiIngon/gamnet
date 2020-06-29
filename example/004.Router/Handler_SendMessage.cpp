@@ -22,7 +22,8 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		LOG(INF, "--- [RECV] MsgCliSvr_SendMessage_Req(session_key:", session->session_key, ", message:", reqCliSvr.text, ")");
 		reqSvrSvr.text = reqCliSvr.text;
 
-		std::string serviceName = "";
+		std::string serviceName = "ROUTER_1";
+		/*
 		if ("ROUTER_1" == Gamnet::Network::Router::GetRouterAddress().service_name)
 		{
 			serviceName = "ROUTER_2";
@@ -35,16 +36,21 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSeviceName, "(service_name:", Gamnet::Network::Router::GetRouterAddress().service_name, ")");
 		}
+		*/
+		this->session = session;
+
 		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::ANY_CAST, serviceName, 0);
-		dest.msg_seq = ++MESSAGE_SEQ;
-		Gamnet::Network::Router::SendMsg(dest, reqSvrSvr).WaitResponse<MsgSvrSvr_SendMessage_Ans>(session, [session]() {
+		LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Req(router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
+
+		if(false == Gamnet::Network::Router::SendMsg(dest, reqSvrSvr).WaitResponse<MsgSvrSvr_SendMessage_Ans>(session, [session]() {
 			MsgSvrCli_SendMessage_Ans ans;
 			ans.error_code = ErrorCode::ResponseTimeoutError;
 			LOG(INF, "--- [SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ans.error_code, ")");
 			Gamnet::Network::Tcp::SendMsg(session, ans);
-		});
-		this->session = session;
-		LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Req(router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
+		}, 500))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidSeviceName, "(service_name:", Gamnet::Network::Router::GetRouterAddress().service_name, ")");
+		}
 		return;
 	}
 	catch (const Gamnet::Exception& e)
@@ -52,8 +58,8 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ansSvrCli.error_code = (ErrorCode)e.error_code();
 	}
-	Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 	LOG(INF, "--- [SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrCli.error_code, ")");
+	Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 }
 
 GAMNET_BIND_TCP_HANDLER(
@@ -81,8 +87,8 @@ void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ansSvrSvr.error_code = (ErrorCode)e.error_code();
 	}
-	//Gamnet::Network::Router::SendMsg(address, ansSvrSvr);
 	LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Ans(router_address:", address.ToString(), ", error_code:", (int)ansSvrSvr.error_code, ")");
+	Gamnet::Network::Router::SendMsg(address, ansSvrSvr);
 }
 
 GAMNET_BIND_ROUTER_HANDLER(

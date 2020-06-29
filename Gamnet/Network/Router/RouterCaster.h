@@ -64,7 +64,7 @@ public :
 struct RouterCaster
 {
 private :
-	std::atomic<uint32_t> msg_seq;
+	std::atomic<uint64_t> msg_seq;
 	std::shared_ptr<RouterCasterImpl> arrCasterImpl_[(int)ROUTER_CAST_TYPE::MAX];
 
 public :

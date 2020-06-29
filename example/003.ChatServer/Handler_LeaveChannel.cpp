@@ -13,25 +13,25 @@ void Handler_LeaveChannel::Recv_Req(const std::shared_ptr<UserSession>& session,
 	MsgSvrCli_LeaveChannel_Ans ans;
 	MsgSvrCli_LeaveChannel_Ntf ntf;
 
-	ans.ErrorCode = GErrorCode::Success;
+	ans.error_code = ErrorCode::Success;
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		std::shared_ptr<GUserData> userData = session->component->GetComponent<GUserData>();
+		std::shared_ptr<UserData> userData = session->component->GetComponent<UserData>();
 		if (nullptr == userData)
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::InvalidUserError);
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError);
 		}
 
 		if (nullptr == session->chat_channel)
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::CanNotCreateCastGroup);
+			throw GAMNET_EXCEPTION(ErrorCode::CanNotCreateCastGroup);
 		}
 
-		ntf.LeaveUserData = *userData;
+		ntf.leave_user_data = *userData;
 
 		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(session->chat_channel);
 		lockedPtr->Remove(session);
@@ -43,7 +43,7 @@ void Handler_LeaveChannel::Recv_Req(const std::shared_ptr<UserSession>& session,
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		ans.ErrorCode = (GErrorCode)e.error_code();
+		ans.error_code = (ErrorCode)e.error_code();
 	}
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
@@ -68,9 +68,9 @@ void Test_LeaveChannel_Ans(const std::shared_ptr<TestSession>& session, const st
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
-		//LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_LeaveChannel_Ans(error_code:", ToString<GErrorCode>(ans.ErrorCode), ", channel_seq:", session->channel_seq, ")");
+		//LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_LeaveChannel_Ans(error_code:", ToString<ErrorCode>(ans.ErrorCode), ", channel_seq:", session->channel_seq, ")");
 		session->Next();
 	}
 	catch (const Gamnet::Exception& e) {
@@ -92,9 +92,9 @@ void Test_LeaveChannel_Ntf(const std::shared_ptr<TestSession>& session, const st
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
-		session->user_ids.erase(ntf.LeaveUserData.UserID);
+		session->user_ids.erase(ntf.leave_user_data.user_id);
 		//LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_LeaveChannel_Ntf(user_id:", ntf.LeaveUserData.UserID, ", channel_seq:", session->channel_seq, ", user_count:", session->user_ids.size(), ")");
 	}
 	catch (const Gamnet::Exception& e) {

@@ -21,28 +21,38 @@ namespace Gamnet { namespace Network { namespace Router
 
 	class SendResult
 	{
+		bool send_result;
 		uint64_t msg_seq;
 	public:
-		SendResult(uint64_t msgSEQ);
+		SendResult(bool sendResult, uint64_t msgSEQ);
 		template<class MSG>
-		void WaitResponse(const std::shared_ptr<Network::Tcp::Session>& session, std::function<void()> onTimeout)
+		bool WaitResponse(const std::shared_ptr<Network::Tcp::Session>& session, std::function<void()> onTimeout, int seconds = 5)
 		{
+			if(false == send_result)
+			{
+				return false;
+			}
+
 			if(nullptr == session->current_handler)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "current message handler is null");
+				LOG(ERR, "current message handler is null");
+				return false;
 			}
+
 			session->handler_container.Register(msg_seq, session->current_handler);
 
 			std::shared_ptr<Dispatcher::WaitResponse> waitResponse = std::make_shared<Dispatcher::WaitResponse>();
-			waitResponse->expire_time = time(nullptr) + 10;
+			waitResponse->expire_time = time(nullptr) + seconds;
 			waitResponse->on_timeout = onTimeout;
 			waitResponse->session = session;
 			Singleton<Dispatcher>::GetInstance().RegisterWaitResponse(MSG::MSG_ID, msg_seq, waitResponse);
 		}
-	};
 
+		operator bool();
+	};
+		
 	template <class MSG>
-	SendResult SendMsg(const Address& addr, const MSG& msg)
+	SendResult SendMsg(Address addr, const MSG& msg)
 	{
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
@@ -55,8 +65,8 @@ namespace Gamnet { namespace Network { namespace Router
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MSG::MSG_ID, ")");
 		}
 
-		Singleton<RouterCaster>::GetInstance().SendMsg(addr, packet);
-		return SendResult(addr.msg_seq);
+		bool sendResult = Singleton<RouterCaster>::GetInstance().SendMsg(addr, packet);
+		return SendResult(sendResult, addr.msg_seq);
 	}
 }}}
 

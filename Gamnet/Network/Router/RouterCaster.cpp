@@ -157,7 +157,7 @@ bool RouterCasterImpl_Any::SendMsg(const Address& addr, const std::shared_ptr<Tc
 	}
 
 	router_session->AsyncSend(packet);
-	return false;
+	return true;
 }
 
 bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)

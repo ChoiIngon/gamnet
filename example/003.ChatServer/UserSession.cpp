@@ -32,10 +32,10 @@ void UserSession::OnDestroy()
 	{
 		MsgSvrCli_LeaveChannel_Ntf ntf;
 
-		std::shared_ptr<GUserData> userData = component->GetComponent<GUserData>();
+		std::shared_ptr<UserData> userData = component->GetComponent<UserData>();
 		if (nullptr != userData)
 		{
-			ntf.LeaveUserData = *userData;
+			ntf.leave_user_data = *userData;
 		}
 
 		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(chat_channel);

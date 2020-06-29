@@ -114,7 +114,13 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 	}
 }
 
-SendResult::SendResult(uint64_t msgSEQ) : msg_seq(msgSEQ)
+SendResult::SendResult(bool sendResult, uint64_t msgSEQ) : send_result(sendResult), msg_seq(msgSEQ)
 {
 }
+
+SendResult::operator bool()
+{
+	return send_result;
+}
+
 }}}

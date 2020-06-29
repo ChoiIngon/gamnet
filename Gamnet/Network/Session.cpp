@@ -194,8 +194,4 @@ void Session::AsyncRead()
 	}));
 }
 
-void Session::PostTask(std::function<void()> task)
-{
-}
-
 }} /* namespace Gamnet */

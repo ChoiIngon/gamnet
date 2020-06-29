@@ -13,18 +13,18 @@ void Handler_SendMessage::Recv_Ntf(const std::shared_ptr<UserSession>& session, 
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntfCliSvr, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
 		//LOG(DEV, "MsgCliSvr_SendMessage_Ntf(session_key:", session->session_key, ", message:", ntfCliSvr.ChatMessage, ")");
 
 		if (nullptr == session->chat_channel)
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::CanNotCreateCastGroup);
+			throw GAMNET_EXCEPTION(ErrorCode::CanNotCreateCastGroup);
 		}
 		
 		MsgSvrCli_SendMessage_Ntf ntfSvrCli;
-		ntfSvrCli.Message = ntfCliSvr.Message;
+		ntfSvrCli.text = ntfCliSvr.text;
 
 		Gamnet::Network::Tcp::CastGroup::LockGuard lockedPtr(session->chat_channel);
 		lockedPtr->SendMsg(ntfSvrCli);
@@ -45,7 +45,7 @@ GAMNET_BIND_TCP_HANDLER(
 void TestCliSvr_SendMessage_Ntf(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_SendMessage_Ntf ntf;
-	ntf.Message = "Hello World";
+	ntf.text = "Hello World";
 	//LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_SendMessage_Ntf(channel_seq:", session->channel_seq, ", message:", ntf.Message, ")");
 	Gamnet::Test::SendMsg(session, ntf);
 }
@@ -56,7 +56,7 @@ void TestSvrCli_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, con
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
 		//LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_SendMessage_Ntf(channel_seq:", session->channel_seq, ", message:", ntf.Message, ")");
@@ -83,7 +83,7 @@ void TestSvrCli_SendMessage_Ignore(const std::shared_ptr<TestSession>& session, 
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntfSvrCli, packet))
 		{
-			throw GAMNET_EXCEPTION(GErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
 		session->recv_count++;
