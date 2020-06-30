@@ -36,6 +36,7 @@
     <ClCompile Include="Gamnet.cpp" />
     <ClCompile Include="Library\Base64.cpp" />
     <ClCompile Include="Library\Buffer.cpp" />
+    <ClCompile Include="Library\Debugs.cpp" />
     <ClCompile Include="Library\Exception.cpp" />
     <ClCompile Include="Library\Json\jsoncpp.cpp" />
     <ClCompile Include="Library\MD5.cpp" />
@@ -153,7 +154,7 @@
   <ItemGroup>
     <CustomBuild Include="Network\Router\MsgRouter.idl">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\x64\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Router\%(Filename).idl</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Router\%(Filename).h</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\x64\Debug\idlc.exe -lcpp Network\Router\%(Filename).idl</Message>
     </CustomBuild>
   </ItemGroup>

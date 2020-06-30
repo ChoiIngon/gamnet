@@ -46,6 +46,7 @@ namespace Gamnet { namespace Network { namespace Router
 			waitResponse->on_timeout = onTimeout;
 			waitResponse->session = session;
 			Singleton<Dispatcher>::GetInstance().RegisterWaitResponse(MSG::MSG_ID, msg_seq, waitResponse);
+			return true;
 		}
 
 		operator bool();

@@ -1,6 +1,9 @@
 #ifndef __GAMNET_LIB_DEBUGS_H_
 #define __GAMNET_LIB_DEBUGS_H_
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 namespace Gamnet {
 
 	template<class DERIVED_T, class BASE_T>
@@ -15,6 +18,10 @@ namespace Gamnet {
 	public:
 		enum { ASSERTION = sizeof(Check(static_cast<DERIVED_T*>(0))) == sizeof(Yes) };
 	};
+
+#ifdef _WIN32
+	LONG WINAPI UnhandledException(PEXCEPTION_POINTERS exception_pointers);
+#endif
 }
 
 #define GAMNET_WHERE(derived, base) static_assert(Gamnet::CheckDerived<derived, base>::ASSERTION, #derived " was not derived " #base " class")
