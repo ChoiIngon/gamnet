@@ -52,6 +52,57 @@ namespace Gamnet { namespace Network { namespace Router
 		operator bool();
 	};
 		
+	template <class REQ, class ANS>
+	bool SendMsg(const Address& addr, const REQ& req, std::shared_ptr<IHandler> handler, int seconds, std::function<void()> onTimeout)
+	{
+		std::shared_ptr<Session> session = Singleton<RouterCaster>::GetInstance().FindSession(addr);
+		if(nullptr == session)
+		{
+			LOG(ERR, "can not find route(route_address:", addr.ToString(), ")");
+			return false;
+		}
+
+		std::shared_ptr<Network::Tcp::Packet> buffer = Network::Tcp::Packet::Create();
+		if(nullptr == buffer)
+		{
+			LOG(ERR, "fail to create packet instance(msg_id:", REQ::MSG_ID, ")");
+			return false;
+		}
+
+		if(false == buffer->Write(req))
+		{
+			LOG(ERR, "fail to serialize message(msg_id:", REQ::MSG_ID, ")");
+			return false;
+		}
+
+		MsgRouter_SendMsg_Ntf ntf;
+		ntf.msg_seq = ++session->send_seq;
+		ntf.buffer.assign(buffer->ReadPtr(), buffer->Size());
+
+		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+		if(nullptr == packet)
+		{
+			LOG(ERR, "fail to create packet instance(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");
+			return false;
+		}
+
+		if(false == packet->Write(ntf))
+		{
+			LOG(ERR, "fail to serialize message(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");
+			return false;
+		}
+
+		if((unsigned int)ROUTER_CAST_TYPE::MAX <= (unsigned int)addr.cast_type)
+		{
+			LOG(ERR, "cast_type:", (unsigned int)addr.cast_type, " is undefined cast_type");
+			return false;
+		}
+
+		session->handler_container.Register(++session->send_seq, handler);
+		session->AsyncSend(packet);
+		return true;
+	}
+
 	template <class MSG>
 	SendResult SendMsg(Address addr, const MSG& msg)
 	{

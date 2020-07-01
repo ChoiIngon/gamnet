@@ -10,18 +10,34 @@ namespace Gamnet { namespace Network { namespace Router {
 class Session : public Network::Tcp::Session 
 {
 public:
+	struct ResponseTimeout
+	{
+		time_t expire_time;
+		std::function<void()> on_timeout;
+	};
 
+public :
 	Session();
 	virtual ~Session();
 
+public :
 	Address							router_address;
-		
+private :
+	Time::Timer expire_timer;
+	std::map<uint64_t, std::shared_ptr<ResponseTimeout>> response_timeouts;
+
+public :		
 	virtual void OnCreate() override;
 	virtual void OnAccept() override;
 	virtual void OnConnect();
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 	virtual void Close(int reason) override;
+
+	//void AsyncSend(const std::shared_ptr<Tcp::Packet> packet, uint32_t responseMsgID, std::shared_ptr<IHandler> handler, int seconds, std::function<void()> onTimeout);
+
+private :
+	void OnResponseTimeout();
 };
 
 class LocalSession : public Session
