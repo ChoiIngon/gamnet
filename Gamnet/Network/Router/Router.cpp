@@ -113,7 +113,7 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 		throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, e.what());
 	}
 }
-
+/*
 SendResult::SendResult(bool sendResult, uint64_t msgSEQ) : send_result(sendResult), msg_seq(msgSEQ)
 {
 }
@@ -122,5 +122,5 @@ SendResult::operator bool()
 {
 	return send_result;
 }
-
+*/
 }}}

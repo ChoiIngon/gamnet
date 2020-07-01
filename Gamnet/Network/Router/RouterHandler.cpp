@@ -119,15 +119,15 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 
 	Address addr = session->router_address;
 	addr.msg_seq = ntf.msg_seq;
-	std::shared_ptr<Network::Tcp::Packet> session_packet = Network::Tcp::Packet::Create();
-	if (nullptr == session_packet)
+	std::shared_ptr<Network::Tcp::Packet> buffer = Network::Tcp::Packet::Create();
+	if (nullptr == buffer)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
 	}
 
-	session_packet->Append(ntf.buffer.c_str(), ntf.buffer.length());
-	session_packet->ReadHeader();
-	Singleton<Dispatcher>::GetInstance().OnReceive(addr, session_packet);
+	buffer->Append(ntf.buffer.c_str(), ntf.buffer.length());
+	buffer->ReadHeader();
+	Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
 }
 
 void RouterHandler::Recv_HeartBeat_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)

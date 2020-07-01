@@ -157,6 +157,7 @@
     <ClCompile Include="Gamnet.cpp" />
     <ClCompile Include="library\Base64.cpp" />
     <ClCompile Include="library\Buffer.cpp" />
+    <ClCompile Include="Library\Debugs.cpp" />
     <ClCompile Include="library\Exception.cpp" />
     <ClCompile Include="Library\Json\jsoncpp.cpp" />
     <ClCompile Include="library\MD5.cpp" />

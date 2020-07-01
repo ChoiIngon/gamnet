@@ -18,7 +18,7 @@ namespace Gamnet { namespace Network { namespace Router
 	{
 		return Singleton<Dispatcher>::GetInstance().BindHandler(msg_id, func, factory);
 	}
-
+	/*
 	class SendResult
 	{
 		bool send_result;
@@ -51,7 +51,7 @@ namespace Gamnet { namespace Network { namespace Router
 
 		operator bool();
 	};
-		
+	*/	
 	template <class REQ, class ANS>
 	bool SendMsg(const Address& addr, const REQ& req, std::shared_ptr<IHandler> handler, int seconds, std::function<void()> onTimeout)
 	{
@@ -104,7 +104,7 @@ namespace Gamnet { namespace Network { namespace Router
 	}
 
 	template <class MSG>
-	SendResult SendMsg(Address addr, const MSG& msg)
+	bool SendMsg(Address addr, const MSG& msg)
 	{
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 		if(nullptr == packet)
@@ -117,8 +117,7 @@ namespace Gamnet { namespace Network { namespace Router
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MSG::MSG_ID, ")");
 		}
 
-		bool sendResult = Singleton<RouterCaster>::GetInstance().SendMsg(addr, packet);
-		return SendResult(sendResult, addr.msg_seq);
+		return Singleton<RouterCaster>::GetInstance().SendMsg(addr, packet);
 	}
 }}}
 

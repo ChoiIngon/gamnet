@@ -59,7 +59,6 @@ void Session::Close(int reason)
 	session_manager->Remove(shared_from_this());
 }
 
-/*
 void Session::AsyncSend(const std::shared_ptr<Tcp::Packet> packet, uint32_t responseMsgID, std::shared_ptr<IHandler> handler, int seconds, std::function<void()> onTimeout)
 {
 	handler_container.Register(packet->msg_seq, handler);
@@ -78,8 +77,24 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet> packet, uint32_t resp
 	});
 	Network::Session::AsyncSend(packet);
 }
-*/
 
+const std::shared_ptr<Session::ResponseTimeout> Session::FindResponseTimeout(uint32_t msgSEQ)
+{
+	std::shared_ptr<ResponseTimeout> timeout = nullptr;
+	strand->dispatch([this, msgSEQ, &timeout](){
+		auto itr = response_timeouts.find(msgSEQ);
+		if (response_timeouts.end() != itr)
+		{
+			timeout = itr->second;
+			response_timeouts.erase(msgSEQ);
+		}
+		if (0 == response_timeouts.size())
+		{
+			expire_timer.Cancel();
+		}
+	});
+	return timeout;
+}
 void Session::OnResponseTimeout()
 {
 	time_t now = time(nullptr);

@@ -42,6 +42,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::ANY_CAST, serviceName, 0);
 		LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Req(router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
 
+		/*
 		if(false == Gamnet::Network::Router::SendMsg(dest, reqSvrSvr).WaitResponse<MsgSvrSvr_SendMessage_Ans>(session, [session]() {
 			MsgSvrCli_SendMessage_Ans ans;
 			ans.error_code = ErrorCode::ResponseTimeoutError;
@@ -51,6 +52,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSeviceName, "(service_name:", Gamnet::Network::Router::GetRouterAddress().service_name, ")");
 		}
+		*/
 		return;
 	}
 	catch (const Gamnet::Exception& e)

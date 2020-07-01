@@ -11,7 +11,7 @@
 #include "../HandlerFactory.h"
 #include "MsgRouter.h"
 #include "../Tcp/Packet.h"
-#include "../Tcp/Session.h"
+#include "Session.h"
 #include "../../Library/Time/Timer.h"
 #include <functional>
 
@@ -21,30 +21,13 @@ class Dispatcher
 {
 	typedef void(Network::IHandler::*function_type)(const Address&, const std::shared_ptr<Network::Tcp::Packet>&);
 public :
-	struct WaitResponse
-	{
-		time_t expire_time;
-		std::function<void()> on_timeout;
-		std::shared_ptr<Network::Tcp::Session> session;
-	};
-	
 	class HandlerFunctor
 	{
-	private :
-		Time::Timer expire_timer;
-		std::mutex lock;
-		std::map<uint32_t, std::shared_ptr<WaitResponse>> wait_responses;
-
 	public :
 		HandlerFunctor();
 
 		Network::IHandlerFactory* factory_;
 		std::function<void(const std::shared_ptr<Network::IHandler>&, const Address&, const std::shared_ptr<Network::Tcp::Packet>&)> function_;
-
-		void RegisterWaitResponse(uint32_t msgSEQ, const std::shared_ptr<WaitResponse>& waitResponse);
-		const std::shared_ptr<WaitResponse> FindWaitResponse(uint32_t msgSEQ);
-	private :
-		void OnTimeout();
 	};
 
 	std::map<uint32_t, std::shared_ptr<HandlerFunctor>> handler_functors;
@@ -65,9 +48,8 @@ public:
 		}
 		return true;
 	}
-	
-	void RegisterWaitResponse(uint32_t msgID, uint32_t msgSEQ, const std::shared_ptr<WaitResponse>& waitResponse);
-	void OnReceive(const Address& from, const std::shared_ptr<Network::Tcp::Packet>& packet);
+
+	void OnReceive(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet);
 };
 } /* namespace Router */
 } /* namespace Gamnet */

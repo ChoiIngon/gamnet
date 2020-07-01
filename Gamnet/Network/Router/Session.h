@@ -34,8 +34,10 @@ public :
 	virtual void OnDestroy() override;
 	virtual void Close(int reason) override;
 
-	//void AsyncSend(const std::shared_ptr<Tcp::Packet> packet, uint32_t responseMsgID, std::shared_ptr<IHandler> handler, int seconds, std::function<void()> onTimeout);
+	using Network::Session::AsyncSend;
+	void AsyncSend(const std::shared_ptr<Tcp::Packet> packet, uint32_t responseMsgID, std::shared_ptr<IHandler> handler, int seconds, std::function<void()> onTimeout);
 
+	const std::shared_ptr<ResponseTimeout> FindResponseTimeout(uint32_t msgSEQ);
 private :
 	void OnResponseTimeout();
 };
