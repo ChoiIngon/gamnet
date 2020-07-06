@@ -9,6 +9,104 @@ namespace Gamnet { namespace Network { namespace Router {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
+Socket::Socket() 
+{
+	connector.connect_handler = std::bind(&Socket::OnConnect, this, std::placeholders::_1);
+}
+
+Socket::~Socket() 
+{
+}
+
+bool Socket::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
+{
+	remote_endpoint = endpoint;
+	return connector.SyncConnect(remote_endpoint.address().to_v4().to_string(), remote_endpoint.port(), 5);
+}
+
+bool Socket::Reconnect()
+{
+	return Connect(remote_endpoint);
+}
+
+void Socket::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
+{
+	this->socket = socket;
+	this->remote_endpoint = this->socket->remote_endpoint();
+
+	{
+		MsgRouter_RegisterAddress_Ntf ntf;
+		ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
+
+		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
+		packet->Write(ntf);
+		AsyncSend(packet);
+	}
+
+	/*{
+		std::shared_ptr<Tcp::Packet> packet = SyncRead();
+		MsgRouter_SetAddress_Ntf ntf;
+		Tcp::Packet::Load(ntf, packet);
+	}
+	*/
+}
+
+void Socket::Close(int reason)
+{
+	strand->dispatch([=](){
+		this->socket = nullptr;
+	});
+}
+
+std::shared_ptr<Tcp::Packet> Socket::SyncRead()
+{
+	// promise 써줘야 함. 다른 스레드에서 호출 됨.
+	std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
+	strand->dispatch([=](){
+		do {
+			if(nullptr == socket)
+			{
+				return nullptr;
+			}
+			if(0 == packet->Available())
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", packet->length, ")");
+			}
+
+			try {
+				int readBytes = boost::asio::read((*socket), boost::asio::buffer(packet->WritePtr(), packet->Available()));
+				if(0 == readBytes)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", packet->length, ")");
+				}
+				packet->write_index += readBytes;
+			}
+			catch(const boost::system::system_error& e)
+			{
+				Close(ErrorCode::Success);
+				throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", packet->length, ")");
+			}
+			if (Tcp::Packet::HEADER_SIZE > (int)packet->Size())
+			{
+				continue;
+			}
+
+			packet->ReadHeader();
+
+			if (Tcp::Packet::HEADER_SIZE > packet->length)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::BufferUnderflowError, "buffer underflow(read size:", packet->length, ")");
+			}
+
+			if (packet->length >= (uint16_t)packet->Capacity())
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", packet->length, ")");
+			}
+		} while (packet->length > (uint16_t)packet->Size());
+	});
+	return packet;
+}
+
 Session::Session() 
 	: Network::Tcp::Session()
 {
@@ -58,26 +156,7 @@ void Session::Close(int reason)
 	OnDestroy();
 	session_manager->Remove(shared_from_this());
 }
-
-void Session::AsyncSend(const std::shared_ptr<Tcp::Packet> packet, uint32_t responseMsgID, std::shared_ptr<IHandler> handler, int seconds, std::function<void()> onTimeout)
-{
-	handler_container.Register(packet->msg_seq, handler);
-
-	std::shared_ptr<ResponseTimeout> timeout = std::make_shared<ResponseTimeout>();
-	timeout->expire_time = time(nullptr) + seconds;
-	timeout->on_timeout = onTimeout;
-
-	strand->dispatch([=](){
-		response_timeouts[packet->msg_seq] = timeout;
-		if(1 == response_timeouts.size())
-		{
-			expire_timer.AutoReset(true);
-			expire_timer.SetTimer(1000, strand->wrap(std::bind(&Session::OnResponseTimeout, this)));
-		}
-	});
-	Network::Session::AsyncSend(packet);
-}
-
+/*
 const std::shared_ptr<Session::ResponseTimeout> Session::FindResponseTimeout(uint32_t msgSEQ)
 {
 	std::shared_ptr<ResponseTimeout> timeout = nullptr;
@@ -95,6 +174,7 @@ const std::shared_ptr<Session::ResponseTimeout> Session::FindResponseTimeout(uin
 	});
 	return timeout;
 }
+
 void Session::OnResponseTimeout()
 {
 	time_t now = time(nullptr);
@@ -121,10 +201,27 @@ void Session::OnResponseTimeout()
 		expire_timer.Cancel();
 	}
 }
+*/
+std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout)
+{
+	std::shared_ptr<Socket> session = pool.Create();
+	if(nullptr == session->socket)
+	{
+		if(nullptr == this->socket)
+		{
+			return nullptr;
+		}
+		session->Connect(this->socket->remote_endpoint());
+	}
+	session->AsyncSend(packet);
+	return session->SyncRead();
+}
 
 void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet> packet)
 {
 	auto self(shared_from_this());
 	strand->post(boost::bind(&Network::SessionManager::OnReceive, session_manager, self, packet));
 }
+
+
 }}} /* namespace Gamnet */

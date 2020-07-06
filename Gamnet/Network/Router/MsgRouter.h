@@ -410,6 +410,47 @@ struct MsgRouter_HeartBeat_Ntf_Serializer {
 	static bool Load(MsgRouter_HeartBeat_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static size_t Size(const MsgRouter_HeartBeat_Ntf& obj) { return obj.Size(); }
 };
+struct MsgRouter_RegisterAddress_Ntf {
+	enum { MSG_ID = 6 }; 
+	Address	router_address;
+	MsgRouter_RegisterAddress_Ntf()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += Address_Serializer::Size(router_address);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == Address_Serializer::Store(_buf_, router_address)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == Address_Serializer::Load(router_address, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgRouter_RegisterAddress_Ntf
+struct MsgRouter_RegisterAddress_Ntf_Serializer {
+	static bool Store(char** _buf_, const MsgRouter_RegisterAddress_Ntf& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgRouter_RegisterAddress_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgRouter_RegisterAddress_Ntf& obj) { return obj.Size(); }
+};
 
 }}}
 

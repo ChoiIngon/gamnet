@@ -128,6 +128,12 @@ message MsgRouter_SendMsg_Ntf : 	00004
 message MsgRouter_HeartBeat_Ntf :	00005
 {
 };
+
+message MsgRouter_RegisterAddress_Ntf : 00006
+{
+	Address router_address;
+};
+
 .cpp %%
 }}}
 %%

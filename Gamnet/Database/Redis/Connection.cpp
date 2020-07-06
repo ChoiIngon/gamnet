@@ -17,7 +17,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	bool Connection::Connect(const ConnectionInfo& connInfo)
 	{
 		connection_info = connInfo;
-		return connector.SyncConnect(connection_info.host.c_str(), connection_info.port, 5);
+		return connector.SyncConnect(connection_info.host, connection_info.port, 5);
 	}
 
 	bool Connection::Reconnect()

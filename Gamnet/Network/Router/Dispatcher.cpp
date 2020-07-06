@@ -29,6 +29,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		std::shared_ptr<Network::IHandler> handler = nullptr;
 		if (Network::IHandlerFactory::HANDLER_FACTORY_FIND == handlerFunctor->factory_->GetFactoryType())
 		{
+			/*
 			std::shared_ptr<Session::ResponseTimeout> timeout = session->FindResponseTimeout(packet->msg_seq);
 			if(nullptr == timeout)
 			{
@@ -37,6 +38,7 @@ namespace Gamnet { namespace Network { namespace Router {
 			}
 
 			handler = handlerFunctor->factory_->GetHandler(&session->handler_container, packet->msg_seq);
+			*/
 		}
 		else
 		{

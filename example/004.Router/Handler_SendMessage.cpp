@@ -23,7 +23,6 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		reqSvrSvr.text = reqCliSvr.text;
 
 		std::string serviceName = "ROUTER_1";
-		/*
 		if ("ROUTER_1" == Gamnet::Network::Router::GetRouterAddress().service_name)
 		{
 			serviceName = "ROUTER_2";
@@ -36,7 +35,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSeviceName, "(service_name:", Gamnet::Network::Router::GetRouterAddress().service_name, ")");
 		}
-		*/
+
 		this->session = session;
 
 		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::ANY_CAST, serviceName, 0);
@@ -53,6 +52,33 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSeviceName, "(service_name:", Gamnet::Network::Router::GetRouterAddress().service_name, ")");
 		}
 		*/
+		
+		auto s = Gamnet::Singleton<Gamnet::Network::Router::RouterCaster>::GetInstance().FindSession(dest);
+		if (nullptr == s)
+		{
+			return;
+		}
+
+		std::shared_ptr<Gamnet::Network::Tcp::Packet> buffer = Gamnet::Network::Tcp::Packet::Create();
+
+		buffer->Write(reqSvrSvr);
+
+		Gamnet::Network::Router::MsgRouter_SendMsg_Ntf ntf;
+		ntf.msg_seq = ++s->send_seq;
+		ntf.buffer.assign(buffer->ReadPtr(), buffer->Size());
+
+		std::shared_ptr<Gamnet::Network::Tcp::Packet> send = Gamnet::Network::Tcp::Packet::Create();
+		send->Write(ntf);
+		std::shared_ptr<Gamnet::Network::Tcp::Packet> result = s->SyncSend(send);
+
+		ntf.msg_seq = 0;
+		ntf.buffer.clear();
+		Gamnet::Network::Tcp::Packet::Load(ntf, result);
+
+		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
+		std::shared_ptr<Gamnet::Network::Tcp::Packet> recvPacket = Gamnet::Network::Tcp::Packet::Create();
+		recvPacket->Append(ntf.buffer.c_str(), ntf.buffer.length());
+		Gamnet::Network::Tcp::Packet::Load(ansSvrSvr, recvPacket);
 		return;
 	}
 	catch (const Gamnet::Exception& e)

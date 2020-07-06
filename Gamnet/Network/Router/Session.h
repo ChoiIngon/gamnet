@@ -3,9 +3,37 @@
 
 #include "MsgRouter.h"
 #include "../Tcp/Session.h"
+#include "../Tcp/Connector.h"
 #include "../../Library/Time/Time.h"
 
 namespace Gamnet { namespace Network { namespace Router {
+
+class Socket : public Network::Session
+{
+public :
+	
+public :
+	Socket();
+	~Socket();
+
+	bool Connect(const boost::asio::ip::tcp::endpoint& endpoint);
+	bool Reconnect();
+	
+	std::shared_ptr<Tcp::Packet> SyncRead();
+
+	virtual void OnCreate() override {}
+	virtual void OnAccept() override {}
+	virtual void OnClose(int reason) override {};
+	virtual void OnDestroy() override {};
+	virtual void Close(int reason);
+protected:
+	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override {}
+
+private :
+	Tcp::Connector connector;
+	boost::asio::ip::tcp::endpoint remote_endpoint;
+	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
+};
 
 class Session : public Network::Tcp::Session 
 {
@@ -24,8 +52,6 @@ public :
 	Address							router_address;
 private :
 	Time::Timer expire_timer;
-	std::map<uint64_t, std::shared_ptr<ResponseTimeout>> response_timeouts;
-
 public :		
 	virtual void OnCreate() override;
 	virtual void OnAccept() override;
@@ -35,11 +61,13 @@ public :
 	virtual void Close(int reason) override;
 
 	using Network::Session::AsyncSend;
-	void AsyncSend(const std::shared_ptr<Tcp::Packet> packet, uint32_t responseMsgID, std::shared_ptr<IHandler> handler, int seconds, std::function<void()> onTimeout);
-
-	const std::shared_ptr<ResponseTimeout> FindResponseTimeout(uint32_t msgSEQ);
+	
+	std::shared_ptr<Tcp::Packet> SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout = 5);
+	//const std::shared_ptr<ResponseTimeout> FindResponseTimeout(uint32_t msgSEQ);
 private :
-	void OnResponseTimeout();
+	//void OnResponseTimeout();
+	//void OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
+	Pool<Socket, std::mutex> pool;
 };
 
 class LocalSession : public Session
@@ -47,6 +75,7 @@ class LocalSession : public Session
 public :
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet> packet) override;
 };
+
 }}} /* namespace Gamnet */
 
 #endif /* SERVERSESSION_H_ */

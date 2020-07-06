@@ -176,6 +176,9 @@
     <ClCompile Include="Library\Debugs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Network\Router\SessionPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="library\Atomic.h">
@@ -398,6 +401,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Library\Time\Time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\Router\SessionPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

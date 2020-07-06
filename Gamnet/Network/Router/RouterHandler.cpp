@@ -135,4 +135,14 @@ void RouterHandler::Recv_HeartBeat_Ntf(const std::shared_ptr<Session>& session, 
 	LOG(DEV, "[Router] recv heartbeat message(address:", session->router_address.ToString(),")");
 }
 
+void RouterHandler::Recv_RegisterAddress_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+{
+	MsgRouter_RegisterAddress_Ntf ntf;
+	if(false == Network::Tcp::Packet::Load(ntf, packet))
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
+	}
+	LOG(DEV, "[Gamnet::Router] MsgRouter_RegisterAddress_Ntf(address:", ntf.router_address.ToString(), ")");
+	session->router_address = ntf.router_address;
+}
 }}}

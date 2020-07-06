@@ -1,6 +1,7 @@
 #include "UserSession.h"
 #include "Handler_SendMessage.h"
 #include <boost/program_options.hpp>
+#include "Library/Debugs.h"
 
 void OnRouterConnect(const Gamnet::Network::Router::Address& address)
 {
@@ -16,6 +17,7 @@ static boost::asio::io_service& io_service_ = Gamnet::Singleton<boost::asio::io_
 
 int main(int argc, char** argv) 
 {
+	SetUnhandledExceptionFilter(Gamnet::UnhandledException);
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
 		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")
