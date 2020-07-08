@@ -35,21 +35,12 @@ void Socket::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& sock
 	this->socket = socket;
 	this->remote_endpoint = this->socket->remote_endpoint();
 
-	{
-		MsgRouter_RegisterAddress_Ntf ntf;
-		ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
+	MsgRouter_RegisterAddress_Ntf ntf;
+	ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
 
-		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
-		packet->Write(ntf);
-		AsyncSend(packet);
-	}
-
-	/*{
-		std::shared_ptr<Tcp::Packet> packet = SyncRead();
-		MsgRouter_SetAddress_Ntf ntf;
-		Tcp::Packet::Load(ntf, packet);
-	}
-	*/
+	std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
+	packet->Write(ntf);
+	SyncSend(packet);
 }
 
 void Socket::Close(int reason)
@@ -218,7 +209,7 @@ std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet
 		}
 		session->Connect(this->socket->remote_endpoint());
 	}
-	session->AsyncSend(packet);
+	session->SyncSend(packet);
 	return session->SyncRead();
 }
 

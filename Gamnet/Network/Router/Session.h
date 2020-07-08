@@ -67,7 +67,7 @@ public :
 private :
 	//void OnResponseTimeout();
 	//void OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
-	Pool<Socket, std::mutex> pool;
+	Pool<Socket, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> pool;
 };
 
 class LocalSession : public Session
