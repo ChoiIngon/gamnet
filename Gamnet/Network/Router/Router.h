@@ -119,6 +119,24 @@ namespace Gamnet { namespace Network { namespace Router
 
 		return Singleton<RouterCaster>::GetInstance().SendMsg(addr, packet);
 	}
+
+	template <class MSG>
+	bool SendMsg(const std::shared_ptr<Session>& session, const MSG& msg)
+	{
+		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+		if(nullptr == packet)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", MSG::MSG_ID, ")");
+		}
+
+		if(false == packet->Write(msg))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MSG::MSG_ID, ")");
+		}
+
+		session->AsyncSend(packet);
+		return true;
+	}
 }}}
 
 #define GAMNET_BIND_ROUTER_HANDLER(message_type, class_type, func, policy) \

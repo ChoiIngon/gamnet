@@ -4,6 +4,7 @@
 #include "SessionManager.h"
 #include "RouterCaster.h"
 #include <boost/bind.hpp>
+#include <future>
 
 namespace Gamnet { namespace Network { namespace Router {
 
@@ -60,13 +61,16 @@ void Socket::Close(int reason)
 
 std::shared_ptr<Tcp::Packet> Socket::SyncRead()
 {
+	std::promise<std::shared_ptr<Tcp::Packet>> promise;
 	// promise 써줘야 함. 다른 스레드에서 호출 됨.
-	std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
-	strand->dispatch([=](){
+	auto self = shared_from_this();
+	strand->dispatch([self, &promise](){
+		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
 		do {
-			if(nullptr == socket)
+			if(nullptr == self->socket)
 			{
-				return nullptr;
+				promise.set_value(nullptr);
+				return;
 			}
 			if(0 == packet->Available())
 			{
@@ -74,7 +78,7 @@ std::shared_ptr<Tcp::Packet> Socket::SyncRead()
 			}
 
 			try {
-				int readBytes = boost::asio::read((*socket), boost::asio::buffer(packet->WritePtr(), packet->Available()));
+				int readBytes = boost::asio::read((*self->socket), boost::asio::buffer(packet->WritePtr(), packet->Available()));
 				if(0 == readBytes)
 				{
 					throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", packet->length, ")");
@@ -83,7 +87,7 @@ std::shared_ptr<Tcp::Packet> Socket::SyncRead()
 			}
 			catch(const boost::system::system_error& e)
 			{
-				Close(ErrorCode::Success);
+				self->Close(ErrorCode::Success);
 				throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", packet->length, ")");
 			}
 			if (Tcp::Packet::HEADER_SIZE > (int)packet->Size())
@@ -103,8 +107,9 @@ std::shared_ptr<Tcp::Packet> Socket::SyncRead()
 				throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", packet->length, ")");
 			}
 		} while (packet->length > (uint16_t)packet->Size());
+		promise.set_value(packet);
 	});
-	return packet;
+	return promise.get_future().get();
 }
 
 Session::Session() 

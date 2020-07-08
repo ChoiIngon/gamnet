@@ -18,12 +18,13 @@ const Address& GetRouterAddress()
 
 void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler, const std::function<void(const Address& addr)>& closeHandler)
 {
-	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Ntf::MSG_ID, "MsgRouter_SetAddress_Ntf", &RouterHandler::Recv_SetAddress_Ntf, new Network::HandlerStatic<RouterHandler>());
-	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Req::MSG_ID, "MsgRouter_SetAddress_Req", &RouterHandler::Recv_SetAddress_Req, new Network::HandlerStatic<RouterHandler>());
-	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SetAddress_Ans::MSG_ID, "MsgRouter_SetAddress_Ans", &RouterHandler::Recv_SetAddress_Ans, new Network::HandlerStatic<RouterHandler>());
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_Connect_Req::MSG_ID, "MsgRouter_Connect_Req", &RouterHandler::Recv_Connect_Req, new Network::HandlerStatic<RouterHandler>());
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_Connect_Ans::MSG_ID, "MsgRouter_Connect_Ans", &RouterHandler::Recv_Connect_Ans, new Network::HandlerStatic<RouterHandler>());
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_RegisterAddress_Req::MSG_ID, "MsgRouter_RegisterAddress_Req", &RouterHandler::Recv_RegisterAddress_Req, new Network::HandlerStatic<RouterHandler>());
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_RegisterAddress_Ans::MSG_ID, "MsgRouter_RegisterAddress_Ans", &RouterHandler::Recv_RegisterAddress_Ans, new Network::HandlerStatic<RouterHandler>());
+	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_RegisterAddress_Ntf::MSG_ID, "MsgRouter_RegisterAddress_Ntf", &RouterHandler::Recv_RegisterAddress_Ntf, new Network::HandlerStatic<RouterHandler>());
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SendMsg_Ntf::MSG_ID, "MsgRouter_SendMsg_Ntf", &RouterHandler::Recv_SendMsg_Ntf, new Network::HandlerStatic<RouterHandler>());
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_HeartBeat_Ntf::MSG_ID, "MsgRouter_HeartBeat_Ntf", &RouterHandler::Recv_HeartBeat_Ntf, new Network::HandlerStatic<RouterHandler>());
-	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_RegisterAddress_Ntf::MSG_ID, "MsgRouter_RegisterAddress_Ntf", &RouterHandler::Recv_RegisterAddress_Ntf, new Network::HandlerStatic<RouterHandler>());
 	Singleton<SessionManager>::GetInstance().Listen(serviceName, port, acceptHandler, closeHandler);
 	LOG(INF, "[Gamnet::Router] listener start(port:", port, ", router_address:",
 				Singleton<SessionManager>::GetInstance().local_address.service_name, ":",

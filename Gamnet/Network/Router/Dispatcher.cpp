@@ -51,7 +51,7 @@ namespace Gamnet { namespace Network { namespace Router {
 			return;
 		}
 		try {
-			handlerFunctor->function_(handler, session->router_address, packet);
+			handlerFunctor->function_(handler, session, packet);
 		}
 		catch (const std::exception& e)
 		{

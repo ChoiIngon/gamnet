@@ -97,7 +97,7 @@ GAMNET_BIND_TCP_HANDLER(
 	HandlerCreate
 );
 
-void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_SendMessage::Recv_SvrSvr_Req(const std::shared_ptr<Gamnet::Network::Router::Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgSvrSvr_SendMessage_Req reqSvrSvr;
 	MsgSvrSvr_SendMessage_Ans ansSvrSvr;
@@ -108,15 +108,15 @@ void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Req(router_address:", address.ToString(), ", message:", reqSvrSvr.text, ")");
+		LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Req(router_address:", session->router_address.ToString(), ", message:", reqSvrSvr.text, ")");
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ansSvrSvr.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Ans(router_address:", address.ToString(), ", error_code:", (int)ansSvrSvr.error_code, ")");
-	Gamnet::Network::Router::SendMsg(address, ansSvrSvr);
+	LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Ans(router_address:", session->router_address.ToString(), ", error_code:", (int)ansSvrSvr.error_code, ")");
+	Gamnet::Network::Router::SendMsg(session, ansSvrSvr);
 }
 
 GAMNET_BIND_ROUTER_HANDLER(
@@ -125,7 +125,7 @@ GAMNET_BIND_ROUTER_HANDLER(
 	HandlerStatic
 );
 
-void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_SendMessage::Recv_SvrSvr_Ans(const std::shared_ptr<Gamnet::Network::Router::Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgSvrSvr_SendMessage_Ans ansSvrSvr;
 	MsgSvrCli_SendMessage_Ans ansSvrCli;
@@ -137,7 +137,7 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address
 		}
 
 		ansSvrCli.error_code = ansSvrSvr.error_code;
-		LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(router_address:", address.ToString(), ", error_code:", (int)ansSvrSvr.error_code, ")");
+		LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(router_address:", session->router_address.ToString(), ", error_code:", (int)ansSvrSvr.error_code, ")");
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -188,7 +188,7 @@ GAMNET_BIND_TCP_HANDLER(
 	HandlerCreate
 );
 
-void Handler_SendMessage::Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_SendMessage::Recv_SvrSvr_Ntf(const std::shared_ptr<Gamnet::Network::Router::Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgSvrSvr_SendMessage_Ntf ntfSvrSvr;
 	MsgSvrCli_SendMessage_Ntf ntfSvrCli;
@@ -197,7 +197,7 @@ void Handler_SendMessage::Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
-		LOG(INF, "RECV MsgSvrSvr_SendMessage_Ntf(from:", address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", ntfSvrSvr.text, ")");
+		LOG(INF, "RECV MsgSvrSvr_SendMessage_Ntf(from:", session->router_address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", ntfSvrSvr.text, ")");
 		ntfSvrCli.text = ntfSvrSvr.text;
 	}
 	catch (const Gamnet::Exception& e)

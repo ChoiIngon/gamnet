@@ -102,37 +102,43 @@ inline bool operator >= (const Address& lhs, const Address& rhs)
 }
 
 %%
-
-message MsgRouter_SetAddress_Ntf :  00001
+message MsgRouter_Connect_Req				: 001
 {
 	Address router_address;
 };
 
-message MsgRouter_SetAddress_Req : 	00002
+message MsgRouter_Connect_Ans				: 002
+{
+	int32	error_code;
+	Address router_address;
+};
+
+message MsgRouter_RegisterAddress_Req		: 003
 {
 	Address router_address;
 };
 
-message MsgRouter_SetAddress_Ans : 	00003
+message MsgRouter_RegisterAddress_Ans		: 004
 {
 	int32 error_code;
 	Address router_address;
 };
 
-message MsgRouter_SendMsg_Ntf : 	00004
+message MsgRouter_RegisterAddress_Ntf		: 005
+{
+	Address router_address;
+};
+
+message MsgRouter_SendMsg_Ntf				: 006
 {
 	uint32 msg_seq;
 	string buffer;
 };
 
-message MsgRouter_HeartBeat_Ntf :	00005
+message MsgRouter_HeartBeat_Ntf				: 007
 {
 };
 
-message MsgRouter_RegisterAddress_Ntf : 00006
-{
-	Address router_address;
-};
 
 .cpp %%
 }}}
