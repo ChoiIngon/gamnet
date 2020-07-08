@@ -137,6 +137,19 @@ namespace Gamnet { namespace Network { namespace Router
 		session->AsyncSend(packet);
 		return true;
 	}
+
+	template <class REQ, class ANS>
+	bool SyncSend(const Address& addr, const REQ& req, ANS& ans, int timeout)
+	{
+		Time::Timer timer;
+		timer.AutoReset(false);
+		timer.SetTimer(timeout * 1000, [](){
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectTimeoutError);
+		});
+		Sleep(10000);
+		timer.Cancel();
+		return true;
+	}
 }}}
 
 #define GAMNET_BIND_ROUTER_HANDLER(message_type, class_type, func, policy) \

@@ -5,6 +5,7 @@
 #include "RouterCaster.h"
 #include <boost/bind.hpp>
 #include <future>
+#include <boost/asio/socket_base.hpp>
 
 namespace Gamnet { namespace Network { namespace Router {
 
@@ -33,6 +34,7 @@ bool Socket::Reconnect()
 void Socket::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 {
 	this->socket = socket;
+
 	this->remote_endpoint = this->socket->remote_endpoint();
 
 	MsgRouter_RegisterAddress_Ntf ntf;
@@ -69,7 +71,7 @@ std::shared_ptr<Tcp::Packet> Socket::SyncRead()
 			}
 
 			try {
-				int readBytes = boost::asio::read((*self->socket), boost::asio::buffer(packet->WritePtr(), packet->Available()));
+				int readBytes = self->socket->read_some(boost::asio::buffer(packet->WritePtr(), packet->Available()));
 				if(0 == readBytes)
 				{
 					throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", packet->length, ")");
