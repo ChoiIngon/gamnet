@@ -123,6 +123,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 			catch (const boost::system::system_error& e)
 			{
 				LOG(ERR, "send exception(errno:", errno, ", errstr:", e.what(), ")");
+				self->Close(errno);
 				promise.set_value(-1);
 				return;
 			}

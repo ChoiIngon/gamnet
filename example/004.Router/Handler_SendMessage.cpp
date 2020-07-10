@@ -53,19 +53,22 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 
 		Gamnet::Network::Router::MsgRouter_SendMsg_Ntf ntf;
 		ntf.msg_seq = ++s->send_seq;
-		ntf.buffer.assign(buffer->ReadPtr(), buffer->Size());
+		std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
 
 		std::shared_ptr<Gamnet::Network::Tcp::Packet> send = Gamnet::Network::Tcp::Packet::Create();
 		send->Write(ntf);
 		std::shared_ptr<Gamnet::Network::Tcp::Packet> result = s->SyncSend(send);
-
+		if(nullptr == result)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidSeviceName, "(service_name:", Gamnet::Network::Router::GetRouterAddress().service_name, ")");
+		}
 		ntf.msg_seq = 0;
 		ntf.buffer.clear();
 		Gamnet::Network::Tcp::Packet::Load(ntf, result);
 
 		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
 		std::shared_ptr<Gamnet::Network::Tcp::Packet> recvPacket = Gamnet::Network::Tcp::Packet::Create();
-		recvPacket->Append(ntf.buffer.c_str(), ntf.buffer.length());
+		recvPacket->Append(ntf.buffer.data(), ntf.buffer.size());
 		Gamnet::Network::Tcp::Packet::Load(ansSvrSvr, recvPacket);
 		LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(router_address:", s->router_address.ToString(), ", error_code:", (int)ansSvrSvr.error_code, ")");
 		/*

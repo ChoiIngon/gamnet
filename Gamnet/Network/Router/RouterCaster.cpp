@@ -229,7 +229,7 @@ bool RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& b
 {
 	MsgRouter_SendMsg_Ntf ntf;
 	ntf.msg_seq = addr.msg_seq;
-	ntf.buffer.assign(buffer->ReadPtr(), buffer->Size());
+	std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
 	
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 	if(nullptr == packet)

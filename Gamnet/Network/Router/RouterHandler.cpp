@@ -181,7 +181,7 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 		throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
 	}
 
-	buffer->Append(ntf.buffer.c_str(), ntf.buffer.length());
+	buffer->Append(ntf.buffer.data(), ntf.buffer.size());
 	buffer->ReadHeader();
 	Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
 }

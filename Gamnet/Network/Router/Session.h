@@ -5,21 +5,19 @@
 #include "../Tcp/Session.h"
 #include "../Tcp/Connector.h"
 #include "../../Library/Time/Time.h"
+#include <future>
 
 namespace Gamnet { namespace Network { namespace Router {
 
-class Socket : public Network::Session
+class SyncSession : public Network::Session
 {
 public :
-	
-public :
-	Socket();
-	~Socket();
+	SyncSession();
+	~SyncSession();
 
 	bool Connect(const boost::asio::ip::tcp::endpoint& endpoint);
-	bool Reconnect();
-	
-	std::shared_ptr<Tcp::Packet> SyncRead();
+		
+	std::shared_ptr<Tcp::Packet> SyncRead(int timeout);
 
 	virtual void OnCreate() override {}
 	virtual void OnAccept() override {}
@@ -30,20 +28,15 @@ protected:
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override {}
 
 private :
+	Time::Timer expire_timer;
 	Tcp::Connector connector;
 	boost::asio::ip::tcp::endpoint remote_endpoint;
 	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
+	void OnSyncRead(std::promise<std::shared_ptr<Tcp::Packet>>* promise, int timeout);
 };
 
 class Session : public Network::Tcp::Session 
 {
-public:
-	struct ResponseTimeout
-	{
-		time_t expire_time;
-		std::function<void()> on_timeout;
-	};
-
 public :
 	Session();
 	virtual ~Session();
@@ -67,7 +60,7 @@ public :
 private :
 	//void OnResponseTimeout();
 	//void OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
-	Pool<Socket, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> pool;
+	Pool<SyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> pool;
 };
 
 class LocalSession : public Session
