@@ -138,8 +138,9 @@ namespace Gamnet { namespace Network { namespace Router
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", REQ::MSG_ID, ")");
 		}
-		Gamnet::Network::Router::MsgRouter_SendMsg_Ntf ntf;
-		ntf.msg_seq = ++session->send_seq;
+		
+		MsgRouter_SendMsg_Ntf ntf;
+		ntf.msg_seq = 0;
 		std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
 
 		std::shared_ptr<Gamnet::Network::Tcp::Packet> packet = Gamnet::Network::Tcp::Packet::Create();
@@ -158,24 +159,47 @@ namespace Gamnet { namespace Network { namespace Router
 			throw GAMNET_EXCEPTION(ErrorCode::SendMsgFailError, "fail to send message(msg_id:", REQ::MSG_ID, ")");
 		}
 
-		if(false == Tcp::Packet::Load(ans, packet))
+		ntf.msg_seq = 0;
+		ntf.buffer.clear();
+		if(false == Tcp::Packet::Load(ntf, packet))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", ANS::MSG_ID, ")");
 		}
 
+		buffer->Clear();
+		buffer->Append(ntf.buffer.data(), ntf.buffer.size());
+		if (false == Tcp::Packet::Load(ans, buffer))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", ANS::MSG_ID, ")");
+		}
 		return true;
 	}
 
 	template <class MSG>
 	bool SendMsg(const std::shared_ptr<Session>& session, const MSG& msg)
 	{
-		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+		std::shared_ptr<Tcp::Packet> buffer = Tcp::Packet::Create();
+		if(nullptr == buffer)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", MSG::MSG_ID, ")");
+		}
+
+		if(false == buffer->Write(msg))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MSG::MSG_ID, ")");
+		}
+
+		MsgRouter_SendMsg_Ntf ntf;
+		ntf.msg_seq = 0;
+		std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
+
+		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
 		if(nullptr == packet)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", MSG::MSG_ID, ")");
 		}
 
-		if(false == packet->Write(msg))
+		if(false == packet->Write(ntf))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MSG::MSG_ID, ")");
 		}

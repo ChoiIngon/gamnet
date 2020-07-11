@@ -412,17 +412,14 @@ struct MsgRouter_RegisterAddress_Ntf_Serializer {
 struct MsgRouter_SendMsg_Ntf {
 	enum { MSG_ID = 6 }; 
 	uint32_t	msg_seq;
-	std::vector<char >	buffer;
+	std::string	buffer;
 	MsgRouter_SendMsg_Ntf()	{
 		msg_seq = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += sizeof(uint32_t);
-		nSize += sizeof(int32_t);
-		for(std::vector<char >::const_iterator buffer_itr = buffer.begin(); buffer_itr != buffer.end(); buffer_itr++)	{
-			nSize += sizeof(char);
-		}
+		nSize += sizeof(uint32_t); nSize += buffer.length();
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -437,12 +434,9 @@ struct MsgRouter_SendMsg_Ntf {
 	}
 	bool Store(char** _buf_) const {
 		std::memcpy(*_buf_, &msg_seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
-		size_t buffer_size = buffer.size();
+		size_t buffer_size = buffer.length();
 		std::memcpy(*_buf_, &buffer_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
-		for(std::vector<char >::const_iterator buffer_itr = buffer.begin(); buffer_itr != buffer.end(); buffer_itr++)	{
-			const char& buffer_elmt = *buffer_itr;
-			std::memcpy(*_buf_, &buffer_elmt, sizeof(char)); (*_buf_) += sizeof(char);
-		}
+		std::memcpy(*_buf_, buffer.c_str(), buffer.length()); (*_buf_) += buffer.length();
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -456,11 +450,8 @@ struct MsgRouter_SendMsg_Ntf {
 		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&msg_seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t buffer_length = 0; std::memcpy(&buffer_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		for(uint32_t i=0; i<buffer_length; i++) {
-			char buffer_val;
-			if(sizeof(char) > nSize) { return false; }	std::memcpy(&buffer_val, *_buf_, sizeof(char));	(*_buf_) += sizeof(char); nSize -= sizeof(char);
-			buffer.push_back(buffer_val);
-		}
+		if(nSize < buffer_length) { return false; }
+		buffer.assign((char*)*_buf_, buffer_length); (*_buf_) += buffer_length; nSize -= buffer_length;
 		return true;
 	}
 }; //MsgRouter_SendMsg_Ntf

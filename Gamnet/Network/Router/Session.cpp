@@ -110,9 +110,10 @@ std::shared_ptr<Tcp::Packet> Session::SyncSession::SyncRead(int timeout)
 				throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", packet->length, ")");
 			}
 		} while (packet->length > (uint16_t)packet->Size());
+
+		expire_timer.Cancel();
 		promise.set_value(packet);
 	});
-	expire_timer.Cancel();
 	return promise.get_future().get();
 }
 
@@ -141,6 +142,7 @@ bool Session::Init()
 		return false;
 	}
 	master = false;
+	return true;
 }
 
 void Session::OnConnect()
