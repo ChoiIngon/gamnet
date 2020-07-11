@@ -9,26 +9,25 @@ namespace Gamnet { namespace Network { namespace Router {
 
 static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
 
-SyncSession::SyncSession() 
+Session::SyncSession::SyncSession() 
 {
 	connector.connect_handler = std::bind(&SyncSession::OnConnect, this, std::placeholders::_1);
 }
 
-SyncSession::~SyncSession() 
+Session::SyncSession::~SyncSession() 
 {
 }
 
-bool SyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
+bool Session::SyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 {
 	remote_endpoint = endpoint;
 	return connector.SyncConnect(remote_endpoint.address().to_v4().to_string(), remote_endpoint.port(), 5);
 }
 
-void SyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
+void Session::SyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 {
 	this->socket = socket;
-
-	this->remote_endpoint = this->socket->remote_endpoint();
+	this->remote_endpoint = socket->remote_endpoint();
 
 	MsgRouter_RegisterAddress_Ntf ntf;
 	ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
@@ -38,7 +37,7 @@ void SyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>&
 	SyncSend(packet);
 }
 
-void SyncSession::Close(int reason)
+void Session::SyncSession::Close(int reason)
 {
 	strand->dispatch([this](){
 		expire_timer.Cancel();
@@ -46,7 +45,7 @@ void SyncSession::Close(int reason)
 	});
 }
 
-std::shared_ptr<Tcp::Packet> SyncSession::SyncRead(int timeout)
+std::shared_ptr<Tcp::Packet> Session::SyncSession::SyncRead(int timeout)
 {
 	auto self = shared_from_this();
 	std::promise<std::shared_ptr<Tcp::Packet>> promise;
@@ -117,13 +116,9 @@ std::shared_ptr<Tcp::Packet> SyncSession::SyncRead(int timeout)
 	return promise.get_future().get();
 }
 
-void SyncSession::OnSyncRead(std::promise<std::shared_ptr<Tcp::Packet>>* promise, int timeout)
-{
-	
-}
-
-Session::Session() 
+Session::Session()
 	: Network::Tcp::Session()
+	, master(false)
 {
 }
 
@@ -139,6 +134,15 @@ void Session::OnAccept()
 {
 }
 
+bool Session::Init()
+{
+	if(false == Network::Tcp::Session::Init())
+	{
+		return false;
+	}
+	master = false;
+}
+
 void Session::OnConnect()
 {	
 	static_cast<SessionManager*>(session_manager)->on_connect(router_address);
@@ -146,8 +150,7 @@ void Session::OnConnect()
 
 void Session::OnClose(int reason)
 {
-	//LOG(INF, "[", session_key, "] remote server closed(ip:", GetRemoteAddress().to_string(), ", service_name:", address.service_name, ", reason:", reason, ")");
-	if("" != router_address.service_name)
+	if(true == master)
 	{
 		Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
 		static_cast<SessionManager*>(session_manager)->on_close(router_address);
@@ -219,22 +222,20 @@ void Session::OnResponseTimeout()
 */
 std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout)
 {
-	std::shared_ptr<SyncSession> session = pool.Create();
+	std::shared_ptr<SyncSession> session = syncsession_pool.Create();
 	if (nullptr == session->socket)
 	{
-		strand->dispatch([this, session](){
-			if(nullptr == socket)
-			{
-				return;
-			}
-			session->Connect(this->socket->remote_endpoint());
-		});
+		if(false ==	session->Connect(remote_endpoint))
+		{
+			return nullptr;
+		}
 	}
+
 	if(0 > session->SyncSend(packet))
 	{
 		return nullptr;
 	}
-	return session->SyncRead(5);
+	return session->SyncRead(timeout);
 }
 
 void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet> packet)

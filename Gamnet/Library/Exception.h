@@ -49,6 +49,7 @@ public :
 		DuplicateRouterAddress		= 141,
 		SetRouterAddressError		= 142,
 		RouterCastTypeErrror		= 143,
+		InvalidRouterAddress		= 144,
 		AlreadyCommitTransaction	= 150,
 		AlreadyRegisteredAddress	= 151,
 		CipherContextCreateFail		= 200,

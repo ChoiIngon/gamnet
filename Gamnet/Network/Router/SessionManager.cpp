@@ -107,6 +107,7 @@ namespace Gamnet { namespace Network { namespace Router {
 
 		LOG(INF, "[Gamnet::Router] accept a connection..(remote_endpoint:", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), ")");
 		session->socket = socket;
+		session->remote_endpoint = socket->remote_endpoint();
 		session->OnCreate();
 		session->AsyncRead();
 		/*
@@ -131,6 +132,7 @@ namespace Gamnet { namespace Network { namespace Router {
 
 		LOG(INF, "[Gamnet::Router] connect success..(remote_endpoint:", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), ")");
 		session->socket = socket;
+		session->remote_endpoint = socket->remote_endpoint();
 		//session->OnCreate();
 		session->AsyncRead();
 		

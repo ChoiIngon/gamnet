@@ -222,6 +222,7 @@ bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session>
 		}
 	}
 	session->router_address = addr;
+	session->master = true;
 	return true;
 }
 

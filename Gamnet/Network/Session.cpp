@@ -105,7 +105,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 		{
 			try {
 				boost::system::error_code ec;
-				int sentBytes = self->socket->write_some(boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), ec);
+				int sentBytes = boost::asio::write(*(self->socket), boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), ec);
 				if (0 > sentBytes || 0 != ec)
 				{
 					LOG(ERR, "send fail(errno:", errno, ", ec:", ec, ")");
@@ -118,6 +118,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 					promise.set_value(-1);
 					return;
 				}
+				totalSentBytes += sentBytes;
 				buffer->Remove(sentBytes);
 			}
 			catch (const boost::system::system_error& e)

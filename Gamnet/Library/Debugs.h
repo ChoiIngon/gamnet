@@ -19,6 +19,7 @@ namespace Gamnet {
 		enum { ASSERTION = sizeof(Check(static_cast<DERIVED_T*>(0))) == sizeof(Yes) };
 	};
 
+	void InitCrashDump();
 #ifdef _WIN32
 	LONG WINAPI UnhandledException(PEXCEPTION_POINTERS exception_pointers);
 #endif

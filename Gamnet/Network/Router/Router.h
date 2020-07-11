@@ -120,6 +120,52 @@ namespace Gamnet { namespace Network { namespace Router
 		return Singleton<RouterCaster>::GetInstance().SendMsg(addr, packet);
 	}
 
+	template <class REQ, class ANS>
+	bool SendMsg(const Address& addr, const REQ& req, ANS& ans, int timeout)
+	{
+		std::shared_ptr<Session> session = Singleton<RouterCaster>::GetInstance().FindSession(addr);
+		if (nullptr == session)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidRouterAddress, "can not find route(route_address:", addr.ToString(), ", msg_id:", REQ::MSG_ID, ")");
+		}
+
+		std::shared_ptr<Gamnet::Network::Tcp::Packet> buffer = Gamnet::Network::Tcp::Packet::Create();
+		if(nullptr == buffer)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", REQ::MSG_ID, ")");
+		}
+		if(false == buffer->Write(req))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", REQ::MSG_ID, ")");
+		}
+		Gamnet::Network::Router::MsgRouter_SendMsg_Ntf ntf;
+		ntf.msg_seq = ++session->send_seq;
+		std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
+
+		std::shared_ptr<Gamnet::Network::Tcp::Packet> packet = Gamnet::Network::Tcp::Packet::Create();
+		if(nullptr == packet)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", REQ::MSG_ID, ")");
+		}
+		if(false == packet->Write(ntf))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", REQ::MSG_ID, ")");
+		}
+		
+		packet = session->SyncSend(packet, timeout);
+		if (nullptr == packet)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::SendMsgFailError, "fail to send message(msg_id:", REQ::MSG_ID, ")");
+		}
+
+		if(false == Tcp::Packet::Load(ans, packet))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", ANS::MSG_ID, ")");
+		}
+
+		return true;
+	}
+
 	template <class MSG>
 	bool SendMsg(const std::shared_ptr<Session>& session, const MSG& msg)
 	{
@@ -135,19 +181,6 @@ namespace Gamnet { namespace Network { namespace Router
 		}
 
 		session->AsyncSend(packet);
-		return true;
-	}
-
-	template <class REQ, class ANS>
-	bool SyncSend(const Address& addr, const REQ& req, ANS& ans, int timeout)
-	{
-		Time::Timer timer;
-		timer.AutoReset(false);
-		timer.SetTimer(timeout * 1000, [](){
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectTimeoutError);
-		});
-		Sleep(10000);
-		timer.Cancel();
 		return true;
 	}
 }}}

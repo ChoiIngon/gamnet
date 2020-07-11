@@ -6,6 +6,13 @@
 #pragma comment(lib, "Dbghelp.lib")
 #endif
 namespace Gamnet {
+void InitCrashDump()
+{
+#ifdef _WIN32
+	SetUnhandledExceptionFilter(UnhandledException);
+#endif
+}
+
 #ifdef _WIN32
 LONG WINAPI UnhandledException(PEXCEPTION_POINTERS exception_pointers)
 {

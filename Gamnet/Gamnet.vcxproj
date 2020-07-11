@@ -281,7 +281,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Database\README.md" />
-    <None Include="Gamnet.h.in" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
