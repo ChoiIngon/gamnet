@@ -48,7 +48,10 @@ void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, co
 		session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " ",
 		"SEND MsgRouter_Connect_Ans(router_address:", ans.router_address.ToString(), ")"
 	);
-	Network::Tcp::SendMsg(session, ans, false);
+
+	std::shared_ptr<Tcp::Packet> ansPacket = Tcp::Packet::Create();
+	ansPacket->Write(ans);
+	session->Network::Session::AsyncSend(ansPacket);
 
 	if(ErrorCode::Success == ans.error_code && ans.router_address < req.router_address)
 	{
@@ -59,7 +62,10 @@ void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, co
 		);
 		MsgRouter_RegisterAddress_Req req;
 		req.router_address = ans.router_address;
-		Network::Tcp::SendMsg(session, req, false);
+
+		std::shared_ptr<Tcp::Packet> reqPacket = Tcp::Packet::Create();
+		reqPacket->Write(req);
+		session->Network::Session::AsyncSend(reqPacket);
 	}
 }
 
@@ -95,7 +101,10 @@ void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, co
 			);
 			MsgRouter_RegisterAddress_Req req;
 			req.router_address = sessionManager->local_address;
-			Network::Tcp::SendMsg(session, req, false);
+
+			std::shared_ptr<Tcp::Packet> reqPacket = Tcp::Packet::Create();
+			reqPacket->Write(req);
+			session->Network::Session::AsyncSend(reqPacket);
 		}
 	}
 	catch(const Exception& e)
@@ -137,7 +146,9 @@ void RouterHandler::Recv_RegisterAddress_Req(const std::shared_ptr<Session>& ses
 		"localhost:", session->socket->local_endpoint().port(), " ",
 		"SEND MsgRouter_RegisterAddress_Ans(error_code:", (int)ans.error_code, ", router_address : ", ans.router_address.ToString(), ")"
 	);
-	Network::Tcp::SendMsg(session, ans, false);
+	std::shared_ptr<Tcp::Packet> ansPacket = Tcp::Packet::Create();
+	ansPacket->Write(ans);
+	session->Network::Session::AsyncSend(ansPacket);
 }
 
 void RouterHandler::Recv_RegisterAddress_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)

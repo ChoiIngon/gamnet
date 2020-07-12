@@ -44,6 +44,8 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		Gamnet::Network::Router::SendMsg(dest, reqSvrSvr, ansSvrSvr, 5);
 
 		ansSvrCli.error_code = ansSvrSvr.error_code;
+
+		Gamnet::Network::Router::SendMsg(dest, reqSvrSvr);
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -115,7 +117,7 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const std::shared_ptr<Gamnet::Network:
 GAMNET_BIND_ROUTER_HANDLER(
 	MsgSvrSvr_SendMessage_Ans,
 	Handler_SendMessage, Recv_SvrSvr_Ans,
-	HandlerFind
+	HandlerStatic
 );
 
 void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)

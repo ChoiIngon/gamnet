@@ -9,6 +9,7 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
+	class AsyncSession;
 class Session : public Network::Tcp::Session 
 {
 	class SyncSession : public Network::Session
@@ -32,7 +33,6 @@ class Session : public Network::Tcp::Session
 	private:
 		Time::Timer expire_timer;
 		Tcp::Connector connector;
-		boost::asio::ip::tcp::endpoint remote_endpoint;
 		void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
 	};
 
@@ -57,9 +57,29 @@ public :
 	using Network::Session::AsyncSend;
 	
 	std::shared_ptr<Tcp::Packet> SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout = 5);
+	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet> packet) override;
 	//const std::shared_ptr<ResponseTimeout> FindResponseTimeout(uint32_t msgSEQ);
 private :
 	Pool<SyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> syncsession_pool;
+	Pool<AsyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> asyncsession_pool;
+};
+
+class AsyncSession : public Session
+{
+public :
+	struct Factory
+	{
+		AsyncSession* operator()();
+	};
+public :
+
+	AsyncSession();
+	bool Connect(const boost::asio::ip::tcp::endpoint& endpoint);
+	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet> packet) override;
+
+private :
+	Tcp::Connector connector;
+	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
 };
 
 class LocalSession : public Session

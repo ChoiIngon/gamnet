@@ -144,6 +144,9 @@ namespace Gamnet { namespace Network { namespace Router {
 
 		MsgRouter_Connect_Req req;
 		req.router_address = local_address;
-		Network::Tcp::SendMsg(session, req, false);
+
+		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
+		packet->Write(req);
+		session->Network::Session::AsyncSend(packet);
 	}
 }}}

@@ -20,15 +20,13 @@ Session::SyncSession::~SyncSession()
 
 bool Session::SyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 {
-	remote_endpoint = endpoint;
-	return connector.SyncConnect(remote_endpoint.address().to_v4().to_string(), remote_endpoint.port(), 5);
+	return connector.SyncConnect(endpoint.address().to_v4().to_string(), endpoint.port(), 5);
 }
 
 void Session::SyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 {
 	this->socket = socket;
-	this->remote_endpoint = socket->remote_endpoint();
-
+	
 	MsgRouter_RegisterAddress_Ntf ntf;
 	ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
 
@@ -120,6 +118,7 @@ std::shared_ptr<Tcp::Packet> Session::SyncSession::SyncRead(int timeout)
 Session::Session()
 	: Network::Tcp::Session()
 	, master(false)
+	, asyncsession_pool(65535, AsyncSession::Factory())
 {
 }
 
@@ -239,6 +238,55 @@ std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet
 	}
 	return session->SyncRead(timeout);
 }
+
+void Session::AsyncSend(const std::shared_ptr<Tcp::Packet> packet) 
+{
+	std::shared_ptr<AsyncSession> session = asyncsession_pool.Create();
+	if(nullptr == session->socket)
+	{
+		if (false == session->Connect(remote_endpoint))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
+		}
+	}
+
+	session->AsyncSend(packet);
+}
+
+AsyncSession* AsyncSession::Factory::operator()()
+{
+	AsyncSession* session = new AsyncSession();
+	session->session_manager = &Singleton<SessionManager>::GetInstance();
+	return session;
+}
+
+bool AsyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
+{
+	return connector.SyncConnect(endpoint.address().to_v4().to_string(), endpoint.port(), 5);
+}
+
+void AsyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
+{
+	this->socket = socket;
+
+	MsgRouter_RegisterAddress_Ntf ntf;
+	ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
+
+	std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
+	packet->Write(ntf);
+	AsyncSend(packet);
+}
+
+void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet> packet) 
+{
+	Tcp::Session::AsyncSend(packet);
+}
+
+AsyncSession::AsyncSession()
+{
+	connector.connect_handler = std::bind(&AsyncSession::OnConnect, this, std::placeholders::_1);
+}
+
 
 void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet> packet)
 {

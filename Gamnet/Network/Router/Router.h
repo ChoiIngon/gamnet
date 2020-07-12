@@ -204,7 +204,7 @@ namespace Gamnet { namespace Network { namespace Router
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", MSG::MSG_ID, ")");
 		}
 
-		session->AsyncSend(packet);
+		session->Network::Session::AsyncSend(packet);
 		return true;
 	}
 }}}

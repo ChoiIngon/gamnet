@@ -43,6 +43,11 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	template <class SESSION_T, class MSG>
 	void SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = true)
 	{
+		if(nullptr == session)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "null session");
+		}
+
 		std::shared_ptr<Packet> packet = Packet::Create();
 		if (nullptr == packet)
 		{
