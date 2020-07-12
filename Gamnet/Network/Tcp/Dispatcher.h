@@ -108,13 +108,8 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 			Statistics* statistics = handlerFunctor.statistics;
 			statistics->begin_count++;
 #endif
-			if(Network::IHandlerFactory::HANDLER_FACTORY_CREATE == handlerFunctor.factory->GetFactoryType())
-			{
-				session->current_handler = handler;
-			}
 			handlerFunctor.function(handler, session, packet);
-			session->current_handler = nullptr;
-
+			
 			if (true == packet->reliable)
 			{
 				session->recv_seq = packet->msg_seq;

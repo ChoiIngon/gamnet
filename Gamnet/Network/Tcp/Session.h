@@ -27,13 +27,13 @@ public :
 
 	std::string											session_token;
 	HandlerContainer									handler_container;
-	std::shared_ptr<IHandler>							current_handler;
+	
 	virtual bool Init() override;
 	virtual void Clear() override;
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 	virtual void Close(int reason) override;
 
-	virtual void AsyncSend(const std::shared_ptr<Packet> packet);
+	virtual void AsyncSend(const std::shared_ptr<Packet>& packet);
 	static std::string GenerateSessionToken(uint32_t session_key);
 };
 

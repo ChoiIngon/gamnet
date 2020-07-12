@@ -50,7 +50,7 @@ void Session::Clear()
 	Network::Session::Clear();
 }
 
-void Session::AsyncSend(const std::shared_ptr<Packet> packet)
+void Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 {
 	if (true == packet->reliable)
 	{
