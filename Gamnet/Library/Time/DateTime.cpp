@@ -103,12 +103,12 @@ boost::posix_time::ptime DateTime::operator - (const boost::posix_time::time_dur
 
 boost::posix_time::ptime& DateTime::operator += (const boost::posix_time::time_duration& duration)
 {
-	return this->ptime += duration;
+	return this->ptime = this->ptime + duration;
 }
 
 boost::posix_time::ptime& DateTime::operator -= (const boost::posix_time::time_duration& duration)
 {
-	return this->ptime -= duration;
+	return this->ptime = this->ptime - duration;
 }
 
 bool DateTime::operator == (const DateTime& rhs) const
