@@ -101,6 +101,21 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 
 	session->AsyncSend(packet);
 }
+
+void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(std::shared_ptr<Tcp::Packet>&)> onReceive, int timeout)
+{
+	std::shared_ptr<AsyncSession> session = asyncsession_pool.Create();
+	if (nullptr == session->socket)
+	{
+		if (false == session->Connect(remote_endpoint))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
+		}
+	}
+
+	session->AsyncSend(packet, onReceive, timeout);
+
+}
 SyncSession::SyncSession() 
 {
 	connector.connect_handler = std::bind(&SyncSession::OnConnect, this, std::placeholders::_1);
@@ -284,7 +299,7 @@ void AsyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>
 
 void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) 
 {
-	Tcp::Session::AsyncSend(packet);
+	Network::Session::AsyncSend(packet);
 }
 
 AsyncSession::AsyncSession()
@@ -292,6 +307,50 @@ AsyncSession::AsyncSession()
 	connector.connect_handler = std::bind(&AsyncSession::OnConnect, this, std::placeholders::_1);
 }
 
+void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(std::shared_ptr<Tcp::Packet>&)>& onReceive, int timeout)
+{
+	strand->dispatch(boost::bind(&AsyncSession::SetTimeout, this, onReceive, timeout));
+	Network::Session::AsyncSend(packet);
+}
+
+void AsyncSession::SetTimeout(std::function<void(std::shared_ptr<Tcp::Packet>&)>& onReceive, int seconds)
+{
+	if(true == timeouts.empty())
+	{
+		expire_timer.AutoReset(true);
+		expire_timer.SetTimer(1000, strand->wrap(boost::bind(&AsyncSession::OnTimeout, this)));
+	}
+
+	std::shared_ptr<Timeout> timeout = timeout_pool.Create();
+	timeout->expire_time = time(nullptr) + seconds;
+	timeout->on_receive = onReceive;
+	timeouts[timeout_seq] = timeout;
+}
+
+void AsyncSession::OnTimeout()
+{
+	time_t now = time(nullptr);
+	std::list<uint64_t> expires;
+	for (auto& itr : timeouts)
+	{
+		const std::shared_ptr<Timeout>& timeout = itr.second;
+		if (timeout->expire_time < now)
+		{
+			//timeout->on_timeout();
+			expires.push_back(itr.first);
+		}
+	}
+
+	for (uint32_t seq : expires)
+	{
+		timeouts.erase(seq);
+	}
+
+	if (true == timeouts.empty())
+	{
+		expire_timer.Cancel();
+	}
+}
 
 void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 {

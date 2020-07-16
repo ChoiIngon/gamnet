@@ -36,6 +36,8 @@ public :
 	
 	std::shared_ptr<Tcp::Packet> SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout = 5);
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
+			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(std::shared_ptr<Tcp::Packet>&)> onReceive, int timeout);
+
 	//const std::shared_ptr<ResponseTimeout> FindResponseTimeout(uint32_t msgSEQ);
 private :
 	Pool<SyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> syncsession_pool;
@@ -78,10 +80,23 @@ public :
 	AsyncSession();
 	bool Connect(const boost::asio::ip::tcp::endpoint& endpoint);
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
-
+			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(std::shared_ptr<Tcp::Packet>&)>& onReceive, int timeout);
 private :
+	struct Timeout
+	{
+		int expire_time;
+		std::function<void(std::shared_ptr<Tcp::Packet>&)> on_receive;
+	};
+
 	Tcp::Connector connector;
 	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
+	void SetTimeout(std::function<void(std::shared_ptr<Tcp::Packet>&)>& onReceive, int timeout);
+	void OnTimeout();
+
+	Time::Timer expire_timer;
+	std::atomic_uint32_t timeout_seq;
+	Pool<Timeout> timeout_pool;
+	std::map<uint32_t, std::shared_ptr<Timeout>> timeouts;
 };
 
 class LocalSession : public Session
