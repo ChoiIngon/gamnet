@@ -131,8 +131,6 @@ message MsgRouter_RegisterAddress_Ntf		: 005
 
 message MsgRouter_SendMsg_Ntf				: 006
 {
-	uint32 msg_seq;
-	uint32 session_key;
 	string buffer;
 };
 

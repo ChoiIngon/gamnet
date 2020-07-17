@@ -27,35 +27,28 @@ namespace Gamnet { namespace Network { namespace Router {
 
 		std::shared_ptr<HandlerFunctor> handlerFunctor = itr->second;
 		std::shared_ptr<Network::IHandler> handler = nullptr;
-		if (Network::IHandlerFactory::HANDLER_FACTORY_FIND == handlerFunctor->factory_->GetFactoryType())
+		if(0 != packet->msg_seq && Session::TYPE::SEND == session->type)
 		{
-			/*
-			std::shared_ptr<Session::ResponseTimeout> timeout = session->FindResponseTimeout(packet->msg_seq);
-			if(nullptr == timeout)
-			{
-				LOG(GAMNET_ERR, "can't find wait response(msg_seq:", packet->msg_seq, ")");
-				return;
-			}
-
-			handler = handlerFunctor->factory_->GetHandler(&session->handler_container, packet->msg_seq);
-			*/
+			const std::shared_ptr<Session::Timeout> timeout = session->FindTimeout(packet->msg_seq);
+			timeout->on_receive(packet);
+			return;
 		}
 		else
 		{
 			handler = handlerFunctor->factory_->GetHandler(nullptr, packet->msg_id);
-		}
-
-		if (nullptr == handler)
-		{
-			LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", packet->msg_seq, ", msg_id:", packet->msg_id, ")");
-			return;
-		}
-		try {
-			handlerFunctor->function_(handler, session, packet);
-		}
-		catch (const std::exception& e)
-		{
-			LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
+			if (nullptr == handler)
+			{
+				LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", packet->msg_seq, ", msg_id:", packet->msg_id, ")");
+				return;
+			}
+			try {
+				session->send_seq = packet->msg_seq;
+				handlerFunctor->function_(handler, session, packet);
+			}
+			catch (const std::exception& e)
+			{
+				LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
+			}
 		}
 	}
 }}}

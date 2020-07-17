@@ -11,7 +11,7 @@ static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>
 
 Session::Session()
 	: Network::Tcp::Session()
-	, master(false)
+	, type(TYPE::INVALID)
 	, asyncsession_pool(65535, AsyncSession::Factory())
 {
 }
@@ -34,7 +34,8 @@ bool Session::Init()
 	{
 		return false;
 	}
-	master = false;
+	type = TYPE::INVALID;
+	timeout_seq = 0;
 	return true;
 }
 
@@ -45,7 +46,7 @@ void Session::OnConnect()
 
 void Session::OnClose(int reason)
 {
-	if (true == master)
+	if (TYPE::MASTER == type)
 	{
 		Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
 		static_cast<SessionManager*>(session_manager)->on_close(router_address);
@@ -102,7 +103,7 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 	session->AsyncSend(packet);
 }
 
-void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(std::shared_ptr<Tcp::Packet>&)> onReceive, int timeout)
+void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void()> onTimeout, int seconds)
 {
 	std::shared_ptr<AsyncSession> session = asyncsession_pool.Create();
 	if (nullptr == session->socket)
@@ -113,7 +114,7 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::functio
 		}
 	}
 
-	session->AsyncSend(packet, onReceive, timeout);
+	session->AsyncSend(packet, onReceive, onTimeout, seconds);
 
 }
 SyncSession::SyncSession() 
@@ -287,6 +288,7 @@ bool AsyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 void AsyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 {
 	this->socket = socket;
+	type = Session::TYPE::SEND;
 
 	AsyncRead();
 	MsgRouter_RegisterAddress_Ntf ntf;
@@ -307,13 +309,18 @@ AsyncSession::AsyncSession()
 	connector.connect_handler = std::bind(&AsyncSession::OnConnect, this, std::placeholders::_1);
 }
 
-void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(std::shared_ptr<Tcp::Packet>&)>& onReceive, int timeout)
+void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void()>& onTimeout, int seconds)
 {
-	strand->dispatch(boost::bind(&AsyncSession::SetTimeout, this, onReceive, timeout));
+	std::shared_ptr<Timeout> timeout = timeout_pool.Create();
+	timeout->timeout_seq = packet->msg_seq;
+	timeout->expire_time = time(nullptr) + seconds;
+	timeout->on_receive = onReceive;
+	timeout->on_timeout = onTimeout;
+	strand->dispatch(boost::bind(&AsyncSession::SetTimeout, this, timeout));
 	Network::Session::AsyncSend(packet);
 }
 
-void AsyncSession::SetTimeout(std::function<void(std::shared_ptr<Tcp::Packet>&)>& onReceive, int seconds)
+void AsyncSession::SetTimeout(const std::shared_ptr<Timeout>& timeout)
 {
 	if(true == timeouts.empty())
 	{
@@ -321,10 +328,7 @@ void AsyncSession::SetTimeout(std::function<void(std::shared_ptr<Tcp::Packet>&)>
 		expire_timer.SetTimer(1000, strand->wrap(boost::bind(&AsyncSession::OnTimeout, this)));
 	}
 
-	std::shared_ptr<Timeout> timeout = timeout_pool.Create();
-	timeout->expire_time = time(nullptr) + seconds;
-	timeout->on_receive = onReceive;
-	timeouts[timeout_seq] = timeout;
+	timeouts[timeout->timeout_seq] = timeout;
 }
 
 void AsyncSession::OnTimeout()
@@ -350,6 +354,23 @@ void AsyncSession::OnTimeout()
 	{
 		expire_timer.Cancel();
 	}
+}
+
+const std::shared_ptr<Session::Timeout> AsyncSession::FindTimeout(uint32_t seq) 
+{
+	auto itr = timeouts.find(seq);
+	if (timeouts.end() == itr)
+	{
+		return nullptr;
+	}
+
+	std::shared_ptr<Session::Timeout> timeout = itr->second;
+	timeouts.erase(seq);
+	if (true == timeouts.empty())
+	{
+		expire_timer.Cancel();
+	}
+	return timeout;
 }
 
 void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)

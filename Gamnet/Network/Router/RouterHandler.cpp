@@ -185,7 +185,6 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 	}
 
 	Address addr = session->router_address;
-	addr.msg_seq = ntf.msg_seq;
 	std::shared_ptr<Network::Tcp::Packet> buffer = Network::Tcp::Packet::Create();
 	if (nullptr == buffer)
 	{
@@ -194,6 +193,7 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 
 	buffer->Append(ntf.buffer.data(), ntf.buffer.size());
 	buffer->ReadHeader();
+	buffer->msg_seq = packet->msg_seq;
 	Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
 }
 
@@ -211,5 +211,6 @@ void RouterHandler::Recv_RegisterAddress_Ntf(const std::shared_ptr<Session>& ses
 	}
 	LOG(DEV, "[Gamnet::Router] MsgRouter_RegisterAddress_Ntf(address:", ntf.router_address.ToString(), ")");
 	session->router_address = ntf.router_address;
+	session->type = Session::TYPE::RECV;
 }
 }}}
