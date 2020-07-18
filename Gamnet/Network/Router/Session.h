@@ -11,6 +11,7 @@ namespace Gamnet { namespace Network { namespace Router {
 
 class SyncSession;
 class AsyncSession;
+class Session;
 
 class Session : public Network::Tcp::Session 
 {

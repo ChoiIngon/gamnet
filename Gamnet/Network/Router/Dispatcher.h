@@ -19,7 +19,7 @@ namespace Gamnet { namespace Network { namespace Router {
 
 class Dispatcher
 {
-	typedef void(Network::IHandler::*function_type)(const std::shared_ptr<Session>&, const std::shared_ptr<Network::Tcp::Packet>&);
+	typedef void(Network::IHandler::*function_type)(const Address&, const std::shared_ptr<Network::Tcp::Packet>&);
 public :
 	class HandlerFunctor
 	{
@@ -27,7 +27,7 @@ public :
 		HandlerFunctor();
 
 		Network::IHandlerFactory* factory_;
-		std::function<void(const std::shared_ptr<Network::IHandler>&, const std::shared_ptr<Session>&, const std::shared_ptr<Network::Tcp::Packet>&)> function_;
+		std::function<void(const std::shared_ptr<Network::IHandler>&, const Address&, const std::shared_ptr<Network::Tcp::Packet>&)> function_;
 	};
 
 	std::map<uint32_t, std::shared_ptr<HandlerFunctor>> handler_functors;

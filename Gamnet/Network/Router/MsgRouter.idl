@@ -1,5 +1,6 @@
 .cpp %%
 #include <sstream>
+#include <memory>
 namespace Gamnet { namespace Network { namespace Router {
 %%
 enum ROUTER_CAST_TYPE
@@ -10,11 +11,14 @@ enum ROUTER_CAST_TYPE
 	MAX	
 };
 
+.cpp %%
+class Session;
+%%
 struct Address
 {
 	.cpp %%
 	Address(ROUTER_CAST_TYPE _cast_type, const std::string& _service_name, uint32_t _id)
-		: service_name(_service_name), cast_type(_cast_type), id(_id), msg_seq(0)
+		: service_name(_service_name), cast_type(_cast_type), id(_id)
 	{
 	}
 	std::string ToString() const
@@ -23,11 +27,11 @@ struct Address
 		ss << "{\"service_name\":\"" << service_name << "\", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
 		return ss.str();
 	}
+	std::weak_ptr<Session> session;
 	%%
 	string service_name;
 	ROUTER_CAST_TYPE cast_type;
 	uint32 id;
-	uint64 msg_seq;
 };
  
 .cpp %%

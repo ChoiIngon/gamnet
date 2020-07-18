@@ -223,56 +223,6 @@ std::shared_ptr<Tcp::Packet> SyncSession::SyncRead(int timeout)
 	return promise.get_future().get();
 }
 
-
-
-/*
-const std::shared_ptr<Session::ResponseTimeout> Session::FindResponseTimeout(uint32_t msgSEQ)
-{
-	std::shared_ptr<ResponseTimeout> timeout = nullptr;
-	strand->dispatch([this, msgSEQ, &timeout](){
-		auto itr = response_timeouts.find(msgSEQ);
-		if (response_timeouts.end() != itr)
-		{
-			timeout = itr->second;
-			response_timeouts.erase(msgSEQ);
-		}
-		if (0 == response_timeouts.size())
-		{
-			expire_timer.Cancel();
-		}
-	});
-	return timeout;
-}
-
-void Session::OnResponseTimeout()
-{
-	time_t now = time(nullptr);
-	std::list<uint64_t> expiredMsgSEQs;
-	for(auto& itr : response_timeouts)
-	{
-		const std::shared_ptr<ResponseTimeout>& timeout = itr.second;
-		if(timeout->expire_time < now)
-		{
-			uint32_t msgSEQ = itr.first;
-			timeout->on_timeout();
-			handler_container.Find(msgSEQ);
-			expiredMsgSEQs.push_back(msgSEQ);
-		}
-	}
-
-	for(uint64_t msgSEQ : expiredMsgSEQs)
-	{
-		response_timeouts.erase(msgSEQ);
-	}
-
-	if(0 == response_timeouts.size())
-	{
-		expire_timer.Cancel();
-	}
-}
-*/
-
-
 AsyncSession* AsyncSession::Factory::operator()()
 {
 	AsyncSession* session = new AsyncSession();
@@ -340,7 +290,7 @@ void AsyncSession::OnTimeout()
 		const std::shared_ptr<Timeout>& timeout = itr.second;
 		if (timeout->expire_time < now)
 		{
-			//timeout->on_timeout();
+			timeout->on_timeout();
 			expires.push_back(itr.first);
 		}
 	}

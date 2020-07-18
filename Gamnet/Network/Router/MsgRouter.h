@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include <sstream>
+#include <memory>
 namespace Gamnet { namespace Network { namespace Router {
 
 enum class ROUTER_CAST_TYPE {
@@ -51,10 +52,13 @@ struct ROUTER_CAST_TYPE_Serializer {
 	}
 	static size_t Size(const ROUTER_CAST_TYPE& obj) { return sizeof(ROUTER_CAST_TYPE); }
 };
+
+class Session;
+
 struct Address {
 
 	Address(ROUTER_CAST_TYPE _cast_type, const std::string& _service_name, uint32_t _id)
-		: service_name(_service_name), cast_type(_cast_type), id(_id), msg_seq(0)
+		: service_name(_service_name), cast_type(_cast_type), id(_id)
 	{
 	}
 	std::string ToString() const
@@ -63,21 +67,19 @@ struct Address {
 		ss << "{\"service_name\":\"" << service_name << "\", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
 		return ss.str();
 	}
+	std::weak_ptr<Session> session;
 	
 	std::string	service_name;
 	ROUTER_CAST_TYPE	cast_type;
 	uint32_t	id;
-	uint64_t	msg_seq;
 	Address()	{
 		id = 0;
-		msg_seq = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += sizeof(uint32_t); nSize += service_name.length();
 		nSize += ROUTER_CAST_TYPE_Serializer::Size(cast_type);
 		nSize += sizeof(uint32_t);
-		nSize += sizeof(uint64_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -96,7 +98,6 @@ struct Address {
 		std::memcpy(*_buf_, service_name.c_str(), service_name.length()); (*_buf_) += service_name.length();
 		if(false == ROUTER_CAST_TYPE_Serializer::Store(_buf_, cast_type)) { return false; }
 		std::memcpy(*_buf_, &id, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
-		std::memcpy(*_buf_, &msg_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -113,7 +114,6 @@ struct Address {
 		service_name.assign((char*)*_buf_, service_name_length); (*_buf_) += service_name_length; nSize -= service_name_length;
 		if(false == ROUTER_CAST_TYPE_Serializer::Load(cast_type, _buf_, nSize)) { return false; }
 		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&id, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&msg_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
 		return true;
 	}
 }; //Address

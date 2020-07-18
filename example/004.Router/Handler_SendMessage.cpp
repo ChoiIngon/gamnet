@@ -41,9 +41,10 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		
 		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
 		LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Req(router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
-		Gamnet::Network::Router::SendMsg(dest, reqSvrSvr, ansSvrSvr, 5);
+		//Gamnet::Network::Router::SendMsg(dest, reqSvrSvr, ansSvrSvr, 5);
 
 		ansSvrCli.error_code = ansSvrSvr.error_code;
+		
 		
 		auto self = std::static_pointer_cast<Handler_SendMessage>(shared_from_this());
 		Gamnet::Network::Router::SendMsg(dest, reqSvrSvr, std::bind(&Handler_SendMessage::Recv_SvrSvr_Ans, self, session, std::placeholders::_1),
@@ -71,7 +72,7 @@ GAMNET_BIND_TCP_HANDLER(
 	HandlerCreate
 );
 
-void Handler_SendMessage::Recv_SvrSvr_Req(const std::shared_ptr<Gamnet::Network::Router::Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgSvrSvr_SendMessage_Req reqSvrSvr;
 	MsgSvrSvr_SendMessage_Ans ansSvrSvr;
@@ -82,15 +83,15 @@ void Handler_SendMessage::Recv_SvrSvr_Req(const std::shared_ptr<Gamnet::Network:
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
 
-		LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Req(router_address:", session->router_address.ToString(), ", message:", reqSvrSvr.text, ")");
+		//LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Req(router_address:", session->router_address.ToString(), ", message:", reqSvrSvr.text, ")");
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ansSvrSvr.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Ans(router_address:", session->router_address.ToString(), ", error_code:", (int)ansSvrSvr.error_code, ")");
-	Gamnet::Network::Router::SendMsg(session, ansSvrSvr);
+	//LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Ans(router_address:", session->router_address.ToString(), ", error_code:", (int)ansSvrSvr.error_code, ")");
+	Gamnet::Network::Router::SendMsg(address, ansSvrSvr);
 }
 
 GAMNET_BIND_ROUTER_HANDLER(
