@@ -112,12 +112,6 @@ private :
 	std::map<uint32_t, std::shared_ptr<Timeout>> timeouts;
 };
 
-class LocalSession : public Session
-{
-public :
-	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
-};
-
 }}} /* namespace Gamnet */
 
 #endif /* SERVERSESSION_H_ */

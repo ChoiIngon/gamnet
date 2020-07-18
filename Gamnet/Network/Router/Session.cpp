@@ -373,11 +373,4 @@ const std::shared_ptr<Session::Timeout> AsyncSession::FindTimeout(uint32_t seq)
 	return timeout;
 }
 
-void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
-{
-	auto self(shared_from_this());
-	strand->post(boost::bind(&Network::SessionManager::OnReceive, session_manager, self, packet));
-}
-
-
 }}} /* namespace Gamnet */

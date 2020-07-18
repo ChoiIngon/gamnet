@@ -43,7 +43,6 @@ namespace Gamnet { namespace Network { namespace Router
 		}
 
 		MsgRouter_SendMsg_Ntf ntf;
-		ntf.msg_seq = ++session->send_seq;
 		ntf.buffer.assign(buffer->ReadPtr(), buffer->Size());
 
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
@@ -157,7 +156,6 @@ namespace Gamnet { namespace Network { namespace Router
 		}
 		
 		MsgRouter_SendMsg_Ntf ntf;
-		ntf.msg_seq = 0;
 		std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
 
 		std::shared_ptr<Gamnet::Network::Tcp::Packet> packet = Gamnet::Network::Tcp::Packet::Create();
@@ -176,7 +174,6 @@ namespace Gamnet { namespace Network { namespace Router
 			throw GAMNET_EXCEPTION(ErrorCode::SendMsgFailError, "fail to send message(msg_id:", REQ::MSG_ID, ")");
 		}
 
-		ntf.msg_seq = 0;
 		ntf.buffer.clear();
 		if(false == Tcp::Packet::Load(ntf, packet))
 		{
@@ -207,7 +204,6 @@ namespace Gamnet { namespace Network { namespace Router
 		}
 
 		MsgRouter_SendMsg_Ntf ntf;
-		ntf.msg_seq = session->send_seq;
 		std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
 
 		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
