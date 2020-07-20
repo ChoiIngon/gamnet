@@ -41,7 +41,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		
 		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
 		LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Req(router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
-		//Gamnet::Network::Router::SendMsg(dest, reqSvrSvr, ansSvrSvr, 5);
+		Gamnet::Network::Router::SendMsg(dest, reqSvrSvr, ansSvrSvr, 5);
 
 		ansSvrCli.error_code = ansSvrSvr.error_code;
 		

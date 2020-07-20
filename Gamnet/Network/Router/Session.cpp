@@ -4,6 +4,8 @@
 #include "SessionManager.h"
 #include "RouterCaster.h"
 #include <boost/bind.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/asio/yield.hpp>
 
 namespace Gamnet { namespace Network { namespace Router {
 
@@ -81,7 +83,39 @@ std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet
 			return nullptr;
 		}
 	}
+	/*
+	boost::asio::spawn(*strand, [session, packet](boost::asio::yield_context context) {
+		if (nullptr == session->socket)
+		{
+			return;
+		}
 
+		int totalSentBytes = 0;
+		while (0 < packet->Size())
+		{
+			try {
+				boost::system::error_code ec;
+				int sentBytes = boost::asio::async_write(*(session->socket), boost::asio::buffer(packet->ReadPtr(), packet->Size()), context[ec]);
+				if (0 > sentBytes || 0 != ec.value())
+				{
+					break;
+				}
+				if (0 == sentBytes)
+				{
+					break;
+				}
+				totalSentBytes += sentBytes;
+				packet->Remove(sentBytes);
+			}
+			catch (const boost::system::system_error& e)
+			{
+				LOG(ERR, "send exception(errno:", errno, ", errstr:", e.what(), ")");
+				session->Close(errno);
+				break;
+			}
+		}
+	});
+	*/
 	if (0 > session->SyncSend(packet))
 	{
 		return nullptr;
