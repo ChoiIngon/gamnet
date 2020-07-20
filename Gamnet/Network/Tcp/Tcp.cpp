@@ -22,7 +22,7 @@ const boost::asio::ip::address& GetLocalAddress()
 		return localAddress;
 	}
 #ifdef _WIN32
-	boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
+	boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_context>::GetInstance());
 	boost::asio::ip::tcp::resolver::query query_(boost::asio::ip::host_name(), ""); 
 	boost::asio::ip::tcp::resolver::iterator itr = resolver_.resolve(query_);
 	

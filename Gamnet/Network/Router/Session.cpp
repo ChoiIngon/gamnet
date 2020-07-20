@@ -7,7 +7,7 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
-static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
+static boost::asio::io_context& io_context = Singleton<boost::asio::io_context>::GetInstance();
 
 Session::Session()
 	: Network::Tcp::Session()
@@ -145,7 +145,7 @@ void SyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>&
 
 void SyncSession::Close(int reason)
 {
-	strand->dispatch([this](){
+	boost::asio::dispatch(*strand, [this](){
 		expire_timer.Cancel();
 		socket = nullptr;
 	});
@@ -157,7 +157,7 @@ std::shared_ptr<Tcp::Packet> SyncSession::SyncRead(int timeout)
 	std::promise<std::shared_ptr<Tcp::Packet>> promise;
 	
 	// promise 써줘야 함. 다른 스레드에서 호출 됨.
-	strand->dispatch([this, &promise, timeout](){
+	boost::asio::dispatch(*strand, [this, &promise, timeout](){
 		if (nullptr == socket)
 		{
 			promise.set_value(nullptr);
@@ -266,7 +266,7 @@ void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::fu
 	timeout->expire_time = time(nullptr) + seconds;
 	timeout->on_receive = onReceive;
 	timeout->on_timeout = onTimeout;
-	strand->dispatch(boost::bind(&AsyncSession::SetTimeout, this, timeout));
+	boost::asio::dispatch(*strand, boost::bind(&AsyncSession::SetTimeout, this, timeout));
 	Network::Session::AsyncSend(packet);
 }
 
@@ -275,7 +275,7 @@ void AsyncSession::SetTimeout(const std::shared_ptr<Timeout>& timeout)
 	if(true == timeouts.empty())
 	{
 		expire_timer.AutoReset(true);
-		expire_timer.SetTimer(1000, strand->wrap(boost::bind(&AsyncSession::OnTimeout, this)));
+		expire_timer.SetTimer(1000, boost::asio::bind_executor(*strand, boost::bind(&AsyncSession::OnTimeout, this)));
 	}
 
 	timeouts[timeout->timeout_seq] = timeout;

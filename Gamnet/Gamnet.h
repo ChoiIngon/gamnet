@@ -26,6 +26,9 @@
 #include "Log/Log.h"
 #include "Test/Test.h"
 
+#if BOOST_VERSION < 106600
+#error "need boost higher version"
+#endif
 namespace Gamnet {
 
 void Run(int thread_count = 0);

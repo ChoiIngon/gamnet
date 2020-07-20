@@ -12,7 +12,7 @@ void OnRouterClose(const Gamnet::Network::Router::Address& address)
 	LOG(DEV, "OnClose:", address.ToString());
 }
 
-static boost::asio::io_service& io_service_ = Gamnet::Singleton<boost::asio::io_service>::GetInstance();
+static boost::asio::io_context& io_context = Gamnet::Singleton<boost::asio::io_context>::GetInstance();
 
 int main(int argc, char** argv) 
 {

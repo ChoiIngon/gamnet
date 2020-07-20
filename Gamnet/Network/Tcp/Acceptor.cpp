@@ -19,7 +19,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	Acceptor::Acceptor() 
-		: acceptor(Singleton<boost::asio::io_service>::GetInstance())
+		: acceptor(Singleton<boost::asio::io_context>::GetInstance())
 		, max_socket_count(0)
 		, accept_count(0)
 		, close_count(0)
@@ -37,7 +37,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		max_socket_count = max_count;
 		for (int i = 0; i < max_count; i++)
 		{
-			Accept(new boost::asio::ip::tcp::socket(Singleton<boost::asio::io_service>::GetInstance()));
+			Accept(new boost::asio::ip::tcp::socket(Singleton<boost::asio::io_context>::GetInstance()));
 		}
 	}
 
@@ -70,7 +70,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	void Acceptor::Callback_Accept(const std::shared_ptr<boost::asio::ip::tcp::socket> socket, const boost::system::error_code& ec)
 	{
 		try {
-			if (0 != ec)
+			if (0 != ec.value())
 			{
 				fail_count++;
 				throw GAMNET_EXCEPTION(ErrorCode::AcceptFailError, "error_code:", ec.value());

@@ -31,7 +31,7 @@ namespace Gamnet { namespace Time {
 	}
 
 Timer::Timer()
-	: interval(0), auto_reset(false), entry(nullptr), deadline_timer(Singleton<boost::asio::io_service>::GetInstance())
+	: interval(0), auto_reset(false), entry(nullptr), deadline_timer(Singleton<boost::asio::io_context>::GetInstance())
 {
 }
 
@@ -42,7 +42,7 @@ Timer::~Timer()
 
 void Timer::OnExpire(const boost::system::error_code& ec)
 {
-	if (0 != ec)
+	if (0 != ec.value())
 	{
 		return;
 	}

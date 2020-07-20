@@ -40,7 +40,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 			{
 				boost::system::error_code ec;
 				int sentBytes = boost::asio::write(*(socket), boost::asio::buffer(&send_buffer[0] + totalSentBytes, send_buffer.length() - totalSentBytes), ec);
-				if (0 > sentBytes || 0 != ec)
+				if (0 > sentBytes || 0 != ec.value())
 				{
 					throw GAMNET_EXCEPTION(ErrorCode::SendMsgFailError, "errno:", errno, ", ec:", ec);
 				}

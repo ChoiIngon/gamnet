@@ -102,7 +102,7 @@ GAMNET_BIND_ROUTER_HANDLER(
 
 void Handler_SendMessage::Recv_SvrSvr_Ans(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	session->strand->dispatch([session, packet] () {
+	boost::asio::dispatch(*session->strand, [session, packet] () {
 		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
 		MsgSvrCli_SendMessage_Ans ansSvrCli;
 		ansSvrCli.error_code = ErrorCode::Success;

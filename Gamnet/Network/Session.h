@@ -43,7 +43,8 @@ namespace Gamnet { namespace Network {
 		SessionManager*										session_manager;
 
 		std::shared_ptr<boost::asio::ip::tcp::socket>		socket;
-		std::shared_ptr<boost::asio::strand>				strand;
+		typedef boost::asio::strand<boost::asio::io_context::executor_type> strand_t;
+		std::shared_ptr<strand_t>							strand;
 		std::shared_ptr<Buffer> 							read_buffer;
 		std::deque<std::shared_ptr<Buffer>>					send_buffers;
 

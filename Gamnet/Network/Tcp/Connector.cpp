@@ -8,7 +8,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	boost::asio::ip::tcp::socket* Connector::SocketFactory::operator() ()
 	{
-		return new boost::asio::ip::tcp::socket(Singleton<boost::asio::io_service>::GetInstance());
+		return new boost::asio::ip::tcp::socket(Singleton<boost::asio::io_context>::GetInstance());
 	}
 
 	boost::asio::ip::tcp::socket* Connector::SocketInitFunctor::operator() (boost::asio::ip::tcp::socket* socket)
@@ -34,7 +34,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "host is empty");
 		}
 
-		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
+		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_context>::GetInstance());
 		boost::asio::ip::tcp::resolver::query query_(host, "");
 		boost::asio::ip::address address_;
 		for (auto itr = resolver_.resolve(query_); itr != boost::asio::ip::tcp::resolver::iterator(); ++itr)
@@ -82,7 +82,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 		
 		boost::asio::ip::address address_;
-		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_service>::GetInstance());
+		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_context>::GetInstance());
 		boost::asio::ip::tcp::resolver::query query_(host, "");
 		for (auto itr = resolver_.resolve(query_); itr != boost::asio::ip::tcp::resolver::iterator(); ++itr)
 		{
@@ -95,7 +95,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 		boost::system::error_code ec;
 		socket->connect(endpoint_, ec);
-		if (0 != ec)
+		if (0 != ec.value())
 		{
 			LOG(GAMNET_ERR, "connect fail(host:", host, ", port:", port, ")");
 			return false;
@@ -116,7 +116,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			{
 				return;
 			}
-			else if (0 != ec)
+			else if (0 != ec.value())
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "(dest:", endpoint.address().to_v4().to_string(), ":", endpoint.port(), ", message:", ec.message(), ", errno:", ec, ")");
 			}

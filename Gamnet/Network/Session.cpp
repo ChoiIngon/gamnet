@@ -8,13 +8,13 @@
 namespace Gamnet { namespace Network {
 	
 static std::atomic<uint32_t> SESSION_KEY;
-static boost::asio::io_service& io_service = Singleton<boost::asio::io_service>::GetInstance();
+static boost::asio::io_context& io_context = Singleton<boost::asio::io_context>::GetInstance();
 
 Session::Session() :
 	session_key(0),
 	session_manager(nullptr),
 	socket(nullptr),
-	strand(std::make_shared<boost::asio::strand>(io_service)),
+	strand(std::make_shared<strand_t>(io_context.get_executor())),
 	read_buffer(nullptr)
 {
 }
@@ -44,7 +44,7 @@ void Session::AsyncSend(const char* data, size_t length)
 void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	auto self = shared_from_this();
-	strand->dispatch([self, buffer] () {
+	boost::asio::dispatch(*strand, [self, buffer] () {
 		bool needFlush = self->send_buffers.empty();
 		self->send_buffers.push_back(buffer);
 		if (true == needFlush)
@@ -69,12 +69,12 @@ void Session::FlushSend()
 	
 	auto self(shared_from_this());
 	const std::shared_ptr<Buffer> buffer = send_buffers.front();
-	boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), strand->wrap(std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
+	boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), boost::asio::bind_executor(*strand, std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
 }
 
 void Session::OnSendHandler(const boost::system::error_code& ec, std::size_t transferredBytes)
 {
-	if (0 != ec)
+	if (0 != ec.value())
 	{
 		//Close(); // no error, just closed socket
 		return;
@@ -92,7 +92,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	std::promise<int> promise;
 	auto self = shared_from_this();
-	strand->dispatch([self, &promise, buffer]() {
+	boost::asio::dispatch(*strand, [self, &promise, buffer]() {
 		if (nullptr == self->socket)
 		{
 			LOG(ERR, "invalid link[session_key:", self->session_key, "]");
@@ -106,7 +106,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 			try {
 				boost::system::error_code ec;
 				int sentBytes = boost::asio::write(*(self->socket), boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), ec);
-				if (0 > sentBytes || 0 != ec)
+				if (0 > sentBytes || 0 != ec.value())
 				{
 					LOG(ERR, "send fail(errno:", errno, ", ec:", ec, ")");
 					promise.set_value(-1);
@@ -144,7 +144,7 @@ int Session::SyncSend(const char* data, int length)
 void Session::Close(int reason)
 {
 	auto self(shared_from_this());
-	strand->dispatch([self, reason]() {
+	boost::asio::dispatch(*strand, [self, reason]() {
 		if (nullptr == self->socket)
 		{
 			return;
@@ -161,9 +161,9 @@ void Session::AsyncRead()
 	assert(nullptr != socket);
 	auto self(shared_from_this());
 	socket->async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
-		strand->wrap([self](boost::system::error_code ec, std::size_t readbytes) 
+		boost::asio::bind_executor(*strand, [self](boost::system::error_code ec, std::size_t readbytes) 
 	{
-		if (0 != ec)
+		if (0 != ec.value())
 		{
 			self->Close(ErrorCode::Success);
 			return;

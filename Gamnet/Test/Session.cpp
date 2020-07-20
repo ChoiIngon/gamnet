@@ -61,7 +61,7 @@ void Session::AsyncSend(const std::shared_ptr<Network::Tcp::Packet>& packet)
 void Session::OnReconnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 {
 	auto self = shared_from_this();
-	strand->dispatch([self, socket](){
+	boost::asio::dispatch(*strand, [self, socket](){
 		boost::asio::socket_base::linger linger( true, 0 );
 		socket->set_option( linger );
 

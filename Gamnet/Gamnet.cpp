@@ -3,7 +3,7 @@
 
 
 namespace Gamnet {
-static boost::asio::io_service& io_service_ = Singleton<boost::asio::io_service>::GetInstance();
+static boost::asio::io_context& io_context = Singleton<boost::asio::io_context>::GetInstance();
 
 void Run(int thread_count)
 {
@@ -13,11 +13,11 @@ void Run(int thread_count)
 	std::vector<std::thread > threads;
 	for(int i=0; i<thread_count; i++)
 	{
-		threads.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &io_service_)));
+		threads.push_back(std::thread(boost::bind(&boost::asio::io_context::run, &io_context)));
 	}
 
 	//Test::Run(thread_count);
-	io_service_.run();
+	io_context.run();
 }
 
 }
