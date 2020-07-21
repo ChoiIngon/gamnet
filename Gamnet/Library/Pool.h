@@ -6,7 +6,7 @@
 #include <deque>
 #include <iostream>
 #include <assert.h>
-
+#include <functional>
 namespace Gamnet {
 	namespace Policy {
 		/*!

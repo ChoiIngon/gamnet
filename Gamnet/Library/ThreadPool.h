@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <algorithm>
 #include <vector>
+#include <functional>
 
 namespace Gamnet
 {

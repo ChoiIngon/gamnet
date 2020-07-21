@@ -1,5 +1,4 @@
 #include "UserSession.h"
-#include "Handler_SendMessage.h"
 #include <boost/program_options.hpp>
 
 void OnRouterConnect(const Gamnet::Network::Router::Address& address)
@@ -11,8 +10,6 @@ void OnRouterClose(const Gamnet::Network::Router::Address& address)
 {
 	LOG(DEV, "OnClose:", address.ToString());
 }
-
-static boost::asio::io_context& io_context = Gamnet::Singleton<boost::asio::io_context>::GetInstance();
 
 int main(int argc, char** argv) 
 {
@@ -37,14 +34,12 @@ int main(int argc, char** argv)
 	Gamnet::InitCrashDump();
 	try {
 		Gamnet::Log::ReadXml(config_path);
-		Gamnet::Singleton<Manager_Session>::GetInstance().Init();
 		LOG(INF, argv[0], " Server Starts..");
 		LOG(INF, "build date:", __DATE__, " ", __TIME__);
 		LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 		Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);
 		Gamnet::Network::Http::ReadXml(config_path);
-		
 		Gamnet::Network::Router::ReadXml(config_path, OnRouterConnect, OnRouterClose);
 		Gamnet::Test::ReadXml<TestSession>(config_path);
 		Gamnet::Run(vm["thread"].as<int>());
