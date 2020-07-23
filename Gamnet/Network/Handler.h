@@ -9,12 +9,15 @@
 #define GAMNET_NETWORK_HANDLER_H_
 
 #include <memory>
-
+#include "Coroutine.h"
 namespace Gamnet { namespace Network {
 
+class Coroutine;
 struct IHandler : public std::enable_shared_from_this<IHandler>
 {
-	IHandler() {}
+	Coroutine* coroutine;
+
+	IHandler() : coroutine(nullptr) {}
 	virtual ~IHandler() {}
 /*
 	template <class MSG>
@@ -23,6 +26,15 @@ struct IHandler : public std::enable_shared_from_this<IHandler>
 		session->handler_container.Register(MSG::MSG_ID, shared_from_this());
 	}
 */
+
+	void resume()
+	{
+		coroutine->resume();
+	}
+	void yield()
+	{
+		coroutine->yield();
+	}
 };
 
 

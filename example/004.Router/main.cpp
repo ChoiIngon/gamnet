@@ -12,73 +12,8 @@ void OnRouterClose(const Gamnet::Network::Router::Address& address)
 	LOG(DEV, "OnClose:", address.ToString());
 }
 
-class Coroutine
-{
-	boost::coroutines2::coroutine<void>::pull_type pull_type;
-	boost::coroutines2::coroutine<void>::push_type* push_type;
-public :
-	Coroutine() : pull_type(std::bind(&Coroutine::Init, this, std::placeholders::_1)), push_type(nullptr)
-	{
-	}
-
-
-	typedef void (Coroutine::*COROUTINE_FUNC_T)(const std::shared_ptr<Gamnet::Network::Tcp::Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
-
-	COROUTINE_FUNC_T coroutine;
-	std::shared_ptr<Gamnet::Network::Tcp::Session> session;
-	std::shared_ptr<Gamnet::Network::Tcp::Packet> packet;
-	
-	void start()
-	{
-		pull_type();
-	}
-	void resume()
-	{
-		pull_type();
-	}
-protected:
-	void yield()
-	{
-		std::cout << "yield" << std::endl;
-		(*this->push_type)();
-	}
-private :
-	void Init(boost::coroutines2::coroutine<void>::push_type& push)
-	{
-		push();
-		push_type = &push;
-		std::cout << "on async read complete" << std::endl;
-		std::bind(coroutine, this, session, packet)();
-	}
-};
-
-
-
-class CoroutineEx : public Coroutine
-{
-	Gamnet::Time::Timer timer;
-public :
-	void OnReceive(const std::shared_ptr<Gamnet::Network::Tcp::Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
-	{
-		std::cout << "de-serialize packet" << std::endl;
-		std::cout << "send to back-end server" << std::endl;
-		std::cout << "start async wait" << std::endl;
-		timer.SetTimer(1000, [this] () {
-			resume();
-		});
-		yield();
-		std::cout << "on async read complete from backend server" << std::endl;
-		std::cout << "logic process" << std::endl;
-		std::cout << "response to client" << std::endl;
-	}
-};
-
 int main(int argc, char** argv) 
 {
-	Coroutine* coro = new CoroutineEx();
-	coro->coroutine = (Coroutine::COROUTINE_FUNC_T)&CoroutineEx::OnReceive;
-	coro->start();
-
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
 		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")
