@@ -15,8 +15,7 @@ namespace Gamnet { namespace Network {
 		virtual void Remove(const std::shared_ptr<Session>& session);
 		virtual void OnReceive(const std::shared_ptr<Session>& session, const std::shared_ptr<Buffer>& buffer) = 0;
 
-		template <class SESSION_T>
-		std::shared_ptr<SESSION_T> Find(uint32_t sessionKey)
+		std::shared_ptr<Session> Find(uint32_t sessionKey)
 		{
 			std::lock_guard<std::mutex> lo(lock);
 			auto itr = sessions.find(sessionKey);
@@ -24,7 +23,7 @@ namespace Gamnet { namespace Network {
 			{
 				return nullptr;
 			}
-			return std::static_pointer_cast<SESSION_T>(itr->second);
+			return itr->second;
 		}
 	};
 }}

@@ -45,7 +45,7 @@ endif()
 set(EXCLUDE_PATHS 
 	".settings" 
 	"CMakeFiles" 
-	"Debug" 
+	#	"Debug" 
 )
 
 file(GLOB_RECURSE SRC "*.cpp" "*.c") 

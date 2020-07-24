@@ -1,4 +1,4 @@
-#define GAMNET_VERSION 1.0.3
+#define GAMNET_VERSION 1.0.2
 
 #ifndef GAMNET_GAMNET_H_
 #define GAMNET_GAMNET_H_
@@ -8,7 +8,6 @@
 #include "Library/Atomic.h"
 #include "Library/Base64.h"
 #include "Library/Buffer.h"
-#include "Library/Component.h"
 #include "Library/Delegate.h"
 #include "Library/Exception.h"
 #include "Library/Json/json.h"
@@ -21,8 +20,6 @@
 #include "Library/ThreadPool.h"
 #include "Library/Time/Time.h"
 #include "Library/Variant.h"
-#include "Library/Debugs.h"
-
 #include "Log/Log.h"
 #include "Test/Test.h"
 
@@ -30,7 +27,6 @@
 #error "need boost higher version"
 #endif
 namespace Gamnet {
-
 void Run(int thread_count = 0);
 }
 #endif /* GAMNET_H_ */

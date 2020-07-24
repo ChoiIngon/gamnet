@@ -1,6 +1,7 @@
 #ifndef GAMNET_NETWORK_ROUTER_H_
 #define GAMNET_NETWORK_ROUTER_H_
 
+#include "../../Library/Singleton.h"
 #include "RouterCaster.h"
 #include "Dispatcher.h"
 

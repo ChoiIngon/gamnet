@@ -1,4 +1,4 @@
-define GAMNET_VERSION @GAMNET_VERSION@
+#define GAMNET_VERSION @GAMNET_VERSION@
 
 #ifndef GAMNET_GAMNET_H_
 #define GAMNET_GAMNET_H_
@@ -23,6 +23,9 @@ define GAMNET_VERSION @GAMNET_VERSION@
 #include "Log/Log.h"
 #include "Test/Test.h"
 
+#if BOOST_VERSION < 106600
+#error "need boost higher version"
+#endif
 namespace Gamnet {
 void Run(int thread_count = 0);
 }

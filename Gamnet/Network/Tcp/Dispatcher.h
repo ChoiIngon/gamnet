@@ -12,6 +12,7 @@
 #include <atomic>
 
 #include "../../Log/Log.h"
+#include "../../Library/Time/Timer.h"
 #include "../Handler.h"
 #include "../HandlerFactory.h"
 #include "Packet.h"

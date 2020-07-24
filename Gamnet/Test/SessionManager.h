@@ -3,6 +3,7 @@
 
 #include "../Network/SessionManager.h"
 #include "../Network/Tcp/Connector.h"
+#include "../Network/Tcp/SystemMessageHandler.h"
 #include "Session.h"
 
 #include <map>

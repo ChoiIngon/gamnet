@@ -10,6 +10,7 @@
 
 #include "../Tcp/Acceptor.h"
 #include "../../Library/Json/json.h"
+#include "../../Library/Singleton.h"
 #include "Dispatcher.h"
 #include "HttpClient.h"
 #include "Response.h"

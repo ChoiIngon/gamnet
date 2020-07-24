@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <atomic>
+#include <list>
 
 namespace Gamnet { namespace Network { namespace Tcp {
 

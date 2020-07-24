@@ -3,8 +3,9 @@
 
 #include "../../Library/Json/json.h"
 #include "../../Library/Singleton.h"
+#include "../SessionManager.h"
 #include "../Handler.h"
-#include "SessionManager.h"
+#include "Packet.h"
 #undef max
 
 namespace Gamnet {	namespace Network {		namespace Tcp {
@@ -81,7 +82,7 @@ public:
 			const std::string session_token = req["session_token"].asString();
 
 			LOG(DEV, "[Gamnet::Network::Tcp] Recv_Reconnect_Req(session_key:", session_key, ", session_token:", session_token, ")");
-			const std::shared_ptr<SESSION_T> prevSession = session->session_manager->Find<SESSION_T>(session_key);
+			const std::shared_ptr<SESSION_T> prevSession = std::static_pointer_cast<SESSION_T>(session->session_manager->Find(session_key));
 			if (nullptr == prevSession)
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionKeyError, "[Gamnet::Network::Tcp] can not find session data for reconnect(session_key:", session_key, ")");
