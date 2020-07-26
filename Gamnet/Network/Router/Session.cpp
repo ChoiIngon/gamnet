@@ -160,6 +160,11 @@ SyncSession::~SyncSession()
 {
 }
 
+bool SyncSession::Init()
+{
+	return true;
+}
+
 bool SyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 {
 	return connector.SyncConnect(endpoint.address().to_v4().to_string(), endpoint.port(), 5);
@@ -167,6 +172,7 @@ bool SyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 
 void SyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 {
+	Session::Init();
 	this->socket = socket;
 	
 	MsgRouter_RegisterAddress_Ntf ntf;
@@ -264,6 +270,17 @@ AsyncSession* AsyncSession::Factory::operator()()
 	return session;
 }
 
+AsyncSession::AsyncSession()
+	: read_done(true)
+{
+	connector.connect_handler = std::bind(&AsyncSession::OnConnect, this, std::placeholders::_1);
+}
+
+bool AsyncSession::Init()
+{
+	return true;
+}
+
 bool AsyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 {
 	return connector.SyncConnect(endpoint.address().to_v4().to_string(), endpoint.port(), 5);
@@ -271,10 +288,11 @@ bool AsyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
 
 void AsyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 {
+	Session::Init();
+
 	this->socket = socket;
 	type = Session::TYPE::SEND;
 
-	AsyncRead();
 	MsgRouter_RegisterAddress_Ntf ntf;
 	ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
 
@@ -288,19 +306,18 @@ void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 	Network::Session::AsyncSend(packet);
 }
 
-AsyncSession::AsyncSession()
-{
-	connector.connect_handler = std::bind(&AsyncSession::OnConnect, this, std::placeholders::_1);
-}
-
 void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void()>& onTimeout, int seconds)
 {
+	read_done = false;
+	AsyncRead();
+
 	std::shared_ptr<Timeout> timeout = timeout_pool.Create();
 	timeout->timeout_seq = packet->msg_seq;
 	timeout->expire_time = time(nullptr) + seconds;
 	timeout->on_receive = onReceive;
 	timeout->on_timeout = onTimeout;
 	boost::asio::dispatch(*strand, boost::bind(&AsyncSession::SetTimeout, this, timeout));
+	
 	Network::Session::AsyncSend(packet);
 }
 
@@ -355,6 +372,56 @@ const std::shared_ptr<Session::Timeout> AsyncSession::FindTimeout(uint32_t seq)
 		expire_timer.Cancel();
 	}
 	return timeout;
+}
+
+void AsyncSession::AsyncRead() 
+{
+	if(true == read_done)
+	{
+		return;
+	}
+
+	Network::Session::AsyncRead();
+}
+
+void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
+{
+	while (0 < buffer->Size())
+	{
+		size_t readSize = std::min(buffer->Size(), recv_packet->Available());
+		recv_packet->Append(buffer->ReadPtr(), readSize);
+		buffer->Remove(readSize);
+
+		while (Tcp::Packet::HEADER_SIZE <= (int)recv_packet->Size())
+		{
+			recv_packet->ReadHeader();
+			if (Tcp::Packet::HEADER_SIZE > recv_packet->length)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::BufferUnderflowError, "buffer underflow(read size:", recv_packet->length, ")");
+			}
+
+			if (recv_packet->length >= (uint16_t)recv_packet->Capacity())
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", recv_packet->length, ")");
+			}
+
+			if (recv_packet->length > (uint16_t)recv_packet->Size())
+			{
+				break;
+			}
+
+			read_done = true;
+			std::shared_ptr<Tcp::Packet> packet = recv_packet;
+			recv_packet = Tcp::Packet::Create();
+			if (nullptr == recv_packet)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
+			}
+			recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
+			auto self = shared_from_this();
+			session_manager->OnReceive(self, packet);
+		}
+	}
 }
 
 }}} /* namespace Gamnet */

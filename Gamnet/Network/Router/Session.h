@@ -68,6 +68,8 @@ public:
 	SyncSession();
 	~SyncSession();
 
+	virtual bool Init() override;
+
 	bool Connect(const boost::asio::ip::tcp::endpoint& endpoint);
 
 	std::shared_ptr<Tcp::Packet> SyncRead(int timeout);
@@ -97,11 +99,15 @@ public :
 public :
 	AsyncSession();
 	bool Connect(const boost::asio::ip::tcp::endpoint& endpoint);
+	virtual bool Init() override;
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
 			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void()>& onTimeout, int timeout);
 	virtual const std::shared_ptr<Timeout> FindTimeout(uint32_t seq) override;
+
+	virtual void AsyncRead() override;
+	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 private :
-	
+	bool read_done;
 	Tcp::Connector connector;
 	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
 	void SetTimeout(const std::shared_ptr<Timeout>& timeout);
