@@ -75,7 +75,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	template <class SESSION_T>
 	void DestroySession(uint32_t session_key)
 	{
-		Singleton<SessionManager<SESSION_T>>::GetInstance().OnDestroy(session_key);
+		Singleton<SessionManager<SESSION_T>>::GetInstance().DestroySession(session_key);
 	}
 
 	template <class SESSION_T>

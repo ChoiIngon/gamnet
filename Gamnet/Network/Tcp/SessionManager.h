@@ -65,6 +65,18 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			Singleton<Dispatcher<SESSION_T>>::GetInstance().OnReceive(std::static_pointer_cast<SESSION_T>(session), std::static_pointer_cast<Packet>(buffer));
 		}
 
+		void DestroySession(uint32_t session_key)
+		{
+			std::shared_ptr<Session> session = std::static_pointer_cast<Session>(Find(session_key));
+			if (nullptr == session)
+			{
+				LOG(WRN, "can not find session(session_key:", session_key, ")");
+				return;
+			}
+			session->handover_safe = false;
+			session->Close(ErrorCode::Success);
+		}
+
 		Json::Value State()
 		{
 			Json::Value root;
