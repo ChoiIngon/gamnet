@@ -1,0 +1,288 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <ProjectName>Gamnet</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\curl-7.43.0-win64\include;C:\local\boost_1_64_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ObjectFileName>$(IntDir)/%(Relativedir)/</ObjectFileName>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\local\boost_1_71_0;C:\local\OpenSSL-Win64\include;C:\local\curl-7.43.0-win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;USE_OPENSSL</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\curl-7.43.0-win64\include;C:\local\boost_1_64_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Database\MySQL\Connection.cpp" />
+    <ClCompile Include="Database\MySQL\MySQL.cpp" />
+    <ClCompile Include="Database\MySQL\ResultSet.cpp" />
+    <ClCompile Include="Database\MySQL\Transaction.cpp" />
+    <ClCompile Include="Database\Redis\Connection.cpp" />
+    <ClCompile Include="Database\Redis\Redis.cpp" />
+    <ClCompile Include="Database\Redis\ResultSet.cpp" />
+    <ClCompile Include="Database\Redis\Subscriber.cpp" />
+    <ClCompile Include="Database\Redis\Transaction.cpp" />
+    <ClCompile Include="Database\SQLite\Connection.cpp" />
+    <ClCompile Include="Database\SQLite\ResultSet.cpp" />
+    <ClCompile Include="Database\SQLite\SQLite.cpp" />
+    <ClCompile Include="Database\SQLite\sqlite3.c" />
+    <ClCompile Include="Database\SQLite\Transaction.cpp" />
+    <ClCompile Include="Gamnet.cpp" />
+    <ClCompile Include="library\Base64.cpp" />
+    <ClCompile Include="library\Buffer.cpp" />
+    <ClCompile Include="Library\Debugs.cpp" />
+    <ClCompile Include="library\Exception.cpp" />
+    <ClCompile Include="Library\Json\jsoncpp.cpp" />
+    <ClCompile Include="library\MD5.cpp" />
+    <ClCompile Include="Library\Random.cpp" />
+    <ClCompile Include="Library\Singleton.cpp" />
+    <ClCompile Include="Library\ThreadPool.cpp" />
+    <ClCompile Include="Library\Time\DateTime.cpp" />
+    <ClCompile Include="Library\Time\Time.cpp" />
+    <ClCompile Include="Library\Time\Timer.cpp" />
+    <ClCompile Include="Library\Variant.cpp" />
+    <ClCompile Include="log\File.cpp" />
+    <ClCompile Include="log\Log.cpp" />
+    <ClCompile Include="log\Logger.cpp" />
+    <ClCompile Include="Network\Http\Dispatcher.cpp" />
+    <ClCompile Include="Network\Http\HttpClient.cpp" />
+    <ClCompile Include="Network\Http\HttpServer.cpp" />
+    <ClCompile Include="Network\Http\Request.cpp" />
+    <ClCompile Include="Network\Http\Response.cpp" />
+    <ClCompile Include="Network\Http\Session.cpp" />
+    <ClCompile Include="Network\Router\Dispatcher.cpp" />
+    <ClCompile Include="Network\Router\Router.cpp" />
+    <ClCompile Include="Network\Router\RouterCaster.cpp" />
+    <ClCompile Include="Network\Router\RouterHandler.cpp" />
+    <ClCompile Include="Network\Router\Session.cpp" />
+    <ClCompile Include="Network\Router\SessionManager.cpp" />
+    <ClCompile Include="Network\SessionManager.cpp" />
+    <ClCompile Include="Network\Tcp\Acceptor.cpp" />
+    <ClCompile Include="Network\Tcp\Connector.cpp" />
+    <ClCompile Include="Network\HandlerContainer.cpp" />
+    <ClCompile Include="network\Session.cpp" />
+    <ClCompile Include="Network\Tcp\CastGroup.cpp" />
+    <ClCompile Include="Network\Tcp\Packet.cpp" />
+    <ClCompile Include="Network\Tcp\Session.cpp" />
+    <ClCompile Include="Network\Tcp\Tcp.cpp" />
+    <ClCompile Include="Test\Session.cpp" />
+    <ClCompile Include="Test\SessionManager.cpp" />
+    <ClCompile Include="Test\Test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Database\ConnectionPool.h" />
+    <ClInclude Include="Database\Database.h" />
+    <ClInclude Include="Database\MySQL\Connection.h" />
+    <ClInclude Include="Database\MySQL\MySQL.h" />
+    <ClInclude Include="Database\MySQL\ResultSet.h" />
+    <ClInclude Include="Database\MySQL\Transaction.h" />
+    <ClInclude Include="Database\Redis\Connection.h" />
+    <ClInclude Include="Database\Redis\Redis.h" />
+    <ClInclude Include="Database\Redis\ResultSet.h" />
+    <ClInclude Include="Database\Redis\Subscriber.h" />
+    <ClInclude Include="Database\Redis\Transaction.h" />
+    <ClInclude Include="Database\SQLite\Connection.h" />
+    <ClInclude Include="Database\SQLite\ResultSet.h" />
+    <ClInclude Include="Database\SQLite\SQLite.h" />
+    <ClInclude Include="Database\SQLite\sqlite3.h" />
+    <ClInclude Include="Database\SQLite\sqlite3ext.h" />
+    <ClInclude Include="Database\SQLite\Transaction.h" />
+    <ClInclude Include="Gamnet.h" />
+    <ClInclude Include="library\Atomic.h" />
+    <ClInclude Include="library\Base64.h" />
+    <ClInclude Include="library\Buffer.h" />
+    <ClInclude Include="Library\Component.h" />
+    <ClInclude Include="Library\DataCache.h" />
+    <ClInclude Include="Library\Debugs.h" />
+    <ClInclude Include="Library\Delegate.h" />
+    <ClInclude Include="library\Exception.h" />
+    <ClInclude Include="Library\Json\json-forwards.h" />
+    <ClInclude Include="Library\Json\json.h" />
+    <ClInclude Include="library\MD5.h" />
+    <ClInclude Include="library\MultiLock.h" />
+    <ClInclude Include="library\Pool.h" />
+    <ClInclude Include="Library\Random.h" />
+    <ClInclude Include="library\Singleton.h" />
+    <ClInclude Include="Library\StateMachine.h" />
+    <ClInclude Include="library\String.h" />
+    <ClInclude Include="library\ThreadPool.h" />
+    <ClInclude Include="Library\Time\DateTime.h" />
+    <ClInclude Include="Library\Time\Time.h" />
+    <ClInclude Include="Library\Time\Timer.h" />
+    <ClInclude Include="Library\Variant.h" />
+    <ClInclude Include="log\File.h" />
+    <ClInclude Include="log\Log.h" />
+    <ClInclude Include="log\Logger.h" />
+    <ClInclude Include="Network\Http\Dispatcher.h" />
+    <ClInclude Include="Network\Http\HttpClient.h" />
+    <ClInclude Include="Network\Http\HttpServer.h" />
+    <ClInclude Include="Network\Http\Request.h" />
+    <ClInclude Include="Network\Http\Response.h" />
+    <ClInclude Include="Network\Http\Session.h" />
+    <ClInclude Include="Network\Network.h" />
+    <ClInclude Include="Network\Router\Dispatcher.h" />
+    <ClInclude Include="Network\Router\MsgRouter.h" />
+    <ClInclude Include="Network\Router\Router.h" />
+    <ClInclude Include="Network\Router\RouterCaster.h" />
+    <ClInclude Include="Network\Router\RouterHandler.h" />
+    <ClInclude Include="Network\Router\Session.h" />
+    <ClInclude Include="Network\Router\SessionManager.h" />
+    <ClInclude Include="Network\Tcp\Acceptor.h" />
+    <ClInclude Include="Network\Tcp\Connector.h" />
+    <ClInclude Include="Network\Handler.h" />
+    <ClInclude Include="Network\HandlerContainer.h" />
+    <ClInclude Include="Network\HandlerFactory.h" />
+    <ClInclude Include="network\Session.h" />
+    <ClInclude Include="Network\Tcp\CastGroup.h" />
+    <ClInclude Include="Network\Tcp\Dispatcher.h" />
+    <ClInclude Include="Network\Tcp\Packet.h" />
+    <ClInclude Include="Network\Tcp\Session.h" />
+    <ClInclude Include="Network\Tcp\SessionManager.h" />
+    <ClInclude Include="Network\Tcp\SystemMessageHandler.h" />
+    <ClInclude Include="Network\SessionManager.h" />
+    <ClInclude Include="Network\Tcp\Tcp.h" />
+    <ClInclude Include="Test\Session.h" />
+    <ClInclude Include="Test\SessionManager.h" />
+    <ClInclude Include="Test\Test.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Network\Router\MsgRouter.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\x64\Debug\idlc.exe -lcpp  Network\Router\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\x64\Debug\idlc.exe -lcpp  Network\Router\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Network\Router\%(Filename).h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Database\README.md" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
