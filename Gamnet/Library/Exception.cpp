@@ -8,6 +8,10 @@
 
 namespace Gamnet
 {
+Exception::Exception(int error_code) : error_code_(error_code)
+{
+}
+
 Exception::~Exception() throw() {}
 const char* Exception::what() const throw()
 {

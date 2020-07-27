@@ -48,7 +48,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Req(session_key:", session->session_key, ", router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
 		auto self = std::static_pointer_cast<Handler_SendMessage>(shared_from_this());
 		Gamnet::Network::Router::SendMsg(dest, reqSvrSvr, std::bind(&Handler_SendMessage::Recv_SvrSvr_Ans, self, session, std::placeholders::_1),
-			[session](){
+			[session](const Gamnet::Exception& e){
 				MsgSvrCli_SendMessage_Ans ansSvrCli;
 				ansSvrCli.error_code = ErrorCode::ResponseTimeoutError;
 				Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);

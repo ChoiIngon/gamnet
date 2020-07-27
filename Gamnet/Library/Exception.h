@@ -21,6 +21,7 @@ public :
 		SendMsgFailError			= 4,
 		SendQueueOverflowError		= 5,
 		ConnectTimeoutError			= 10,
+		ResponseTimeoutError		= 11,
 		InvalidArgumentError		= 20,
 		InvalidSessionTokenError	= 21,
 		InvalidSessionError			= 22,
@@ -70,6 +71,8 @@ class Exception : public std::exception
 	int error_code_;
 	const std::string detail_;
 public :
+	Exception(int error_code);
+
 	template <class... ARGS>
 	Exception(int error_code, ARGS... args) : error_code_(error_code), detail_(Format(args...))
 	{

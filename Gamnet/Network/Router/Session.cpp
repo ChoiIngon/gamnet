@@ -83,39 +83,7 @@ std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet
 			return nullptr;
 		}
 	}
-	/*
-	boost::asio::spawn(*strand, [session, packet](boost::asio::yield_context context) {
-		if (nullptr == session->socket)
-		{
-			return;
-		}
-
-		int totalSentBytes = 0;
-		while (0 < packet->Size())
-		{
-			try {
-				boost::system::error_code ec;
-				int sentBytes = boost::asio::async_write(*(session->socket), boost::asio::buffer(packet->ReadPtr(), packet->Size()), context[ec]);
-				if (0 > sentBytes || 0 != ec.value())
-				{
-					break;
-				}
-				if (0 == sentBytes)
-				{
-					break;
-				}
-				totalSentBytes += sentBytes;
-				packet->Remove(sentBytes);
-			}
-			catch (const boost::system::system_error& e)
-			{
-				LOG(ERR, "send exception(errno:", errno, ", errstr:", e.what(), ")");
-				session->Close(errno);
-				break;
-			}
-		}
-	});
-	*/
+	
 	if (0 > session->SyncSend(packet))
 	{
 		return nullptr;
@@ -137,7 +105,7 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 	session->AsyncSend(packet);
 }
 
-void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void()> onTimeout, int seconds)
+void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void(const Exception&)> onException, int seconds)
 {
 	std::shared_ptr<AsyncSession> session = asyncsession_pool.Create();
 	if (nullptr == session->socket)
@@ -148,7 +116,7 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::functio
 		}
 	}
 
-	session->AsyncSend(packet, onReceive, onTimeout, seconds);
+	session->AsyncSend(packet, onReceive, onException, seconds);
 
 }
 SyncSession::SyncSession() 
@@ -306,7 +274,7 @@ void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 	Network::Session::AsyncSend(packet);
 }
 
-void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void()>& onTimeout, int seconds)
+void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int seconds)
 {
 	read_done = false;
 	AsyncRead();
@@ -315,7 +283,7 @@ void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::fu
 	timeout->timeout_seq = packet->msg_seq;
 	timeout->expire_time = time(nullptr) + seconds;
 	timeout->on_receive = onReceive;
-	timeout->on_timeout = onTimeout;
+	timeout->on_exception = onException;
 	boost::asio::dispatch(*strand, boost::bind(&AsyncSession::SetTimeout, this, timeout));
 	
 	Network::Session::AsyncSend(packet);
@@ -341,7 +309,7 @@ void AsyncSession::OnTimeout()
 		const std::shared_ptr<Timeout>& timeout = itr.second;
 		if (timeout->expire_time < now)
 		{
-			timeout->on_timeout();
+			timeout->on_exception(Exception(ErrorCode::ResponseTimeoutError));
 			expires.push_back(itr.first);
 		}
 	}

@@ -75,7 +75,7 @@ namespace Gamnet { namespace Network { namespace Router
 	}
 
 	template <class MSG>
-	bool SendMsg(const Address& addr, const MSG& msg, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void()> onTimeout, int timeout)
+	bool SendMsg(const Address& addr, const MSG& msg, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void(const Exception&)> onException, int timeout)
 	{
 		std::shared_ptr<Session> session = Singleton<RouterCaster>::GetInstance().FindSession(addr);
 		if (nullptr == session)
@@ -120,7 +120,7 @@ namespace Gamnet { namespace Network { namespace Router
 			return false;
 		}
 
-		session->AsyncSend(packet, onReceive, onTimeout, timeout);
+		session->AsyncSend(packet, onReceive, onException, timeout);
 		return true;
 	}
 	

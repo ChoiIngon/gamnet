@@ -5,6 +5,7 @@
 #include "../Tcp/Session.h"
 #include "../Tcp/Connector.h"
 #include "../../Library/Time/Time.h"
+#include "../../Library/Exception.h"
 #include <future>
 
 namespace Gamnet { namespace Network { namespace Router {
@@ -29,7 +30,7 @@ public :
 		uint32_t timeout_seq;
 		int expire_time;
 		std::function<void(const std::shared_ptr<Tcp::Packet>&)> on_receive;
-		std::function<void()> on_timeout;
+		std::function<void(const Exception&)> on_exception;
 	};
 
 	Session();
@@ -54,7 +55,7 @@ public :
 	
 	std::shared_ptr<Tcp::Packet> SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout = 5);
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
-			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void()> onTimeout, int timeout);
+			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void(const Exception&)> onException, int timeout);
 
 	//const std::shared_ptr<ResponseTimeout> FindResponseTimeout(uint32_t msgSEQ);
 private :
@@ -101,7 +102,7 @@ public :
 	bool Connect(const boost::asio::ip::tcp::endpoint& endpoint);
 	virtual bool Init() override;
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
-			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void()>& onTimeout, int timeout);
+			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int timeout);
 	virtual const std::shared_ptr<Timeout> FindTimeout(uint32_t seq) override;
 
 	virtual void AsyncRead() override;
