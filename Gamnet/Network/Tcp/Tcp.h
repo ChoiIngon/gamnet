@@ -69,7 +69,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	template <class SESSION_T>
 	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key)
 	{
-		return Singleton<SessionManager<SESSION_T>>::GetInstance().Find(session_key);
+		return std::static_pointer_cast<SESSION_T>(Singleton<SessionManager<SESSION_T>>::GetInstance().Find(session_key));
 	}
 
 	template <class SESSION_T>
