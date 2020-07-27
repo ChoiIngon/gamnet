@@ -2,6 +2,7 @@
 #define SESSION_H_
 
 #include <Gamnet.h>
+#include <Library/Component.h>
 #include "../idl/Message.h"
 
 class UserSession 
