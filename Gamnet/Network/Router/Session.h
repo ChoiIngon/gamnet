@@ -107,6 +107,7 @@ public :
 
 	virtual void AsyncRead() override;
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
+	virtual void OnClose(int reason) override;
 private :
 	bool read_done;
 	Tcp::Connector connector;

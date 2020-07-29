@@ -392,4 +392,18 @@ void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
 	}
 }
 
+void AsyncSession::OnClose(int reason)
+{
+	boost::asio::dispatch(*strand, [this]() {
+		for (auto& itr : timeouts)
+		{
+			const std::shared_ptr<Timeout>& timeout = itr.second;
+			timeout->on_exception(Exception(ErrorCode::SendMsgFailError));
+		}
+
+		timeouts.clear();
+		expire_timer.Cancel();
+	});
+}
+
 }}} /* namespace Gamnet */
