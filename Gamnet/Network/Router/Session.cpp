@@ -37,7 +37,7 @@ bool Session::Init()
 		return false;
 	}
 	type = TYPE::INVALID;
-	timeout_seq = 0;
+	msg_seq = 0;
 	return true;
 }
 
@@ -153,7 +153,8 @@ void SyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>&
 
 void SyncSession::Close(int reason)
 {
-	boost::asio::dispatch(*strand, [this](){
+	auto self = shared_from_this();
+	Dispatch([this, self](){
 		expire_timer.Cancel();
 		socket = nullptr;
 	});
@@ -165,7 +166,7 @@ std::shared_ptr<Tcp::Packet> SyncSession::SyncRead(int timeout)
 	std::promise<std::shared_ptr<Tcp::Packet>> promise;
 	
 	// promise 써줘야 함. 다른 스레드에서 호출 됨.
-	boost::asio::dispatch(*strand, [this, &promise, timeout](){
+	Dispatch([this, self, &promise, timeout](){
 		if (nullptr == socket)
 		{
 			promise.set_value(nullptr);
@@ -279,67 +280,70 @@ void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::fu
 	read_done = false;
 	AsyncRead();
 
-	std::shared_ptr<Timeout> timeout = timeout_pool.Create();
-	timeout->timeout_seq = packet->msg_seq;
-	timeout->expire_time = time(nullptr) + seconds;
-	timeout->on_receive = onReceive;
-	timeout->on_exception = onException;
-	boost::asio::dispatch(*strand, boost::bind(&AsyncSession::SetTimeout, this, timeout));
-	
+	std::shared_ptr<ResponseHandler> responseHandler = response_handler_pool.Create();
+	responseHandler->msg_seq = packet->msg_seq;
+	responseHandler->expire_time = time(nullptr) + seconds;
+	responseHandler->on_receive = onReceive;
+	responseHandler->on_exception = onException;
+
+	SetTimeout(responseHandler);
 	Network::Session::AsyncSend(packet);
 }
 
-void AsyncSession::SetTimeout(const std::shared_ptr<Timeout>& timeout)
+void AsyncSession::SetTimeout(const std::shared_ptr<ResponseHandler>& responseHandler)
 {
-	if(true == timeouts.empty())
-	{
-		expire_timer.AutoReset(true);
-		expire_timer.SetTimer(1000, boost::asio::bind_executor(*strand, boost::bind(&AsyncSession::OnTimeout, this)));
-	}
+	auto self = shared_from_this();
+	Dispatch([this, self, responseHandler]() {
+		if (true == response_handlers.empty())
+		{
+			expire_timer.AutoReset(true);
+			expire_timer.SetTimer(1000, Bind(boost::bind(&AsyncSession::OnTimeout, this)));
+		}
 
-	timeouts[timeout->timeout_seq] = timeout;
+		response_handlers[responseHandler->msg_seq] = responseHandler;
+	});
 }
 
 void AsyncSession::OnTimeout()
 {
 	time_t now = time(nullptr);
 	std::list<uint64_t> expires;
-	for (auto& itr : timeouts)
+	for (auto& itr : response_handlers)
 	{
-		const std::shared_ptr<Timeout>& timeout = itr.second;
-		if (timeout->expire_time < now)
+		const std::shared_ptr<ResponseHandler>& responseHandler = itr.second;
+		if (responseHandler->expire_time < now)
 		{
-			timeout->on_exception(Exception(ErrorCode::ResponseTimeoutError));
+			responseHandler->on_exception(Exception(ErrorCode::ResponseTimeoutError));
 			expires.push_back(itr.first);
 		}
 	}
 
 	for (uint32_t seq : expires)
 	{
-		timeouts.erase(seq);
+		response_handlers.erase(seq);
 	}
 
-	if (true == timeouts.empty())
+	if (true == response_handlers.empty())
 	{
 		expire_timer.Cancel();
 	}
 }
 
-const std::shared_ptr<Session::Timeout> AsyncSession::FindTimeout(uint32_t seq) 
+const std::shared_ptr<Session::ResponseHandler> AsyncSession::FindResponseHandler(uint32_t seq)
 {
-	auto itr = timeouts.find(seq);
-	if (timeouts.end() == itr)
+	auto itr = response_handlers.find(seq);
+	if (response_handlers.end() == itr)
 	{
 		return nullptr;
 	}
 
-	std::shared_ptr<Session::Timeout> timeout = itr->second;
-	timeouts.erase(seq);
-	if (true == timeouts.empty())
+	std::shared_ptr<Session::ResponseHandler> responseHandler = itr->second;
+	response_handlers.erase(seq);
+	if (true == response_handlers.empty())
 	{
 		expire_timer.Cancel();
 	}
-	return timeout;
+	return responseHandler;
 }
 
 void AsyncSession::AsyncRead() 
@@ -394,14 +398,15 @@ void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
 
 void AsyncSession::OnClose(int reason)
 {
-	boost::asio::dispatch(*strand, [this]() {
-		for (auto& itr : timeouts)
+	auto self = shared_from_this();
+	Dispatch([this, self]() {
+		for (auto& itr : response_handlers)
 		{
-			const std::shared_ptr<Timeout>& timeout = itr.second;
-			timeout->on_exception(Exception(ErrorCode::SendMsgFailError));
+			const std::shared_ptr<ResponseHandler>& responseHandler = itr.second;
+			responseHandler->on_exception(Exception(ErrorCode::SendMsgFailError));
 		}
 
-		timeouts.clear();
+		response_handlers.clear();
 		expire_timer.Cancel();
 	});
 }

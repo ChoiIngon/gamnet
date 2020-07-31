@@ -107,7 +107,7 @@ namespace Gamnet { namespace Network { namespace Router
 			return false;
 		}
 
-		packet->msg_seq = ++session->timeout_seq;
+		packet->msg_seq = ++session->msg_seq;
 		if (false == packet->Write(ntf))
 		{
 			LOG(ERR, "fail to serialize message(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");

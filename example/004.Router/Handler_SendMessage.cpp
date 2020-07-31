@@ -23,7 +23,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		reqSvrSvr.text = reqCliSvr.text;
 
 		std::string serviceName = "ROUTER_1";
-		
+		/*
 		if ("ROUTER_1" == Gamnet::Network::Router::GetRouterAddress().service_name)
 		{
 			serviceName = "ROUTER_2";
@@ -36,7 +36,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSeviceName, "(service_name:", Gamnet::Network::Router::GetRouterAddress().service_name, ")");
 		}
-		
+		*/
 		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::ANY_CAST, serviceName, 0);
 		
 		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
@@ -102,7 +102,7 @@ GAMNET_BIND_ROUTER_HANDLER(
 
 void Handler_SendMessage::Recv_SvrSvr_Ans(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	boost::asio::dispatch(*session->strand, [session, packet] () {
+	session->Dispatch([session, packet]() {
 		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
 		MsgSvrCli_SendMessage_Ans ansSvrCli;
 		ansSvrCli.error_code = ErrorCode::Success;

@@ -44,12 +44,12 @@ void Session::AsyncSend(const char* data, size_t length)
 void Session::AsyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	auto self = shared_from_this();
-	boost::asio::dispatch(*strand, [self, buffer] () {
-		bool needFlush = self->send_buffers.empty();
-		self->send_buffers.push_back(buffer);
+	Dispatch([this, self, buffer] () {
+		bool needFlush = send_buffers.empty();
+		send_buffers.push_back(buffer);
 		if (true == needFlush)
 		{
-			self->FlushSend();
+			FlushSend();
 		}
 	});
 }
@@ -69,7 +69,8 @@ void Session::FlushSend()
 	
 	auto self(shared_from_this());
 	const std::shared_ptr<Buffer> buffer = send_buffers.front();
-	boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), boost::asio::bind_executor(*strand, std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
+	//boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), boost::asio::bind_executor(*strand, std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
+	boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), Bind(std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
 }
 
 void Session::OnSendHandler(const boost::system::error_code& ec, std::size_t transferredBytes)
@@ -92,7 +93,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
 	std::promise<int> promise;
 	auto self = shared_from_this();
-	boost::asio::dispatch(*strand, [self, &promise, buffer]() {
+	Dispatch([self, this, &promise, buffer]() {
 		if (nullptr == self->socket)
 		{
 			LOG(ERR, "invalid link[session_key:", self->session_key, "]");
@@ -144,15 +145,15 @@ int Session::SyncSend(const char* data, int length)
 void Session::Close(int reason)
 {
 	auto self(shared_from_this());
-	boost::asio::dispatch(*strand, [self, reason]() {
-		if (nullptr == self->socket)
+	Dispatch([this, self, reason]() {
+		if (nullptr == socket)
 		{
 			return;
 		}
-		self->OnClose(reason);
-		self->socket = nullptr;
-		self->OnDestroy();
-		self->session_manager->Remove(self);
+		OnClose(reason);
+		socket = nullptr;
+		OnDestroy();
+		session_manager->Remove(self);
 	});
 }
 
@@ -161,38 +162,38 @@ void Session::AsyncRead()
 	assert(nullptr != socket);
 	auto self(shared_from_this());
 	socket->async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
-		boost::asio::bind_executor(*strand, [self](boost::system::error_code ec, std::size_t readbytes) 
+		Bind([this, self](boost::system::error_code ec, std::size_t readbytes) 
 	{
 		if (0 != ec.value())
 		{
-			self->Close(ErrorCode::Success);
+			Close(ErrorCode::Success);
 			return;
 		}
 
 		if (0 == readbytes)
 		{
-			self->Close(ErrorCode::Success);
+			Close(ErrorCode::Success);
 			return;
 		}
 
-		self->read_buffer->write_index += readbytes;
+		read_buffer->write_index += readbytes;
 		try
 		{
-			self->OnRead(self->read_buffer);
-			assert(nullptr != self->read_buffer);
+			OnRead(read_buffer);
+			assert(nullptr != read_buffer);
 		}
 		catch (const Exception& e)
 		{
 			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
-			self->Close(e.error_code());
+			Close(e.error_code());
 			return;
 		}
-		self->read_buffer->Clear();
-		if (nullptr == self->socket)
+		read_buffer->Clear();
+		if (nullptr == socket)
 		{
 			return;
 		}
-		self->AsyncRead();
+		AsyncRead();
 	}));
 }
 

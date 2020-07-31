@@ -17,7 +17,7 @@ class Session;
 class Session : public Network::Tcp::Session 
 {
 public :
-	enum TYPE
+	enum class TYPE
 	{
 		INVALID,
 		MASTER,
@@ -25,9 +25,9 @@ public :
 		RECV
 	};
 
-	struct Timeout
+	struct ResponseHandler
 	{
-		uint32_t timeout_seq;
+		uint32_t msg_seq;
 		int expire_time;
 		std::function<void(const std::shared_ptr<Tcp::Packet>&)> on_receive;
 		std::function<void(const Exception&)> on_exception;
@@ -39,7 +39,7 @@ public :
 	Address							router_address;
 	boost::asio::ip::tcp::endpoint	remote_endpoint;
 	TYPE							type;
-	std::atomic_uint32_t			timeout_seq;
+	std::atomic_uint32_t			msg_seq;
 
 public :		
 	virtual bool Init() override;
@@ -49,15 +49,14 @@ public :
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 	virtual void Close(int reason) override;
-	virtual const std::shared_ptr<Timeout> FindTimeout(uint32_t seq) { return nullptr; }
-	
+
+	std::shared_ptr<Tcp::Packet> SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout = 5);
 	using Network::Session::AsyncSend;
 	
-	std::shared_ptr<Tcp::Packet> SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout = 5);
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
 			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void(const Exception&)> onException, int timeout);
 
-	//const std::shared_ptr<ResponseTimeout> FindResponseTimeout(uint32_t msgSEQ);
+	virtual const std::shared_ptr<ResponseHandler> FindResponseHandler(uint32_t seq) { return nullptr; }
 private :
 	Pool<SyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> syncsession_pool;
 	Pool<AsyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> asyncsession_pool;
@@ -103,7 +102,7 @@ public :
 	virtual bool Init() override;
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
 			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int timeout);
-	virtual const std::shared_ptr<Timeout> FindTimeout(uint32_t seq) override;
+	virtual const std::shared_ptr<ResponseHandler> FindResponseHandler(uint32_t seq) override;
 
 	virtual void AsyncRead() override;
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
@@ -112,13 +111,13 @@ private :
 	bool read_done;
 	Tcp::Connector connector;
 	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
-	void SetTimeout(const std::shared_ptr<Timeout>& timeout);
+	void SetTimeout(const std::shared_ptr<ResponseHandler>& timeout);
 	void OnTimeout();
 
 	Time::Timer expire_timer;
 	
-	Pool<Timeout> timeout_pool;
-	std::map<uint32_t, std::shared_ptr<Timeout>> timeouts;
+	Pool<ResponseHandler> response_handler_pool;
+	std::map<uint32_t, std::shared_ptr<ResponseHandler>> response_handlers;
 };
 
 }}} /* namespace Gamnet */

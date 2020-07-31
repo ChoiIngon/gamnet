@@ -55,19 +55,19 @@ void Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 	if (true == packet->reliable)
 	{
 		auto self = std::static_pointer_cast<Session>(shared_from_this());
-		boost::asio::dispatch(*strand, [self, packet]() {
-			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= self->send_packets.size())
+		Dispatch([this, self, packet]() {
+			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= send_packets.size())
 			{
-				self->handover_safe = false;
-				self->Close(ErrorCode::SendQueueOverflowError);
+				handover_safe = false;
+				Close(ErrorCode::SendQueueOverflowError);
 				return;
 			}
-			self->send_packets.push_back(packet); // keep send message util ack received
-			bool needFlush = self->send_buffers.empty();
-			self->send_buffers.push_back(packet);
+			send_packets.push_back(packet); // keep send message util ack received
+			bool needFlush = send_buffers.empty();
+			send_buffers.push_back(packet);
 			if (true == needFlush)
 			{
-				self->FlushSend();
+				FlushSend();
 			}
 		});
 		return;
@@ -126,18 +126,17 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 void Session::Close(int reason)
 {
 	auto self(shared_from_this());
-	boost::asio::dispatch(*strand, [self, reason]() {
-		std::shared_ptr<Session> session = std::static_pointer_cast<Session>(self);
-		if (nullptr != session->socket)
+	Dispatch([this, self, reason]() {
+		if (nullptr != socket)
 		{
-			session->OnClose(reason);
-			session->socket = nullptr;
+			OnClose(reason);
+			socket = nullptr;
 		}
 		
-		if(0 != session->session_key && false == session->handover_safe)
+		if(0 != session_key && false == handover_safe)
 		{
-			session->OnDestroy();
-			session->session_manager->Remove(session);
+			OnDestroy();
+			session_manager->Remove(self);
 		}
 	});
 }

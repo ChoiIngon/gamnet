@@ -27,14 +27,13 @@ namespace Gamnet { namespace Network { namespace Router {
 
 		std::shared_ptr<HandlerFunctor> handlerFunctor = itr->second;
 		std::shared_ptr<Network::IHandler> handler = nullptr;
-
 		
 		if(0 != packet->msg_seq && Session::TYPE::SEND == session->type)
 		{
-			const std::shared_ptr<Session::Timeout> timeout = session->FindTimeout(packet->msg_seq);
-			if(nullptr != timeout)
+			const std::shared_ptr<Session::ResponseHandler> responseHandler = session->FindResponseHandler(packet->msg_seq);
+			if(nullptr != responseHandler)
 			{
-				timeout->on_receive(packet);
+				responseHandler->on_receive(packet);
 			}
 			return;
 		}

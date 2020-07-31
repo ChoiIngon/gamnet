@@ -48,6 +48,17 @@ namespace Gamnet { namespace Network {
 		std::shared_ptr<Buffer> 							read_buffer;
 		std::deque<std::shared_ptr<Buffer>>					send_buffers;
 
+		template <class Executor>
+		void Dispatch(Executor& executor)
+		{
+			boost::asio::dispatch(*strand, executor);
+		}
+
+		template <class Executor>
+		boost::asio::executor_binder<typename boost::asio::decay<Executor>::type, strand_t> Bind(Executor& executor)
+		{
+			return boost::asio::bind_executor(*strand, executor);
+		}
 	public :
 		virtual bool Init();
 		virtual void Clear();

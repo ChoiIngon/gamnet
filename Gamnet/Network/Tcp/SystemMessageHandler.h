@@ -96,7 +96,7 @@ public:
 			std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
 			session->Close( ErrorCode::Success );
 			
-			boost::asio::dispatch(*prevSession->strand, [=]() {
+			prevSession->Dispatch([=]() {
 				prevSession->socket = socket;
 
 				Json::FastWriter writer;
