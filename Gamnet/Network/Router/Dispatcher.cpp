@@ -26,36 +26,23 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		std::shared_ptr<HandlerFunctor> handlerFunctor = itr->second;
-		std::shared_ptr<Network::IHandler> handler = nullptr;
-		
-		if(0 != packet->msg_seq && Session::TYPE::SEND == session->type)
+		std::shared_ptr<Network::IHandler> handler = handlerFunctor->factory_->GetHandler(nullptr, packet->msg_id);
+		if (nullptr == handler)
 		{
-			const std::shared_ptr<Session::ResponseHandler> responseHandler = session->FindResponseHandler(packet->msg_seq);
-			if(nullptr != responseHandler)
-			{
-				responseHandler->on_receive(packet);
-			}
+			LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", packet->msg_seq, ", msg_id:", packet->msg_id, ")");
 			return;
 		}
-		else
-		{
-			handler = handlerFunctor->factory_->GetHandler(nullptr, packet->msg_id);
-			if (nullptr == handler)
-			{
-				LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", packet->msg_seq, ", msg_id:", packet->msg_id, ")");
-				return;
-			}
-			try {
-				session->send_seq = packet->msg_seq;
+
+		try {
+			session->send_seq = packet->msg_seq;
 				
-				Address addr = session->router_address;
-				addr.session = session;
-				handlerFunctor->function_(handler, addr, packet);
-			}
-			catch (const std::exception& e)
-			{
-				LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
-			}
+			Address addr = session->router_address;
+			addr.session = session;
+			handlerFunctor->function_(handler, addr, packet);
+		}
+		catch (const std::exception& e)
+		{
+			LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
 		}
 	}
 }}}

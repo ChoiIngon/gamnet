@@ -124,13 +124,13 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const std::shared_ptr<UserSession>& se
 		Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 	});
 }
-
+/*
 GAMNET_BIND_ROUTER_HANDLER(
 	MsgSvrSvr_SendMessage_Ans,
 	Handler_SendMessage, Recv_SvrSvr_Ans,
 	HandlerStatic
 );
-
+*/
 void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	MsgCliSvr_SendMessage_Ntf ntfCliSvr;

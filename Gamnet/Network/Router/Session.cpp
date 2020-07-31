@@ -391,7 +391,38 @@ void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
 			}
 			recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
 			auto self = shared_from_this();
-			session_manager->OnReceive(self, packet);
+
+			//////////////////////////////////////////////////////////////////////////
+			MsgRouter_SendMsg_Ntf ntf;
+			if (false == Network::Tcp::Packet::Load(ntf, packet))
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
+			}
+
+			std::shared_ptr<Network::Tcp::Packet> buffer = Network::Tcp::Packet::Create();
+			if (nullptr == buffer)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
+			}
+
+			buffer->Append(ntf.buffer.data(), ntf.buffer.size());
+			buffer->ReadHeader();
+			buffer->msg_seq = packet->msg_seq;
+
+			if (0 == buffer->msg_seq)
+			{
+				return;
+			}
+
+			const std::shared_ptr<Session::ResponseHandler> responseHandler = FindResponseHandler(packet->msg_seq);
+			if (nullptr == responseHandler)
+			{
+				return;
+			}
+			responseHandler->on_receive(buffer);
+			
+			//Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
+			//session_manager->OnReceive(self, packet);
 		}
 	}
 }
