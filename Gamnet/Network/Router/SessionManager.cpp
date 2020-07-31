@@ -16,10 +16,10 @@ namespace Gamnet { namespace Network { namespace Router {
 	}
 
 	SessionManager::SessionManager()
-		: port(0)
-		, session_pool(65535, SessionFactory(this))
+		: session_pool(65535, SessionFactory(this))
 		, heartbeat_timer(Time::Timer::Create())
 		, heartbeat_group(Tcp::CastGroup::Create())
+		, port(0)
 	{
 		acceptor.accept_handler = std::bind(&SessionManager::OnAcceptHandler, this, std::placeholders::_1);
 		connector.connect_handler = std::bind(&SessionManager::OnConnectHandler, this, std::placeholders::_1);
@@ -109,19 +109,7 @@ namespace Gamnet { namespace Network { namespace Router {
 
 		LOG(INF, "[Gamnet::Router] accept a connection..(remote_endpoint:", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), ")");
 		session->socket = socket;
-		session->remote_endpoint = socket->remote_endpoint();
-		session->OnCreate();
 		session->AsyncRead();
-		/*
-		MsgRouter_SetAddress_Ntf ntf;
-		ntf.router_address = local_address;
-		Network::Tcp::SendMsg(session, ntf, false);
-		LOG(INF, "[Gamnet::Router] "
-			"localhost:", session->socket->local_endpoint().port(), " -> ",
-			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(),
-			" SEND MsgRouter_SetAddress_Ntf(router_address:", ntf.router_address.ToString(), ")"
-		);
-		*/
 	}
 
 	void SessionManager::OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
@@ -134,13 +122,11 @@ namespace Gamnet { namespace Network { namespace Router {
 
 		LOG(INF, "[Gamnet::Router] connect success..(remote_endpoint:", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), ")");
 		session->socket = socket;
-		session->remote_endpoint = socket->remote_endpoint();
-		//session->OnCreate();
 		session->AsyncRead();
 		
 		LOG(INF, "[Gamnet::Router] "
-			"localhost:", session->socket->local_endpoint().port(), " -> ",
-			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " ",
+			"localhost:", port, " -> ",
+			socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), " ",
 			"SEND MsgRouter_Connect_Req(router_address:", local_address.ToString(), ")"
 		);
 

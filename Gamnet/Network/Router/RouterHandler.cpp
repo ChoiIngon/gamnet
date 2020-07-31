@@ -101,7 +101,7 @@ void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, co
 			);
 			MsgRouter_RegisterAddress_Req req;
 			req.router_address = sessionManager->local_address;
-
+			req.router_port = sessionManager->port;
 			std::shared_ptr<Tcp::Packet> reqPacket = Tcp::Packet::Create();
 			reqPacket->Write(req);
 			session->Network::Session::AsyncSend(reqPacket);
@@ -133,8 +133,11 @@ void RouterHandler::Recv_RegisterAddress_Req(const std::shared_ptr<Session>& ses
 		{
 			throw GAMNET_EXCEPTION( ErrorCode::DuplicateRouterAddress );
 		}
+		session->remote_endpoint = session->socket->remote_endpoint();
+		session->remote_endpoint.port(req.router_port);
 		SessionManager* sessionManager = static_cast<SessionManager*>(session->session_manager);
 		ans.router_address = sessionManager->local_address;
+		ans.router_port = sessionManager->port;
 	}
 	catch(const Exception& e) {
 		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
@@ -173,6 +176,8 @@ void RouterHandler::Recv_RegisterAddress_Ans(const std::shared_ptr<Session>& ses
 	{
 		throw GAMNET_EXCEPTION( ErrorCode::DuplicateRouterAddress );
 	}
+	session->remote_endpoint = session->socket->remote_endpoint();
+	session->remote_endpoint.port(ans.router_port);
 }
 
 void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)

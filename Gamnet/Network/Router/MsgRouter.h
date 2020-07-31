@@ -284,11 +284,14 @@ struct MsgRouter_Connect_Ans_Serializer {
 struct MsgRouter_RegisterAddress_Req {
 	enum { MSG_ID = 3 }; 
 	Address	router_address;
+	int32_t	router_port;
 	MsgRouter_RegisterAddress_Req()	{
+		router_port = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += Address_Serializer::Size(router_address);
+		nSize += sizeof(int32_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -303,6 +306,7 @@ struct MsgRouter_RegisterAddress_Req {
 	}
 	bool Store(char** _buf_) const {
 		if(false == Address_Serializer::Store(_buf_, router_address)) { return false; }
+		std::memcpy(*_buf_, &router_port, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -314,6 +318,7 @@ struct MsgRouter_RegisterAddress_Req {
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
 		if(false == Address_Serializer::Load(router_address, _buf_, nSize)) { return false; }
+		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&router_port, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
 		return true;
 	}
 }; //MsgRouter_RegisterAddress_Req
@@ -326,13 +331,16 @@ struct MsgRouter_RegisterAddress_Ans {
 	enum { MSG_ID = 4 }; 
 	int32_t	error_code;
 	Address	router_address;
+	int32_t	router_port;
 	MsgRouter_RegisterAddress_Ans()	{
 		error_code = 0;
+		router_port = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += sizeof(int32_t);
 		nSize += Address_Serializer::Size(router_address);
+		nSize += sizeof(int32_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -348,6 +356,7 @@ struct MsgRouter_RegisterAddress_Ans {
 	bool Store(char** _buf_) const {
 		std::memcpy(*_buf_, &error_code, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		if(false == Address_Serializer::Store(_buf_, router_address)) { return false; }
+		std::memcpy(*_buf_, &router_port, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -360,6 +369,7 @@ struct MsgRouter_RegisterAddress_Ans {
 	bool Load(const char** _buf_, size_t& nSize) {
 		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&error_code, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
 		if(false == Address_Serializer::Load(router_address, _buf_, nSize)) { return false; }
+		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&router_port, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
 		return true;
 	}
 }; //MsgRouter_RegisterAddress_Ans

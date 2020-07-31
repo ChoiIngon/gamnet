@@ -120,12 +120,14 @@ message MsgRouter_Connect_Ans				: 002
 message MsgRouter_RegisterAddress_Req		: 003
 {
 	Address router_address;
+	int32 router_port;
 };
 
 message MsgRouter_RegisterAddress_Ans		: 004
 {
 	int32 error_code;
 	Address router_address;
+	int32 router_port;
 };
 
 message MsgRouter_RegisterAddress_Ntf		: 005

@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "001.Echo", "example\001.Echo\001.Echo_vs2019.vcxproj", "{10465F8C-3657-4341-BA71-94BD1291BE99}"
+	ProjectSection(ProjectDependencies) = postProject
+		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E} = {019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "002.Reconnect", "example\002.Reconnect\002.Reconnect_vs2019.vcxproj", "{FE3233CF-5310-47DC-8FB7-6D0623CC94B3}"
 EndProject
@@ -16,6 +19,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "005.Database", "example\005.Database\005.Database_vs2019.vcxproj", "{840A801A-D81E-4A1D-8FFF-680610888782}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gamnet", "Gamnet\Gamnet_vs2019.vcxproj", "{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E16B955B-DBB0-3D9D-C23F-F53667609365} = {E16B955B-DBB0-3D9D-C23F-F53667609365}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

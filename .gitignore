@@ -79,3 +79,9 @@ example/unity_client/xcode/
 /x64/Debug
 /test
 /log
+/.vs/gamnet_vs2019/v16
+/example/003.ChatServer/x64/Debug/003.ChatServer.tlog
+/example/003.ChatServer/x64/Debug/vc142.pdb
+/example/003.ChatServer/x64/Debug/vc142.idb
+/example/003.ChatServer/x64/Debug/003.ChatServer_vs2019.log
+/example/005.Database/x64/Debug

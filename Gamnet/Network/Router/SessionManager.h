@@ -27,12 +27,12 @@ namespace Gamnet { namespace Network { namespace Router {
 		Tcp::Acceptor acceptor;
 		Tcp::Connector connector;
 
-		int port;
 		Pool<Session, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
 		std::shared_ptr<Time::Timer> heartbeat_timer;
 	public:
 		std::shared_ptr<Tcp::CastGroup> heartbeat_group;
 		Address local_address;
+		int port;
 
 		std::function<void(const Address& addr)> on_connect;
 		std::function<void(const Address& addr)> on_close;

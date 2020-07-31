@@ -40,9 +40,9 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::ANY_CAST, serviceName, 0);
 		
 		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
-		LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Req(router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
+		LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Req(session_key:", session->session_key, ", router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
 		Gamnet::Network::Router::SendMsg(dest, reqSvrSvr, ansSvrSvr, 5);
-		LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
+		LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrSvr.error_code, ")");
 		ansSvrCli.error_code = ansSvrSvr.error_code;
 		
 		LOG(INF, "--- [SEND] MsgSvrSvr_SendMessage_Req(session_key:", session->session_key, ", router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
@@ -113,7 +113,7 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const std::shared_ptr<UserSession>& se
 			}
 
 			ansSvrCli.error_code = ansSvrSvr.error_code;
-			LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(error_code:", (int)ansSvrSvr.error_code, ")");
+			LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrSvr.error_code, ")");
 		}
 		catch (const Gamnet::Exception& e)
 		{
