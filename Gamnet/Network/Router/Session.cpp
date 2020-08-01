@@ -260,7 +260,6 @@ void AsyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>
 	Session::Init();
 
 	this->socket = socket;
-	type = Session::TYPE::SEND;
 
 	MsgRouter_RegisterAddress_Ntf ntf;
 	ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
@@ -329,7 +328,7 @@ void AsyncSession::OnTimeout()
 	}
 }
 
-const std::shared_ptr<Session::ResponseHandler> AsyncSession::FindResponseHandler(uint32_t seq)
+const std::shared_ptr<AsyncSession::ResponseHandler> AsyncSession::FindResponseHandler(uint32_t seq)
 {
 	auto itr = response_handlers.find(seq);
 	if (response_handlers.end() == itr)
@@ -337,7 +336,7 @@ const std::shared_ptr<Session::ResponseHandler> AsyncSession::FindResponseHandle
 		return nullptr;
 	}
 
-	std::shared_ptr<Session::ResponseHandler> responseHandler = itr->second;
+	std::shared_ptr<AsyncSession::ResponseHandler> responseHandler = itr->second;
 	response_handlers.erase(seq);
 	if (true == response_handlers.empty())
 	{
@@ -414,7 +413,7 @@ void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
 				return;
 			}
 
-			const std::shared_ptr<Session::ResponseHandler> responseHandler = FindResponseHandler(packet->msg_seq);
+			const std::shared_ptr<ResponseHandler> responseHandler = FindResponseHandler(packet->msg_seq);
 			if (nullptr == responseHandler)
 			{
 				return;
@@ -427,10 +426,15 @@ void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
 	}
 }
 
-void AsyncSession::OnClose(int reason)
+void AsyncSession::Close(int reason)
 {
 	auto self = shared_from_this();
 	Dispatch([this, self]() {
+		if(nullptr == socket)
+		{
+			return;
+		}
+
 		for (auto& itr : response_handlers)
 		{
 			const std::shared_ptr<ResponseHandler>& responseHandler = itr.second;
@@ -439,6 +443,7 @@ void AsyncSession::OnClose(int reason)
 
 		response_handlers.clear();
 		expire_timer.Cancel();
+		socket = nullptr;
 	});
 }
 

@@ -32,7 +32,6 @@ void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, co
 		{
 			if (nullptr != Singleton<RouterCaster>::GetInstance().FindSession(req.router_address))
 			{
-				session->Close(ErrorCode::DuplicateConnectionError);
 				throw GAMNET_EXCEPTION(ErrorCode::DuplicateConnectionError, "duplicate router address");
 			}
 		}
@@ -83,14 +82,18 @@ void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, co
 		LOG(INF, "[Gamnet::Router] ",
 			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
 			"localhost:", session->socket->local_endpoint().port(), " "
-			"RECV MsgRouter_Connect_Ans(router_address:", ans.router_address.ToString(), ")"
+			"RECV MsgRouter_Connect_Ans(router_address:", ans.router_address.ToString(), ", error_code:", ans.error_code, ")"
 		);
+
+		if(ErrorCode::Success != ans.error_code)
+		{
+			throw GAMNET_EXCEPTION(ans.error_code);
+		}
 
 		if(sessionManager->local_address < ans.router_address)
 		{
 			if(nullptr != Singleton<RouterCaster>::GetInstance().FindSession(ans.router_address))
 			{
-				session->Close(ErrorCode::DuplicateConnectionError);
 				throw GAMNET_EXCEPTION(ErrorCode::DuplicateConnectionError, "duplicate router address");
 			}
 
@@ -110,6 +113,7 @@ void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, co
 	catch(const Exception& e)
 	{
 		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		session->Close(e.error_code());
 	}
 }
 

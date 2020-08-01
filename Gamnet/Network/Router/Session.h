@@ -21,16 +21,7 @@ public :
 	{
 		INVALID,
 		MASTER,
-		SEND,
 		RECV
-	};
-
-	struct ResponseHandler
-	{
-		uint32_t msg_seq;
-		int expire_time;
-		std::function<void(const std::shared_ptr<Tcp::Packet>&)> on_receive;
-		std::function<void(const Exception&)> on_exception;
 	};
 
 	Session();
@@ -45,18 +36,17 @@ public :
 	virtual bool Init() override;
 	virtual void OnCreate() override;
 	virtual void OnAccept() override;
-	virtual void OnConnect();
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 	virtual void Close(int reason) override;
+
+	virtual void OnConnect();
 
 	std::shared_ptr<Tcp::Packet> SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout = 5);
 	using Network::Session::AsyncSend;
 	
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
 			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void(const Exception&)> onException, int timeout);
-
-	virtual const std::shared_ptr<ResponseHandler> FindResponseHandler(uint32_t seq) { return nullptr; }
 private :
 	Pool<SyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> syncsession_pool;
 	Pool<AsyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> asyncsession_pool;
@@ -88,7 +78,7 @@ private:
 	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
 };
 
-class AsyncSession : public Session
+class AsyncSession : public Network::Tcp::Session
 {
 public :
 	struct Factory
@@ -96,18 +86,34 @@ public :
 		AsyncSession* operator()();
 	};
 
+	struct ResponseHandler
+	{
+		uint32_t msg_seq;
+		int expire_time;
+		std::function<void(const std::shared_ptr<Tcp::Packet>&)> on_receive;
+		std::function<void(const Exception&)> on_exception;
+	};
 public :
 	AsyncSession();
 	bool Connect(const boost::asio::ip::tcp::endpoint& endpoint);
 	virtual bool Init() override;
-	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
-			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int timeout);
-	virtual const std::shared_ptr<ResponseHandler> FindResponseHandler(uint32_t seq) override;
+
+	using Network::Session::AsyncSend;
+	void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet);
+	void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int timeout);
 
 	virtual void AsyncRead() override;
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
-	virtual void OnClose(int reason) override;
+
+	virtual void OnCreate() override {}
+	virtual void OnAccept() override {}
+	virtual void OnClose(int reason) override {};
+	virtual void OnDestroy() override {};
+
+	virtual void Close(int reason) override;
 private :
+	const std::shared_ptr<ResponseHandler> FindResponseHandler(uint32_t seq);
+
 	bool read_done;
 	Tcp::Connector connector;
 	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);

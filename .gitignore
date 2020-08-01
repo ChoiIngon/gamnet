@@ -86,3 +86,5 @@ example/unity_client/xcode/
 /example/003.ChatServer/x64/Debug/003.ChatServer_vs2019.log
 /example/005.Database/x64/Debug
 /example/003.ChatServer/x64/Debug
+/.vs
+/Debug
