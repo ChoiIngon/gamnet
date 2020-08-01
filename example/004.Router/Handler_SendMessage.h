@@ -16,5 +16,4 @@ public:
 	void Recv_SvrSvr_Ntf(const std::shared_ptr<Gamnet::Network::Router::Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
 };
 
-void StartRouterMessageTimer();
 #endif /* HANDLER_LOGIN_H_ */

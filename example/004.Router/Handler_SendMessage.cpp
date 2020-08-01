@@ -23,6 +23,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		reqSvrSvr.text = reqCliSvr.text;
 
 		std::string serviceName = "ROUTER_1";
+		/*
 		if ("ROUTER_1" == Gamnet::Network::Router::GetRouterAddress().service_name)
 		{
 			serviceName = "ROUTER_2";
@@ -35,7 +36,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSeviceName, "(service_name:", Gamnet::Network::Router::GetRouterAddress().service_name, ")");
 		}
-
+		*/
 		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::ANY_CAST, serviceName, 0);
 		
 		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
@@ -50,6 +51,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 			[session](const Gamnet::Exception& e){
 				MsgSvrCli_SendMessage_Ans ansSvrCli;
 				ansSvrCli.error_code = ErrorCode::ResponseTimeoutError;
+				LOG(INF, "--- [SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrCli.error_code, ")");
 				Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 			},
 		5);
@@ -196,7 +198,7 @@ void Test_CliSvr_SendMessage_Req(const std::shared_ptr<TestSession>& session)
 	req.text = "Hello World";
 	//LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_SendMessage_Ntf(message:", ntf.Message, ")");
 	session->pause_timer = Gamnet::Time::Timer::Create();
-	session->pause_timer->SetTimer(5000, [session, req]() {
+	session->pause_timer->SetTimer(3000, [session, req]() {
 		Gamnet::Test::SendMsg(session, req);
 	});
 }

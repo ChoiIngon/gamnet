@@ -14,7 +14,6 @@ static boost::asio::io_context& io_context = Singleton<boost::asio::io_context>:
 Session::Session()
 	: Network::Tcp::Session()
 	, type(TYPE::INVALID)
-	, asyncsession_pool(65535, AsyncSession::Factory())
 {
 }
 
@@ -38,6 +37,14 @@ bool Session::Init()
 	}
 	type = TYPE::INVALID;
 	msg_seq = 0;
+
+	async_pool_index = 0;
+	for(int i=0; i<ASYNC_POOL_SIZE; i++)
+	{
+		std::shared_ptr<AsyncSession> async = std::make_shared<AsyncSession>();
+		async->session_manager = session_manager;
+		async_pool[i] = async;
+	}
 	return true;
 }
 
@@ -75,7 +82,7 @@ void Session::Close(int reason)
 
 std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout)
 {
-	std::shared_ptr<SyncSession> session = syncsession_pool.Create();
+	std::shared_ptr<SyncSession> session = sync_pool.Create();
 	if (nullptr == session->socket)
 	{
 		if (false == session->Connect(remote_endpoint))
@@ -93,13 +100,14 @@ std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet
 
 void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 {
-	std::shared_ptr<AsyncSession> session = asyncsession_pool.Create();
+	std::shared_ptr<AsyncSession> session = async_pool[async_pool_index++ % ASYNC_POOL_SIZE];
 	if (nullptr == session->socket)
 	{
 		if (false == session->Connect(remote_endpoint))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
 		}
+		session->AsyncRead();
 	}
 
 	session->AsyncSend(packet);
@@ -107,18 +115,19 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 
 void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void(const Exception&)> onException, int seconds)
 {
-	std::shared_ptr<AsyncSession> session = asyncsession_pool.Create();
+	std::shared_ptr<AsyncSession> session = async_pool[async_pool_index++ % ASYNC_POOL_SIZE];
 	if (nullptr == session->socket)
 	{
 		if (false == session->Connect(remote_endpoint))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
 		}
+		session->AsyncRead();
 	}
 
 	session->AsyncSend(packet, onReceive, onException, seconds);
-
 }
+
 SyncSession::SyncSession() 
 {
 	connector.connect_handler = std::bind(&SyncSession::OnConnect, this, std::placeholders::_1);
@@ -232,15 +241,7 @@ std::shared_ptr<Tcp::Packet> SyncSession::SyncRead(int timeout)
 	return promise.get_future().get();
 }
 
-AsyncSession* AsyncSession::Factory::operator()()
-{
-	AsyncSession* session = new AsyncSession();
-	session->session_manager = &Singleton<SessionManager>::GetInstance();
-	return session;
-}
-
 AsyncSession::AsyncSession()
-	: read_done(true)
 {
 	connector.connect_handler = std::bind(&AsyncSession::OnConnect, this, std::placeholders::_1);
 }
@@ -276,8 +277,8 @@ void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 
 void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int seconds)
 {
-	read_done = false;
-	AsyncRead();
+	//read_done = false;
+	//AsyncRead();
 
 	std::shared_ptr<ResponseHandler> responseHandler = response_handler_pool.Create();
 	responseHandler->msg_seq = packet->msg_seq;
@@ -296,7 +297,7 @@ void AsyncSession::SetTimeout(const std::shared_ptr<ResponseHandler>& responseHa
 		if (true == response_handlers.empty())
 		{
 			expire_timer.AutoReset(true);
-			expire_timer.SetTimer(1000, Bind(boost::bind(&AsyncSession::OnTimeout, this)));
+			expire_timer.SetTimer(1000, std::bind(&AsyncSession::OnTimeout, this));
 		}
 
 		response_handlers[responseHandler->msg_seq] = responseHandler;
@@ -305,27 +306,30 @@ void AsyncSession::SetTimeout(const std::shared_ptr<ResponseHandler>& responseHa
 
 void AsyncSession::OnTimeout()
 {
-	time_t now = time(nullptr);
-	std::list<uint64_t> expires;
-	for (auto& itr : response_handlers)
-	{
-		const std::shared_ptr<ResponseHandler>& responseHandler = itr.second;
-		if (responseHandler->expire_time < now)
+	auto self = shared_from_this();
+	Dispatch([this, self]() {
+		time_t now = time(nullptr);
+		std::list<uint64_t> expires;
+		for (auto& itr : response_handlers)
 		{
-			responseHandler->on_exception(Exception(ErrorCode::ResponseTimeoutError));
-			expires.push_back(itr.first);
+			const std::shared_ptr<ResponseHandler>& responseHandler = itr.second;
+			if (responseHandler->expire_time < now)
+			{
+				responseHandler->on_exception(Exception(ErrorCode::ResponseTimeoutError));
+				expires.push_back(itr.first);
+			}
 		}
-	}
 
-	for (uint32_t seq : expires)
-	{
-		response_handlers.erase(seq);
-	}
+		for (uint32_t seq : expires)
+		{
+			response_handlers.erase(seq);
+		}
 
-	if (true == response_handlers.empty())
-	{
-		expire_timer.Cancel();
-	}
+		if (true == response_handlers.empty())
+		{
+			expire_timer.Cancel();
+		}
+	});
 }
 
 const std::shared_ptr<AsyncSession::ResponseHandler> AsyncSession::FindResponseHandler(uint32_t seq)
@@ -343,16 +347,6 @@ const std::shared_ptr<AsyncSession::ResponseHandler> AsyncSession::FindResponseH
 		expire_timer.Cancel();
 	}
 	return responseHandler;
-}
-
-void AsyncSession::AsyncRead() 
-{
-	if(true == read_done)
-	{
-		return;
-	}
-
-	Network::Session::AsyncRead();
 }
 
 void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
@@ -381,14 +375,7 @@ void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
 				break;
 			}
 
-			read_done = true;
 			std::shared_ptr<Tcp::Packet> packet = recv_packet;
-			recv_packet = Tcp::Packet::Create();
-			if (nullptr == recv_packet)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
-			}
-			recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
 			auto self = shared_from_this();
 
 			//////////////////////////////////////////////////////////////////////////
@@ -419,9 +406,15 @@ void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
 				return;
 			}
 			responseHandler->on_receive(buffer);
-			
-			//Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
-			//session_manager->OnReceive(self, packet);
+
+			recv_packet = Tcp::Packet::Create();
+			if (nullptr == recv_packet)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
+			}
+			packet->Remove(packet->length);
+			recv_packet->Append(packet->ReadPtr(), packet->Size());
+
 		}
 	}
 }

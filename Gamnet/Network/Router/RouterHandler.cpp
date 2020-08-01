@@ -193,7 +193,6 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 	}
 
-	Address addr = session->router_address;
 	std::shared_ptr<Network::Tcp::Packet> buffer = Network::Tcp::Packet::Create();
 	if (nullptr == buffer)
 	{

@@ -24,6 +24,9 @@ public :
 		RECV
 	};
 
+	enum CONST_NUMBER {
+		ASYNC_POOL_SIZE = 16
+	};
 	Session();
 	virtual ~Session();
 public :
@@ -48,8 +51,9 @@ public :
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
 			void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void(const Exception&)> onException, int timeout);
 private :
-	Pool<SyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> syncsession_pool;
-	Pool<AsyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> asyncsession_pool;
+	Pool<SyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> sync_pool;
+	std::atomic<uint64_t> async_pool_index;
+	std::array<std::shared_ptr<AsyncSession>, ASYNC_POOL_SIZE> async_pool;
 };
 
 class SyncSession : public Network::Session
@@ -81,11 +85,6 @@ private:
 class AsyncSession : public Network::Tcp::Session
 {
 public :
-	struct Factory
-	{
-		AsyncSession* operator()();
-	};
-
 	struct ResponseHandler
 	{
 		uint32_t msg_seq;
@@ -102,7 +101,6 @@ public :
 	void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet);
 	void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int timeout);
 
-	virtual void AsyncRead() override;
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 
 	virtual void OnCreate() override {}
@@ -113,8 +111,7 @@ public :
 	virtual void Close(int reason) override;
 private :
 	const std::shared_ptr<ResponseHandler> FindResponseHandler(uint32_t seq);
-
-	bool read_done;
+	
 	Tcp::Connector connector;
 	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
 	void SetTimeout(const std::shared_ptr<ResponseHandler>& timeout);
