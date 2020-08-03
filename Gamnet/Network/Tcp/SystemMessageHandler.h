@@ -38,8 +38,10 @@ public:
 
 		try
 		{
-			session->OnAccept();
 			session->handover_safe = true;
+			session->OnCreate();
+			session->OnAccept();
+			session->session_manager->Add(session);
 
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
@@ -94,8 +96,8 @@ public:
 			}
 
 			std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
-			session->Close( ErrorCode::Success );
-			
+			session->socket = nullptr;
+
 			prevSession->Dispatch([=]() {
 				prevSession->socket = socket;
 
@@ -112,9 +114,9 @@ public:
 				prevSession->send_buffers.clear();
 				prevSession->AsyncSend(ansPacket);
 				prevSession->OnAccept();
-				for (const std::shared_ptr<Packet>& ansPacket : prevSession->send_packets)
+				for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
 				{
-					prevSession->AsyncSend(ansPacket);
+					prevSession->AsyncSend(sendPacket);
 				}
 				prevSession->AsyncRead();
 			});

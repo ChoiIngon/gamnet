@@ -103,10 +103,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			}
 
 			session->socket = socket;
-			session->OnCreate();
 			session->AsyncRead();
-			session->OnAccept();
-			Add(session);
 		}
 
 		void OnSessionExpire()

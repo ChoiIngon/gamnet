@@ -88,3 +88,5 @@ example/unity_client/xcode/
 /example/003.ChatServer/x64/Debug
 /.vs
 /Debug
+/example/002.Reconnect/log
+/example/002.Reconnect/test

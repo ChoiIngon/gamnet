@@ -9,6 +9,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "001.Echo", "example\001.Ech
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "002.Reconnect", "example\002.Reconnect\002.Reconnect_vs2019.vcxproj", "{FE3233CF-5310-47DC-8FB7-6D0623CC94B3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E} = {019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "idlc", "idlc\idlc_vs2019.vcxproj", "{E16B955B-DBB0-3D9D-C23F-F53667609365}"
 EndProject
