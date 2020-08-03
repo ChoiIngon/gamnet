@@ -20,10 +20,10 @@ public:
 	int test_seq;
 	Time::ElapseTimer elapse_timer;
 
-	virtual void OnCreate() override {}
-	virtual void OnAccept() override {}
-	virtual void OnConnect() {}
-	virtual void OnClose(int reason) override {}
+	//virtual void OnCreate() override {}
+	
+	virtual void OnConnect() = 0;
+	//virtual void OnClose(int reason) override {}
 
 	virtual bool Init() override;
 	virtual void Clear() override;
@@ -40,8 +40,7 @@ public:
 	void Recv_Close_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet);
 private:
 	void OnReconnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
-
-	
+	virtual void OnAccept() override {}
 };
 
 }} /* namespace Gamnet */
