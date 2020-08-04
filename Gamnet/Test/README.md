@@ -4,7 +4,7 @@
 
 작성된 테스트 클라이언트는 서버 시작시 같이 시작 되어 서버의 기능 및 스트레스 테스트, 코드 수정으로 인한 사이드이펙트들 감지 하는데 사용 될수 있다.
 
-# Classes, Functions & Macros
+## Classes, Functions & Macros
 
 * `Gamnet::Test::Session` : 서버에 접속하여 테스트를 수행하는 클라이언트 클래스
 * `GAMNET_BIND_TEST_HANDLER` : 테스트 클라이언트 메시지 전송/수신 핸들러 등록 매크로
