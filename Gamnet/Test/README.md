@@ -1,24 +1,27 @@
 # Gamnet::Test
 
-Gamnet에서는 기능 및 스트레스 테스트를 위해 테스트 클라이언트 코드를 추가 할 수 있다.
+본 문서에서 Gamnet에서 제공하는 테스트 클라이언트 제작 방법에 대해서 설명한다.
+
+작성된 테스트 클라이언트는 서버 시작시 같이 시작 되어 서버의 기능 및 스트레스 테스트, 코드 수정으로 인한 사이드이펙트들 감지 하는데 사용 될수 있다.
 
 # Classes, Functions & Macros
 
 * `Gamnet::Test::Session` : 서버에 접속하여 테스트를 수행하는 클라이언트 클래스
-* `Gamnet::Test::Session::Next()` : 다음 테스트 스텝으로 진행
-* `template <class MSG> void SendMsg(const std::shared_ptr<Session>& session, const MSG& msg, bool reliable = true)` : 메시지를 서버로 전송
-* `void send_function(const std::shared_ptr<TestSession>& session)` : 
-* `void recv_function(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)` :
-* `GAMNET_BIND_TEST_HANDLER(<test session type>, "<test name>", <send message type>, <send function>, <receive message type>, <receive function>)` :
+* `GAMNET_BIND_TEST_HANDLER` : 테스트 클라이언트 메시지 전송/수신 핸들러 등록 매크로
+* 그외 :
+  * `Gamnet::Test::Session::Next()` : 다음 테스트 스텝으로 진행
+  * `Gamnet::Test::SendMsg()` : 메시지를 서버로 전송
+  * `void send_function(const std::shared_ptr<TestSession>& session)` : 테스트 클라이언트 메시지 전송 핸들러 함수 프로토 타입
+  * `void recv_function(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)` : 테스트 클라이언트 메시지 수신 핸들러 함수 프로토 타입 
 
-## Gamnet::Test::Session 
+
+## Gamnet::Test::Session 상속 받아 커스텀 테스트 클라이언트 클래스 작성 하기
 Gamnet::Test::Session은 서버에 접속하는 클라이언트를 표현하는 클래스다. Gamnet::Test::Session 클래스를 상속 받아 서버에 접속하는 클라이언트를 구현 하도록 한다.
 
 ```cpp
 #include <Gamnet/Test/Session.h>
 class TestSession : public Gamnet::Test::Session {
 public :
-
 	virtual void OnCreate() override;
 	virtual void OnConnect() override;
 	virtual void OnClose(int reason) override;
@@ -42,7 +45,7 @@ Gamnet::Test::Session은 OnCreate, OnConnect, OnClose, OnDestroy 가상 멤버 �
 
 서버 테스트를 위해 메시지를 보내는 함수와 받는 함수를 각각 작성한다. 함수의 형식은 아래와 같다. Gamnet::Test::Session을 상속 받아 구현한 테스트 세션의 타입은 'TestSession'이라고 가정한다.
 
-### send function
+### send function proto type
 
 ```
 void send_function(const std::shared_ptr<test session type>& session);
@@ -58,7 +61,7 @@ void Test_CliSvr_SendMessage_Ntf(const std::shared_ptr<TestSession>& session)
 }
 ```
 
-### receive function
+### receive function proto type
 
 ```
 void recv_function(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
@@ -79,17 +82,29 @@ void Test_SvrCli_SendMessage_Ntf(const std::shared_ptr<TestSession>& session, co
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-	session->Next();
+	session->Next(); // 테스트케이스가 종료 되면 다음 테스트케이스로 넘어 감
 }
 ```
 
 ## 테스트 케이스 등록
 
+```
 GAMNET_BIND_TEST_HANDLER(
-	TestSession, "<test case name>",
-	<send message type>, <send function> 
-	<receive message type>, <receive handler function>
+	<test session type>, 
+	"<test case name>",
+	<send message type>, 
+	<send function>, 
+	<receive message type>, 
+	<receive handler function>
 );
+```
+
+* test session type : Gamnet::Test::Session 클래스를 상속 받은 커스텀 클래스. 본 문서에서는 `TestSession`이라고 가정 한다.
+* test case name : 각 테스트케이스를 구분할 고유한 문자열
+* send message type : 테스트 클라이언트가 서버로 보낼 메시지 타입
+* send function : 테스트 클라이언트가 메시지 전송에 사용하는 함수(위에 설명된 `send_function`의 프로토 타입 형식을 따른다)
+* receive message type : 테스트 클라이어트가 응답 받을 메시지 타입
+* receive function : 수신 메시지 핸들러 함수(위에 설명된 `recv_function`의 프로토 타입 형식을 따른다)
 
 ```cpp
 GAMNET_BIND_TEST_HANDLER(
@@ -99,7 +114,7 @@ GAMNET_BIND_TEST_HANDLER(
 );
 ```
 
-### config.xml 에 테스트 정보 추가
+## config.xml 에 테스트 정보 추가
 
 ```xml
 <test host="127.0.0.1" port="40000" session_count="1" loop_count="20">
@@ -108,13 +123,13 @@ GAMNET_BIND_TEST_HANDLER(
 ```
 
 * 'test' element :
-** host : 테스트 세션이 접속 할 서버의 주소
-** port : 테스트 세션이 접속 할 서버의 포트
-** session_count : 동시에 구동 될 테스트 세션의 개수
-** loop_count : 각 세션당 반복 테스트 횟수
+  * host : 테스트 세션이 접속 할 서버의 주소
+  * port : 테스트 세션이 접속 할 서버의 포트
+  * session_count : 동시에 구동 될 테스트 세션의 개수
+  * loop_count : 각 세션당 반복 테스트 횟수
 
 * 'message' element :
-** name : 구동 시킬 테스트 케이스의 이름. 3번 과정 테스트 케이스 등록에서 <test case name> 에 등록된 이름을 사용한다.
+  * name : 구동 시킬 테스트 케이스의 이름. 3번 과정 테스트 케이스 등록에서 <test case name> 에 등록된 이름을 사용한다.
 
 ## 테스트 구동
 
