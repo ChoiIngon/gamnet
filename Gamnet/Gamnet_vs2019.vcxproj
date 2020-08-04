@@ -161,6 +161,7 @@
     <ClCompile Include="library\Exception.cpp" />
     <ClCompile Include="Library\Json\jsoncpp.cpp" />
     <ClCompile Include="library\MD5.cpp" />
+    <ClCompile Include="Library\MetaData.cpp" />
     <ClCompile Include="Library\Random.cpp" />
     <ClCompile Include="Library\Singleton.cpp" />
     <ClCompile Include="Library\ThreadPool.cpp" />
@@ -226,6 +227,7 @@
     <ClInclude Include="Library\Json\json-forwards.h" />
     <ClInclude Include="Library\Json\json.h" />
     <ClInclude Include="library\MD5.h" />
+    <ClInclude Include="Library\MetaData.h" />
     <ClInclude Include="library\MultiLock.h" />
     <ClInclude Include="library\Pool.h" />
     <ClInclude Include="Library\Random.h" />

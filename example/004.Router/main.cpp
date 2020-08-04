@@ -2,6 +2,8 @@
 #include <boost/program_options.hpp>
 #include <boost/coroutine2/all.hpp>
 
+#include <Gamnet/Library/MetaData.h>
+
 void OnRouterConnect(const Gamnet::Network::Router::Address& address)
 {
 	LOG(INF, "OnConnect:", address.ToString());
@@ -12,101 +14,41 @@ void OnRouterClose(const Gamnet::Network::Router::Address& address)
 	LOG(DEV, "OnClose:", address.ToString());
 }
 
-class Meta 
-{
-	std::map<std::string, std::function<void(const std::string&)>>	bind_functions;
-protected :
 
-	std::string Bind(const std::string& name, std::string& member)
-	{
-		bind_functions.insert(std::make_pair(name, [&member](const std::string& value) {
-			member = value;
-		}));
-		return "";
-	}
-
-	int Bind(const std::string& name, int& member)
-	{
-		bind_functions.insert(std::make_pair(name, [&member](const std::string& value) {
-			member = boost::lexical_cast<int>(value);
-		}));
-		return 0;
-	}
-
-	Gamnet::Time::DateTime Bind(const std::string& name, Gamnet::Time::DateTime& member)
-	{
-		bind_functions.insert(std::make_pair(name, [&member](const std::string& value) {
-			member = value;
-		}));
-		return Gamnet::Time::DateTime::MinValue;
-	}
-
-	float Bind(const std::string& name, float& member)
-	{
-		bind_functions.insert(std::make_pair(name, [&member](const std::string& value) {
-			member = boost::lexical_cast<float>(value);
-		}));
-		return 0.0f;
-	}
-
-	template <class T>
-	T Bind(const std::string& name, T& member)
-	{
-		return T();
-	}
-
-	void SetValue(const std::string& name, const std::string& value)
-	{
-		bind_functions[name](value);
-	}
-public :
-	bool Init(const Json::Value& row)
-	{
-		for (auto& itr : bind_functions)
-		{
-			SetValue(itr.first, row[itr.first].asString());
-		}
-		return true;
-	}
-};
-
-class Something : public Meta
+class MetaData : public Gamnet::MetaData
 {
 public :
-	std::string text;
-	int number;
-	Gamnet::Time::DateTime date;
-	float point;
-	Something()
-		: text(Bind("text", text))
-		, number(Bind("number", number))
-		, date(Bind("date", date))
-		, point(Bind("point", point))
+	int			item_id;
+	std::string	name;
+	bool		Lock;
+	float		attack;
+	float		defense;
+	int			price;
+	Gamnet::Time::DateTime expire_date;
+
+	MetaData()
+		: GAMNET_INIT_MEMBER(item_id)
+		, GAMNET_INIT_MEMBER(name)
+		, GAMNET_INIT_MEMBER(Lock)
+		, GAMNET_INIT_MEMBER(attack)
+		, GAMNET_INIT_MEMBER(defense)
+		, GAMNET_INIT_MEMBER(price)
+		, GAMNET_INIT_MEMBER(expire_date)
 	{
 	}
-
-	
 };
 
 int main(int argc, char** argv) 
 {
-	Something some;
+	Gamnet::MetaDataReader<MetaData> reader;
+	const std::list<std::shared_ptr<MetaData>>& metas = reader.Read("meta_data.csv");
 
-	Json::Value root;
-	root["text"] = "text";
-	root["number"] = "10";
-	root["date"] = "2018-01-01 00:00:00";
-	root["point"] = "100.0";
-
-	some.Init(root);
-	
-	std::string test("test");
-	if("text" == some.text)
+	for(auto& meta : metas)
 	{
-		std::cout << some.text << "int" << std::endl;
-	}
-
-	std::cout << some.date.ToString() << std::endl;
+		std::cout << meta->item_id << std::endl;
+		std::cout << meta->expire_date << std::endl;
+	}	
+	
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
 		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")

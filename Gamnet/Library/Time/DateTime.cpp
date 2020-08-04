@@ -150,3 +150,8 @@ int DateTime::TimestampDiff(const DateTime& rhs) const
 }
 
 }}
+
+std::ostream& operator << (std::ostream& os, const Gamnet::Time::DateTime& datetime)
+{
+	return os << datetime.ToString();
+}

@@ -58,6 +58,8 @@ private :
 	void FromString(const std::string& fmt);
 };
 
-
 }}
+
+std::ostream& operator << (std::ostream& os, const Gamnet::Time::DateTime& datetime);
+
 #endif
