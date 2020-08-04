@@ -14,113 +14,99 @@ void OnRouterClose(const Gamnet::Network::Router::Address& address)
 
 class Meta 
 {
-public :
-	class IColumn
+	std::map<std::string, std::function<void(const std::string&)>>	bind_functions;
+protected :
+
+	std::string Bind(const std::string& name, std::string& member)
 	{
-		const std::string name;
-	public:
-		IColumn(Meta* meta, const std::string& name);
-		virtual void SetValue(const std::string& value) = 0;
-	};
-
-	template <class T>
-	class Column : public IColumn
-	{
-	public :
-		std::shared_ptr<T> value;
-		Column(Meta* meta, const std::string& name) 
-			: IColumn(meta, name)
-			, value(std::make_shared<T>())
-		{
-		}
-
-		virtual void SetValue(const std::string& value)
-		{
-			*this->value = boost::lexical_cast<T>(value);
-		}
-
-		operator T () const
-		{
-			return *value;
-		}
-	};
-
-	class Text : public Column<std::string>
-	{
-	public :
-		Text(Meta* meta, const std::string& name)
-			: Column<std::string>(meta, name)
-		{
-		}
-		operator const char* () const
-		{
-			return value->c_str();
-		}
-	};
-
-	bool Init(const std::string fileName)
-	{
-		return true;
+		bind_functions.insert(std::make_pair(name, [&member](const std::string& value) {
+			member = value;
+		}));
+		return "";
 	}
 
-	std::map<std::string, Meta::IColumn*>	meta_columns;
-};
+	int Bind(const std::string& name, int& member)
+	{
+		bind_functions.insert(std::make_pair(name, [&member](const std::string& value) {
+			member = boost::lexical_cast<int>(value);
+		}));
+		return 0;
+	}
 
-Meta::IColumn::IColumn(Meta* meta, const std::string& name)
-		: name(name)
-{
-	meta->meta_columns.insert(std::make_pair(name, this));
-}
+	Gamnet::Time::DateTime Bind(const std::string& name, Gamnet::Time::DateTime& member)
+	{
+		bind_functions.insert(std::make_pair(name, [&member](const std::string& value) {
+			member = value;
+		}));
+		return Gamnet::Time::DateTime::MinValue;
+	}
+
+	float Bind(const std::string& name, float& member)
+	{
+		bind_functions.insert(std::make_pair(name, [&member](const std::string& value) {
+			member = boost::lexical_cast<float>(value);
+		}));
+		return 0.0f;
+	}
+
+	template <class T>
+	T Bind(const std::string& name, T& member)
+	{
+		return T();
+	}
+
+	void SetValue(const std::string& name, const std::string& value)
+	{
+		bind_functions[name](value);
+	}
+public :
+	bool Init(const Json::Value& row)
+	{
+		for (auto& itr : bind_functions)
+		{
+			SetValue(itr.first, row[itr.first].asString());
+		}
+		return true;
+	}
+};
 
 class Something : public Meta
 {
 public :
-	Meta::Column<std::string> column_1;
-
+	std::string text;
+	int number;
+	Gamnet::Time::DateTime date;
+	float point;
 	Something()
-		: column_1(this, "column_1")
+		: text(Bind("text", text))
+		, number(Bind("number", number))
+		, date(Bind("date", date))
+		, point(Bind("point", point))
 	{
 	}
 
-	bool Init(const std::string& fileName)
-	{
-		meta_columns["column_1"]->SetValue("test");
-		return true;
-	}
+	
 };
-
-template <class T>
-std::ostream& operator << (std::ostream& os, const Meta::Column<T>& column)
-{
-	return os << *column.value;
-}
-
-bool operator == (const std::string& lhs, const Meta::Column<std::string>& rhs)
-{
-	return lhs == static_cast<std::string>(*rhs.value);
-}
-
-bool operator == (const Meta::Column<std::string>& lhs, const std::string& rhs)
-{
-	return rhs == lhs;
-}
-
-bool operator == (const std::string& lhs, const Meta::Column<std::string>& rhs)
-{
-	return lhs == static_cast<std::string>(*rhs.value);
-}
-
 
 int main(int argc, char** argv) 
 {
 	Something some;
-	some.Init("");
+
+	Json::Value root;
+	root["text"] = "text";
+	root["number"] = "10";
+	root["date"] = "2018-01-01 00:00:00";
+	root["point"] = "100.0";
+
+	some.Init(root);
 	
 	std::string test("test");
-	if("test" == some.column_1)
+	if("text" == some.text)
 	{
-		std::cout << some.column_1 << "int" << std::endl;
+		std::cout << some.text << "int" << std::endl;
 	}
+
+	std::cout << some.date.ToString() << std::endl;
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
 		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")
