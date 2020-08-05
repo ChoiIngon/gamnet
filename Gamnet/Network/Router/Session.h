@@ -87,6 +87,25 @@ class AsyncSession : public Network::Tcp::Session
 public :
 	struct ResponseHandler
 	{
+		struct Init
+		{
+			ResponseHandler* operator() (ResponseHandler* resHandler) 
+			{
+				return resHandler;
+			}
+		};
+
+		struct Release
+		{
+			ResponseHandler* operator() (ResponseHandler* resHandler) {
+				resHandler->msg_seq = 0;
+				resHandler->expire_time = 0;
+				resHandler->on_receive = nullptr;
+				resHandler->on_exception = nullptr;
+				return resHandler;
+			};
+		};
+
 		uint32_t msg_seq;
 		int expire_time;
 		std::function<void(const std::shared_ptr<Tcp::Packet>&)> on_receive;
@@ -119,7 +138,7 @@ private :
 
 	Time::Timer expire_timer;
 	
-	Pool<ResponseHandler> response_handler_pool;
+	Pool<ResponseHandler, Policy::nolock, ResponseHandler::Init, ResponseHandler::Release> response_handler_pool;
 	std::map<uint32_t, std::shared_ptr<ResponseHandler>> response_handlers;
 };
 
