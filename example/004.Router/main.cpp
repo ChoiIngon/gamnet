@@ -20,19 +20,21 @@ class MetaData : public Gamnet::MetaData
 public :
 	int			item_id;
 	std::string	name;
-	bool		Lock;
+	bool		lock;
 	float		attack;
 	float		defense;
 	int			price;
+	std::vector<float> substats;
 	Gamnet::Time::DateTime expire_date;
 
 	MetaData()
 		: GAMNET_INIT_MEMBER(item_id)
 		, GAMNET_INIT_MEMBER(name)
-		, GAMNET_INIT_MEMBER(Lock)
+		, GAMNET_INIT_MEMBER(lock)
 		, GAMNET_INIT_MEMBER(attack)
 		, GAMNET_INIT_MEMBER(defense)
 		, GAMNET_INIT_MEMBER(price)
+		, GAMNET_INIT_MEMBER(substats)
 		, GAMNET_INIT_MEMBER(expire_date)
 	{
 	}

@@ -26,6 +26,14 @@ protected:
 	double			Bind(const std::string& name, double& member);
 	std::string		Bind(const std::string& name, std::string& member);
 	Time::DateTime	Bind(const std::string& name, Time::DateTime& member);
+	template <class T>
+	std::vector<T>	Bind(const std::string& name, std::vector<T>& member)
+	{
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			member.push_back(boost::lexical_cast<T>(value));
+		}));
+		return std::vector<T>();
+	}
 public:
 	void Init(const Json::Value& row);
 };
@@ -53,6 +61,8 @@ public :
 			while (std::getline(lineStream, cell, ','))
 			{
 				boost::algorithm::to_lower(cell);
+				std::size_t pos = cell.find('[');
+				cell = cell.substr(0, pos);
 				columns.push_back(cell);
 			}
 		}
@@ -64,21 +74,24 @@ public :
 		while(std::getline(file, line))
 		{
 			std::stringstream lineStream(line);
-			std::list<std::string> cells;
 			std::string cell;
 		
 			Json::Value row;
 			int index = 0;
 			while (std::getline(lineStream, cell, ','))
 			{
-				row[columns[index++]] = cell;
+				Json::Value value;
+				value[columns[index++]] = cell;
+				row.append(value);
 			}
 
 			if (!lineStream && cell.empty())
 			{
-				// If there was a trailing comma then add an empty element.
-				cells.push_back("");
+				continue;
 			}
+
+			Json::FastWriter writer;
+			std::cout << writer.write(row) << std::endl;
 
 			std::shared_ptr<T> meta = std::make_shared<T>();
 			meta->Init(row);

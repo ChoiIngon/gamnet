@@ -90,7 +90,7 @@ namespace Gamnet
 	std::string MetaData::Bind(const std::string& name, std::string& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
-			member = boost::lexical_cast<std::string>(value);
+			member = value;
 		}));
 		return "";
 	}
@@ -105,6 +105,15 @@ namespace Gamnet
 
 	void MetaData::Init(const Json::Value& row)
 	{
+		for(auto& cell : row)
+		{
+			Json::Value::Members members = cell.getMemberNames();
+			for(auto& name : members)
+			{
+				bind_functions[name](cell[name].asString());
+			}
+		}
+		/*
 		for (auto& itr : bind_functions)
 		{
 			if(true == row[itr.first].isNull())
@@ -113,6 +122,7 @@ namespace Gamnet
 			}
 			bind_functions[itr.first](row[itr.first].asString());
 		}
+		*/
 		bind_functions.clear();
 	}
 }
