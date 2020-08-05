@@ -46,6 +46,7 @@ bool Session::Init()
 
 void Session::Clear()
 {
+	recv_packet = nullptr;
 	send_packets.clear();
 	Network::Session::Clear();
 }
@@ -63,12 +64,7 @@ void Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 				return;
 			}
 			send_packets.push_back(packet); // keep send message util ack received
-			bool needFlush = send_buffers.empty();
-			send_buffers.push_back(packet);
-			if (true == needFlush)
-			{
-				FlushSend();
-			}
+			Network::Session::AsyncSend(packet);
 		});
 		return;
 	}
