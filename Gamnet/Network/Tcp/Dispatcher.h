@@ -99,7 +99,7 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 			}
 
 			const HandlerFunctor& handlerFunctor = itr->second;
-			std::shared_ptr<IHandler> handler = handlerFunctor.factory->GetHandler(&session->handler_container, packet->msg_id);
+			std::shared_ptr<IHandler> handler = handlerFunctor.factory->GetHandler();
 			if (nullptr == handler)
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");

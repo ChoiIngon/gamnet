@@ -23,7 +23,7 @@ void Dispatcher::OnReceive(const std::shared_ptr<Session>& session, const std::s
 	}
 
 	const HandlerFunctor& handlerFunctor = itr->second;
-	std::shared_ptr<Network::IHandler> handler = handlerFunctor.factory_->GetHandler(nullptr, 0);
+	std::shared_ptr<Network::IHandler> handler = handlerFunctor.factory_->GetHandler();
 	if(nullptr == handler)
 	{
 		LOG(ERR, "can't find handler function(uri:", uri, ")");

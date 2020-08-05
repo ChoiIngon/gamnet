@@ -16,8 +16,7 @@ void Handler_SendMessage::Recv_Ntf(const std::shared_ptr<UserSession>& session, 
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
-
-		
+							   		
 		LOG(DEV, "MsgCliSvr_SendMessage_Ntf(session_key:", session->session_key, ", message:", ntfCliSvr.text, ")");
 		ntfSvrCli.text = ntfCliSvr.text;
 	}

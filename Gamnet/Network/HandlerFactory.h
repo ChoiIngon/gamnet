@@ -5,7 +5,8 @@
 #include <stdint.h>
 #include "../Library/Debugs.h"
 #include "../Library/Pool.h"
-#include "HandlerContainer.h"
+#include "Handler.h"
+
 namespace Gamnet { namespace Network { 
 
 struct IHandlerFactory
@@ -19,7 +20,7 @@ struct IHandlerFactory
 	IHandlerFactory() {}
 	virtual ~IHandlerFactory() {}
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() = 0;
-	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer*, uint32_t) = 0;
+	virtual std::shared_ptr<IHandler> GetHandler() = 0;
 };
 
 template <class T>
@@ -33,7 +34,7 @@ struct HandlerCreate : public IHandlerFactory
 	}
 	virtual ~HandlerCreate() {}
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_CREATE; }
-	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer*, uint32_t)
+	virtual std::shared_ptr<IHandler> GetHandler()
 	{
 		return pool_.Create();
 	}
@@ -50,27 +51,9 @@ struct HandlerStatic : public IHandlerFactory
 	}
 	virtual ~HandlerStatic() {}
 	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_STATIC; }
-	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer*, uint32_t)
+	virtual std::shared_ptr<IHandler> GetHandler()
 	{
 		return _handler;
-	}
-};
-
-template <class T>
-struct HandlerFind : public IHandlerFactory
-{
-	GAMNET_WHERE(T, IHandler);
-
-	HandlerFind() {};
-	virtual ~HandlerFind(){};
-	virtual HANDLER_FACTORY_TYPE GetFactoryType() { return IHandlerFactory::HANDLER_FACTORY_FIND; }
-	virtual std::shared_ptr<IHandler> GetHandler(HandlerContainer* container, uint32_t msg_seq)
-	{
-		if(NULL == container)
-		{
-			return NULL;
-		}
-		return container->Find(msg_seq);
 	}
 };
 

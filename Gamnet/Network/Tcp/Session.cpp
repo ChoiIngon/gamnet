@@ -137,6 +137,7 @@ void Session::Close(int reason)
 		{
 			OnDestroy();
 			session_manager->Remove(self);
+			session_key = 0;
 		}
 	});
 }

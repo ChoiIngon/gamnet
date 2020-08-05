@@ -26,7 +26,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		std::shared_ptr<HandlerFunctor> handlerFunctor = itr->second;
-		std::shared_ptr<Network::IHandler> handler = handlerFunctor->factory_->GetHandler(nullptr, packet->msg_id);
+		std::shared_ptr<Network::IHandler> handler = handlerFunctor->factory_->GetHandler();
 		if (nullptr == handler)
 		{
 			LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", packet->msg_seq, ", msg_id:", packet->msg_id, ")");

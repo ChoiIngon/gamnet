@@ -187,7 +187,6 @@
     <ClCompile Include="Network\SessionManager.cpp" />
     <ClCompile Include="Network\Tcp\Acceptor.cpp" />
     <ClCompile Include="Network\Tcp\Connector.cpp" />
-    <ClCompile Include="Network\HandlerContainer.cpp" />
     <ClCompile Include="network\Session.cpp" />
     <ClCompile Include="Network\Tcp\CastGroup.cpp" />
     <ClCompile Include="Network\Tcp\Packet.cpp" />
@@ -259,7 +258,6 @@
     <ClInclude Include="Network\Tcp\Acceptor.h" />
     <ClInclude Include="Network\Tcp\Connector.h" />
     <ClInclude Include="Network\Handler.h" />
-    <ClInclude Include="Network\HandlerContainer.h" />
     <ClInclude Include="Network\HandlerFactory.h" />
     <ClInclude Include="network\Session.h" />
     <ClInclude Include="Network\Tcp\CastGroup.h" />

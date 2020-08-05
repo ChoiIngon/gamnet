@@ -6,7 +6,6 @@
 #include "Router/Router.h"
 #include "Tcp/Tcp.h"
 #include "Handler.h"
-#include "HandlerContainer.h"
 #include "HandlerFactory.h"
 #include "Session.h"
 

@@ -2,9 +2,9 @@
 #define GAMNET_NETWORK_TCP_SESSION_H_
 
 #include "../../Library/Json/json.h"
-#include "../HandlerContainer.h"
 #include "../Session.h"
 #include "Packet.h"
+
 namespace Gamnet { namespace Network { namespace Tcp {
 class Session : public Network::Session
 {
@@ -26,7 +26,6 @@ public :
 	std::deque<std::shared_ptr<Packet>>					send_packets;
 
 	std::string											session_token;
-	HandlerContainer									handler_container;
 	
 	virtual bool Init() override;
 	virtual void Clear() override;
