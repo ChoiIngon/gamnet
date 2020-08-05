@@ -14,30 +14,12 @@ Session::~Session() {
 
 bool Session::Init()
 {
-	if(false == Network::Session::Init())
+	if(false == Network::Tcp::Session::Init())
 	{
 		return false;
 	}
 	test_seq = 0;
-	session_token = "";
-	recv_packet = Network::Tcp::Packet::Create();
-	if (nullptr == recv_packet)
-	{
-		LOG(GAMNET_ERR, "ErrorCode::NullPacketError can not create Packet instance");
-		return false;
-	}
-
-	recv_seq = 0;
-	send_seq = 0;
-	handover_safe = false;
-	
 	return true;
-}
-
-void Session::Clear()
-{
-	send_packets.clear();
-	Network::Session::Clear();
 }
 
 void Session::Next()

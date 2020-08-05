@@ -23,10 +23,8 @@ public:
 	//virtual void OnCreate() override {}
 	
 	virtual void OnConnect() = 0;
-	//virtual void OnClose(int reason) override {}
 
 	virtual bool Init() override;
-	virtual void Clear() override;
 
 	void AsyncSend(const std::shared_ptr<Network::Tcp::Packet>& packet);
 	void Next();
