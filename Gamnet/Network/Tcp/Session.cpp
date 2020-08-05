@@ -54,7 +54,7 @@ void Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 {
 	if (true == packet->reliable)
 	{
-		auto self = std::static_pointer_cast<Session>(shared_from_this());
+		auto self = shared_from_this();
 		Dispatch([this, self, packet]() {
 			if (Session::RELIABLE_PACKET_QUEUE_SIZE <= send_packets.size())
 			{
@@ -125,7 +125,7 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 
 void Session::Close(int reason)
 {
-	auto self(shared_from_this());
+	auto self = shared_from_this();
 	Dispatch([this, self, reason]() {
 		if (nullptr != socket)
 		{

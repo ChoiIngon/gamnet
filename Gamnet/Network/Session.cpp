@@ -67,7 +67,7 @@ void Session::FlushSend()
 		return;
 	}
 	
-	auto self(shared_from_this());
+	auto self = shared_from_this();
 	const std::shared_ptr<Buffer> buffer = send_buffers.front();
 	//boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), boost::asio::bind_executor(*strand, std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
 	boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), Bind(std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
@@ -144,7 +144,7 @@ int Session::SyncSend(const char* data, int length)
 
 void Session::Close(int reason)
 {
-	auto self(shared_from_this());
+	auto self = shared_from_this();
 	Dispatch([this, self, reason]() {
 		if (nullptr == socket)
 		{
@@ -160,7 +160,7 @@ void Session::Close(int reason)
 void Session::AsyncRead()
 {
 	assert(nullptr != socket);
-	auto self(shared_from_this());
+	auto self = shared_from_this();
 	socket->async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
 		Bind([this, self](boost::system::error_code ec, std::size_t readbytes) 
 	{
