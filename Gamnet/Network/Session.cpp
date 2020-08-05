@@ -32,6 +32,8 @@ bool Session::Init()
 
 void Session::Clear()
 {
+	read_buffer = nullptr;
+	send_buffers.clear();
 }
 
 void Session::AsyncSend(const char* data, size_t length)
