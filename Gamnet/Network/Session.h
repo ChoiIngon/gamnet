@@ -55,7 +55,19 @@ namespace Gamnet { namespace Network {
 		}
 
 		template <class Executor>
+		void Dispatch(Executor&& executor)
+		{
+			boost::asio::dispatch(*strand, executor);
+		}
+
+		template <class Executor>
 		boost::asio::executor_binder<typename boost::asio::decay<Executor>::type, strand_t> Bind(Executor& executor)
+		{
+			return boost::asio::bind_executor(*strand, executor);
+		}
+
+		template <class Executor>
+		boost::asio::executor_binder<typename boost::asio::decay<Executor>::type, strand_t> Bind(Executor&& executor)
 		{
 			return boost::asio::bind_executor(*strand, executor);
 		}

@@ -10,8 +10,8 @@ endif()
 
 if(LINUX) 
 	include_directories( 
+		../../
 		/usr/include/mysql 
-		../../Gamnet
 	) 
 	link_directories(
 		../../Gamnet/Debug
@@ -21,6 +21,7 @@ endif()
 
 if(APPLE) 
 	include_directories( 
+		../../
 		/usr/local/include/Gamnet 
 		/usr/local/Cellar/mysql-connector-c/6.1.6/include 
 		/usr/local/Cellar/boost/1.64.0_1/include
@@ -28,6 +29,7 @@ if(APPLE)
 	       	/usr/local/Cellar/curl/7.55.1/include
 	)
 	link_directories(
+		../../Gamnet/Debug
 	       	/usr/local/lib
 	       	/usr/local/Cellar/boost/1.64.0_1/lib
 	       	/usr/local/Cellar/curl/7.55.1/lib
@@ -42,6 +44,7 @@ link_libraries(
 	boost_filesystem
 	boost_system
 	boost_program_options
+	boost_date_time
 	pthread
 )
 

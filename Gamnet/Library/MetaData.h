@@ -5,6 +5,7 @@
 #include <string>
 #include <functional>
 #include <memory>
+#include <fstream>
 #include <list>
 #include "Time/DateTime.h"
 #include "Json/json.h"
