@@ -1,4 +1,13 @@
-project(server)
+#
+# https://gist.github.com/luncliff/6e2d4eb7ca29a0afd5b592f72b80cb5c
+#
+
+cmake_minimum_required(VERSION 3.16)
+
+get_filename_component(PROJECT_NAME ${CMAKE_SOURCE_DIR} NAME)
+string(REPLACE " " "_" PROJECT_NAME ${PROJECT_NAME})
+
+project(${PROJECT_NAME})
 
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/Debug)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
@@ -68,4 +77,5 @@ foreach(TMP_PATH ${SRC})
        	endforeach(EXCLUDE_PATH)
 endforeach(TMP_PATH) 
 
-add_executable(server ${SRC})
+add_executable(${CMAKE_PROJECT_NAME} ${SRC})
+add_subdirectory(../../Gamnet ../../Gamnet/Debug)
