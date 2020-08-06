@@ -113,16 +113,6 @@ namespace Gamnet
 				bind_functions[name](cell[name].asString());
 			}
 		}
-		/*
-		for (auto& itr : bind_functions)
-		{
-			if(true == row[itr.first].isNull())
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, "invalid meta data column name('", itr.first, "')");
-			}
-			bind_functions[itr.first](row[itr.first].asString());
-		}
-		*/
 		bind_functions.clear();
 	}
 }

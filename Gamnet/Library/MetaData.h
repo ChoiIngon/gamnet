@@ -74,6 +74,19 @@ public :
 		// read data rows
 		while(std::getline(file, line))
 		{
+			size_t pos = 0;
+			pos = line.find_last_of('\n');
+			if (std::string::npos != pos)
+			{
+				line = line.substr(0, pos);
+			}
+
+			pos = line.find_last_of('\r');
+			if(std::string::npos != pos)
+			{
+				line = line.substr(0, pos);
+			}
+			
 			std::stringstream lineStream(line);
 			std::string cell;
 		
@@ -90,9 +103,6 @@ public :
 			{
 				continue;
 			}
-
-			Json::FastWriter writer;
-			std::cout << writer.write(row) << std::endl;
 
 			std::shared_ptr<T> meta = std::make_shared<T>();
 			meta->Init(row);
