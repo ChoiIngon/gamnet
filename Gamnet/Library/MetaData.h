@@ -14,6 +14,7 @@ namespace Gamnet {
 
 class MetaData
 {
+	typedef void(MetaData::*custom_bind)(const std::string&);
 	std::map<std::string, std::function<void(const std::string&)>>	bind_functions;
 protected:
 	bool			Bind(const std::string& name, bool& member);
@@ -34,6 +35,12 @@ protected:
 			member.push_back(boost::lexical_cast<T>(value));
 		}));
 		return std::vector<T>();
+	}
+	template <class T, class F>
+	T CustomBind(const std::string& name, F f, T defaultValue)
+	{
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), std::bind((custom_bind)f, this, std::placeholders::_1)));
+		return defaultValue;
 	}
 public:
 	void Init(const Json::Value& row);
@@ -117,5 +124,7 @@ public :
 #define GAMNET_INIT_MEMBER(member) \
 	member(Bind(#member, member))
 
+#define GAMNET_INIT_CUSTOM(member, func_ptr, default_value) \
+	member(CustomBind(#member, &func_ptr, default_value))
 }
 #endif

@@ -40,6 +40,7 @@
     <ClCompile Include="Library\Exception.cpp" />
     <ClCompile Include="Library\Json\jsoncpp.cpp" />
     <ClCompile Include="Library\MD5.cpp" />
+    <ClCompile Include="Library\MetaData.cpp" />
     <ClCompile Include="Library\Random.cpp" />
     <ClCompile Include="Library\Singleton.cpp" />
     <ClCompile Include="Library\ThreadPool.cpp" />
@@ -50,7 +51,6 @@
     <ClCompile Include="Log\File.cpp" />
     <ClCompile Include="Log\Log.cpp" />
     <ClCompile Include="Log\Logger.cpp" />
-    <ClCompile Include="Network\HandlerContainer.cpp" />
     <ClCompile Include="Network\Http\Dispatcher.cpp" />
     <ClCompile Include="Network\Http\HttpClient.cpp" />
     <ClCompile Include="Network\Http\HttpServer.cpp" />
@@ -104,6 +104,7 @@
     <ClInclude Include="Library\Json\json-forwards.h" />
     <ClInclude Include="Library\Json\json.h" />
     <ClInclude Include="Library\MD5.h" />
+    <ClInclude Include="Library\MetaData.h" />
     <ClInclude Include="Library\MultiLock.h" />
     <ClInclude Include="Library\Pool.h" />
     <ClInclude Include="Library\Random.h" />
@@ -119,7 +120,6 @@
     <ClInclude Include="Log\Log.h" />
     <ClInclude Include="Log\Logger.h" />
     <ClInclude Include="Network\Handler.h" />
-    <ClInclude Include="Network\HandlerContainer.h" />
     <ClInclude Include="Network\HandlerFactory.h" />
     <ClInclude Include="Network\Http\Dispatcher.h" />
     <ClInclude Include="Network\Http\HttpClient.h" />
@@ -222,7 +222,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\OpenSSL-Win64\include;C:\local\boost_1_61_0;C:\local\curl-7.43.0-win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\MySQL\MySQL Connector C 6.1\include;C:\local\OpenSSL-Win64\include;C:\local\boost_1_71_0;C:\local\curl-7.43.0-win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
       <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
