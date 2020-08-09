@@ -29,7 +29,7 @@ void ReadXml(const char* xml_path)
 		bool fail_query_log = elmt.second.get<bool>("<xmlattr>.fail_query_log", false); 
 		if(false == Connect(id, host.c_str(), port, user.c_str(), passwd.c_str(), db.c_str(), fail_query_log))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[MySQL] database connect fail(id:", id, ", host:", host, ", port:", port, ", user:", user, ", password:", passwd, ", db_name:", db);
+			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError, "[Gamnet::Database::MySQL] database connect fail(id:", id, ", host:", host, ", port:", port, ", user:", user, ", password:", passwd, ", db_name:", db);
 		}
 	}
 }

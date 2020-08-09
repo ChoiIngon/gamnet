@@ -12,7 +12,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	{
 		Singleton<Dispatcher<SESSION_T>>::GetInstance();
 		Singleton<SessionManager<SESSION_T>>::GetInstance().Listen(port, max_session, keep_alive, accept_queue_size);
-		LOG(GAMNET_INF, "Gamnet::Tcp listener start(port:", port, ", capacity:", max_session, ", keep alive time:", keep_alive, " sec)");
+		LOG(GAMNET_INF, "[Gamnet::Network::Tcp] listener start(port:", port, ", capacity:", max_session, ", keep alive time:", keep_alive, " sec)");
 	}
 
 	struct Config

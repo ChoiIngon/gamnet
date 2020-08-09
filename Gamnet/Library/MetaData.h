@@ -39,7 +39,7 @@ protected:
 	template <class T, class F>
 	T CustomBind(const std::string& name, F f, T defaultValue)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), std::bind((custom_bind)f, this, std::placeholders::_1)));
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), f));
 		return defaultValue;
 	}
 public:
@@ -47,19 +47,19 @@ public:
 };
 
 template <class T>
-class MetaDataReader
+class MetaReader
 {
 	std::list<std::shared_ptr<T>> meta_datas;
 
 public :
-	const std::list<std::shared_ptr<T>> Read(const std::string& filePath)
+	const std::list<std::shared_ptr<T>>& Read(const std::string& filePath)
 	{
+		meta_datas.clear();
 		std::ifstream file(filePath);
 
 		std::string	line;
 		std::vector<std::string>	columns;
 
-		std::list<std::shared_ptr<T>> result;
 		// read column
 		{
 			std::getline(file, line);
@@ -113,18 +113,22 @@ public :
 
 			std::shared_ptr<T> meta = std::make_shared<T>();
 			meta->Init(row);
-			result.push_back(meta);
+			meta_datas.push_back(meta);
 		}
 		// This checks for a trailing comma with no data after it.
 		
-		return result;
+		return meta_datas;
+	}
+	const std::list<std::shared_ptr<T>>& MetaDatas() const
+	{
+		return meta_datas;
 	}
 };
 
-#define GAMNET_INIT_MEMBER(member) \
+#define GAMNET_META_MEMBER(member) \
 	member(Bind(#member, member))
 
-#define GAMNET_INIT_CUSTOM(member, func_ptr, default_value) \
-	member(CustomBind(#member, &func_ptr, default_value))
+#define GAMNET_META_CUSTOM(member, func_ptr, default_value) \
+	member(CustomBind(#member, std::bind(&func_ptr, this, std::ref(member), std::placeholders::_1), default_value))
 }
 #endif

@@ -1,6 +1,7 @@
-#include <Gamnet.h>
+#include "UserSession.h"
 #include <boost/program_options.hpp>
 
+#include <Gamnet/Library/MetaData.h>
 enum DATABASE_TYPE
 {
 	INVALID = 0,
@@ -189,7 +190,9 @@ int main(int argc, char** argv)
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
 		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")
+		("thread", boost::program_options::value<int>()->default_value(std::thread::hardware_concurrency()), "working thread count")
 		("help", "product help message");
+
 	boost::program_options::variables_map vm;
 	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
 	boost::program_options::notify(vm);
@@ -203,17 +206,26 @@ int main(int argc, char** argv)
 	Gamnet::Log::ReadXml(config_path);
 	LOG(INF, "005.Database Server Starts config=", config_path);
 
+	Gamnet::InitCrashDump();
 	try {
-		Example_MySQL(config_path);
-		Example_SQLite(config_path);
-		Example_Redis(config_path);
+		Gamnet::Log::ReadXml(config_path);
+		LOG(INF, argv[0], " Server Starts..");
+		LOG(INF, "build date:", __DATE__, " ", __TIME__);
+		LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
+
+		Gamnet::Database::MySQL::ReadXml(config_path);
+		Gamnet::Database::SQLite::ReadXml(config_path);
+		Gamnet::Database::Redis::ReadXml(config_path);
+
+		Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);
+		Gamnet::Test::ReadXml<TestSession>(config_path);
+		Gamnet::Run(vm["thread"].as<int>());
 	}
-	catch(const Gamnet::Exception& e)
+	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 		return 1;
 	}
-	std::cin.get();
 	return 0;
 }
 

@@ -46,7 +46,7 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 	}
 	catch (const boost::property_tree::xml_parser_error& e)
 	{
-		std::cerr << "[Gamnet::Tcp] config file not found error(path:" << path << ")" << std::endl;
+		std::cerr << "[Gamnet::Network::Tcp] config file not found error(path:" << path << ")" << std::endl;
 		return;
 	}
 

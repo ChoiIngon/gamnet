@@ -90,10 +90,11 @@ namespace Gamnet { namespace Database { namespace SQLite {
 		connInfo_ = connInfo;
 		if(SQLITE_OK != sqlite3_open(connInfo_.db_.c_str(), &conn_))
 		{
-			LOG(GAMNET_ERR, "[SQLite] open db fail(file_name:", connInfo_.db_, ")");
+			LOG(GAMNET_ERR, "[Gamnet::Database::SQLite] open db fail(file_name:", connInfo_.db_, ")");
 			return false;
 		}
 
+		LOG(INF, "[Gamnet::Database::SQLite] connect...(db:", connInfo.db_, ")");
 		return true;
 	}
 

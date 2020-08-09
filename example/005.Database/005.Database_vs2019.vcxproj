@@ -77,10 +77,10 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>../../Gamnet;C:\local\boost_1_64_0;C:\local\curl-7.43.0-win64\include;C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../;C:\local\boost_1_71_0;C:\local\curl-7.43.0-win64\include;C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../../x64/Debug;C:\Program Files\MySQL\MySQL Connector C 6.1\lib;C:\local\OpenSSL-Win64\lib;C:\local\curl-7.43.0-win64\lib;C:\local\boost_1_64_0\lib64-msvc-14.1;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../x64/Debug;C:\Program Files\MySQL\MySQL Connector C 6.1\lib;C:\local\OpenSSL-Win64\lib;C:\local\curl-7.43.0-win64\lib;C:\local\boost_1_71_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Gamnet.lib;ssleay32.lib;libeay32.lib;libcurl.lib;libmysql.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -121,12 +121,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Handler_Login.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Manager_Item.cpp" />
+    <ClCompile Include="UserSession.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="config.xml">
       <SubType>Designer</SubType>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Handler_Login.h" />
+    <ClInclude Include="Manager_Item.h" />
+    <ClInclude Include="UserSession.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\Message.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -74,7 +74,7 @@ void Config::ReadXml(const std::string& path)
 	}
 	catch (const boost::property_tree::ptree_bad_path& e)
 	{
-		std::cerr << "[Gamnet::Tcp]" << e.what() << std::endl;
+		std::cerr << "[Gamnet::Network::Tcp] " << e.what() << std::endl;
 		throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, e.what());
 	}
 }
