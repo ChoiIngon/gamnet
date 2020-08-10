@@ -16,6 +16,8 @@ ItemMeta::ItemMeta()
 	GAMNET_META_MEMBER(grade);
 	GAMNET_META_MEMBER(max_stack);
 	GAMNET_META_MEMBER(price);
+	GAMNET_META_MEMBER(stat.stat_id);
+	GAMNET_META_MEMBER(stat.value);
 }
 
 void ItemMeta::OnType(Type& member, const std::string& value)

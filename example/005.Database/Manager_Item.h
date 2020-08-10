@@ -5,6 +5,12 @@
 
 struct ItemMeta : public Gamnet::MetaData
 {
+	struct Stat
+	{
+		int stat_id;
+		float value;
+	};
+
 	enum class Type
 	{
 		Invalid,
@@ -17,6 +23,7 @@ struct ItemMeta : public Gamnet::MetaData
 	int grade;
 	int max_stack;
 	int price;
+	Stat stat;
 
 	ItemMeta();
 
