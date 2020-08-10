@@ -92,3 +92,5 @@ example/unity_client/xcode/
 /example/002.Reconnect/test
 /example/001.Echo/log
 /example/001.Echo/test
+/example/005.Database/log
+/example/005.Database/test

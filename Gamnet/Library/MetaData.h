@@ -9,6 +9,7 @@
 #include <list>
 #include "Time/DateTime.h"
 #include "Json/json.h"
+#include "Exception.h"
 
 namespace Gamnet {
 
@@ -44,6 +45,7 @@ protected:
 	}
 public:
 	void Init(const Json::Value& row);
+	virtual bool OnLoad();
 };
 
 template <class T>
@@ -113,6 +115,11 @@ public :
 
 			std::shared_ptr<T> meta = std::make_shared<T>();
 			meta->Init(row);
+			if(false == meta->OnLoad())
+			{
+				Json::FastWriter writer;
+				throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, writer.write(row));
+			}
 			meta_datas.push_back(meta);
 		}
 		// This checks for a trailing comma with no data after it.

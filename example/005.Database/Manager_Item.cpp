@@ -27,6 +27,16 @@ void ItemMeta::OnType(Type& member, const std::string& value)
 	member = Type::Invalid;
 }
 
+bool ItemMeta::OnLoad()
+{
+	if(0 >= grade || 10 < grade)
+	{
+		LOG(ERR, "item grade range error(grade:", grade, ")");
+		return false;
+	}
+	return true;
+}
+
 void Manager_Item::Init()
 {
 	auto& metas = itemmeta_reader.Read("Meta/Item.csv");

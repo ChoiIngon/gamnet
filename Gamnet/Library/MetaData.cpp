@@ -115,4 +115,9 @@ namespace Gamnet
 		}
 		bind_functions.clear();
 	}
+
+	bool MetaData::OnLoad() 
+	{
+		return true;
+	}
 }

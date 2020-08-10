@@ -21,6 +21,8 @@ struct ItemMeta : public Gamnet::MetaData
 	ItemMeta();
 
 	void OnType(Type& member, const std::string& value);
+
+	virtual bool OnLoad() override;
 };
 
 class Manager_Item
