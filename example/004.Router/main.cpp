@@ -15,65 +15,8 @@ void OnRouterClose(const Gamnet::Network::Router::Address& address)
 }
 
 
-class MetaData : public Gamnet::MetaData
-{
-public :
-	enum Type
-	{
-		Invalid,
-		Type1,
-		Type2
-	};
-	int			item_id;
-	std::string	name;
-	bool		lock;
-	float		attack;
-	float		defense;
-	int			price;
-	std::vector<float> substats;
-	Gamnet::Time::DateTime expire_date;
-	Type type;
-
-
-	void OnType(const std::string& value)
-	{
-		if("Type1" == value)
-		{
-			type = Type::Type1;
-			return;
-		}
-		else if("Type2" == value)
-		{
-			type = Type::Type2;
-			return;
-		}
-		type = Type::Invalid;
-	}
-
-	MetaData()
-		: GAMNET_INIT_MEMBER(item_id)
-		, GAMNET_INIT_MEMBER(name)
-		, GAMNET_INIT_MEMBER(lock)
-		, GAMNET_INIT_MEMBER(attack)
-		, GAMNET_INIT_MEMBER(defense)
-		, GAMNET_INIT_MEMBER(price)
-		, GAMNET_INIT_MEMBER(substats)
-		, GAMNET_INIT_MEMBER(expire_date)
-		, GAMNET_INIT_CUSTOM(type, MetaData::OnType, Type::Invalid)
-	{
-	}
-};
-
 int main(int argc, char** argv) 
 {
-	Gamnet::MetaDataReader<MetaData> reader;
-	const std::list<std::shared_ptr<MetaData>>& metas = reader.Read("meta_data.csv");
-
-	for(auto& meta : metas)
-	{
-		std::cout << meta->item_id << std::endl;
-		std::cout << meta->expire_date << std::endl;
-	}	
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
 		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")

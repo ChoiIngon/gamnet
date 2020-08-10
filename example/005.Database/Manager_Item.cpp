@@ -3,13 +3,19 @@
 #include <Gamnet/Library/Random.h>
 
 ItemMeta::ItemMeta()
-	: GAMNET_META_MEMBER(item_id)
-	, GAMNET_META_MEMBER(name)
-	, GAMNET_META_CUSTOM(type, ItemMeta::OnType, ItemMeta::Type::Invalid)
-	, GAMNET_META_MEMBER(grade)
-	, GAMNET_META_MEMBER(max_stack)
-	, GAMNET_META_MEMBER(price)
+	: item_id(0)
+	, name("")
+	, type(ItemMeta::Type::Invalid)
+	, grade(0)
+	, max_stack(0)
+	, price(0)
 {
+	GAMNET_META_MEMBER(item_id);
+	GAMNET_META_MEMBER(name);
+	GAMNET_META_CUSTOM(type, ItemMeta::OnType);
+	GAMNET_META_MEMBER(grade);
+	GAMNET_META_MEMBER(max_stack);
+	GAMNET_META_MEMBER(price);
 }
 
 void ItemMeta::OnType(Type& member, const std::string& value)

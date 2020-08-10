@@ -10,6 +10,7 @@
 
 #include <Gamnet.h>
 #include "../idl/Message.h"
+#include <Library/Component.h>
 
 const int CHAT_QUORUM = 4;
 

@@ -18,30 +18,28 @@ class MetaData
 	typedef void(MetaData::*custom_bind)(const std::string&);
 	std::map<std::string, std::function<void(const std::string&)>>	bind_functions;
 protected:
-	bool			Bind(const std::string& name, bool& member);
-	int16_t			Bind(const std::string& name, int16_t& member);
-	uint16_t		Bind(const std::string& name, uint16_t& member);
-	int32_t			Bind(const std::string& name, int32_t& member);
-	uint32_t		Bind(const std::string& name, uint32_t& member);
-	int64_t			Bind(const std::string& name, int64_t& member);
-	uint64_t		Bind(const std::string& name, uint64_t& member);
-	float			Bind(const std::string& name, float& member);
-	double			Bind(const std::string& name, double& member);
-	std::string		Bind(const std::string& name, std::string& member);
-	Time::DateTime	Bind(const std::string& name, Time::DateTime& member);
+	void Bind(const std::string& name, bool& member);
+	void Bind(const std::string& name, int16_t& member);
+	void Bind(const std::string& name, uint16_t& member);
+	void Bind(const std::string& name, int32_t& member);
+	void Bind(const std::string& name, uint32_t& member);
+	void Bind(const std::string& name, int64_t& member);
+	void Bind(const std::string& name, uint64_t& member);
+	void Bind(const std::string& name, float& member);
+	void Bind(const std::string& name, double& member);
+	void Bind(const std::string& name, std::string& member);
+	void Bind(const std::string& name, Time::DateTime& member);
 	template <class T>
-	std::vector<T>	Bind(const std::string& name, std::vector<T>& member)
+	void Bind(const std::string& name, std::vector<T>& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
 			member.push_back(boost::lexical_cast<T>(value));
 		}));
-		return std::vector<T>();
 	}
-	template <class T, class F>
-	T CustomBind(const std::string& name, F f, T defaultValue)
+	template <class F>
+	void CustomBind(const std::string& name, F f)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), f));
-		return defaultValue;
 	}
 public:
 	void Init(const Json::Value& row);
@@ -133,9 +131,9 @@ public :
 };
 
 #define GAMNET_META_MEMBER(member) \
-	member(Bind(#member, member))
+	Bind(#member, member)
 
-#define GAMNET_META_CUSTOM(member, func_ptr, default_value) \
-	member(CustomBind(#member, std::bind(&func_ptr, this, std::ref(member), std::placeholders::_1), default_value))
+#define GAMNET_META_CUSTOM(member, func_ptr) \
+	CustomBind(#member, std::bind(&func_ptr, this, std::ref(member), std::placeholders::_1))
 }
 #endif
