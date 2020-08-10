@@ -56,6 +56,10 @@ public :
 	{
 		meta_datas.clear();
 		std::ifstream file(filePath);
+		if(true == file.fail())
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] can not find meta file(path:", filePath, ")");
+		}
 
 		std::string	line;
 		std::vector<std::string>	columns;
@@ -112,7 +116,13 @@ public :
 			}
 
 			std::shared_ptr<T> meta = std::make_shared<T>();
-			meta->Init(row);
+			try {
+				meta->Init(row);
+			}
+			catch (const Exception& e)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, "file:", filePath, ", column:", e.what());
+			}
 			if(false == meta->OnLoad())
 			{
 				Json::FastWriter writer;

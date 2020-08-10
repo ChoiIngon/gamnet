@@ -99,6 +99,10 @@ namespace Gamnet
 			Json::Value::Members members = cell.getMemberNames();
 			for(auto& name : members)
 			{
+				if(bind_functions.end() == bind_functions.find(name))
+				{
+					throw Exception(ErrorCode::SystemInitializeError, name);
+				}
 				bind_functions[name](cell[name].asString());
 			}
 		}
