@@ -49,7 +49,13 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		{
 			userData->user_seq = row->getInt("user_seq");
 			userData->user_id = req.user_id;
+			session->transaction = std::make_shared<Gamnet::Database::MySQL::Transaction>((int)Database::Gamnet);
+			session->AddCounter(1, std::make_shared<Counter>(session, 1, 0));
 		}
+
+		session->GetCounter(1)->Increase(10);
+		session->transaction->Commit();
+		session->transaction->Clear();
 		ans.user_data = *userData;
 	}
 	catch (const Gamnet::Exception& e)

@@ -22,13 +22,12 @@ class Transaction
 		std::map<std::string, Gamnet::Variant> columns;
 	};
 
+	bool commit;
+	int db_type;
+
 	std::list<UpdateQuery> update_queries;
 	std::list<InsertQuery> insert_queries;
 	std::list<std::string> plain_queries;
-
-	std::string queries;
-	bool commit;
-	std::shared_ptr<Connection> connection;
 public:
 	Transaction(int db_type);
 	virtual ~Transaction();
@@ -40,12 +39,13 @@ public:
 	{
 		if(true == commit)
 		{
-			throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already commited transaction");
+			throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already committed transaction");
 		}
 		//queries += Format(args...) + ";";
 		plain_queries.push_back(Format(args...));
 	}
 	ResultSet Commit();
+	void Clear();
 };
 
 } } }

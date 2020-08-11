@@ -5,16 +5,15 @@
 
 namespace Gamnet { namespace Database { namespace MySQL {
 
-Transaction::Transaction(int db_type) : commit(false)
+Transaction::Transaction(int db_type) : commit(false), db_type(db_type)
 {
-	connection = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
 }
 
 void Transaction::Insert(const std::string& tableName, const std::map<std::string, Gamnet::Variant>& columns)
 {
 	if (true == commit)
 	{
-		throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already commited transaction");
+		throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already committed transaction");
 	}
 	InsertQuery query;
 	query.table_name = tableName;
@@ -26,7 +25,7 @@ void Transaction::Update(const std::string& tableName, const std::string& setCla
 {
 	if (true == commit)
 	{
-		throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already commited transaction");
+		throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already committed transaction");
 	}
 	UpdateQuery query;
 	query.table_name = tableName;
@@ -118,6 +117,7 @@ ResultSet Transaction::Commit()
 	}
 
 	ResultSet res;
+	std::shared_ptr<Connection> connection = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
 	try {
 		if(1 == queryCount)
 		{
@@ -147,8 +147,17 @@ Transaction::~Transaction()
 {
 	if(false == commit)
 	{
+		std::shared_ptr<Connection> connection = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
 		connection->Execute("rollback");
 	}
+}
+
+void Transaction::Clear()
+{
+	update_queries.clear();
+	insert_queries.clear();
+	plain_queries.clear();
+	commit = false;
 }
 
 } /* namespace Database */

@@ -11,7 +11,7 @@ enum class Database
 	Gamnet = 1
 };
 
-
+class Counter;
 class UserSession : public Gamnet::Network::Tcp::Session
 {
 public:
@@ -22,7 +22,12 @@ public:
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 
+	uint64_t user_seq;
+	std::shared_ptr<Gamnet::Database::MySQL::Transaction> transaction;
+	std::map<uint32_t, std::shared_ptr<Counter>> counters;
 
+	std::shared_ptr<Counter> GetCounter(uint32_t counterID);
+	std::shared_ptr<Counter> AddCounter(uint32_t counterID, const std::shared_ptr<Counter>& counter);
 	template <class T>
 	std::shared_ptr<T> AddComponent()
 	{
@@ -53,6 +58,18 @@ public:
 	}
 private :
 	Gamnet::Component components;
+};
+
+class Counter
+{
+private :
+	std::shared_ptr<UserSession> session;
+	uint32_t counter_id;
+	int count;
+public :
+	Counter(const std::shared_ptr<UserSession>& session, uint32_t counter_id, int count);
+
+	int Increase(int amount);
 };
 
 class TestSession : public Gamnet::Test::Session 
