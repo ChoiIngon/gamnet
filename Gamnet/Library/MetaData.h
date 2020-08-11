@@ -106,7 +106,7 @@ public :
 		
 				Json::Value row;
 				row["file"] = filePath;
-				
+				row["row_num"] = rowNum;
 				int index = 0;
 				while (std::getline(lineStream, cell, ','))
 				{
@@ -120,7 +120,7 @@ public :
 				meta->Init(row);
 				if(false == meta->OnLoad())
 				{
-					throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] OnLoad fail(file:", filePath, ", row_num:", rowNum, ")");
+					throw Exception(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] OnLoad fail(file:", filePath, ", row_num:", rowNum, ")");
 				}
 				meta_datas.push_back(meta);
 				rowNum++;

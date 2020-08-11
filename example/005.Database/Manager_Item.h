@@ -15,7 +15,8 @@ struct ItemMeta : public Gamnet::MetaData
 	{
 		Invalid,
 		ItemType_1,
-		ItemType_2
+		ItemType_2,
+		ItemType_3,
 	};
 	int	item_id;
 	std::string name;

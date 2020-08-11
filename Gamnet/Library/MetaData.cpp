@@ -100,9 +100,19 @@ namespace Gamnet
 			const std::string& value = cell["value"].asString();
 			if(bind_functions.end() == bind_functions.find(key))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] meta data load fail(file:", row["file"].asString(), ", name:", key, ")");
+				continue;
 			}
-			bind_functions[key](value);
+			try {
+				bind_functions[key](value);
+			}
+			catch(const boost::bad_lexical_cast& e)
+			{
+				throw Exception(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] meta data load fail(file:", row["file"].asString(), ", name:", key, ", row_num:", row["row_num"].asInt(), ", reason:bed lexical cast)");
+			}
+			catch(const Exception& e)
+			{
+				throw Exception(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] meta data load fail(file:", row["file"].asString(), ", name:", key, ", row_num:", row["row_num"].asInt(), ", reason:", e.what(), ")");
+			}
 		}
 		bind_functions.clear();
 	}

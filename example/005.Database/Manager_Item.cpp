@@ -1,6 +1,7 @@
 #include "Manager_Item.h"
 #include <Gamnet/Library/Singleton.h>
 #include <Gamnet/Library/Random.h>
+#include "../idl/Message.h"
 
 ItemMeta::ItemMeta()
 	: item_id(0)
@@ -32,7 +33,12 @@ void ItemMeta::OnType(Type& member, const std::string& value)
 		member = Type::ItemType_2;
 		return;
 	}
-	member = Type::Invalid;
+	else if("ItemType_3" == value)
+	{
+		member = Type::ItemType_3;
+		return;
+	}
+	throw Gamnet::Exception((int)ErrorCode::MessageFormatError, "invalid item type(", value, ")");
 }
 
 bool ItemMeta::OnLoad()
