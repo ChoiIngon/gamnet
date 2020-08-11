@@ -37,6 +37,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 
 			Gamnet::Database::MySQL::Transaction transaction((int)Database::Gamnet);
 			transaction.Execute("INSERT INTO user_data(user_id) VALUES('", req.user_id, "')");
+			transaction.Execute("INSERT INTO user_counter(counter_id, user_seq) VALUES(", 1, ", LAST_INSERT_ID())");
 			transaction.Execute("INSERT INTO item_data(item_id, user_seq, item_count) VALUES(", meta->item_id, ", LAST_INSERT_ID(), 1)");
 			transaction.Commit();
 
@@ -50,7 +51,16 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 			userData->user_seq = row->getInt("user_seq");
 			userData->user_id = req.user_id;
 			session->transaction = std::make_shared<Gamnet::Database::MySQL::Transaction>((int)Database::Gamnet);
-			session->AddCounter(1, std::make_shared<Counter>(session, 1, 0));
+		}
+
+		ret = Gamnet::Database::MySQL::Execute((int)Database::Gamnet,
+			"SELECT counter_seq, counter_id, counter FROM user_counter WHERE user_seq='", userData->user_seq, "'"
+		);
+
+		for (auto& row : ret)
+		{
+			std::shared_ptr<Counter> counter = std::make_shared<Counter>(session, row->getUInt64("counter_seq"), row->getUInt32("counter_id"), row->getInt("counter"));
+			session->AddCounter(counter);
 		}
 
 		session->GetCounter(1)->Increase(10);

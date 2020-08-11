@@ -39,14 +39,14 @@ std::shared_ptr<Counter> UserSession::GetCounter(uint32_t counterID)
 	return itr->second;
 }
 
-std::shared_ptr<Counter> UserSession::AddCounter(uint32_t counterID, const std::shared_ptr<Counter>& counter)
+std::shared_ptr<Counter> UserSession::AddCounter(const std::shared_ptr<Counter>& counter)
 {
-	auto itr = counters.find(counterID);
+	auto itr = counters.find(counter->counter_id);
 	if (counters.end() != itr)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError);
 	}
-	counters.insert(std::make_pair(counterID, counter));
+	counters.insert(std::make_pair(counter->counter_id, counter));
 	return counter;
 }
 
@@ -66,8 +66,9 @@ void TestSession::OnDestroy()
 {
 }
 
-Counter::Counter(const std::shared_ptr<UserSession>& session, uint32_t counter_id, int count)
+Counter::Counter(const std::shared_ptr<UserSession>& session, uint64_t counter_seq, uint32_t counter_id, int count)
 	: session(session)
+	, counter_seq(counter_seq)
 	, counter_id(counter_id)
 	, count(count)
 {
@@ -75,10 +76,14 @@ Counter::Counter(const std::shared_ptr<UserSession>& session, uint32_t counter_i
 
 int Counter::Increase(int amount)
 {
+	std::shared_ptr<UserData> userData = session->GetComponent<UserData>();
+	if(nullptr == userData)
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError);
+	}
 	count += amount;
 	session->transaction->Update("user_counter", Gamnet::Format("counter=", count), {
-		{ "user_seq", session->user_seq },
-		{ "counter_id", counter_id }
+		{ "counter_seq", counter_seq }
 	});
 	return count;
  }

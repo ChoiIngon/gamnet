@@ -19,3 +19,13 @@ CREATE TABLE `item_data` (
 	`item_count` INT NOT NULL DEFAULT 1,
 	PRIMARY KEY(`item_seq`)
 );
+
+DROP TABLE IF EXISTS user_counter;
+CREATE TABLE `user_counter` (
+	`counter_seq` INT NOT NULL AUTO_INCREMENT COMMENT 'counter unique identifier',
+	`counter_id` INT NOT NULL,
+	`user_seq`  INT NOT NULL,
+	`counter` INT NOT NULL DEFAULT 0,
+	PRIMARY KEY(`counter_seq`),
+	UNIQUE INDEX `UNIQUE_IDX` (`user_seq`, `counter_id`)
+);

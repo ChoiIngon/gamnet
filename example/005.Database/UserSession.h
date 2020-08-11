@@ -22,12 +22,11 @@ public:
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 
-	uint64_t user_seq;
 	std::shared_ptr<Gamnet::Database::MySQL::Transaction> transaction;
 	std::map<uint32_t, std::shared_ptr<Counter>> counters;
 
 	std::shared_ptr<Counter> GetCounter(uint32_t counterID);
-	std::shared_ptr<Counter> AddCounter(uint32_t counterID, const std::shared_ptr<Counter>& counter);
+	std::shared_ptr<Counter> AddCounter(const std::shared_ptr<Counter>& counter);
 	template <class T>
 	std::shared_ptr<T> AddComponent()
 	{
@@ -64,10 +63,12 @@ class Counter
 {
 private :
 	std::shared_ptr<UserSession> session;
+public :
+	uint64_t counter_seq;
 	uint32_t counter_id;
 	int count;
 public :
-	Counter(const std::shared_ptr<UserSession>& session, uint32_t counter_id, int count);
+	Counter(const std::shared_ptr<UserSession>& session, uint64_t counter_seq, uint32_t counter_id, int count);
 
 	int Increase(int amount);
 };
