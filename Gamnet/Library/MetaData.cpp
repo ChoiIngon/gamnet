@@ -94,17 +94,15 @@ namespace Gamnet
 
 	void MetaData::Init(const Json::Value& row)
 	{
-		for(auto& cell : row)
+		for(auto& cell : row["cells"])
 		{
-			Json::Value::Members members = cell.getMemberNames();
-			for(auto& name : members)
+			const std::string& key = cell["key"].asString();
+			const std::string& value = cell["value"].asString();
+			if(bind_functions.end() == bind_functions.find(key))
 			{
-				if(bind_functions.end() == bind_functions.find(name))
-				{
-					throw Exception(ErrorCode::SystemInitializeError, name);
-				}
-				bind_functions[name](cell[name].asString());
+				throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] meta data load fail(file:", row["file"].asString(), ", name:", key, ")");
 			}
+			bind_functions[key](value);
 		}
 		bind_functions.clear();
 	}

@@ -110,6 +110,6 @@ public :
 #endif
 
 }
-#define GAMNET_EXCEPTION(error, ...) Gamnet::Exception((int)error, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] ", #error, " ", ##__VA_ARGS__)
+#define GAMNET_EXCEPTION(error, ...) Gamnet::Exception((int)error, "ERR [", __FILE__, ":", __func__, "@" , __LINE__, "] ", #error, "(", (int)error,") ", ##__VA_ARGS__)
 
 #endif /* EXCEPTION_H_ */

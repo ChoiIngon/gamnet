@@ -223,7 +223,7 @@ int main(int argc, char** argv)
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		return 1;
 	}
 	return 0;

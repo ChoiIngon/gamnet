@@ -49,10 +49,10 @@ public:
 template <class T>
 class MetaReader
 {
-	std::list<std::shared_ptr<T>> meta_datas;
+	std::vector<std::shared_ptr<T>> meta_datas;
 
 public :
-	const std::list<std::shared_ptr<T>>& Read(const std::string& filePath)
+	const std::vector<std::shared_ptr<T>>& Read(const std::string& filePath)
 	{
 		meta_datas.clear();
 		std::ifstream file(filePath);
@@ -62,79 +62,74 @@ public :
 		}
 
 		std::string	line;
-		std::vector<std::string>	columns;
+		std::string cell;
+		std::vector<std::string>	columnNames;
 
 		// read column
 		{
 			std::getline(file, line);
 			std::stringstream lineStream(line);
-			std::string cell;
 			
 			while (std::getline(lineStream, cell, ','))
 			{
 				boost::algorithm::to_lower(cell);
 				std::size_t pos = cell.find('[');
 				cell = cell.substr(0, pos);
-				columns.push_back(cell);
+				columnNames.push_back(cell);
 			}
 		}
 
 		// skip data type
-		std::getline(file, line);
+		{
+			std::getline(file, line);
+		}
 
 		// read data rows
-		while(std::getline(file, line))
 		{
-			size_t pos = 0;
-			pos = line.find_last_of('\n');
-			if (std::string::npos != pos)
+			int rowNum = 1;
+			while(std::getline(file, line))
 			{
-				line = line.substr(0, pos);
-			}
+				size_t pos = 0;
+				pos = line.find_last_of('\n');
+				if (std::string::npos != pos)
+				{
+					line = line.substr(0, pos);
+				}
 
-			pos = line.find_last_of('\r');
-			if(std::string::npos != pos)
-			{
-				line = line.substr(0, pos);
-			}
+				pos = line.find_last_of('\r');
+				if(std::string::npos != pos)
+				{
+					line = line.substr(0, pos);
+				}
 			
-			std::stringstream lineStream(line);
-			std::string cell;
+				std::stringstream lineStream(line);
 		
-			Json::Value row;
-			int index = 0;
-			while (std::getline(lineStream, cell, ','))
-			{
-				Json::Value value;
-				value[columns[index++]] = cell;
-				row.append(value);
-			}
+				Json::Value row;
+				row["file"] = filePath;
+				
+				int index = 0;
+				while (std::getline(lineStream, cell, ','))
+				{
+					Json::Value column;
+					column["key"] = columnNames[index++];
+					column["value"] = cell;
+					row["cells"].append(column);
+				}
 
-			if (!lineStream && cell.empty())
-			{
-				continue;
-			}
-
-			std::shared_ptr<T> meta = std::make_shared<T>();
-			try {
+				std::shared_ptr<T> meta = std::make_shared<T>();
 				meta->Init(row);
+				if(false == meta->OnLoad())
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] OnLoad fail(file:", filePath, ", row_num:", rowNum, ")");
+				}
+				meta_datas.push_back(meta);
+				rowNum++;
 			}
-			catch (const Exception& e)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, "file:", filePath, ", column:", e.what());
-			}
-			if(false == meta->OnLoad())
-			{
-				Json::FastWriter writer;
-				throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, writer.write(row));
-			}
-			meta_datas.push_back(meta);
 		}
-		// This checks for a trailing comma with no data after it.
 		
 		return meta_datas;
 	}
-	const std::list<std::shared_ptr<T>>& MetaDatas() const
+	const std::vector<std::shared_ptr<T>>& MetaDatas() const
 	{
 		return meta_datas;
 	}
