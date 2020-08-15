@@ -6,8 +6,10 @@
 
 #include <Gamnet/Library/MetaData.h>
 #include <Gamnet/Library/Time/Time.h>
-#include "../../../idl/MessageCommon.h"
+#include "../../idl/MessageCommon.h"
 
+class UserSession;
+namespace Component {
 struct ItemMeta : public Gamnet::MetaData
 {
 	ItemMeta();
@@ -24,9 +26,9 @@ struct ItemMeta : public Gamnet::MetaData
 
 	CounterType price_type;
 	int price;
-	time_t expire_time;
+	int64_t expire_time;
 	Gamnet::Time::DateTime expire_date;
-	std::vector<uint32_t> packages;
+	std::vector<ItemMeta> packages;
 };
 
 struct ItemData
@@ -59,7 +61,6 @@ struct ItemData
 	std::shared_ptr<Stack>		stack;
 };
 
-class UserSession;
 class Manager_Item
 {
 	Gamnet::MetaReader<ItemMeta> itemmeta_reader;
@@ -72,8 +73,9 @@ public :
 	std::shared_ptr<ItemMeta> FindMeta(int itemID);
 	std::shared_ptr<ItemMeta> RandMeta() const;
 };
-
+}
 namespace Item {
-	std::shared_ptr<ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t itemid, int32_t count);
+	std::shared_ptr<Component::ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t itemid, int32_t count);
 };
+
 #endif

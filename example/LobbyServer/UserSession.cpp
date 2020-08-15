@@ -1,9 +1,18 @@
 #include "UserSession.h"
+#include "Component/Counter.h"
+#include "Component/Bag.h"
+#include "Component/Event.h"
+#include "Component/Mail.h"
 
 UserSession::UserSession()
+	: account_type(AccountType::Invalid)
+	, account_level(0)
+	, shard_index(0)
+	, user_seq(0)
+	, create_date(Gamnet::Time::DateTime::MinValue)
 {
-
 }
+
 UserSession::~UserSession()
 {
 
@@ -11,7 +20,12 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
-	//LOG(INF, "[session_key:", session_key, "] OnCreate");
+	auto self = std::static_pointer_cast<UserSession>(shared_from_this());
+
+	AddComponent<Component::Counter>(std::make_shared<Component::Counter>(self));
+	AddComponent<Component::Bag>(std::make_shared<Component::Bag>(self));
+	AddComponent<Component::Event>(std::make_shared<Component::Event>(self));
+	AddComponent<Component::Mail>(std::make_shared<Component::Mail>(self));
 }
 
 void UserSession::OnAccept()
@@ -26,7 +40,12 @@ void UserSession::OnClose(int reason)
 
 void UserSession::OnDestroy()
 {
-	//LOG(INF, "[session_key:", session_key, "] OnDestroy");
+	account_id = "";
+	account_type = AccountType::Invalid;
+	account_level = 0;
+	shard_index = 0;
+	user_seq = 0;
+	create_date = Gamnet::Time::DateTime::MinValue;
 	components.Clear();
 }
 
@@ -58,22 +77,3 @@ void TestSession::OnDestroy()
 	components.Clear();
 }
 
-int TestSession::GetCounter(uint32_t counterID)
-{
-	auto itr = counters.find(counterID);
-	if (counters.end() == itr)
-	{
-		return 0;
-	}
-	return itr->second;
-}
-
-void TestSession::AddCounter(uint32_t counterID, int counter)
-{
-	auto itr = counters.find(counterID);
-	if (counters.end() != itr)
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError);
-	}
-	counters.insert(std::make_pair(counterID, counter));
-}

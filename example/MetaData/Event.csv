@@ -1,0 +1,3 @@
+event_id,mail_message,mail_expire_day,item_id,item_count,
+int,text,int,int,int,
+1,ABC 123,14,100001,1,

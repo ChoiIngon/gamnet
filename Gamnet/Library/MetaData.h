@@ -15,7 +15,6 @@ namespace Gamnet {
 
 class MetaData
 {
-	typedef void(MetaData::*custom_bind)(const std::string&);
 	std::map<std::string, std::function<void(const std::string&)>>	bind_functions;
 protected:
 	void Bind(const std::string& name, bool& member);
@@ -49,10 +48,9 @@ public:
 template <class T>
 class MetaReader
 {
-	std::vector<std::shared_ptr<T>> meta_datas;
-
 public :
-	const std::vector<std::shared_ptr<T>>& Read(const std::string& filePath)
+	typedef std::vector<std::shared_ptr<T>> MetaDatas;
+	const MetaDatas& Read(const std::string& filePath)
 	{
 		meta_datas.clear();
 		std::ifstream file(filePath);
@@ -129,10 +127,12 @@ public :
 		
 		return meta_datas;
 	}
-	const std::vector<std::shared_ptr<T>>& MetaDatas() const
+	const MetaDatas& GetAllMetaData() const
 	{
 		return meta_datas;
 	}
+private :
+	MetaDatas meta_datas;
 };
 
 #define GAMNET_META_MEMBER(member) \

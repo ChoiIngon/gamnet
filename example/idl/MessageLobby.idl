@@ -7,18 +7,28 @@ namespace Handler{ namespace Lobby {
 namespace Handler { namespace Lobby {
 %%
 
-message MsgCliSvr_JoinLobby_Req : 120000001
+message MsgCliSvr_Join_Req : 120000001
 {
 };
 
-message MsgSvrCli_JoinLobby_Ans : 120000002
+message MsgSvrCli_Join_Ans : 120000002
 {
 	ErrorCode error_code;
 };
 
-message MsgCliSvr_MailList_Ntf : 120000003
+message MsgSvrCli_Mail_Ntf : 120000003
 {
 	list<MailData> mail_datas;
+};
+
+message MsgCliSvr_OpenMail_Req : 120000004
+{
+	uint64 mail_seq;
+};
+
+message MsgSvrCli_OpenMail_Ans : 120000005
+{
+	ErrorCode error_code;
 };
 
 .cpp %%

@@ -10,9 +10,9 @@
 #include "MessageCommon.h"
 namespace Handler{ namespace Lobby {
 
-struct MsgCliSvr_JoinLobby_Req {
+struct MsgCliSvr_Join_Req {
 	enum { MSG_ID = 120000001 }; 
-	MsgCliSvr_JoinLobby_Req()	{
+	MsgCliSvr_Join_Req()	{
 	}
 	size_t Size() const {
 		size_t nSize = 0;
@@ -41,16 +41,16 @@ struct MsgCliSvr_JoinLobby_Req {
 	bool Load(const char** _buf_, size_t& nSize) {
 		return true;
 	}
-}; //MsgCliSvr_JoinLobby_Req
-struct MsgCliSvr_JoinLobby_Req_Serializer {
-	static bool Store(char** _buf_, const MsgCliSvr_JoinLobby_Req& obj) { return obj.Store(_buf_); }
-	static bool Load(MsgCliSvr_JoinLobby_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static size_t Size(const MsgCliSvr_JoinLobby_Req& obj) { return obj.Size(); }
+}; //MsgCliSvr_Join_Req
+struct MsgCliSvr_Join_Req_Serializer {
+	static bool Store(char** _buf_, const MsgCliSvr_Join_Req& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgCliSvr_Join_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgCliSvr_Join_Req& obj) { return obj.Size(); }
 };
-struct MsgSvrCli_JoinLobby_Ans {
+struct MsgSvrCli_Join_Ans {
 	enum { MSG_ID = 120000002 }; 
 	ErrorCode	error_code;
-	MsgSvrCli_JoinLobby_Ans()	{
+	MsgSvrCli_Join_Ans()	{
 	}
 	size_t Size() const {
 		size_t nSize = 0;
@@ -82,16 +82,16 @@ struct MsgSvrCli_JoinLobby_Ans {
 		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
 		return true;
 	}
-}; //MsgSvrCli_JoinLobby_Ans
-struct MsgSvrCli_JoinLobby_Ans_Serializer {
-	static bool Store(char** _buf_, const MsgSvrCli_JoinLobby_Ans& obj) { return obj.Store(_buf_); }
-	static bool Load(MsgSvrCli_JoinLobby_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static size_t Size(const MsgSvrCli_JoinLobby_Ans& obj) { return obj.Size(); }
+}; //MsgSvrCli_Join_Ans
+struct MsgSvrCli_Join_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_Join_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_Join_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgSvrCli_Join_Ans& obj) { return obj.Size(); }
 };
-struct MsgCliSvr_MailList_Ntf {
+struct MsgSvrCli_Mail_Ntf {
 	enum { MSG_ID = 120000003 }; 
 	std::list<MailData >	mail_datas;
-	MsgCliSvr_MailList_Ntf()	{
+	MsgSvrCli_Mail_Ntf()	{
 	}
 	size_t Size() const {
 		size_t nSize = 0;
@@ -138,11 +138,94 @@ struct MsgCliSvr_MailList_Ntf {
 		}
 		return true;
 	}
-}; //MsgCliSvr_MailList_Ntf
-struct MsgCliSvr_MailList_Ntf_Serializer {
-	static bool Store(char** _buf_, const MsgCliSvr_MailList_Ntf& obj) { return obj.Store(_buf_); }
-	static bool Load(MsgCliSvr_MailList_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static size_t Size(const MsgCliSvr_MailList_Ntf& obj) { return obj.Size(); }
+}; //MsgSvrCli_Mail_Ntf
+struct MsgSvrCli_Mail_Ntf_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_Mail_Ntf& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_Mail_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgSvrCli_Mail_Ntf& obj) { return obj.Size(); }
+};
+struct MsgCliSvr_OpenMail_Req {
+	enum { MSG_ID = 120000004 }; 
+	uint64_t	mail_seq;
+	MsgCliSvr_OpenMail_Req()	{
+		mail_seq = 0;
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(uint64_t);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		std::memcpy(*_buf_, &mail_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&mail_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		return true;
+	}
+}; //MsgCliSvr_OpenMail_Req
+struct MsgCliSvr_OpenMail_Req_Serializer {
+	static bool Store(char** _buf_, const MsgCliSvr_OpenMail_Req& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgCliSvr_OpenMail_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgCliSvr_OpenMail_Req& obj) { return obj.Size(); }
+};
+struct MsgSvrCli_OpenMail_Ans {
+	enum { MSG_ID = 120000005 }; 
+	ErrorCode	error_code;
+	MsgSvrCli_OpenMail_Ans()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += ErrorCode_Serializer::Size(error_code);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgSvrCli_OpenMail_Ans
+struct MsgSvrCli_OpenMail_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_OpenMail_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_OpenMail_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgSvrCli_OpenMail_Ans& obj) { return obj.Size(); }
 };
 
 }}

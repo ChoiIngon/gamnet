@@ -186,7 +186,7 @@ namespace Handler { namespace User {
 
 	int ShardIndex::_Generate()
 	{
-		const auto& metas = meta_reader.MetaDatas();
+		const auto& metas = meta_reader.GetAllMetaData();
 		size_t shard_count = metas.size();
 		if (0 == shard_count)
 		{

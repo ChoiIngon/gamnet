@@ -25,6 +25,20 @@ enum AccountType
 	Facebook = 4
 };
 
+enum CounterType
+{
+	Invalid = 0,
+	Gold = 1,
+	Cash = 2,
+};
+
+enum ItemType
+{
+	Invalid,
+	Equip,
+	Package,
+};
+
 struct UserData
 {
 	uint64 user_seq;
@@ -36,23 +50,13 @@ struct MailData
 	uint64 mail_seq;
 	string mail_message;
 	uint64 expire_date;
-	uint32 reward_id;
-	uint32 reward_count;
+	uint32 item_id;
+	uint32 item_count;
 };
 
-enum ItemType
+struct CounterData
 {
-	Invalid,
-	Equip,
-	Package,
+	CounterType counter_id;
+	uint64 update_date;
+	int32 count;
 };
-
-enum CounterType
-{
-	Invalid = 0,
-	Gold = 1,
-	Cash = 2,
-	Ticket_1 = 3,
-	Ticket_2 = 4,
-};
-

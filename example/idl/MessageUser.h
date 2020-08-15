@@ -207,18 +207,16 @@ struct MsgSvrCli_Create_Ans_Serializer {
 };
 struct MsgSvrCli_Counter_Ntf {
 	enum { MSG_ID = 31 }; 
-	CounterType	counter_id;
-	uint64_t	update_date;
-	int32_t	count;
+	std::list<CounterData >	counter_datas;
 	MsgSvrCli_Counter_Ntf()	{
-		update_date = 0;
-		count = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += CounterType_Serializer::Size(counter_id);
-		nSize += sizeof(uint64_t);
 		nSize += sizeof(int32_t);
+		for(std::list<CounterData >::const_iterator counter_datas_itr = counter_datas.begin(); counter_datas_itr != counter_datas.end(); counter_datas_itr++)	{
+			const CounterData& counter_datas_elmt = *counter_datas_itr;
+			nSize += CounterData_Serializer::Size(counter_datas_elmt);
+		}
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -232,9 +230,12 @@ struct MsgSvrCli_Counter_Ntf {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		if(false == CounterType_Serializer::Store(_buf_, counter_id)) { return false; }
-		std::memcpy(*_buf_, &update_date, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
-		std::memcpy(*_buf_, &count, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		size_t counter_datas_size = counter_datas.size();
+		std::memcpy(*_buf_, &counter_datas_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		for(std::list<CounterData >::const_iterator counter_datas_itr = counter_datas.begin(); counter_datas_itr != counter_datas.end(); counter_datas_itr++)	{
+			const CounterData& counter_datas_elmt = *counter_datas_itr;
+			if(false == CounterData_Serializer::Store(_buf_, counter_datas_elmt)) { return false; }
+		}
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -245,9 +246,13 @@ struct MsgSvrCli_Counter_Ntf {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(false == CounterType_Serializer::Load(counter_id, _buf_, nSize)) { return false; }
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&update_date, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
-		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&count, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
+		if(sizeof(int32_t) > nSize) { return false; }
+		uint32_t counter_datas_length = 0; std::memcpy(&counter_datas_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		for(uint32_t i=0; i<counter_datas_length; i++) {
+			CounterData counter_datas_val;
+			if(false == CounterData_Serializer::Load(counter_datas_val, _buf_, nSize)) { return false; }
+			counter_datas.push_back(counter_datas_val);
+		}
 		return true;
 	}
 }; //MsgSvrCli_Counter_Ntf
@@ -255,6 +260,162 @@ struct MsgSvrCli_Counter_Ntf_Serializer {
 	static bool Store(char** _buf_, const MsgSvrCli_Counter_Ntf& obj) { return obj.Store(_buf_); }
 	static bool Load(MsgSvrCli_Counter_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static size_t Size(const MsgSvrCli_Counter_Ntf& obj) { return obj.Size(); }
+};
+struct MsgCliSvr_Delete_Req {
+	enum { MSG_ID = 32 }; 
+	MsgCliSvr_Delete_Req()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		return true;
+	}
+}; //MsgCliSvr_Delete_Req
+struct MsgCliSvr_Delete_Req_Serializer {
+	static bool Store(char** _buf_, const MsgCliSvr_Delete_Req& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgCliSvr_Delete_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgCliSvr_Delete_Req& obj) { return obj.Size(); }
+};
+struct MsgSvrCli_Delete_Ans {
+	enum { MSG_ID = 33 }; 
+	ErrorCode	error_code;
+	MsgSvrCli_Delete_Ans()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += ErrorCode_Serializer::Size(error_code);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgSvrCli_Delete_Ans
+struct MsgSvrCli_Delete_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_Delete_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_Delete_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgSvrCli_Delete_Ans& obj) { return obj.Size(); }
+};
+struct MsgCliSvr_Restore_Req {
+	enum { MSG_ID = 34 }; 
+	MsgCliSvr_Restore_Req()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		return true;
+	}
+}; //MsgCliSvr_Restore_Req
+struct MsgCliSvr_Restore_Req_Serializer {
+	static bool Store(char** _buf_, const MsgCliSvr_Restore_Req& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgCliSvr_Restore_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgCliSvr_Restore_Req& obj) { return obj.Size(); }
+};
+struct MsgSvrCli_Restore_Ans {
+	enum { MSG_ID = 35 }; 
+	ErrorCode	error_code;
+	MsgSvrCli_Restore_Ans()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += ErrorCode_Serializer::Size(error_code);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgSvrCli_Restore_Ans
+struct MsgSvrCli_Restore_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_Restore_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_Restore_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgSvrCli_Restore_Ans& obj) { return obj.Size(); }
 };
 
 }}

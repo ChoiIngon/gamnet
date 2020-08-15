@@ -1,7 +1,7 @@
 #include "Handler_Login.h"
 #include "../../Component/Counter.h"
 #include "../../../idl/MessageUser.h"
-#include "../../Component/Item/Item.h"
+#include "../../Component/Item.h"
 #include "../../Component/Bag.h"
 
 namespace Handler { namespace User {
@@ -62,39 +62,47 @@ GAMNET_BIND_TCP_HANDLER(
 
 void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 {
-	Gamnet::Database::MySQL::ResultSet ret = Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
-		"SELECT user_seq, user_name, account_level, account_state, shard_index, create_date FROM account WHERE account_id='", session->account_id, "' and account_type=", (int)session->account_type
+	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
+		"SELECT user_seq, user_name, account_level, account_state, shard_index, create_date, delete_date FROM account WHERE account_id='", session->account_id, "' and account_type=", (int)session->account_type
 	);
 
-	if (1 != ret.GetRowCount())
+	if (1 != rows.GetRowCount())
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError, "account_id:", session->account_id, ", account_type:", (int)session->account_type);
 	}
 
-	for (auto& row : ret)
-	{
-		session->account_level = row->getInt("account_level");
-		session->shard_index = row->getInt("shard_index");
-		session->create_date = row->getString("create_date");
-		session->queries = std::make_shared<Gamnet::Database::MySQL::Transaction>(session->shard_index);
-		session->logs = std::make_shared<Gamnet::Database::MySQL::Transaction>(session->shard_index);
-		session->user_seq = row->getUInt64("user_seq");
+	auto& row = rows[0];
+	
+	session->account_level = row->getInt("account_level");
+	session->shard_index = row->getInt("shard_index");
+	session->create_date = row->getString("create_date");
+	session->queries = std::make_shared<Gamnet::Database::MySQL::Transaction>(session->shard_index);
+	session->logs = std::make_shared<Gamnet::Database::MySQL::Transaction>(session->shard_index);
+	session->user_seq = row->getUInt64("user_seq");
 
-		std::shared_ptr<UserData> userData = session->AddComponent<UserData>();
-		userData->user_seq = session->user_seq;
-		userData->user_name = row->getString("user_name");
+	if(3 == row->getInt("account_state") && Gamnet::Time::UTC::Now() < Gamnet::Time::UnixTimestamp(Gamnet::Time::DateTime(row->getString("delete_date"))))
+	{
+		Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
+			"UPDATE account SET account_id='", session->account_id, "-DEL-", session->user_seq, "',account_state=4 WHERE user_seq=", session->user_seq
+		);
+
+		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError, "account_id:", session->account_id, ", account_type:", (int)session->account_type, ", deleted");
 	}
+		
+	std::shared_ptr<UserData> userData = session->AddComponent<UserData>();
+	userData->user_seq = session->user_seq;
+	userData->user_name = row->getString("user_name");
 }
 
 void Handler_Login::ReadUserCounter(const std::shared_ptr<UserSession>& session)
 {
-	std::shared_ptr<Component::Counter> counter = session->AddComponent<Component::Counter>(std::make_shared<Component::Counter>(session));
+	std::shared_ptr<Component::Counter> counter = session->GetComponent<Component::Counter>();
 	counter->Load();
 }
 
 void Handler_Login::ReadUserItem(const std::shared_ptr<UserSession>& session)
 {
-	std::shared_ptr<Component::Bag> bag = session->AddComponent<Component::Bag>(std::make_shared<Component::Bag>(session));
+	std::shared_ptr<Component::Bag> bag = session->GetComponent<Component::Bag>();
 	bag->Load();
 }
 
@@ -132,7 +140,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 }
 
 GAMNET_BIND_TEST_HANDLER(
-	TestSession, "Test_Login",
+	TestSession, "Test_User_Login",
 	MsgCliSvr_Login_Req, Test_Login_Req,
 	MsgSvrCli_Login_Ans, Test_Login_Ans
 );
@@ -150,7 +158,10 @@ void Test_Counter_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
-	session->AddCounter((int)ntf.counter_id, ntf.count);
+	for(auto& counter : ntf.counter_datas)
+	{
+		session->counters.insert(std::make_pair((int)counter.counter_id, counter));
+	}
 }
 
 GAMNET_BIND_TEST_RECV_HANDLER(

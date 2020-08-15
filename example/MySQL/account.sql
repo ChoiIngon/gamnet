@@ -24,7 +24,8 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS `sp_account_delete`;
 CREATE PROCEDURE `sp_account_delete`(
 	IN `p_account_id` VARCHAR(128),
-	IN `p_account_type` INT(10)
+	IN `p_account_type` INT(10),
+	IN `p_delete_day` INT(10)
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -45,7 +46,7 @@ BEGIN
 			-- https://dev.mysql.com/doc/refman/5.7/en/signal.html
 		END IF;
         
-        UPDATE account SET account_state=3, delete_date=NOW() WHERE account_id=p_account_id AND account_type=p_account_type;
+        UPDATE account SET account_state=3, delete_date=DATE_ADD(NOW(), INTERVAL p_delete_day DAY) WHERE account_id=p_account_id AND account_type=p_account_type;
     COMMIT;
     
     select 'Error' Level, '0' Code, 'OK' Message;

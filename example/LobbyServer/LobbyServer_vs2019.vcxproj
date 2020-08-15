@@ -123,13 +123,15 @@
   <ItemGroup>
     <ClCompile Include="Component\Bag.cpp" />
     <ClCompile Include="Component\Counter.cpp" />
+    <ClCompile Include="Component\Event.cpp" />
     <ClCompile Include="Component\Mail.cpp" />
+    <ClCompile Include="Handler\Lobby\Handler_OpenMail.cpp" />
     <ClCompile Include="Handler\User\Handler_Create.cpp" />
+    <ClCompile Include="Handler\User\Handler_Delete.cpp" />
     <ClCompile Include="Handler\User\Handler_Login.cpp" />
-    <ClCompile Include="Handler\Lobby\Handler_JoinLobby.cpp" />
-    <ClCompile Include="Handler\Lobby\Handler_LeaveChannel.cpp" />
+    <ClCompile Include="Handler\Lobby\Handler_Join.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Component\Item\Item.cpp" />
+    <ClCompile Include="Component\Item.cpp" />
     <ClCompile Include="UserSession.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -140,12 +142,14 @@
   <ItemGroup>
     <ClInclude Include="Component\Bag.h" />
     <ClInclude Include="Component\Counter.h" />
+    <ClInclude Include="Component\Event.h" />
     <ClInclude Include="Component\Mail.h" />
+    <ClInclude Include="Handler\Lobby\Handler_OpenMail.h" />
+    <ClInclude Include="Handler\User\Handler_Delete.h" />
     <ClInclude Include="Handler\User\Handler_Login.h" />
     <ClInclude Include="Handler\User\Handler_Create.h" />
-    <ClInclude Include="Handler\Lobby\Handler_JoinLobby.h" />
-    <ClInclude Include="Handler\Lobby\Handler_LeaveChannel.h" />
-    <ClInclude Include="Component\Item\Item.h" />
+    <ClInclude Include="Handler\Lobby\Handler_Join.h" />
+    <ClInclude Include="Component\Item.h" />
     <ClInclude Include="UserSession.h" />
   </ItemGroup>
   <ItemGroup>

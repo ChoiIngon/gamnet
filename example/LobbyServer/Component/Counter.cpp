@@ -49,16 +49,6 @@ void Counter::Load()
 			{ "user_seq", session->user_seq }
 			});
 
-		session->queries->Insert("user_counter", {
-			{ "counter_id", (int)CounterType::Ticket_1 },
-			{ "user_seq", session->user_seq }
-			});
-
-		session->queries->Insert("user_counter", {
-			{ "counter_id", (int)CounterType::Ticket_2 },
-			{ "user_seq", session->user_seq }
-			});
-
 		session->queries->Commit();
 
 		rows = Gamnet::Database::MySQL::Execute(session->shard_index,
@@ -71,14 +61,20 @@ void Counter::Load()
 		throw GAMNET_EXCEPTION(ErrorCode::UndefineError);
 	}
 
+	Handler::User::MsgSvrCli_Counter_Ntf ntf;
 	for (auto& row : rows)
 	{
 		std::shared_ptr<Component::CounterData> counter(std::make_shared<Component::CounterData>(session, row->getUInt64("counter_seq"), row->getUInt32("counter_id"), row->getInt("counter"), row->getString("update_date")));
 		AddCounter(counter);
-		Handler::User::MsgSvrCli_Counter_Ntf ntf;
-		ntf.counter_id = (CounterType)counter->counter_id;
-		ntf.update_date = Gamnet::Time::UnixTimestamp(counter->update_date);
-		ntf.count = counter->Count();
+		
+		::CounterData counterData;
+		counterData.counter_id = (CounterType)counter->counter_id;
+		counterData.update_date = Gamnet::Time::UnixTimestamp(counter->update_date);
+		counterData.count = counter->Count();
+		ntf.counter_datas.push_back(counterData);
+	}
+	if(0 < ntf.counter_datas.size())
+	{
 		Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 	}
 }

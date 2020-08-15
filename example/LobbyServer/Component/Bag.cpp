@@ -1,7 +1,7 @@
 #include "Bag.h"
 #include <Gamnet/Database/MySQL/MySQL.h>
 #include "../UserSession.h"
-#include "Item/Item.h"
+#include "Item.h"
 
 namespace Component {
 	Bag::Bag(const std::shared_ptr<UserSession>& session)
@@ -36,29 +36,52 @@ namespace Component {
 		{
 			for(auto& itr : item_datas)
 			{
-				if(itr.second->meta->item_id == item->meta->item_id && itr.second->stack->max_count > itr.second->stack->cur_count)
+				if(itr.second->meta->item_id != item->meta->item_id)
 				{
-					int32_t count = std::min(itr.second->stack->max_count - itr.second->stack->cur_count, item->stack->cur_count); 
-					itr.second->stack->cur_count += count;
-					item->stack->cur_count -= count;
+					continue;
+				}
 
-					session->queries->Update("user_item", Gamnet::Format("item_count=", itr.second->stack->cur_count), {
-						{ "user_seq", session->user_seq },
-						{ "item_seq", itr.second->item_seq }
-					});
+				if(itr.second->stack->max_count <= itr.second->stack->cur_count)
+				{
+					continue;
+				}
 
-					if(0 == item->stack->cur_count)
-					{
-						break;
-					}
+				if(nullptr != item->expire && item->expire->expire_date != itr.second->expire->expire_date)
+				{
+					continue;
+				}
+
+				int32_t count = std::min(itr.second->stack->max_count - itr.second->stack->cur_count, item->stack->cur_count); 
+				itr.second->stack->cur_count += count;
+				session->queries->Update("user_item", Gamnet::Format("item_count=", itr.second->stack->cur_count), {
+					{ "user_seq", session->user_seq },
+					{ "item_seq", itr.second->item_seq }
+				});
+				item->stack->cur_count -= count;
+
+				if(0 == item->stack->cur_count)
+				{
+					break;
 				}
 			}
-		}
 
-		session->queries->Insert("user_item", {
-			{ "item_id", item->meta->item_id },
-			{ "user_seq", session->user_seq }
-		});
+			while(0 < item->stack->cur_count)
+			{
+				int count = std::min(item->stack->cur_count, item->stack->max_count);
+
+				session->queries->Insert("user_item", {
+					{ "item_id", item->meta->item_id },
+					{ "item_count", count },
+					{ "user_seq", session->user_seq }
+				});
+
+				item->stack->cur_count -= count;
+			}
+		}
+		else
+		{
+		}
+		
 		session->on_commit["Bag"] = std::bind(&Bag::Load, this);
 	}
 }

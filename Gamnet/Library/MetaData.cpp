@@ -8,6 +8,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, bool& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if("" == value)
+			{
+				return;
+			}
 			if("false" == boost::algorithm::to_lower_copy(value))
 			{
 				member = false;
@@ -25,6 +29,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, int16_t& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member = boost::lexical_cast<int16_t>(value);
 		}));
 	}
@@ -32,6 +40,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, uint16_t& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member = boost::lexical_cast<uint16_t>(value);
 		}));
 	}
@@ -39,6 +51,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, int32_t& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member = boost::lexical_cast<int32_t>(value);
 		}));
 	}
@@ -46,6 +62,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, uint32_t& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member = boost::lexical_cast<uint32_t>(value);
 		}));
 	}
@@ -53,6 +73,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, int64_t& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member = boost::lexical_cast<int64_t>(value);
 		}));
 	}
@@ -60,6 +84,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, uint64_t& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member = boost::lexical_cast<uint64_t>(value);
 		}));
 	}
@@ -67,6 +95,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, float& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member = boost::lexical_cast<float>(value);
 		}));
 	}
@@ -74,6 +106,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, double& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member = boost::lexical_cast<double>(value);
 		}));
 	}
@@ -88,6 +124,10 @@ namespace Gamnet
 	void MetaData::Bind(const std::string& name, Time::DateTime& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member = value;
 		}));
 	}

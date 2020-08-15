@@ -8,9 +8,9 @@
 #include <map>
 
 class UserSession;
-struct ItemData;
 
 namespace Component {
+	struct ItemData;
 	class Bag
 	{
 	public :

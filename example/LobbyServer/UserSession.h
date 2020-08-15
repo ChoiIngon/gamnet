@@ -77,9 +77,6 @@ public:
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 
-	void AddCounter(uint32_t counterID, int counter);
-	int GetCounter(uint32_t counterID);
-
 	template <class T>
 	std::shared_ptr<T> AddComponent()
 	{
@@ -108,10 +105,10 @@ public:
 	{
 		components.RemoveComponent<T>();
 	}
+	std::map<uint32_t, ::CounterData> counters;
+	std::map<uint64_t, ::MailData> mails;
 private:
 	Gamnet::Component components;
-	std::map<uint32_t, int> counters;
-
 };
 
 #endif /* SESSION_H_ */

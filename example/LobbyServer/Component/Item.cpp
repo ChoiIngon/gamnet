@@ -1,9 +1,9 @@
 #include "Item.h"
 #include <Gamnet/Library/Singleton.h>
 #include <Gamnet/Library/Random.h>
-#include "../../../idl/MessageCommon.h"
-#include "../../UserSession.h"
+#include "../UserSession.h"
 
+namespace Component {
 ItemMeta::ItemMeta()
 	: item_id(0)
 	, item_type(ItemType::Invalid)
@@ -21,7 +21,6 @@ ItemMeta::ItemMeta()
 	GAMNET_META_MEMBER(price);
 	GAMNET_META_MEMBER(expire_time);
 	GAMNET_META_MEMBER(expire_date);
-	GAMNET_META_MEMBER(packages);
 }
 
 void ItemMeta::OnItemType(ItemType& member, const std::string& value)
@@ -91,6 +90,7 @@ std::shared_ptr<ItemData> Manager_Item::CreateInstance(const std::shared_ptr<Use
 	if(0 < meta->packages.size())
 	{
 		data->package = std::make_shared<ItemData::Package>();
+		/*
 		for(uint32_t itemID : meta->packages)
 		{
 			std::shared_ptr<ItemMeta> package = FindMeta(itemID);
@@ -100,6 +100,7 @@ std::shared_ptr<ItemData> Manager_Item::CreateInstance(const std::shared_ptr<Use
 			}
 			data->package->item_metas.push_back(package);
 		}
+		*/
 	}
 
 	if(1 < meta->max_stack)
@@ -113,9 +114,10 @@ std::shared_ptr<ItemData> Manager_Item::CreateInstance(const std::shared_ptr<Use
 }
 
 GAMNET_BIND_INIT_HANDLER(Manager_Item, Init);
+}
 namespace Item {
-std::shared_ptr<ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t itemid, int32_t count)
+std::shared_ptr<Component::ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t itemid, int32_t count)
 {
-	return Gamnet::Singleton<Manager_Item>::GetInstance().CreateInstance(session, itemid, count);
+	return Gamnet::Singleton<Component::Manager_Item>::GetInstance().CreateInstance(session, itemid, count);
 }
 }
