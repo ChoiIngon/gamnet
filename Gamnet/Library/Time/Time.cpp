@@ -15,6 +15,11 @@ namespace Gamnet { namespace Time {
 		}
 	}
 
+	time_t UnixTimestamp(const DateTime& datetime)
+	{
+		return datetime.ToUnixTimestamp();
+	}
+
 	DateTime FromUnixtime(time_t timestamp)
 	{
 		return DateTime(timestamp);

@@ -121,9 +121,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Handler_Login.cpp" />
+    <ClCompile Include="Component\Bag.cpp" />
+    <ClCompile Include="Component\Counter.cpp" />
+    <ClCompile Include="Component\Mail.cpp" />
+    <ClCompile Include="Handler\User\Handler_Create.cpp" />
+    <ClCompile Include="Handler\User\Handler_Login.cpp" />
+    <ClCompile Include="Handler\Lobby\Handler_JoinLobby.cpp" />
+    <ClCompile Include="Handler\Lobby\Handler_LeaveChannel.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Manager_Item.cpp" />
+    <ClCompile Include="Component\Item\Item.cpp" />
     <ClCompile Include="UserSession.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -132,12 +138,32 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Handler_Login.h" />
-    <ClInclude Include="Manager_Item.h" />
+    <ClInclude Include="Component\Bag.h" />
+    <ClInclude Include="Component\Counter.h" />
+    <ClInclude Include="Component\Mail.h" />
+    <ClInclude Include="Handler\User\Handler_Login.h" />
+    <ClInclude Include="Handler\User\Handler_Create.h" />
+    <ClInclude Include="Handler\Lobby\Handler_JoinLobby.h" />
+    <ClInclude Include="Handler\Lobby\Handler_LeaveChannel.h" />
+    <ClInclude Include="Component\Item\Item.h" />
     <ClInclude Include="UserSession.h" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\idl\Message.idl">
+    <CustomBuild Include="..\idl\MessageUser.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\MessageCommon.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\MessageLobby.idl">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>

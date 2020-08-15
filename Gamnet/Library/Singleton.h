@@ -77,5 +77,5 @@ public :
 	static bool GAMNET_TOKEN_PASTE_2(func_type, __COUNTER__) = Gamnet::SingletonInitHelper::GetInstance().RegisterInitFunction(#class_type, std::bind(&class_type::func_type, &Gamnet::Singleton<class_type>::GetInstance()))
 
 #define GAMNET_CALL_INIT_HANDLER(class_type) \
-	SingletonInitHelper::GetInstance().CallInitFunc(#class_type);
+	Gamnet::SingletonInitHelper::GetInstance().CallInitFunc(#class_type);
 #endif /* TOOLKIT_SINGLE_H_ */

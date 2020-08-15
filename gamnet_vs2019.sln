@@ -32,6 +32,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gamnet", "Gamnet\Gamnet_vs2
 		{E16B955B-DBB0-3D9D-C23F-F53667609365} = {E16B955B-DBB0-3D9D-C23F-F53667609365}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LobbyServer", "example\LobbyServer\LobbyServer_vs2019.vcxproj", "{CA5743D6-4E85-44FB-B48C-2968A019D5C2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E} = {019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -114,6 +119,16 @@ Global
 		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}.Release|x64.Build.0 = Release|x64
 		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}.Release|x86.ActiveCfg = Release|Win32
 		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}.Release|x86.Build.0 = Release|Win32
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Debug|ARM.ActiveCfg = Debug|Win32
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Debug|x64.ActiveCfg = Debug|x64
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Debug|x64.Build.0 = Debug|x64
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Debug|x86.ActiveCfg = Debug|Win32
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Debug|x86.Build.0 = Debug|Win32
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Release|ARM.ActiveCfg = Release|Win32
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Release|x64.ActiveCfg = Release|x64
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Release|x64.Build.0 = Release|x64
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Release|x86.ActiveCfg = Release|Win32
+		{CA5743D6-4E85-44FB-B48C-2968A019D5C2}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

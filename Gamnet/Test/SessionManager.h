@@ -257,6 +257,7 @@ namespace Gamnet {	namespace Test {
 				}
 			}
 		
+			int currentSEQ = session->test_seq;
 			if (test_sequence.size() > (size_t)session->test_seq)
 			{
 				const std::shared_ptr<TestCase>& testCase = test_sequence[session->test_seq];
@@ -285,7 +286,10 @@ namespace Gamnet {	namespace Test {
 				session->Send_ReliableAck_Ntf();
 			}
 
-			ExecuteSendHandler(session);
+			if(currentSEQ < session->test_seq)
+			{
+				ExecuteSendHandler(session);
+			}
 		}
 	}
 	

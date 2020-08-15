@@ -22,8 +22,8 @@ class Transaction
 		std::map<std::string, Gamnet::Variant> columns;
 	};
 
-	bool commit;
 	int db_type;
+	int query_count;
 
 	std::list<UpdateQuery> update_queries;
 	std::list<InsertQuery> insert_queries;
@@ -37,14 +37,13 @@ public:
 	template <class... ARGS>
 	void Execute(ARGS... args)
 	{
-		if(true == commit)
-		{
-			throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already committed transaction");
-		}
-		//queries += Format(args...) + ";";
 		plain_queries.push_back(Format(args...));
+		query_count++;
 	}
+	
 	ResultSet Commit();
+	void Rollback();
+private :
 	void Clear();
 };
 

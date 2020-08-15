@@ -1,0 +1,6 @@
+shard_index,master_ip,master_port,slave_ip,slave_port,db_name,db_user,db_password
+int,text,int,text,int,text,text,text
+1,127.0.0.1,3306,127.0.0.1,3306,user_data,gamnet,P@ssword!
+2,127.0.0.1,3306,127.0.0.1,3306,user_data,gamnet,P@ssword!
+3,127.0.0.1,3306,127.0.0.1,3306,user_data,gamnet,P@ssword!
+4,127.0.0.1,3306,127.0.0.1,3306,user_data,gamnet,P@ssword!

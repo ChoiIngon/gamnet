@@ -5,37 +5,41 @@
 
 namespace Gamnet { namespace Database { namespace MySQL {
 
-Transaction::Transaction(int db_type) : commit(false), db_type(db_type)
+Transaction::Transaction(int db_type) : db_type(db_type), query_count(0)
+{
+}
+
+Transaction::~Transaction()
 {
 }
 
 void Transaction::Insert(const std::string& tableName, const std::map<std::string, Gamnet::Variant>& columns)
 {
-	if (true == commit)
-	{
-		throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already committed transaction");
-	}
 	InsertQuery query;
 	query.table_name = tableName;
 	query.columns = columns;
 	insert_queries.push_back(query);
+	query_count++;
 }
 
 void Transaction::Update(const std::string& tableName, const std::string& setClause, const std::map<std::string, Gamnet::Variant>& whereClause)
 {
-	if (true == commit)
-	{
-		throw Exception((int)ErrorCode::AlreadyCommitTransaction, "already committed transaction");
-	}
 	UpdateQuery query;
 	query.table_name = tableName;
 	query.set_clause = setClause;
 	query.where_clause = whereClause;
 	update_queries.push_back(query);
+	query_count++;
 }
 
 ResultSet Transaction::Commit()
 {
+	ResultSet res;
+	if(0 == query_count)
+	{
+		return res;
+	}
+
 	int queryCount = 0;
 	std::string queries;
 	{
@@ -115,8 +119,7 @@ ResultSet Transaction::Commit()
 			queries += query + ";";
 		}
 	}
-
-	ResultSet res;
+	
 	std::shared_ptr<Connection> connection = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
 	try {
 		if(1 == queryCount)
@@ -131,6 +134,7 @@ ResultSet Transaction::Commit()
 	}
 	catch (const Gamnet::Exception& e)
 	{
+		connection->Execute("rollback");
 		// CR_CONN_HOST_ERROR
 		if(nullptr != connection->logger_)
 		{
@@ -139,25 +143,21 @@ ResultSet Transaction::Commit()
 		throw e;
 	}
 	
-	commit = true;
+	Clear();
 	return res;
 }
 
-Transaction::~Transaction() 
+void Transaction::Rollback()
 {
-	if(false == commit)
-	{
-		std::shared_ptr<Connection> connection = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
-		connection->Execute("rollback");
-	}
+	Clear();
 }
 
 void Transaction::Clear()
 {
+	query_count = 0;
 	update_queries.clear();
 	insert_queries.clear();
 	plain_queries.clear();
-	commit = false;
 }
 
 } /* namespace Database */

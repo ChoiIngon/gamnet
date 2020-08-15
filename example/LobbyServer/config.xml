@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <server>
   <log path="log" prefix="Lobby" max_file_size="5">
-    <dev console="yes" file="yes" sys="no"/>
+    <dev console="no" file="no" sys="no"/>
     <inf console="yes" file="yes" sys="no"/>
     <wrn console="yes" file="yes" sys="no"/>
     <err console="yes" file="yes" sys="no"/>
   </log>
 
   <mysql  name="account"	id="1"    host="localhost" port="3306" db="account" user="gamnet" passwd="P@ssword!" fail_query_log="false"/>
-  <mysql  name="user_001"	id="101"  host="localhost" port="3306" db="user" user="gamnet" passwd="P@ssword!" fail_query_log="false"/>
-  <mysql  name="log_001"	id="201"  host="localhost" port="3306" db="log" user="gamnet" passwd="P@ssword!" fail_query_log="true"/>
-  
   <sqlite name="gamnet_sqlite"	id="1"  db="gamnet.sqlite"/>
   <redis  name="gamnet_redis" id="1"  host="localhost" port="6379"/>
 
-  <tcp port="40000" max_count="8000" accept_queue="4000" keep_alive="30" thread_count="20"/>
+  <tcp port="40000" max_count="8000" accept_queue="4000" keep_alive="300" thread_count="30"/>
   <test host="127.0.0.1" port="40000" session_count="1" loop_count="1">
     <message name="Test_Login"/>
   </test>

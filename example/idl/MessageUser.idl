@@ -1,0 +1,48 @@
+.cpp %%
+#include "MessageCommon.h"
+namespace Handler { namespace User {
+%%
+
+.cs %%
+namespace Handler { namespace User {
+%%
+
+message MsgCliSvr_Login_Req : 00011
+{
+	string account_id;
+	AccountType account_type;
+};
+
+message MsgSvrCli_Login_Ans : 00012
+{
+	ErrorCode error_code;
+	UserData user_data;
+};
+
+message MsgCliSvr_Create_Req : 00021
+{
+	string account_id;
+	AccountType account_type;
+	string user_name;
+};
+
+message MsgSvrCli_Create_Ans : 00022
+{
+	ErrorCode error_code;
+};
+
+
+message MsgSvrCli_Counter_Ntf : 00031
+{
+	CounterType counter_id;
+	uint64 update_date;
+	int32 count;
+};
+
+.cpp %%
+}}
+%%
+
+.cs %%
+}}
+%%

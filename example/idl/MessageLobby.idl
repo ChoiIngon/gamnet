@@ -1,0 +1,30 @@
+.cpp %%
+#include "MessageCommon.h"
+namespace Handler{ namespace Lobby {
+%%
+
+.cs %%
+namespace Handler { namespace Lobby {
+%%
+
+message MsgCliSvr_JoinLobby_Req : 120000001
+{
+};
+
+message MsgSvrCli_JoinLobby_Ans : 120000002
+{
+	ErrorCode error_code;
+};
+
+message MsgCliSvr_MailList_Ntf : 120000003
+{
+	list<MailData> mail_datas;
+};
+
+.cpp %%
+}}
+%%
+
+.cs %%
+}}
+%%

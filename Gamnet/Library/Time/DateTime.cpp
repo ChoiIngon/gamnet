@@ -67,7 +67,13 @@ int DateTime::Second() const
 
 void DateTime::FromString(const std::string& fmt)
 {
-	ptime = boost::posix_time::ptime(boost::posix_time::time_from_string(fmt));
+	try {
+		ptime = boost::posix_time::ptime(boost::posix_time::time_from_string(fmt));
+	}
+	catch (const std::out_of_range& e)
+	{
+		ptime = boost::posix_time::min_date_time;
+	}
 }
 
 std::string DateTime::ToString() const

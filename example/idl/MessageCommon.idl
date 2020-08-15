@@ -1,0 +1,58 @@
+enum ErrorCode
+{
+	Success = 0,
+	MessageFormatError = 1000,
+	MessageSeqOmmitError = 1001,
+	InvalidUserError = 2000,
+	InvalidAccessTokenError = 2001,
+	InvalidSeviceName = 2002,
+	DuplicateConnectionError = 3000,
+	ReconnectTimeoutError = 4000,
+	ResponseTimeoutError = 4001,
+	AlreadyLoginSessionError = 5000,
+	CanNotCreateCastGroup = 5001,
+	DuplicateNameError,
+	CreateAccountError,
+	UndefineError = 99999,
+};
+
+enum AccountType
+{
+	Invalid,
+	Dev = 1,
+	Google = 2,
+	Apple = 3,
+	Facebook = 4
+};
+
+struct UserData
+{
+	uint64 user_seq;
+	string user_name;
+};
+
+struct MailData
+{
+	uint64 mail_seq;
+	string mail_message;
+	uint64 expire_date;
+	uint32 reward_id;
+	uint32 reward_count;
+};
+
+enum ItemType
+{
+	Invalid,
+	Equip,
+	Package,
+};
+
+enum CounterType
+{
+	Invalid = 0,
+	Gold = 1,
+	Cash = 2,
+	Ticket_1 = 3,
+	Ticket_2 = 4,
+};
+

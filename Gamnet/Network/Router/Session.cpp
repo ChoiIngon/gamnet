@@ -4,8 +4,6 @@
 #include "SessionManager.h"
 #include "RouterCaster.h"
 #include <boost/bind.hpp>
-#include <boost/asio/spawn.hpp>
-#include <boost/asio/yield.hpp>
 
 namespace Gamnet { namespace Network { namespace Router {
 

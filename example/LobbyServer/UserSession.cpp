@@ -27,27 +27,18 @@ void UserSession::OnClose(int reason)
 void UserSession::OnDestroy()
 {
 	//LOG(INF, "[session_key:", session_key, "] OnDestroy");
+	components.Clear();
 }
 
-std::shared_ptr<Counter> UserSession::GetCounter(uint32_t counterID)
+void UserSession::Commit()
 {
-	auto itr = counters.find(counterID);
-	if(counters.end() == itr)
+	queries->Commit();
+	logs->Commit();
+	for(auto& itr : on_commit)
 	{
-		return nullptr;
+		itr.second();
 	}
-	return itr->second;
-}
-
-std::shared_ptr<Counter> UserSession::AddCounter(const std::shared_ptr<Counter>& counter)
-{
-	auto itr = counters.find(counter->counter_id);
-	if (counters.end() != itr)
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError);
-	}
-	counters.insert(std::make_pair(counter->counter_id, counter));
-	return counter;
+	on_commit.clear();
 }
 
 void TestSession::OnCreate()
@@ -64,26 +55,25 @@ void TestSession::OnClose(int reason)
 
 void TestSession::OnDestroy()
 {
+	components.Clear();
 }
 
-Counter::Counter(const std::shared_ptr<UserSession>& session, uint64_t counter_seq, uint32_t counter_id, int count)
-	: session(session)
-	, counter_seq(counter_seq)
-	, counter_id(counter_id)
-	, count(count)
+int TestSession::GetCounter(uint32_t counterID)
 {
+	auto itr = counters.find(counterID);
+	if (counters.end() == itr)
+	{
+		return 0;
+	}
+	return itr->second;
 }
 
-int Counter::Increase(int amount)
+void TestSession::AddCounter(uint32_t counterID, int counter)
 {
-	std::shared_ptr<UserData> userData = session->GetComponent<UserData>();
-	if(nullptr == userData)
+	auto itr = counters.find(counterID);
+	if (counters.end() != itr)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError);
 	}
-	count += amount;
-	session->transaction->Update("user_counter", Gamnet::Format("counter=", count), {
-		{ "counter_seq", counter_seq }
-	});
-	return count;
- }
+	counters.insert(std::make_pair(counterID, counter));
+}

@@ -48,6 +48,11 @@ namespace Gamnet {
 		{
 			components.erase(typeid(T).name());
 		}
+
+		void Clear()
+		{
+			components.clear();
+		}
 	};
 }
 

@@ -34,7 +34,7 @@ void ReadXml(const char* xml_path)
 	}
 }
 
-bool Connect(int db_type, const char* host, int port, const char* id, const char* passwd, const char* db, bool fail_query_log)
+bool Connect(int db_type, const std::string& host, int port, const std::string& id, const std::string& passwd, const std::string& db, bool fail_query_log)
 {
 	Connection::ConnectionInfo connInfo;
 	connInfo.db_ = db;

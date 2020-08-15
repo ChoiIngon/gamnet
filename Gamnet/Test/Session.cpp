@@ -154,6 +154,11 @@ void Session::Send_ReliableAck_Ntf()
 
 void Session::Send_Close_Req()
 {
+	if(false == handover_safe)
+	{
+		return;
+	}
+
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 	if (nullptr == packet)
 	{
