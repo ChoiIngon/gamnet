@@ -70,8 +70,6 @@ private :
 class TestSession : public Gamnet::Test::Session 
 {
 public:
-	std::shared_ptr<Gamnet::Time::Timer> pause_timer;
-	
 	virtual void OnCreate() override;
 	virtual void OnConnect() override;
 	virtual void OnClose(int reason) override;

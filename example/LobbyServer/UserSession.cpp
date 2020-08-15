@@ -15,7 +15,6 @@ UserSession::UserSession()
 
 UserSession::~UserSession()
 {
-
 }
 
 void UserSession::OnCreate()
@@ -74,6 +73,8 @@ void TestSession::OnClose(int reason)
 
 void TestSession::OnDestroy()
 {
+	counters.clear();
+	mails.clear();
 	components.Clear();
 }
 
