@@ -6,9 +6,10 @@
 #include <map>
 #include <cstring>
 #include <stdint.h>
+#include <stdexcept>
 
 #include "MessageCommon.h"
-namespace Handler { namespace User {
+namespace Message { namespace User {
 
 struct MsgCliSvr_Login_Req {
 	enum { MSG_ID = 11 }; 

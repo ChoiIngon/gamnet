@@ -2,6 +2,17 @@ CREATE DATABASE If NOT EXISTS `user_data` character set = utf8mb4 collate = utf8
 
 USE `user_data`;
 
+CREATE TABLE IF NOT EXISTS `user_data` (
+	`user_seq` 		INT 		NOT NULL,
+	`user_name`		VARCHAR(16)	NOT NULL,
+	`server_id`		INT UNSIGNED NOT NULL DEFAULT 0,
+	`create_date` 	TIMESTAMP 	NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`offline_date` 	TIMESTAMP 	NOT NULL DEFAULT '0000-00-00 00:00:00',
+	PRIMARY KEY(`user_seq`)
+)
+DEFAULT CHARACTER SET=utf8mb4 COLLATE='utf8mb4_unicode_ci'
+ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `user_item` (
 	`item_seq` INT NOT NULL AUTO_INCREMENT COMMENT 'item unique identifier',
 	`item_id`  INT NOT NULL,

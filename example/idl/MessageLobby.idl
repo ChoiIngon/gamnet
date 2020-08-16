@@ -1,10 +1,10 @@
 .cpp %%
 #include "MessageCommon.h"
-namespace Handler{ namespace Lobby {
+namespace Message { namespace Lobby {
 %%
 
 .cs %%
-namespace Handler { namespace Lobby {
+namespace Message { namespace Lobby {
 %%
 
 message MsgCliSvr_Join_Req : 120000001
@@ -29,6 +29,7 @@ message MsgCliSvr_OpenMail_Req : 120000004
 message MsgSvrCli_OpenMail_Ans : 120000005
 {
 	ErrorCode error_code;
+	uint64 mail_seq;
 };
 
 .cpp %%

@@ -40,12 +40,12 @@ void Counter::Load()
 	if (0 == rows.GetRowCount())
 	{
 		session->queries->Insert("user_counter", {
-			{ "counter_id", (int)CounterType::Gold },
+			{ "counter_id", (int)Message::CounterType::Gold },
 			{ "user_seq", session->user_seq }
 			});
 
 		session->queries->Insert("user_counter", {
-			{ "counter_id", (int)CounterType::Cash },
+			{ "counter_id", (int)Message::CounterType::Cash },
 			{ "user_seq", session->user_seq }
 			});
 
@@ -58,17 +58,17 @@ void Counter::Load()
 
 	if (0 == rows.GetRowCount())
 	{
-		throw GAMNET_EXCEPTION(ErrorCode::UndefineError);
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
 
-	Handler::User::MsgSvrCli_Counter_Ntf ntf;
+	Message::User::MsgSvrCli_Counter_Ntf ntf;
 	for (auto& row : rows)
 	{
 		std::shared_ptr<Component::CounterData> counter(std::make_shared<Component::CounterData>(session, row->getUInt64("counter_seq"), row->getUInt32("counter_id"), row->getInt("counter"), row->getString("update_date")));
 		AddCounter(counter);
 		
-		::CounterData counterData;
-		counterData.counter_id = (CounterType)counter->counter_id;
+		Message::CounterData counterData;
+		counterData.counter_id = (Message::CounterType)counter->counter_id;
 		counterData.update_date = Gamnet::Time::UnixTimestamp(counter->update_date);
 		counterData.count = counter->Count();
 		ntf.counter_datas.push_back(counterData);
@@ -84,7 +84,7 @@ std::shared_ptr<Component::CounterData> Counter::AddCounter(const std::shared_pt
 	auto itr = counters.find(counter->counter_id);
 	if (counters.end() != itr)
 	{
-		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError);
+		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 	}
 	counters.insert(std::make_pair(counter->counter_id, counter));
 	return counter;

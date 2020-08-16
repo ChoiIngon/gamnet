@@ -1,6 +1,9 @@
 #include "Handler_Login.h"
 #include "../../Component/Counter.h"
+#include "../../../idl/MessageItem.h"
 #include "../../../idl/MessageUser.h"
+#include "../../Component/Account.h"
+#include "../../Component/UserData.h"
 #include "../../Component/Item.h"
 #include "../../Component/Bag.h"
 
@@ -16,38 +19,39 @@ Handler_Login::~Handler_Login()
 
 void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	MsgCliSvr_Login_Req req;
-	MsgSvrCli_Login_Ans ans;
-	ans.error_code = ErrorCode::Success;
+	Message::User::MsgCliSvr_Login_Req req;
+	Message::User::MsgSvrCli_Login_Ans ans;
+	ans.error_code = Message::ErrorCode::Success;
 	ans.user_data.user_seq = 0;
 	ans.user_data.user_name = "";
 
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
 
 		LOG(DEV, "MsgCliSvr_Login_Req(account_id:", req.account_id, ")");
 
-		session->account_id = req.account_id;
-		session->account_type = req.account_type;
-
+		ReadAccountData(session, req.account_id, req.account_type);
 		ReadUserData(session);
 		ReadUserCounter(session);
 		ReadUserItem(session);
 
-		std::shared_ptr<UserData> userData = session->GetComponent<UserData>();
-		ans.user_data = *userData;
-		session->Commit();
+		std::shared_ptr<Component::UserData> userData = session->GetComponent<Component::UserData>();
+		ans.user_data.user_seq = userData->user_seq;
+		ans.user_data.user_name = userData->user_name;
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		ans.error_code = (ErrorCode)e.error_code();
-		if(ErrorCode::InvalidUserError != ans.error_code)
+		ans.error_code = (Message::ErrorCode)e.error_code();
+		if(Message::ErrorCode::InvalidUserError != ans.error_code)
 		{
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
+		session->RemoveComponent<Component::Account>();
+		session->user_seq = 0;
+		session->shard_index = 0;
 	}
 	LOG(DEV, "MsgSvrCli_Login_Ans(error_code:", (int)ans.error_code, ", user_seq:", ans.user_data.user_seq, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
@@ -55,49 +59,100 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 
 GAMNET_BIND_TCP_HANDLER(
 	UserSession,
-	MsgCliSvr_Login_Req,
+	Message::User::MsgCliSvr_Login_Req,
 	Handler_Login, Recv_Req,
 	HandlerCreate
 );
 
+void Handler_Login::ReadAccountData(const std::shared_ptr<UserSession>& session, const std::string& accountID, Message::AccountType accountType)
+{
+	if(nullptr != session->GetComponent<Component::Account>())
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+	}
+
+	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
+		"SELECT user_seq, user_name, account_level, account_state, shard_index, penalty_date, delete_date FROM account WHERE account_id='", accountID, "' and account_type=", (int)accountType
+	);
+	if (1 != rows.GetRowCount())
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", accountID, ", account_type:", (int)accountType);
+	}
+
+	auto& row = rows[0];
+
+	session->shard_index = row->getInt("shard_index");
+	session->user_seq = row->getUInt64("user_seq");
+	session->queries = std::make_shared<Gamnet::Database::MySQL::Transaction>(session->shard_index);
+	session->logs = std::make_shared<Gamnet::Database::MySQL::Transaction>(session->shard_index);
+
+	std::shared_ptr<Component::Account> account = session->AddComponent<Component::Account>(std::make_shared<Component::Account>(accountID, accountType, row->getInt("account_level")));
+	account->account_state = (Message::AccountState)row->getInt("account_state");
+	account->user_name = row->getString("user_name");
+
+	time_t now = Gamnet::Time::UTC::Now();
+	if (Message::AccountState::OnDelete == account->account_state &&  now < Gamnet::Time::UnixTimestamp(Gamnet::Time::DateTime(row->getString("delete_date"))))
+	{
+		Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
+			"UPDATE account SET account_id='", account->account_id, "-DEL-", session->user_seq, "',account_state=4 WHERE user_seq=", session->user_seq
+		);
+
+		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", account->account_id, ", account_type:", (int)account->account_type, ", deleted");
+	}
+
+	if (Message::AccountState::Penalty == account->account_state && now < Gamnet::Time::UnixTimestamp(Gamnet::Time::DateTime(row->getString("penalty_date"))))
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "account_id:", account->account_id, ", account_type:", (int)account->account_type, ", deleted");
+	}
+}
+
 void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 {
-	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
-		"SELECT user_seq, user_name, account_level, account_state, shard_index, create_date, delete_date FROM account WHERE account_id='", session->account_id, "' and account_type=", (int)session->account_type
+	auto account = session->GetComponent<Component::Account>();
+	if(nullptr == account)
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+	}
+
+	uint32_t serverID = Gamnet::Network::Tcp::GetLocalAddress().to_v4().to_uint();
+	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
+		"SELECT user_name, server_id, create_date, offline_date FROM user_data WHERE user_seq=", session->user_seq
 	);
 
 	if (1 != rows.GetRowCount())
 	{
-		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError, "account_id:", session->account_id, ", account_type:", (int)session->account_type);
+		Gamnet::Database::MySQL::Execute(session->shard_index,
+			"INSERT INTO user_data(user_seq, user_name, server_id) VALUES (", session->user_seq, ",'", account->user_name, "',", serverID, ")"
+		);
+		rows = Gamnet::Database::MySQL::Execute(session->shard_index,
+			"SELECT user_name, server_id, create_date, offline_date FROM user_data WHERE user_seq=", session->user_seq
+		);
+	}
+
+	if (1 != rows.GetRowCount())
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", account->account_id, ", account_type:", (int)account->account_type);
 	}
 
 	auto& row = rows[0];
-	
-	session->account_level = row->getInt("account_level");
-	session->shard_index = row->getInt("shard_index");
-	session->create_date = row->getString("create_date");
-	session->queries = std::make_shared<Gamnet::Database::MySQL::Transaction>(session->shard_index);
-	session->logs = std::make_shared<Gamnet::Database::MySQL::Transaction>(session->shard_index);
-	session->user_seq = row->getUInt64("user_seq");
 
-	if(3 == row->getInt("account_state") && Gamnet::Time::UTC::Now() < Gamnet::Time::UnixTimestamp(Gamnet::Time::DateTime(row->getString("delete_date"))))
+	std::shared_ptr<Component::UserData> userData = session->AddComponent<Component::UserData>(std::make_shared<Component::UserData>(session->user_seq, account->user_name));
+	if(serverID != row->getUInt("server_id"))
 	{
-		Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
-			"UPDATE account SET account_id='", session->account_id, "-DEL-", session->user_seq, "',account_state=4 WHERE user_seq=", session->user_seq
-		);
-
-		throw GAMNET_EXCEPTION(ErrorCode::InvalidUserError, "account_id:", session->account_id, ", account_type:", (int)session->account_type, ", deleted");
+		// duplicate login
 	}
-		
-	std::shared_ptr<UserData> userData = session->AddComponent<UserData>();
-	userData->user_seq = session->user_seq;
-	userData->user_name = row->getString("user_name");
 }
 
 void Handler_Login::ReadUserCounter(const std::shared_ptr<UserSession>& session)
 {
+	if (nullptr == session->GetComponent<Component::UserData>())
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+	}
 	std::shared_ptr<Component::Counter> counter = session->GetComponent<Component::Counter>();
+	session->StartTransaction();
 	counter->Load();
+	session->Commit();
 }
 
 void Handler_Login::ReadUserItem(const std::shared_ptr<UserSession>& session)
@@ -108,27 +163,27 @@ void Handler_Login::ReadUserItem(const std::shared_ptr<UserSession>& session)
 
 void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 {
-	MsgCliSvr_Login_Req req;
+	Message::User::MsgCliSvr_Login_Req req;
 	req.account_id = session->session_token;
-	req.account_type = AccountType::Dev;
+	req.account_type = Message::AccountType::Dev;
 	Gamnet::Test::SendMsg(session, req);
 }
 
 void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	MsgSvrCli_Login_Ans ans;
+	Message::User::MsgSvrCli_Login_Ans ans;
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
 		//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Ans");
-		if(ErrorCode::InvalidUserError == ans.error_code)
+		if(Message::ErrorCode::InvalidUserError == ans.error_code)
 		{
-			MsgCliSvr_Create_Req req;
+			Message::User::MsgCliSvr_Create_Req req;
 			req.user_name = session->session_token.substr(0, 16);
 			req.account_id = session->session_token;
-			req.account_type = AccountType::Dev;
+			req.account_type = Message::AccountType::Dev;
 			Gamnet::Test::SendMsg(session, req);
 			return;
 		}
@@ -141,17 +196,17 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_User_Login",
-	MsgCliSvr_Login_Req, Test_Login_Req,
-	MsgSvrCli_Login_Ans, Test_Login_Ans
+	Message::User::MsgCliSvr_Login_Req, Test_Login_Req,
+	Message::User::MsgSvrCli_Login_Ans, Test_Login_Ans
 );
 
 void Test_Counter_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	MsgSvrCli_Counter_Ntf ntf;
+	Message::User::MsgSvrCli_Counter_Ntf ntf;
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
 	}
 	catch (const Gamnet::Exception& e) {
@@ -166,8 +221,33 @@ void Test_Counter_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 
 GAMNET_BIND_TEST_RECV_HANDLER(
 	TestSession, "",
-	MsgSvrCli_Counter_Ntf, Test_Counter_Ntf
+	Message::User::MsgSvrCli_Counter_Ntf, Test_Counter_Ntf
 );
 
+}}
 
+namespace Handler { namespace Item {
+void Test_Item_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+{
+	Message::Item::MsgSvrCli_Item_Ntf ntf;
+	try {
+		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
+		}
+	}
+	catch (const Gamnet::Exception& e) {
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+	}
+
+	for (auto& item : ntf.item_datas)
+	{
+		session->items.insert(std::make_pair((int)item.item_seq, item));
+	}
+}
+
+GAMNET_BIND_TEST_RECV_HANDLER(
+	TestSession, "",
+	Message::Item::MsgSvrCli_Item_Ntf, Test_Item_Ntf
+);
 }}

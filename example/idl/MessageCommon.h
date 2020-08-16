@@ -6,6 +6,10 @@
 #include <map>
 #include <cstring>
 #include <stdint.h>
+#include <stdexcept>
+
+namespace Message { 
+
 enum class ErrorCode {
 	Success = 0,
 	MessageFormatError = 1000,
@@ -120,6 +124,50 @@ struct AccountType_Serializer {
 		return true;
 	}
 	static size_t Size(const AccountType& obj) { return sizeof(AccountType); }
+};
+enum class AccountState {
+	Invalid,
+	Normal,
+	Penalty,
+	OnDelete,
+	Deleted,
+}; // AccountState
+template <class T> const std::string& ToString(T);
+template <> inline const std::string& ToString<AccountState>(AccountState e) { 
+	static const std::map<AccountState, std::string> table = {
+		{ AccountState::Invalid, "Invalid"},
+		{ AccountState::Normal, "Normal"},
+		{ AccountState::Penalty, "Penalty"},
+		{ AccountState::OnDelete, "OnDelete"},
+		{ AccountState::Deleted, "Deleted"},
+	};
+	auto itr = table.find(e); 
+	if(table.end() == itr) { throw std::runtime_error("ToString<AccountState>()"); }
+	return itr->second;
+}
+template<class T> T Parse(const std::string&);
+template <> inline AccountState Parse<AccountState>(const std::string& s) {
+	static const std::map<std::string, AccountState> table = {
+		{ "Invalid", AccountState::Invalid},
+		{ "Normal", AccountState::Normal},
+		{ "Penalty", AccountState::Penalty},
+		{ "OnDelete", AccountState::OnDelete},
+		{ "Deleted", AccountState::Deleted},
+	};
+	auto itr = table.find(s); 
+	if(table.end() == itr) { throw std::runtime_error("Parse<AccountState>()"); }
+	return itr->second;
+}
+struct AccountState_Serializer {
+	static bool Store(char** _buf_, const AccountState& obj) { 
+		(*(AccountState*)(*_buf_)) = obj;	(*_buf_) += sizeof(AccountState);
+		return true;
+	}
+	static bool Load(AccountState& obj, const char** _buf_, size_t& nSize) { 
+		if(sizeof(AccountState) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(AccountState));		(*_buf_) += sizeof(AccountState); nSize -= sizeof(AccountState);
+		return true;
+	}
+	static size_t Size(const AccountState& obj) { return sizeof(AccountState); }
 };
 enum class CounterType {
 	Invalid = 0,
@@ -362,4 +410,62 @@ struct CounterData_Serializer {
 	static bool Load(CounterData& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static size_t Size(const CounterData& obj) { return obj.Size(); }
 };
+struct ItemData {
+	uint64_t	item_seq;
+	uint32_t	item_id;
+	ItemType	item_type;
+	int32_t	item_count;
+	ItemData()	{
+		item_seq = 0;
+		item_id = 0;
+		item_count = 0;
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(uint64_t);
+		nSize += sizeof(uint32_t);
+		nSize += ItemType_Serializer::Size(item_type);
+		nSize += sizeof(int32_t);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		std::memcpy(*_buf_, &item_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &item_id, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
+		if(false == ItemType_Serializer::Store(_buf_, item_type)) { return false; }
+		std::memcpy(*_buf_, &item_count, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&item_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&item_id, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		if(false == ItemType_Serializer::Load(item_type, _buf_, nSize)) { return false; }
+		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&item_count, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
+		return true;
+	}
+}; //ItemData
+struct ItemData_Serializer {
+	static bool Store(char** _buf_, const ItemData& obj) { return obj.Store(_buf_); }
+	static bool Load(ItemData& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const ItemData& obj) { return obj.Size(); }
+};
+
+}
+
 #endif // __MessageCommon_H__

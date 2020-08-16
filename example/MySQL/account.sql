@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `account` (
 	`account_state`	INT				NOT NULL DEFAULT 0 COMMENT '0:invalid, 1:normal, 2:penalty, 3:on delete, 4:deleted',
 	`shard_index` 	INT 			NOT NULL DEFAULT 0,
 	`create_date` 	TIMESTAMP 		NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`penalty_date` 	TIMESTAMP 		NOT NULL DEFAULT '0000-00-00 00:00:00',
 	`delete_date` 	TIMESTAMP 		NOT NULL DEFAULT '0000-00-00 00:00:00',
 	PRIMARY KEY(`user_seq`),
 	UNIQUE KEY `unique_key_1` (`user_name`),

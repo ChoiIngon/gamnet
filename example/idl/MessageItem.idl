@@ -1,0 +1,31 @@
+.cpp %%
+#include "MessageCommon.h"
+namespace Message { namespace Item {
+%%
+
+.cs %%
+namespace Message { namespace Item {
+%%
+
+message MsgCliSvr_OpenPackage_Req : 130000001
+{
+	uint64 item_seq;
+};
+
+message MsgSvrCli_OpenPackage_Ans : 130000002
+{
+	ErrorCode error_code;
+	ItemData item_data;
+};
+
+message MsgSvrCli_Item_Ntf : 36
+{
+	list<ItemData> item_datas;
+};
+
+.cpp %%
+}}
+%%
+.cs %%
+}}
+%%

@@ -25,7 +25,7 @@ namespace Component {
 			"SELECT mail_seq, expire_date, mail_message, item_id, item_count FROM user_mail WHERE user_seq=", session->user_seq, " AND expire_date > now() AND delete_yn='N' and mail_seq>", last_mail_seq
 		);
 
-		Handler::Lobby::MsgSvrCli_Mail_Ntf ntf;
+		Message::Lobby::MsgSvrCli_Mail_Ntf ntf;
 		for (auto& row : rows)
 		{
 			std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
@@ -37,7 +37,7 @@ namespace Component {
 			last_mail_seq = std::max(last_mail_seq, mailData->mail_seq);
 			mail_datas.insert(std::make_pair(mailData->mail_seq, mailData));
 
-			::MailData mail;
+			Message::MailData mail;
 			mail.expire_date = Gamnet::Time::UnixTimestamp(mailData->expire_date);
 			mail.item_count = mailData->item_count;
 			mail.item_id = mailData->item_id;
@@ -57,7 +57,7 @@ namespace Component {
 		auto itr = mail_datas.find(mailSEQ);
 		if(mail_datas.end() == itr)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::UndefineError);
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
 		auto mail = itr->second;
 		session->queries->Execute(
@@ -66,7 +66,6 @@ namespace Component {
 		auto bag = session->GetComponent<Component::Bag>();
 		bag->Insert(Item::CreateInstance(session, mail->item_id, mail->item_count));
 		mail_datas.erase(itr);
-		session->Commit();
 	}
 
 	void Mail::SendMail(const std::shared_ptr<UserSession>& session, const std::shared_ptr<MailData>& mailData)
@@ -74,7 +73,7 @@ namespace Component {
 		auto mail = session->GetComponent<Mail>();
 		if(nullptr == mail)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::UndefineError);
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
 		session->queries->Insert("user_mail", {
 			{ "user_seq", session->user_seq },

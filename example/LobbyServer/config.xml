@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <server>
   <log path="log" prefix="Lobby" max_file_size="5">
-    <dev console="no" file="no" sys="no"/>
+    <dev console="yes" file="yes" sys="no"/>
     <inf console="yes" file="yes" sys="no"/>
     <wrn console="yes" file="yes" sys="no"/>
     <err console="yes" file="yes" sys="no"/>
@@ -17,6 +17,7 @@
     <message name="Test_Lobby_Join"/>
     <message name="Test_Lobby_Join"/>
     <message name="Test_Lobby_OpenMail"/>
+    <message name="Test_Item_OpenPackage"/>
     <message name="Test_User_Delete"/>
   </test>
 </server>

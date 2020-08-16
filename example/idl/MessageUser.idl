@@ -1,10 +1,10 @@
 .cpp %%
 #include "MessageCommon.h"
-namespace Handler { namespace User {
+namespace Message { namespace User {
 %%
 
 .cs %%
-namespace Handler { namespace User {
+namespace Message { namespace User {
 %%
 
 message MsgCliSvr_Login_Req : 00011

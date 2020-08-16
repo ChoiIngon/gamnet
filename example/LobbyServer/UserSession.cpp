@@ -1,15 +1,14 @@
 #include "UserSession.h"
+#include "Component/UserData.h"
 #include "Component/Counter.h"
 #include "Component/Bag.h"
 #include "Component/Event.h"
 #include "Component/Mail.h"
+#include "Component/Disconnect.h"
 
 UserSession::UserSession()
-	: account_type(AccountType::Invalid)
-	, account_level(0)
-	, shard_index(0)
+	: shard_index(0)
 	, user_seq(0)
-	, create_date(Gamnet::Time::DateTime::MinValue)
 {
 }
 
@@ -30,22 +29,32 @@ void UserSession::OnCreate()
 void UserSession::OnAccept()
 {
 	//LOG(INF, "[session_key:", session_key, "] OnAccept");
+	auto disconnect = GetComponent<Component::Disconnect>();
+	if(nullptr != disconnect) // reconnect
+	{
+		// information during disconnect
+	}
+	RemoveComponent<Component::Disconnect>();
 }
 
 void UserSession::OnClose(int reason)
 {
 	//LOG(INF, "[session_key:", session_key, "] OnClose");
+	AddComponent<Component::Disconnect>();
 }
 
 void UserSession::OnDestroy()
 {
-	account_id = "";
-	account_type = AccountType::Invalid;
-	account_level = 0;
 	shard_index = 0;
 	user_seq = 0;
-	create_date = Gamnet::Time::DateTime::MinValue;
 	components.Clear();
+}
+
+void UserSession::StartTransaction()
+{
+	queries->Rollback();
+	logs->Commit();
+	on_commit.clear();
 }
 
 void UserSession::Commit()

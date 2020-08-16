@@ -1,3 +1,10 @@
+.cpp %%
+namespace Message { 
+%%
+.cs %%
+namespace Message { 
+%%
+
 enum ErrorCode
 {
 	Success = 0,
@@ -23,6 +30,15 @@ enum AccountType
 	Google = 2,
 	Apple = 3,
 	Facebook = 4
+};
+
+enum AccountState
+{
+	Invalid,
+	Normal,
+	Penalty,
+	OnDelete,
+	Deleted
 };
 
 enum CounterType
@@ -60,3 +76,19 @@ struct CounterData
 	uint64 update_date;
 	int32 count;
 };
+
+struct ItemData
+{
+	uint64 item_seq;
+	uint32 item_id;
+	ItemType item_type;
+	int32 item_count;
+};
+
+.cpp %%
+}
+%%
+
+.cs %%
+}
+%%

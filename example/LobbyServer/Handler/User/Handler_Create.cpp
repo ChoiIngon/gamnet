@@ -1,5 +1,6 @@
 #include "Handler_Create.h"
 #include "../../../idl/MessageUser.h"
+#include "../../Component/Account.h"
 
 namespace Handler { namespace User {
 
@@ -54,21 +55,25 @@ namespace Handler { namespace User {
 
 	void Handler_Create::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 	{
-		MsgCliSvr_Create_Req req;
-		MsgSvrCli_Create_Ans ans;
-		ans.error_code = ErrorCode::Success;
+		Message::User::MsgCliSvr_Create_Req req;
+		Message::User::MsgSvrCli_Create_Ans ans;
+		ans.error_code = Message::ErrorCode::Success;
 
 		try {
 			if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+				throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 			}
 
 			LOG(DEV, "MsgCliSvr_User_Create_Req(account_id:", req.account_id, ")");
 
+			if(nullptr != session->GetComponent<Component::Account>())
+			{
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+			}
 			if (false == ExistUserNameCache::CheckExist(req.user_name))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::DuplicateNameError, "user_name:", req.user_name);
+				throw GAMNET_EXCEPTION(Message::ErrorCode::DuplicateNameError, "user_name:", req.user_name);
 			}
 
 			Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
@@ -82,10 +87,10 @@ namespace Handler { namespace User {
 			switch (e.error_code())
 			{
 			case 1061: // duplicated key
-				ans.error_code = ErrorCode::DuplicateNameError;
+				ans.error_code = Message::ErrorCode::DuplicateNameError;
 				break;
 			default:
-				ans.error_code = (ErrorCode)e.error_code();
+				ans.error_code = (Message::ErrorCode)e.error_code();
 				break;
 			}
 		}
@@ -95,7 +100,7 @@ namespace Handler { namespace User {
 
 	GAMNET_BIND_TCP_HANDLER(
 		UserSession,
-		MsgCliSvr_Create_Req,
+		Message::User::MsgCliSvr_Create_Req,
 		Handler_Create, Recv_Req,
 		HandlerStatic
 	);
@@ -171,14 +176,14 @@ namespace Handler { namespace User {
 		int shard_count = (int)metas.size();
 		if (0 == shard_count)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::UndefineError, "no user database");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "no user database");
 		}
 
 		for (auto& meta : metas)
 		{
 			if (false == Gamnet::Database::MySQL::Connect((int)DatabaseType::User + meta->shard_index, meta->master_ip, meta->master_port, meta->db_user, meta->db_password, meta->db_name, false))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::UndefineError, "fail to connect db");
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "fail to connect db");
 			}
 		}
 		shard_mod = Gamnet::Random::Range(0, shard_count - 1);
@@ -190,7 +195,7 @@ namespace Handler { namespace User {
 		size_t shard_count = metas.size();
 		if (0 == shard_count)
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::UndefineError, "no user database");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "no user database");
 		}
 
 		return (int)DatabaseType::User + metas[shard_mod++ % shard_count]->shard_index;
@@ -207,24 +212,24 @@ namespace Handler { namespace User {
 
 void Test_Create_Req(const std::shared_ptr<TestSession>& session)
 {
-	MsgCliSvr_Create_Req req;
+	Message::User::MsgCliSvr_Create_Req req;
 	req.user_name = session->session_token.substr(0, 16);
 	req.account_id = session->session_token;
-	req.account_type = AccountType::Dev;
+	req.account_type = Message::AccountType::Dev;
 	Gamnet::Test::SendMsg(session, req);
 }
 
 void Test_Create_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	MsgSvrCli_Create_Ans ans;
+	Message::User::MsgSvrCli_Create_Ans ans;
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
 		//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUser_Create_Ans");
 
-		if(ErrorCode::Success != ans.error_code)
+		if(Message::ErrorCode::Success != ans.error_code)
 		{
 			session->Send_Close_Req();
 			return;
@@ -234,21 +239,21 @@ void Test_Create_Ans(const std::shared_ptr<TestSession>& session, const std::sha
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
-	MsgCliSvr_Login_Req req;
+	Message::User::MsgCliSvr_Login_Req req;
 	req.account_id = session->session_token;
-	req.account_type = AccountType::Dev;
+	req.account_type = Message::AccountType::Dev;
 	Gamnet::Test::SendMsg(session, req);
 }
 
 GAMNET_BIND_TEST_HANDLER(
 	TestSession, "Test_Create",
-	MsgCliSvr_Create_Req, Test_Create_Req,
-	MsgSvrCli_Create_Ans, Test_Create_Ans
+	Message::User::MsgCliSvr_Create_Req, Test_Create_Req,
+	Message::User::MsgSvrCli_Create_Ans, Test_Create_Ans
 );
 
 GAMNET_BIND_TEST_RECV_HANDLER(
 	TestSession, "",
-	MsgSvrCli_Create_Ans, Test_Create_Ans
+	Message::User::MsgSvrCli_Create_Ans, Test_Create_Ans
 );
 
 }}

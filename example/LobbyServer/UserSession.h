@@ -23,17 +23,8 @@ public:
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 
-	std::string account_id;
-	AccountType account_type;
-	int account_level;
-	int shard_index;
-	uint64_t user_seq;
-	Gamnet::Time::DateTime create_date;
-
+	void StartTransaction();
 	void Commit();
-	std::shared_ptr<Gamnet::Database::MySQL::Transaction> queries;
-	std::shared_ptr<Gamnet::Database::MySQL::Transaction> logs;
-	std::map<std::string, std::function<void()>> on_commit;
 
 	template <class T>
 	std::shared_ptr<T> AddComponent()
@@ -63,6 +54,12 @@ public:
 	{
 		components.RemoveComponent<T>();
 	}
+
+	int shard_index;
+	uint64_t user_seq;
+	std::shared_ptr<Gamnet::Database::MySQL::Transaction> queries;
+	std::shared_ptr<Gamnet::Database::MySQL::Transaction> logs;
+	std::map<std::string, std::function<void()>> on_commit;
 private :
 	Gamnet::Component components;
 };
@@ -103,8 +100,9 @@ public:
 	{
 		components.RemoveComponent<T>();
 	}
-	std::map<uint32_t, ::CounterData> counters;
-	std::map<uint64_t, ::MailData> mails;
+	std::map<uint32_t, Message::CounterData> counters;
+	std::map<uint64_t, Message::MailData> mails;
+	std::map<uint64_t, Message::ItemData> items;
 private:
 	Gamnet::Component components;
 };

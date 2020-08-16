@@ -6,9 +6,10 @@
 #include <map>
 #include <cstring>
 #include <stdint.h>
+#include <stdexcept>
 
 #include "MessageCommon.h"
-namespace Handler{ namespace Lobby {
+namespace Message { namespace Lobby {
 
 struct MsgCliSvr_Join_Req {
 	enum { MSG_ID = 120000001 }; 
@@ -189,11 +190,14 @@ struct MsgCliSvr_OpenMail_Req_Serializer {
 struct MsgSvrCli_OpenMail_Ans {
 	enum { MSG_ID = 120000005 }; 
 	ErrorCode	error_code;
+	uint64_t	mail_seq;
 	MsgSvrCli_OpenMail_Ans()	{
+		mail_seq = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += ErrorCode_Serializer::Size(error_code);
+		nSize += sizeof(uint64_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -208,6 +212,7 @@ struct MsgSvrCli_OpenMail_Ans {
 	}
 	bool Store(char** _buf_) const {
 		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		std::memcpy(*_buf_, &mail_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -219,6 +224,7 @@ struct MsgSvrCli_OpenMail_Ans {
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
 		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&mail_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
 		return true;
 	}
 }; //MsgSvrCli_OpenMail_Ans

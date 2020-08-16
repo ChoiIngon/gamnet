@@ -15,6 +15,7 @@ public:
 	void Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
 
 private :
+	void ReadAccountData(const std::shared_ptr<UserSession>& session, const std::string& accountID, Message::AccountType accountType);
 	void ReadUserData(const std::shared_ptr<UserSession>& session);
 	void ReadUserCounter(const std::shared_ptr<UserSession>& session);
 	void ReadUserItem(const std::shared_ptr<UserSession>& session);
