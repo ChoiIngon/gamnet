@@ -32,6 +32,10 @@ protected:
 	void Bind(const std::string& name, std::vector<T>& member)
 	{
 		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+			if ("" == value)
+			{
+				return;
+			}
 			member.push_back(boost::lexical_cast<T>(value));
 		}));
 	}

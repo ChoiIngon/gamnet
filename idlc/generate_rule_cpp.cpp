@@ -566,6 +566,7 @@ bool GenerateRuleCpp::CompileStmtList(const Token::StmtList* pToken)
 	std::cout << "#include <map>" << std::endl;
 	std::cout << "#include <cstring>" << std::endl;
 	std::cout << "#include <stdint.h>" << std::endl;
+	std::cout << "#include <stdexcept>" << std::endl;
 
 	//GenerateStubCode();
 

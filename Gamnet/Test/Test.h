@@ -81,12 +81,12 @@ namespace Gamnet { namespace Test {
 }}
 
 #define GAMNET_BIND_TEST_HANDLER(session_type, test_name, send_msg_type, send_func, recv_msg_type, recv_func) \
-	static bool TOKEN_PASTE2(Test_##send_msg_type##_##send_func##_, __LINE__) = Gamnet::Test::BindHandler<session_type, send_msg_type, recv_msg_type>( \
+	static bool TOKEN_PASTE2(Test_##send_func##_##recv_func##_, __LINE__) = Gamnet::Test::BindHandler<session_type, send_msg_type, recv_msg_type>( \
 			test_name, \
 			&send_func, &recv_func \
 	)
 
 #define GAMNET_BIND_TEST_RECV_HANDLER(session_type, test_name, msg_type, recv_func) \
-	static bool TOKEN_PASTE2(Test_##msg_type##_##func##_, __LINE__) = Gamnet::Test::BindRecvHandler<session_type, msg_type>(test_name, &recv_func)
+	static bool TOKEN_PASTE2(Test_##recv_func##_, __LINE__) = Gamnet::Test::BindRecvHandler<session_type, msg_type>(test_name, &recv_func)
 
 #endif /* TEST_H_ */
