@@ -1,5 +1,4 @@
 #include "Handler_Delete.h"
-#include "../../../idl/MessageUser.h"
 #include "../../Component/Account.h"
 
 namespace Handler { namespace User {
@@ -12,18 +11,12 @@ Handler_Delete::~Handler_Delete()
 {
 }
 
-void Handler_Delete::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_Delete::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::User::MsgCliSvr_Delete_Req& req)
 {
-	Message::User::MsgCliSvr_Delete_Req req;
 	Message::User::MsgSvrCli_Delete_Ans ans;
 	ans.error_code = Message::ErrorCode::Success;
 
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
-		}
-
 		LOG(DEV, "MsgCliSvr_Delete_Req()");
 		auto account = session->GetComponent<Component::Account>();
 		if(nullptr == account)

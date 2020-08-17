@@ -1,7 +1,6 @@
 #include "Handler_Login.h"
 #include "../../Component/Counter.h"
 #include "../../../idl/MessageItem.h"
-#include "../../../idl/MessageUser.h"
 #include "../../Component/Account.h"
 #include "../../Component/UserData.h"
 #include "../../Component/Item.h"
@@ -17,20 +16,14 @@ Handler_Login::~Handler_Login()
 {
 }
 
-void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::User::MsgCliSvr_Login_Req& req)
 {
-	Message::User::MsgCliSvr_Login_Req req;
 	Message::User::MsgSvrCli_Login_Ans ans;
 	ans.error_code = Message::ErrorCode::Success;
 	ans.user_data.user_seq = 0;
 	ans.user_data.user_name = "";
 
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
-		}
-
 		LOG(DEV, "MsgCliSvr_Login_Req(account_id:", req.account_id, ")");
 
 		ReadAccountData(session, req.account_id, req.account_type);
@@ -64,41 +57,6 @@ GAMNET_BIND_TCP_HANDLER(
 	Handler_Login, Recv_Req,
 	HandlerCreate
 );
-
-void Handler_Login::Recv_ReqA(const std::shared_ptr<UserSession>& session, const Message::User::MsgCliSvr_Login_Req& req)
-{
-	Message::User::MsgSvrCli_Login_Ans ans;
-	ans.error_code = Message::ErrorCode::Success;
-	ans.user_data.user_seq = 0;
-	ans.user_data.user_name = "";
-
-	try {
-		LOG(DEV, "MsgCliSvr_Login_Req(account_id:", req.account_id, ")");
-
-		ReadAccountData(session, req.account_id, req.account_type);
-		ReadUserData(session);
-		ReadUserCounter(session);
-		ReadUserItem(session);
-
-
-		std::shared_ptr<Component::UserData> userData = session->GetComponent<Component::UserData>();
-		ans.user_data.user_seq = userData->user_seq;
-		ans.user_data.user_name = userData->user_name;
-	}
-	catch (const Gamnet::Exception& e)
-	{
-		ans.error_code = (Message::ErrorCode)e.error_code();
-		if (Message::ErrorCode::InvalidUserError != ans.error_code)
-		{
-			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		}
-		session->RemoveComponent<Component::Account>();
-		session->user_seq = 0;
-		session->shard_index = 0;
-	}
-	LOG(DEV, "MsgSvrCli_Login_Ans(error_code:", (int)ans.error_code, ", user_seq:", ans.user_data.user_seq, ")");
-	Gamnet::Network::Tcp::SendMsg(session, ans);
-}
 
 void Handler_Login::ReadAccountData(const std::shared_ptr<UserSession>& session, const std::string& accountID, Message::AccountType accountType)
 {

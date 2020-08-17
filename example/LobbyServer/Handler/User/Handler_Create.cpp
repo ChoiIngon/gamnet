@@ -1,5 +1,5 @@
 #include "Handler_Create.h"
-#include "../../../idl/MessageUser.h"
+
 #include "../../Component/Account.h"
 
 namespace Handler { namespace User {
@@ -53,18 +53,12 @@ namespace Handler { namespace User {
 	{
 	}
 
-	void Handler_Create::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+	void Handler_Create::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::User::MsgCliSvr_Create_Req& req)
 	{
-		Message::User::MsgCliSvr_Create_Req req;
 		Message::User::MsgSvrCli_Create_Ans ans;
 		ans.error_code = Message::ErrorCode::Success;
 
 		try {
-			if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
-			}
-
 			LOG(DEV, "MsgCliSvr_User_Create_Req(account_id:", req.account_id, ")");
 
 			if(nullptr != session->GetComponent<Component::Account>())

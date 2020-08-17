@@ -1,5 +1,4 @@
 #include "Handler_Join.h"
-#include "../../../idl/MessageLobby.h"
 #include "../../Component/UserData.h"
 #include "../../Component/Event.h"
 #include "../../Component/Mail.h"
@@ -14,18 +13,12 @@ Handler_Join::~Handler_Join()
 {
 }
 
-void Handler_Join::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_Join::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Lobby::MsgCliSvr_Join_Req& req)
 {
-	Message::Lobby::MsgCliSvr_Join_Req req;
 	Message::Lobby::MsgSvrCli_Join_Ans ans;
 	ans.error_code = Message::ErrorCode::Success;
 	
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
-		}
-
 		LOG(DEV, "Lobby::MsgCliSvr_Join_Req()");
 		if (nullptr == session->GetComponent<Component::UserData>())
 		{

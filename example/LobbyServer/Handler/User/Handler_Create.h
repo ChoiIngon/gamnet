@@ -2,6 +2,7 @@
 #define HANDLER_USER_CREATE_H_
 
 #include "../../UserSession.h"
+#include "../../../idl/MessageUser.h"
 #include <Gamnet/Library/MetaData.h>
 
 namespace Handler {	namespace User {
@@ -11,7 +12,7 @@ namespace Handler {	namespace User {
 		Handler_Create();
 		virtual ~Handler_Create();
 
-		void Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
+		void Recv_Req(const std::shared_ptr<UserSession>& session, const Message::User::MsgCliSvr_Create_Req& req);
 	};
 }}
 #endif /* HANDLER_LOGIN_H_ */

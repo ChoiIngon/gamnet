@@ -1,5 +1,4 @@
 #include "Handler_OpenPackage.h"
-#include "../../../idl/MessageItem.h"
 #include "../../Component/UserData.h"
 #include "../../Component/Bag.h"
 #include "../../Component/Item.h"
@@ -14,18 +13,12 @@ Handler_OpenPackage::~Handler_OpenPackage()
 {
 }
 
-void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Item::MsgCliSvr_OpenPackage_Req& req)
 {
-	Message::Item::MsgCliSvr_OpenPackage_Req req;
 	Message::Item::MsgSvrCli_OpenPackage_Ans ans;
 	ans.error_code = Message::ErrorCode::Success;
 	
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
-		}
-
 		LOG(DEV, "Lobby::MsgCliSvr_OpenPackage_Req()");
 		if(nullptr == session->GetComponent<Component::UserData>())
 		{

@@ -2,6 +2,7 @@
 #define HANDLER_LOBBY_JOIN_H_
 
 #include "../../UserSession.h"
+#include "../../../idl/MessageLobby.h"
 
 namespace Handler {	namespace Lobby {
 
@@ -11,7 +12,7 @@ public:
 	Handler_Join();
 	virtual ~Handler_Join();
 
-	void Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
+	void Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Lobby::MsgCliSvr_Join_Req& req);
 
 private :
 	void LoadUserEvent(const std::shared_ptr<UserSession>& session);

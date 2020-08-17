@@ -2,6 +2,7 @@
 #define USER_LOGIN_HANDLER_DELETE_H_
 
 #include "../../UserSession.h"
+#include "../../../idl/MessageUser.h"
 
 namespace Handler { namespace User {
 
@@ -11,7 +12,7 @@ public:
 	Handler_Delete();
 	virtual ~Handler_Delete();
 
-	void Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
+	void Recv_Req(const std::shared_ptr<UserSession>& session, const Message::User::MsgCliSvr_Delete_Req& req);
 };
 }}
 #endif 

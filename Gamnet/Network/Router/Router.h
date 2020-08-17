@@ -87,7 +87,7 @@ namespace Gamnet { namespace Network { namespace Router
 	}
 
 	template <class MSG>
-	bool SendMsg(const Address& addr, const MSG& msg, std::function<void(const std::shared_ptr<Tcp::Packet>&)> onReceive, std::function<void(const Exception&)> onException, int timeout)
+	bool SendMsg(const Address& addr, const MSG& msg, std::shared_ptr<IResponseHandler> responseHandler, std::function<void(const Exception&)> onException, int timeout)
 	{
 		std::shared_ptr<Session> session = Singleton<RouterCaster>::GetInstance().FindSession(addr);
 		if (nullptr == session)
@@ -132,7 +132,7 @@ namespace Gamnet { namespace Network { namespace Router
 			return false;
 		}
 
-		session->AsyncSend(packet, onReceive, onException, timeout);
+		session->AsyncSend(packet, responseHandler, onException, timeout);
 		return true;
 	}
 	
@@ -197,6 +197,8 @@ namespace Gamnet { namespace Network { namespace Router
 		&class_type::func, \
 		new Gamnet::Network::policy<class_type>() \
 	)
+#define GAMNET_BIND_RESPONSE_HANDLER(message_type, class_type, func_type, ...) \
+	std::make_shared<Gamnet::Network::Router::ResponseHandler<message_type>>(std::bind(&class_type::func_type, std::static_pointer_cast<class_type>(shared_from_this()), ##__VA_ARGS__, std::placeholders::_1))
 #else
 #define GAMNET_BIND_ROUTER_HANDLER(message_type, class_type, func, policy) \
 	static bool TOKEN_PASTE2(Router_##class_type##_##func, __LINE__) = Gamnet::Network::Router::BindHandler( \

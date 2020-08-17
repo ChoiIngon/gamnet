@@ -2,6 +2,7 @@
 #define HANDLER_ITEM_OPEN_PACKAGE_ITEM_H_
 
 #include "../../UserSession.h"
+#include "../../../idl/MessageItem.h"
 
 namespace Handler {	namespace Item {
 
@@ -11,7 +12,7 @@ namespace Handler {	namespace Item {
 		Handler_OpenPackage();
 		virtual ~Handler_OpenPackage();
 
-		void Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
+		void Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Item::MsgCliSvr_OpenPackage_Req& req);
 	};
 
 }}

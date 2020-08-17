@@ -2,6 +2,7 @@
 #define HANDLER_LOBBY_OPON_MAIL_H_
 
 #include "../../UserSession.h"
+#include "../../../idl/MessageLobby.h"
 
 namespace Handler {	namespace Lobby {
 
@@ -11,7 +12,7 @@ namespace Handler {	namespace Lobby {
 		Handler_OpenMail();
 		virtual ~Handler_OpenMail();
 
-		void Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
+		void Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Lobby::MsgCliSvr_OpenMail_Req& req);
 	};
 
 }}
