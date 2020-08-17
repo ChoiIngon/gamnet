@@ -14,11 +14,23 @@ namespace Gamnet { namespace Network { namespace Router
 	void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler = [](const Address&){}, const std::function<void(const Address& addr)>& closeHandler = [](const Address&) {});
 	void Connect(const std::string& host, int port, int timeout);
 
-	template <class FUNC, class FACTORY>
-	bool BindHandler(unsigned int msg_id, FUNC func, FACTORY factory)
+#ifndef _USE_PACKET_HANDLER
+	template <class MsgType, class FunctionType, class FactoryType>
+	bool BindHandler(const std::string& name, FunctionType function, FactoryType factory)
 	{
-		return Singleton<Dispatcher>::GetInstance().BindHandler(msg_id, func, factory);
+		typedef HandlerFunctor<MsgType> HandlerFunctorType;
+		std::shared_ptr<IHandlerFunctor> handlerFunctor = std::make_shared<HandlerFunctorType>(name, factory, static_cast<HandlerFunctorType::FunctionType>(function));
+		return Singleton<Dispatcher>::GetInstance().BindHandler(MsgType::MSG_ID, handlerFunctor);
 	}
+#else
+	template <class FunctionType, class FactoryType>
+	bool BindHandler(unsigned int msg_id, const std::string& name, FunctionType function, FactoryType factory)
+	{
+		typedef HandlerFunctor<std::shared_ptr<Tcp::Packet>> HandlerFunctorType;
+		std::shared_ptr<IHandlerFunctor> handlerFunctor = std::make_shared<HandlerFunctorType>(name, factory, static_cast<HandlerFunctorType::FunctionType>(function));
+		return Singleton<Dispatcher>::GetInstance().BindHandler(msg_id, handlerFunctor);
+	}
+#endif
 	
 	template <class MSG>
 	bool SendMsg(const Address& addr, const MSG& msg)
@@ -178,11 +190,20 @@ namespace Gamnet { namespace Network { namespace Router
 	}
 }}}
 
+#ifndef _USE_PACKET_HANDLER
 #define GAMNET_BIND_ROUTER_HANDLER(message_type, class_type, func, policy) \
-	static bool Router_##message_type##_##func = Gamnet::Network::Router::BindHandler( \
-		message_type::MSG_ID, \
+	static bool TOKEN_PASTE2(Router_##class_type##_##func, __LINE__) = Gamnet::Network::Router::BindHandler<message_type>( \
+		#message_type, \
 		&class_type::func, \
 		new Gamnet::Network::policy<class_type>() \
 	)
-
+#else
+#define GAMNET_BIND_ROUTER_HANDLER(message_type, class_type, func, policy) \
+	static bool TOKEN_PASTE2(Router_##class_type##_##func, __LINE__) = Gamnet::Network::Router::BindHandler( \
+		message_type::MSG_ID, \
+		#message_type, \
+		&class_type::func, \
+		new Gamnet::Network::policy<class_type>() \
+	)
+#endif
 #endif /* ROUTER_H_ */

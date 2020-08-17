@@ -6,7 +6,7 @@
 #include "Session.h"
 
 namespace Gamnet { namespace Network { namespace Http {
-
+	
 class Dispatcher {
 public:
 	typedef void(Network::IHandler::*function_type)(const std::shared_ptr<Session>&, const Request&);

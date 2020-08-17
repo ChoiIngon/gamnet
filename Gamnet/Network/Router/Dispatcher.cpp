@@ -4,10 +4,6 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 	
-	Dispatcher::HandlerFunctor::HandlerFunctor() 
-	{
-	}
-
 	Dispatcher::Dispatcher() 
 	{
 	}
@@ -25,20 +21,14 @@ namespace Gamnet { namespace Network { namespace Router {
 			return;
 		}
 
-		std::shared_ptr<HandlerFunctor> handlerFunctor = itr->second;
-		std::shared_ptr<Network::IHandler> handler = handlerFunctor->factory_->GetHandler();
-		if (nullptr == handler)
-		{
-			LOG(GAMNET_ERR, "can't find handler instance(msg_seq:", packet->msg_seq, ", msg_id:", packet->msg_id, ")");
-			return;
-		}
+		std::shared_ptr<IHandlerFunctor> handlerFunctor = itr->second;
+		session->send_seq = packet->msg_seq;
+
+		Address addr = session->router_address;
+		addr.session = session;
 
 		try {
-			session->send_seq = packet->msg_seq;
-				
-			Address addr = session->router_address;
-			addr.session = session;
-			handlerFunctor->function_(handler, addr, packet);
+			handlerFunctor->OnReceive(addr, packet);
 		}
 		catch (const std::exception& e)
 		{

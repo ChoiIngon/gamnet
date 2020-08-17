@@ -19,13 +19,9 @@
 #include "SystemMessageHandler.h"
 
 namespace Gamnet {	namespace Network { namespace Tcp {
-
-	template <class SESSION_T>
-	class Dispatcher
+	class IHandlerFunctor
 	{
-		GAMNET_WHERE(SESSION_T, Session);
-
-		typedef void(IHandler::*function_type)(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Packet>&);
+	public:
 #ifdef _DEBUG
 		struct Statistics
 		{
@@ -39,47 +35,106 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 			}
 		};
 #endif
-		struct HandlerFunctor
+		IHandlerFunctor(const std::string& name, IHandlerFactory* factory) : name(name), factory(factory) {}
+		virtual void OnReceive(const std::shared_ptr<Session>&, const std::shared_ptr<Packet>&) = 0;
+
+		Statistics statistics;
+		const std::string name;
+	protected:
+		IHandlerFactory* const factory;
+	};
+
+	template <class SessionType, class MsgType>
+	class HandlerFunctor : public IHandlerFunctor
+	{
+	public:
+		typedef SessionType SessionType;
+		typedef MsgType MsgType;
+		typedef void(IHandler::*FunctionType)(const std::shared_ptr<SessionType>&, const MsgType&);
+
+		template<class FactoryType>
+		HandlerFunctor(const std::string& name, FactoryType* factory, FunctionType function) : IHandlerFunctor(name, factory), function(function) {}
+
+		virtual void OnReceive(const std::shared_ptr<Session>& session, const std::shared_ptr<Packet>& packet) override
 		{
-			template<class FACTORY, class FUNCTION>
-#ifdef _WIN32
-			HandlerFunctor(const std::string& name, FACTORY* factory, FUNCTION function) : name(name), factory(factory), function(std::mem_fn(function)) {}
-#else
-			HandlerFunctor(const std::string& name, FACTORY* factory, FUNCTION function) : name(name), factory(factory), function(function) {}
-#endif
-			const std::string& name;
-			IHandlerFactory* factory;
-			std::function<void(const std::shared_ptr<IHandler>&, const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Packet>&)> function;
-#ifdef _DEBUG
-			Statistics* statistics;
-#endif
-		};
-		std::map<uint32_t, HandlerFunctor> handler_functors;
+			std::shared_ptr<IHandler> handler = factory->GetHandler();
+			if (nullptr == handler)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't create message handler instance(name:", name, ", msg_id:", MsgType::MSG_ID, ")");
+			}
+
+			MsgType msg;
+			if (false == Gamnet::Network::Tcp::Packet::Load(msg, packet))
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail(name:", name, ", msg_id:", MsgType::MSG_ID, ")");
+			}
+
+			function(handler, std::static_pointer_cast<SessionType>(session), msg);
+		}
+	private:
+		std::function<void(const std::shared_ptr<IHandler>&, const std::shared_ptr<SessionType>&, const MsgType&)> function;
+	};
+
+	template <class SessionType>
+	class HandlerFunctor<SessionType, std::shared_ptr<Packet>> : public IHandlerFunctor
+	{
+	public:
+		typedef SessionType SessionType;
+		typedef std::shared_ptr<Packet> MsgType;
+		typedef void(IHandler::* FunctionType)(const std::shared_ptr<SessionType>&, const std::shared_ptr<Packet>&);
+
+		template<class FactoryType>
+		HandlerFunctor(const std::string& name, FactoryType* factory, FunctionType function) : IHandlerFunctor(name, factory), function(function) {}
+
+		virtual void OnReceive(const std::shared_ptr<Session>& session, const std::shared_ptr<Packet>& packet) override
+		{
+			std::shared_ptr<IHandler> handler = factory->GetHandler();
+			if (nullptr == handler)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't create message handler instance(name:", name, ")");
+			}
+
+			function(handler, std::static_pointer_cast<SessionType>(session), packet);
+		}
+	private:
+		std::function<void(const std::shared_ptr<IHandler>&, const std::shared_ptr<SessionType>&, const std::shared_ptr<Packet>&)> function;
+	};
+
+	template <class SESSION_T>
+	class Dispatcher
+	{
+		GAMNET_WHERE(SESSION_T, Session);
 	public:
 		Dispatcher()
 		{
-			BindHandler(MSG_ID::MsgID_CliSvr_Connect_Req, "MsgID_CliSvr_Connect_Req", &SystemMessageHandler<SESSION_T>::Recv_Connect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-			BindHandler(MSG_ID::MsgID_CliSvr_Reconnect_Req, "MsgID_CliSvr_Reconnect_Req", &SystemMessageHandler<SESSION_T>::Recv_Reconnect_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-			BindHandler(MSG_ID::MsgID_CliSvr_Close_Req, "MsgID_CliSvr_Close_Req", &SystemMessageHandler<SESSION_T>::Recv_Close_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-			BindHandler(MSG_ID::MsgID_CliSvr_HeartBeat_Req, "MsgID_CliSvr_HeartBeat_Req", &SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Req, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
-			BindHandler(MSG_ID::MsgID_CliSvr_ReliableAck_Ntf, "MsgID_CliSvr_ReliableAck_Ntf", &SystemMessageHandler<SESSION_T>::Recv_ReliableAck_Ntf, new HandlerStatic<SystemMessageHandler<SESSION_T>>());
+			typedef HandlerFunctor<SESSION_T, std::shared_ptr<Packet>> PacketHandlerFunctorType;
+			IHandlerFactory* handlerFactory = new HandlerStatic<SystemMessageHandler<SESSION_T>>();
+			BindHandler(MSG_ID::MsgID_CliSvr_Connect_Req,	std::make_shared<PacketHandlerFunctorType>(
+				"MsgID_CliSvr_Connect_Req",		handlerFactory, static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Connect_Req)
+			));
+			BindHandler(MSG_ID::MsgID_CliSvr_Reconnect_Req,	std::make_shared<PacketHandlerFunctorType>(
+				"MsgID_CliSvr_Reconnect_Req",	handlerFactory, static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Reconnect_Req)
+			));
+			BindHandler(MSG_ID::MsgID_CliSvr_Close_Req,		std::make_shared<PacketHandlerFunctorType>(
+				"MsgID_CliSvr_Close_Req",		handlerFactory, static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Close_Req)
+			));
+			BindHandler(MSG_ID::MsgID_CliSvr_HeartBeat_Req,	std::make_shared<PacketHandlerFunctorType>(
+				"MsgID_CliSvr_HeartBeat_Req",	handlerFactory, static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Req)
+			));
+			BindHandler(MSG_ID::MsgID_CliSvr_ReliableAck_Ntf, std::make_shared<PacketHandlerFunctorType>(
+				"MsgID_CliSvr_ReliableAck_Ntf", handlerFactory,	static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_ReliableAck_Ntf)
+			));
 		}
 		~Dispatcher() {}
 
-		template <class FUNC, class FACTORY>
-		bool BindHandler(uint32_t msg_id, const char* name, FUNC func, FACTORY factory)
+		bool BindHandler(uint32_t msg_id, const std::shared_ptr<IHandlerFunctor>& handlerFunctor)
 		{
-			HandlerFunctor handlerFunctor(name, factory, static_cast<function_type>(func));
-#ifdef _DEBUG
-			handlerFunctor.statistics = new Statistics();
-#endif
-
 			if (false == handler_functors.insert(std::make_pair(msg_id, handlerFunctor)).second)
 			{
 #ifdef _WIN32
-				MessageBoxA(nullptr, Format("duplicate handler(msg_id:", msg_id, ", name : ", name, ")").c_str(), "Duplicate Handler Error", MB_ICONWARNING);
+				MessageBoxA(nullptr, Format("duplicate handler(msg_id:", msg_id, ", name : ", handlerFunctor->name, ")").c_str(), "Duplicate Handler Error", MB_ICONWARNING);
 #endif
-				throw Exception(0, "[", __FILE__, ":", __func__, "@", __LINE__, "] duplicate handler(msg_id:", msg_id, ", name:", name, ")");
+				throw Exception(0, "[", __FILE__, ":", __func__, "@", __LINE__, "] duplicate handler(msg_id:", msg_id, ", name:", handlerFunctor->name, ")");
 			}
 			return true;
 		}
@@ -98,18 +153,13 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
 			}
 
-			const HandlerFunctor& handlerFunctor = itr->second;
-			std::shared_ptr<IHandler> handler = handlerFunctor.factory->GetHandler();
-			if (nullptr == handler)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't find handler function(msg_id:", packet->msg_id, ")");
-			}
+			const std::shared_ptr<IHandlerFunctor>& handlerFunctor = itr->second;
 #ifdef _DEBUG
 			Time::ElapseTimer elapseTimer;
-			Statistics* statistics = handlerFunctor.statistics;
-			statistics->begin_count++;
+			IHandlerFunctor::Statistics& statistics = handlerFunctor->statistics;
+			statistics.begin_count++;
 #endif
-			handlerFunctor.function(handler, session, packet);
+			handlerFunctor->OnReceive(session, packet);
 			
 			if (true == packet->reliable)
 			{
@@ -117,11 +167,14 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 			}
 #ifdef _DEBUG
 			int64_t elapsedTime = elapseTimer.Count();
-			statistics->max_time = std::max(statistics->max_time, elapsedTime);
-			statistics->total_time += elapsedTime;
-			statistics->finish_count++;
+			statistics.max_time = std::max(statistics.max_time, elapsedTime);
+			statistics.total_time += elapsedTime;
+			statistics.finish_count++;
 #endif
 		}
+
+	private :
+		std::map<uint32_t, std::shared_ptr<IHandlerFunctor>> handler_functors;
 	};
 }}}
 #endif /* DISPATCHER_H_ */

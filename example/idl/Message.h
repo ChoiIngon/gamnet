@@ -6,6 +6,7 @@
 #include <map>
 #include <cstring>
 #include <stdint.h>
+#include <stdexcept>
 enum class ErrorCode {
 	Success = 0,
 	MessageFormatError = 1000,

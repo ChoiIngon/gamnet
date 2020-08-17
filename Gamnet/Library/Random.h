@@ -7,6 +7,7 @@
 #include <list>
 #include <limits>
 
+#undef max
 namespace Gamnet {
 	class MT19937Wrapper {
 	public :

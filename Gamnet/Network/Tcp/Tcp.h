@@ -34,11 +34,23 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		Listen<SESSION_T>(config.port, config.max_count, config.keep_alive, config.accept_queue);
 	}
 
-	template <class SESSION_T, class FUNC, class FACTORY>
-	bool BindHandler(unsigned int msg_id, const char* name, FUNC func, FACTORY factory)
+#ifndef _USE_PACKET_HANDLER
+	template <class SessionType, class MsgType, class FunctionType, class FactoryType>
+	bool BindHandler(const std::string& name, FunctionType function, FactoryType factory)
 	{
-		return Singleton<Dispatcher<SESSION_T>>::GetInstance().BindHandler(msg_id, name, func, factory);
+		typedef HandlerFunctor<SessionType, MsgType> HandlerFunctorType;
+		std::shared_ptr<IHandlerFunctor> handlerFunctor = std::make_shared<HandlerFunctorType>(name, factory, static_cast<HandlerFunctorType::FunctionType>(function));
+		return Singleton<Dispatcher<SessionType>>::GetInstance().BindHandler(MsgType::MSG_ID, handlerFunctor);
 	}
+#else
+	template <class SessionType, class FunctionType, class FactoryType>
+	bool BindHandler(uint32_t msg_id, const std::string& name, FunctionType function, FactoryType factory)
+	{
+		typedef HandlerFunctor<SessionType, std::shared_ptr<Packet>> HandlerFunctorType;
+		std::shared_ptr<IHandlerFunctor> handlerFunctor = std::make_shared<HandlerFunctorType>(name, factory, static_cast<HandlerFunctorType::FunctionType>(function));
+		return Singleton<Dispatcher<SessionType>>::GetInstance().BindHandler(msg_id, handlerFunctor);
+	}
+#endif
 
 	template <class SESSION_T, class MSG>
 	void SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = true)
@@ -88,6 +100,14 @@ namespace Gamnet { namespace Network { namespace Tcp {
 #define TOKEN_PASTE(x, y) x##y
 #define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
 
+#ifndef _USE_PACKET_HANDLER
+#define GAMNET_BIND_TCP_HANDLER(session_type, message_type, class_type, func, policy) \
+	static bool TOKEN_PASTE2(Network_##class_type##_##func, __LINE__) = Gamnet::Network::Tcp::BindHandler<session_type, message_type>( \
+			#message_type, \
+			&class_type::func, \
+			new Gamnet::Network::policy<class_type>() \
+	)
+#else
 #define GAMNET_BIND_TCP_HANDLER(session_type, message_type, class_type, func, policy) \
 	static bool TOKEN_PASTE2(Network_##class_type##_##func, __LINE__) = Gamnet::Network::Tcp::BindHandler<session_type>( \
 			message_type::MSG_ID, \
@@ -95,5 +115,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			&class_type::func, \
 			new Gamnet::Network::policy<class_type>() \
 	)
+#endif
 
 #endif /* NETWORK_H_ */

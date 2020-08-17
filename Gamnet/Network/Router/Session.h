@@ -85,7 +85,33 @@ private:
 class AsyncSession : public Network::Tcp::Session
 {
 public :
-	struct ResponseHandler
+	struct IResponseHandler
+	{
+		struct Init
+		{
+			IResponseHandler* operator() (IResponseHandler* resHandler)
+			{
+				return resHandler;
+			}
+		};
+
+		struct Release
+		{
+			IResponseHandler* operator() (IResponseHandler* resHandler) {
+				resHandler->msg_seq = 0;
+				resHandler->expire_time = 0;
+				resHandler->on_exception = nullptr;
+				return resHandler;
+			};
+		};
+
+		uint32_t msg_seq;
+		int expire_time;
+		virtual void OnReceive(const std::shared_ptr<Tcp::Packet>&) = 0;
+		std::function<void(const Exception&)> on_exception;
+	};
+
+	struct ResponseHandler : IResponseHandler
 	{
 		struct Init
 		{
@@ -106,10 +132,8 @@ public :
 			};
 		};
 
-		uint32_t msg_seq;
-		int expire_time;
 		std::function<void(const std::shared_ptr<Tcp::Packet>&)> on_receive;
-		std::function<void(const Exception&)> on_exception;
+		virtual void OnReceive(const std::shared_ptr<Tcp::Packet>&) {};
 	};
 public :
 	AsyncSession();
@@ -118,7 +142,18 @@ public :
 
 	using Network::Session::AsyncSend;
 	void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet);
-	void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int timeout);
+	void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int seconds)
+	{
+		std::shared_ptr<ResponseHandler> responseHandler = response_handler_pool.Create();
+		responseHandler->msg_seq = packet->msg_seq;
+		responseHandler->expire_time = time(nullptr) + seconds;
+		responseHandler->on_receive = onReceive;
+		responseHandler->on_exception = onException;
+
+		SetTimeout(responseHandler);
+		Network::Session::AsyncSend(packet);
+	}
+
 
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 

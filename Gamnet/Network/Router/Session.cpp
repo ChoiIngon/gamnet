@@ -273,21 +273,6 @@ void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 	Network::Session::AsyncSend(packet);
 }
 
-void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, std::function<void(const std::shared_ptr<Tcp::Packet>&)>& onReceive, std::function<void(const Exception&)>& onException, int seconds)
-{
-	//read_done = false;
-	//AsyncRead();
-
-	std::shared_ptr<ResponseHandler> responseHandler = response_handler_pool.Create();
-	responseHandler->msg_seq = packet->msg_seq;
-	responseHandler->expire_time = time(nullptr) + seconds;
-	responseHandler->on_receive = onReceive;
-	responseHandler->on_exception = onException;
-
-	SetTimeout(responseHandler);
-	Network::Session::AsyncSend(packet);
-}
-
 void AsyncSession::SetTimeout(const std::shared_ptr<ResponseHandler>& responseHandler)
 {
 	auto self = shared_from_this();

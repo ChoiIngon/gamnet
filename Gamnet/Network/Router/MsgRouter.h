@@ -6,6 +6,7 @@
 #include <map>
 #include <cstring>
 #include <stdint.h>
+#include <stdexcept>
 
 #include <sstream>
 #include <memory>

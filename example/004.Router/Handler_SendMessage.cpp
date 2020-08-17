@@ -8,17 +8,11 @@ Handler_SendMessage::Handler_SendMessage() {
 Handler_SendMessage::~Handler_SendMessage() {
 }
 
-void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& session, const MsgCliSvr_SendMessage_Req& reqCliSvr)
 {
-	MsgCliSvr_SendMessage_Req reqCliSvr;
 	MsgSvrSvr_SendMessage_Req reqSvrSvr;
 	MsgSvrCli_SendMessage_Ans ansSvrCli;
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(reqCliSvr, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
-		}
-
 		LOG(INF, "--- [RECV] MsgCliSvr_SendMessage_Req(session_key:", session->session_key, ", message:", reqCliSvr.text, ")");
 		reqSvrSvr.text = reqCliSvr.text;
 
@@ -73,17 +67,11 @@ GAMNET_BIND_TCP_HANDLER(
 	HandlerCreate
 );
 
-void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address& address, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address& address, const MsgSvrSvr_SendMessage_Req& reqSvrSvr)
 {
-	MsgSvrSvr_SendMessage_Req reqSvrSvr;
 	MsgSvrSvr_SendMessage_Ans ansSvrSvr;
 	ansSvrSvr.error_code = ErrorCode::Success;
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(reqSvrSvr, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
-		}
-
 		LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Req(session_key:", address.session.lock()->session_key, ", router_address:", address.ToString(), ", message:", reqSvrSvr.text, ")");
 	}
 	catch (const Gamnet::Exception& e)
@@ -125,23 +113,11 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const std::shared_ptr<UserSession>& se
 		Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 	});
 }
-/*
-GAMNET_BIND_ROUTER_HANDLER(
-	MsgSvrSvr_SendMessage_Ans,
-	Handler_SendMessage, Recv_SvrSvr_Ans,
-	HandlerStatic
-);
-*/
-void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+
+void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& session, const MsgCliSvr_SendMessage_Ntf& ntfCliSvr)
 {
-	MsgCliSvr_SendMessage_Ntf ntfCliSvr;
 	MsgSvrSvr_SendMessage_Ntf ntfSvrSvr;
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(ntfCliSvr, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
-		}
-
 		LOG(INF, " --- MsgCliSvr_SendMessage_Ntf(session_key:", session->session_key, ", message:", ntfCliSvr.text, ")");
 		ntfSvrSvr.text = ntfCliSvr.text;
 	}
@@ -166,16 +142,11 @@ GAMNET_BIND_TCP_HANDLER(
 	HandlerCreate
 );
 
-void Handler_SendMessage::Recv_SvrSvr_Ntf(const std::shared_ptr<Gamnet::Network::Router::Session>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_SendMessage::Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address& address, const MsgSvrSvr_SendMessage_Ntf& ntfSvrSvr)
 {
-	MsgSvrSvr_SendMessage_Ntf ntfSvrSvr;
 	MsgSvrCli_SendMessage_Ntf ntfSvrCli;
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(ntfSvrSvr, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
-		}
-		LOG(INF, "RECV MsgSvrSvr_SendMessage_Ntf(from:", session->router_address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", ntfSvrSvr.text, ")");
+		LOG(INF, "RECV MsgSvrSvr_SendMessage_Ntf(from:", address.session.lock()->router_address.service_name, ", to:", Gamnet::Network::Router::GetRouterAddress().service_name, ", message:", ntfSvrSvr.text, ")");
 		ntfSvrCli.text = ntfSvrSvr.text;
 	}
 	catch (const Gamnet::Exception& e)
@@ -254,25 +225,3 @@ GAMNET_BIND_TEST_HANDLER(
 	MsgCliSvr_SendMessage_Ntf, Test_CliSvr_SendMessage_Ntf, 
 	MsgSvrCli_SendMessage_Ntf, Test_SvrCli_SendMessage_Ntf
 );
-
-/*
-static std::mutex lock;
-static std::set<Gamnet::Network::Router::Address> addresses;
-static Gamnet::Timer timer;
-void StartRouterMessageTimer()
-{
-	timer.AutoReset(false);
-	timer.SetTimer(10000, []() {
-		std::lock_guard<std::mutex> lo(lock);
-		for (auto& itr : addresses)
-		{
-			MsgSvrSvr_SendMessage_Req req;
-			req.Message = "Hello World";
-			LOG(INF, "SEND MsgSvrSvr_SendMessage_Req(from:", Gamnet::Network::Router::GetRouterAddress().service_name, ", to:", itr.service_name, ", message:", req.Message, ")");
-			Gamnet::Network::Router::SendMsg(itr, req);
-		}
-		StartRouterMessageTimer();
-	});
-}
-
-*/

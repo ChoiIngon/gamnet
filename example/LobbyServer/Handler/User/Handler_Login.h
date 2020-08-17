@@ -2,10 +2,11 @@
 #define USER_LOGIN_HANDLER_H_
 
 #include "../../UserSession.h"
+#include "../../../idl/MessageUser.h"
 #include <Gamnet/Library/MetaData.h>
 
 namespace Handler { namespace User {
-
+	
 class Handler_Login : public Gamnet::Network::IHandler
 {
 public:
@@ -13,6 +14,8 @@ public:
 	virtual ~Handler_Login();
 
 	void Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
+
+	void Recv_ReqA(const std::shared_ptr<UserSession>& session, const Message::User::MsgCliSvr_Login_Req& req);
 
 private :
 	void ReadAccountData(const std::shared_ptr<UserSession>& session, const std::string& accountID, Message::AccountType accountType);
