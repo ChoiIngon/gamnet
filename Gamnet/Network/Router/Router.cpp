@@ -21,25 +21,25 @@ void Listen(const std::string& serviceName, int port, const std::function<void(c
 	IHandlerFactory* handlerFactory = new Network::HandlerStatic<RouterHandler>();
 	typedef Tcp::HandlerFunctor<Session, std::shared_ptr<Tcp::Packet>> HandlerFunctorType;
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_Connect_Req::MSG_ID, 
-		std::make_shared<HandlerFunctorType>("MsgRouter_Connect_Req", handlerFactory, static_cast<HandlerFunctorType::FunctionType>(&RouterHandler::Recv_Connect_Req))
+		std::make_shared<HandlerFunctorType>("MsgRouter_Connect_Req", handlerFactory, static_cast<typename HandlerFunctorType::FunctionType>(&RouterHandler::Recv_Connect_Req))
 	);
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_Connect_Ans::MSG_ID,
-		std::make_shared<HandlerFunctorType>("MsgRouter_Connect_Ans", handlerFactory, static_cast<HandlerFunctorType::FunctionType>(&RouterHandler::Recv_Connect_Ans))
+		std::make_shared<HandlerFunctorType>("MsgRouter_Connect_Ans", handlerFactory, static_cast<typename HandlerFunctorType::FunctionType>(&RouterHandler::Recv_Connect_Ans))
 	);
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_RegisterAddress_Req::MSG_ID,
-		std::make_shared<HandlerFunctorType>("MsgRouter_RegisterAddress_Req", handlerFactory, static_cast<HandlerFunctorType::FunctionType>(&RouterHandler::Recv_RegisterAddress_Req))
+		std::make_shared<HandlerFunctorType>("MsgRouter_RegisterAddress_Req", handlerFactory, static_cast<typename HandlerFunctorType::FunctionType>(&RouterHandler::Recv_RegisterAddress_Req))
 	);
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_RegisterAddress_Ans::MSG_ID,
-		std::make_shared<HandlerFunctorType>("MsgRouter_RegisterAddress_Ans", handlerFactory, static_cast<HandlerFunctorType::FunctionType>(&RouterHandler::Recv_RegisterAddress_Ans))
+		std::make_shared<HandlerFunctorType>("MsgRouter_RegisterAddress_Ans", handlerFactory, static_cast<typename HandlerFunctorType::FunctionType>(&RouterHandler::Recv_RegisterAddress_Ans))
 	);
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_RegisterAddress_Ntf::MSG_ID,
-		std::make_shared<HandlerFunctorType>("MsgRouter_RegisterAddress_Ntf", handlerFactory, static_cast<HandlerFunctorType::FunctionType>(&RouterHandler::Recv_RegisterAddress_Ntf))
+		std::make_shared<HandlerFunctorType>("MsgRouter_RegisterAddress_Ntf", handlerFactory, static_cast<typename HandlerFunctorType::FunctionType>(&RouterHandler::Recv_RegisterAddress_Ntf))
 	);
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_SendMsg_Ntf::MSG_ID,
-		std::make_shared<HandlerFunctorType>("MsgRouter_SendMsg_Ntf", handlerFactory, static_cast<HandlerFunctorType::FunctionType>(&RouterHandler::Recv_SendMsg_Ntf))
+		std::make_shared<HandlerFunctorType>("MsgRouter_SendMsg_Ntf", handlerFactory, static_cast<typename HandlerFunctorType::FunctionType>(&RouterHandler::Recv_SendMsg_Ntf))
 	);
 	Singleton<Tcp::Dispatcher<Session>>::GetInstance().BindHandler(MsgRouter_HeartBeat_Ntf::MSG_ID,
-		std::make_shared<HandlerFunctorType>("MsgRouter_HeartBeat_Ntf", handlerFactory, static_cast<HandlerFunctorType::FunctionType>(&RouterHandler::Recv_HeartBeat_Ntf))
+		std::make_shared<HandlerFunctorType>("MsgRouter_HeartBeat_Ntf", handlerFactory, static_cast<typename HandlerFunctorType::FunctionType>(&RouterHandler::Recv_HeartBeat_Ntf))
 	);
 
 	Singleton<SessionManager>::GetInstance().Listen(serviceName, port, acceptHandler, closeHandler);

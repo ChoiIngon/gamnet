@@ -19,7 +19,7 @@ namespace Gamnet {
 		}
 
 		template <class T>
-		std::shared_ptr<T> AddComponent(std::shared_ptr<T>& component)
+		std::shared_ptr<T> AddComponent(const std::shared_ptr<T>& component)
 		{
 			components[typeid(T).name()] = component;
 			return component;

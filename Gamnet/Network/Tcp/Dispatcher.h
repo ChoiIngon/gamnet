@@ -48,8 +48,6 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 	class HandlerFunctor : public IHandlerFunctor
 	{
 	public:
-		typedef SessionType SessionType;
-		typedef MsgType MsgType;
 		typedef void(IHandler::*FunctionType)(const std::shared_ptr<SessionType>&, const MsgType&);
 
 		template<class FactoryType>
@@ -79,7 +77,6 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 	class HandlerFunctor<SessionType, std::shared_ptr<Packet>> : public IHandlerFunctor
 	{
 	public:
-		typedef SessionType SessionType;
 		typedef std::shared_ptr<Packet> MsgType;
 		typedef void(IHandler::* FunctionType)(const std::shared_ptr<SessionType>&, const std::shared_ptr<Packet>&);
 
@@ -110,19 +107,19 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 			typedef HandlerFunctor<SESSION_T, std::shared_ptr<Packet>> PacketHandlerFunctorType;
 			IHandlerFactory* handlerFactory = new HandlerStatic<SystemMessageHandler<SESSION_T>>();
 			BindHandler(MSG_ID::MsgID_CliSvr_Connect_Req,	std::make_shared<PacketHandlerFunctorType>(
-				"MsgID_CliSvr_Connect_Req",		handlerFactory, static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Connect_Req)
+				"MsgID_CliSvr_Connect_Req",		handlerFactory, static_cast<typename PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Connect_Req)
 			));
 			BindHandler(MSG_ID::MsgID_CliSvr_Reconnect_Req,	std::make_shared<PacketHandlerFunctorType>(
-				"MsgID_CliSvr_Reconnect_Req",	handlerFactory, static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Reconnect_Req)
+				"MsgID_CliSvr_Reconnect_Req",	handlerFactory, static_cast<typename PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Reconnect_Req)
 			));
 			BindHandler(MSG_ID::MsgID_CliSvr_Close_Req,		std::make_shared<PacketHandlerFunctorType>(
-				"MsgID_CliSvr_Close_Req",		handlerFactory, static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Close_Req)
+				"MsgID_CliSvr_Close_Req",		handlerFactory, static_cast<typename PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Close_Req)
 			));
 			BindHandler(MSG_ID::MsgID_CliSvr_HeartBeat_Req,	std::make_shared<PacketHandlerFunctorType>(
-				"MsgID_CliSvr_HeartBeat_Req",	handlerFactory, static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Req)
+				"MsgID_CliSvr_HeartBeat_Req",	handlerFactory, static_cast<typename PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Req)
 			));
 			BindHandler(MSG_ID::MsgID_CliSvr_ReliableAck_Ntf, std::make_shared<PacketHandlerFunctorType>(
-				"MsgID_CliSvr_ReliableAck_Ntf", handlerFactory,	static_cast<PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_ReliableAck_Ntf)
+				"MsgID_CliSvr_ReliableAck_Ntf", handlerFactory,	static_cast<typename PacketHandlerFunctorType::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_ReliableAck_Ntf)
 			));
 		}
 		~Dispatcher() {}

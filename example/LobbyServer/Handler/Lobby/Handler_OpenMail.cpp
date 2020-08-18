@@ -26,7 +26,7 @@ void Handler_OpenMail::Recv_Req(const std::shared_ptr<UserSession>& session, con
 		}
 
 		ans.mail_seq = req.mail_seq;
-		auto& mail = session->GetComponent<Component::Mail>();
+		auto mail = session->GetComponent<Component::Mail>();
 
 		session->StartTransaction();
 		mail->Open(req.mail_seq);

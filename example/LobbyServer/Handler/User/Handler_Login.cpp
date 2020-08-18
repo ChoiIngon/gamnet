@@ -73,7 +73,7 @@ void Handler_Login::ReadAccountData(const std::shared_ptr<UserSession>& session,
 		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", accountID, ", account_type:", (int)accountType);
 	}
 
-	auto& row = rows[0];
+	auto row = rows[0];
 
 	session->shard_index = row->getInt("shard_index");
 	session->user_seq = row->getUInt64("user_seq");
@@ -128,7 +128,7 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", account->account_id, ", account_type:", (int)account->account_type);
 	}
 
-	auto& row = rows[0];
+	auto row = rows[0];
 
 	std::shared_ptr<Component::UserData> userData = session->AddComponent<Component::UserData>(std::make_shared<Component::UserData>(session->user_seq, account->user_name));
 	if(serverID != row->getUInt("server_id"))

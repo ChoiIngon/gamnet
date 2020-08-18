@@ -33,7 +33,6 @@ namespace Gamnet { namespace Network { namespace Router {
 	class HandlerFunctor : public IHandlerFunctor
 	{
 	public:
-		typedef MsgType MsgType;
 		typedef void(IHandler::* FunctionType)(const Address&, const MsgType&);
 
 		template<class FactoryType>

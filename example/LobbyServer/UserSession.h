@@ -33,7 +33,7 @@ public:
 	}
 
 	template <class T>
-	std::shared_ptr<T> AddComponent(std::shared_ptr<T>& component)
+	std::shared_ptr<T> AddComponent(const std::shared_ptr<T>& component)
 	{
 		return components.AddComponent<T>(component);
 	}
@@ -79,7 +79,7 @@ public:
 	}
 
 	template <class T>
-	std::shared_ptr<T> AddComponent(std::shared_ptr<T>& component)
+	std::shared_ptr<T> AddComponent(const std::shared_ptr<T>& component)
 	{
 		return components.AddComponent<T>(component);
 	}
