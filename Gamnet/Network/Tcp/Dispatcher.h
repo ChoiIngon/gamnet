@@ -38,7 +38,9 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 		IHandlerFunctor(const std::string& name, IHandlerFactory* factory) : name(name), factory(factory) {}
 		virtual void OnReceive(const std::shared_ptr<Session>&, const std::shared_ptr<Packet>&) = 0;
 
+#ifdef _DEBUG
 		Statistics statistics;
+#endif
 		const std::string name;
 	protected:
 		IHandlerFactory* const factory;
@@ -170,6 +172,26 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 #endif
 		}
 
+		Json::Value State()
+		{
+			Json::Value root;
+			for(const auto& itr : handler_functors)
+			{
+				const std::shared_ptr<IHandlerFunctor> handlerFunctor = itr.second;
+				if(0 < handlerFunctor->statistics.begin_count)
+				{
+					Json::Value message;
+					message["msg_id"] = itr.first;
+					message["name"] = handlerFunctor->name;
+					message["begin_count"] = (int64_t)handlerFunctor->statistics.begin_count;
+					message["finish_count"] = (int64_t)handlerFunctor->statistics.finish_count;
+					message["total_time"] = (int64_t)handlerFunctor->statistics.total_time;
+					message["max_time"] = handlerFunctor->statistics.max_time;
+					root.append(message);
+				}
+			}
+			return root;
+		}
 	private :
 		std::map<uint32_t, std::shared_ptr<IHandlerFunctor>> handler_functors;
 	};

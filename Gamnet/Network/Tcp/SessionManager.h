@@ -80,16 +80,16 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		Json::Value State()
 		{
 			Json::Value root;
-			root["name"] = "Gamnet::Network::Tcp";
-
-			Json::Value session;
-			session["max_count"] = session_pool.Capacity();
-			session["idle_count"] = session_pool.Available();
 			{
-				//std::lock_guard<std::mutex> lo(lock);
-				//session["active_count"] = sessions.size();
+				Json::Value session;
+				size_t capacity = session_pool.Capacity();
+				size_t available = session_pool.Available();
+				session["active_count"] = capacity - available;
+				session["max_count"] = capacity;
+				session["idle_count"] = available;
+				root["session"] = session;
 			}
-			root["session"] = session;
+			root["messages"] = Singleton<Dispatcher<SESSION_T>>::GetInstance().State();
 			root["acceptor"] = acceptor.State();
 			return root;
 		}
