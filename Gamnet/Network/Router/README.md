@@ -15,14 +15,13 @@
   * ROUTER_CAST_TYPE :
     * `ROUTER_CAST_TYPE::UNI_CAST` : servide_name, id 가 동일한 유니크한 서버 컴포넌트를 가리킴
     * `ROUTER_CAST_TYPE::MULTI_CAST` : service_name 내 모든 서버 컴포넌트를 가리킴
-	* `ROUTER_CAST_TYPE::ANY_CAST` : service_name 내 아무 서버컴포넌트를 가리킴
+    * `ROUTER_CAST_TYPE::ANY_CAST` : service_name 내 아무 서버컴포넌트를 가리킴
 * `GAMNET_BIND_ROUTER_HANDLER` : 다른 서버 컴포넌트로 부터 수신 되는 메시지 처리 핸들러 등록 매크로
-* 그외 :
-  * `Gamnet::Test::Session::Next()` : 다음 테스트 스텝으로 진행
-  * `Gamnet::Router::SendMsg()` : 메시지를 서버로 전송
-  * `void recv_function(const Gamnet::Network::Router::Address& address, const MsgType& msg)` : 다른 서버 컴포넌트로 부터 수신되는 메시지 처리 핸들러 함수 프로토 타입
 
 ## Gamnet::Network::Router::SendMsg를 이용한 Sync/Async 메시지 전송
+
+* template <class MsgType> bool SendMsg(const Address& addr, const MsgType& msg)
+  * 응답이 필요 없는 단순 통보용 메시지 전송 시 사용
 
 
 ## Gamnet::Network::IHandler 상속 받아 커스텀 메시지 핸들러 클래스 작성하기
@@ -34,16 +33,6 @@ public :
 	void Recv_Req(const Gamnet::Network::Router::Address& address, const ExampleRouterHandler_Req& req);
 };
 ```
-Gamnet::Test::Session은 OnCreate, OnConnect, OnClose, OnDestroy 가상 멤버 함수를 각 이벤트에 맞게 구현해 주어야 하며 자세한 설명은 아래와 같다.
-
-### Member Functions
-
-| 이름 | 설명 |
-|----|----|
-|OnCreate() | 테스트 세션이 생성 되면 호출. 객체가 생성 되었을 때 필요한 초기화 코드를 작성한다.|
-|OnConnect() | 테스트 세션이 서버 접속에 성공하면 호출. 접속 성공 시 필요한 초기화 코드를 작성한다.|
-|OnClose(int reason) | 테스트 세션의 접속이 종료되면 호출. 접속 종료 시 필요한 종료 코드를 작성한다.|
-|OnDestroy() | 테스트 세션의 객체가 소멸 될 때 호출. 객체 소멸 시 필요한 종료 코드를 작성한다.|
 
 그외 세션이 유지되는 동안 필요한 변수나 멤버 함수가 있다면 상속 받은 클래스에 자유롭게 추가 하도록 한다.
 
