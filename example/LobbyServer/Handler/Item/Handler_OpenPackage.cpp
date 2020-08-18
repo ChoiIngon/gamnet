@@ -25,7 +25,6 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
 
-		session->StartTransaction();
 		auto bag = session->GetComponent<Component::Bag>();
 		auto item = bag->Find(req.item_seq);
 		if(nullptr == item)
@@ -36,6 +35,7 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
+		session->StartTransaction();
 		item->package->Use();
 		session->Commit();
 		ans.item_data = *item;

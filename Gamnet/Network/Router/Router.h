@@ -19,7 +19,7 @@ namespace Gamnet { namespace Network { namespace Router
 	bool BindHandler(const std::string& name, FunctionType function, FactoryType factory)
 	{
 		typedef HandlerFunctor<MsgType> HandlerFunctorType;
-		std::shared_ptr<IHandlerFunctor> handlerFunctor = std::make_shared<HandlerFunctorType>(name, factory, static_cast<HandlerFunctorType::FunctionType>(function));
+		std::shared_ptr<IHandlerFunctor> handlerFunctor = std::make_shared<HandlerFunctorType>(name, factory, static_cast<typename HandlerFunctorType::FunctionType>(function));
 		return Singleton<Dispatcher>::GetInstance().BindHandler(MsgType::MSG_ID, handlerFunctor);
 	}
 #else
@@ -27,7 +27,7 @@ namespace Gamnet { namespace Network { namespace Router
 	bool BindHandler(unsigned int msg_id, const std::string& name, FunctionType function, FactoryType factory)
 	{
 		typedef HandlerFunctor<std::shared_ptr<Tcp::Packet>> HandlerFunctorType;
-		std::shared_ptr<IHandlerFunctor> handlerFunctor = std::make_shared<HandlerFunctorType>(name, factory, static_cast<HandlerFunctorType::FunctionType>(function));
+		std::shared_ptr<IHandlerFunctor> handlerFunctor = std::make_shared<HandlerFunctorType>(name, factory, static_cast<typename HandlerFunctorType::FunctionType>(function));
 		return Singleton<Dispatcher>::GetInstance().BindHandler(msg_id, handlerFunctor);
 	}
 #endif
