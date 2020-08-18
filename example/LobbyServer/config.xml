@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <server>
   <log path="log" prefix="Lobby" max_file_size="5">
-    <dev console="yes" file="yes" sys="no"/>
+    <dev console="no" file="no" sys="no"/>
     <inf console="yes" file="yes" sys="no"/>
     <wrn console="yes" file="yes" sys="no"/>
     <err console="yes" file="yes" sys="no"/>
@@ -11,6 +11,7 @@
   <sqlite name="gamnet_sqlite"	id="1"  db="gamnet.sqlite"/>
   <redis  name="gamnet_redis" id="1"  host="localhost" port="6379"/>
 
+  <http port="8080"/>
   <tcp port="40000" max_count="8000" accept_queue="4000" keep_alive="300" thread_count="30"/>
   <test host="127.0.0.1" port="40000" session_count="1" loop_count="1">
     <message name="Test_User_Login"/>

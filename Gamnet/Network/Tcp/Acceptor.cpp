@@ -44,7 +44,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	Json::Value Acceptor::State()
 	{
 		Json::Value root;
-		root["name"] = "Gamnet::Network::Tcp::Acceptor";
+		root["port"] = endpoint.port();
 		root["accept_count"] = (int)accept_count;
 		root["close_count"] = (int)close_count;
 		root["fail_count"] = (int)fail_count;

@@ -128,6 +128,7 @@
     <ClCompile Include="Component\Event.cpp" />
     <ClCompile Include="Component\Mail.cpp" />
     <ClCompile Include="Component\UserData.cpp" />
+    <ClCompile Include="Handler\Http\Handler_ServerState.cpp" />
     <ClCompile Include="Handler\Item\Handler_OpenPackage.cpp" />
     <ClCompile Include="Handler\Lobby\Handler_OpenMail.cpp" />
     <ClCompile Include="Handler\User\Handler_Create.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="Component\Event.h" />
     <ClInclude Include="Component\Mail.h" />
     <ClInclude Include="Component\UserData.h" />
+    <ClInclude Include="Handler\Http\Handler_ServerState.h" />
     <ClInclude Include="Handler\Item\Handler_OpenPackage.h" />
     <ClInclude Include="Handler\Lobby\Handler_OpenMail.h" />
     <ClInclude Include="Handler\User\Handler_Delete.h" />
