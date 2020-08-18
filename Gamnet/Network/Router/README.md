@@ -2,6 +2,11 @@
 
 서버간 네트워크 동신 지원
 
+## Features
+
+* 서버 컴포넌트 부팅시 자동 연결 및 접속 시작/종료 이벤트 통지
+* 논리적 컴포넌트 주소 제공
+
 ## Classes, Functions & Macros
 
 * `Gamnet::Router::Address` : 각 서버 컴포넌트의 논리적 주소
