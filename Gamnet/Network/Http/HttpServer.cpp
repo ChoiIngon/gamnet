@@ -28,7 +28,7 @@ namespace Gamnet { namespace Network { namespace Http {
 		}
 		acceptor->accept_handler = &OnAccept;
 		acceptor->Listen(port, accept_queue_size);
-		LOG(GAMNET_INF, "Gamnet::Http listener start(port:", port, ")");
+		LOG(GAMNET_INF, "[Gamnet::Netowrk::Http] listener start(port:", port, ")");
 	}
 
 	void ReadXml(const std::string& xml_path)

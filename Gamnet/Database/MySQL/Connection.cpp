@@ -35,7 +35,7 @@ namespace Gamnet {	namespace Database { namespace MySQL {
 		mysql_options(&conn_, MYSQL_OPT_RECONNECT, (const char*)&connInfo_.reconnect_);
 		mysql_options(&conn_, MYSQL_SET_CHARSET_NAME, connInfo.charset_.c_str());
 		mysql_options(&conn_, MYSQL_INIT_COMMAND, Format("SET NAMES '", connInfo.charset_, "';").c_str());
-		LOG(INF, "[Gamnet::Database::MySQL] connect...(host:", connInfo.uri_, ", port:", connInfo.port_, ", db:", connInfo.db_, ", user:", connInfo.id_, /*", passwd:", connInfo.passwd_, */")");
+		LOG(INF, "[Gamnet::Database::MySQL] connect...(db_type:", connInfo.db_type_, ", host:", connInfo.uri_, ", port:", connInfo.port_, ", db:", connInfo.db_, ", user:", connInfo.id_, /*", passwd:", connInfo.passwd_, */")");
 		if (nullptr == mysql_real_connect(&conn_, connInfo.uri_.c_str(), connInfo.id_.c_str(), connInfo.passwd_.c_str(), connInfo.db_.c_str(), connInfo.port_, nullptr, CLIENT_MULTI_STATEMENTS))
 		{
 			LOG(GAMNET_ERR, "[Gamnet::Database::MySQL] connect fail(host:", connInfo.uri_, ", port:", connInfo.port_, ", error_message:", mysql_error(&conn_),")");

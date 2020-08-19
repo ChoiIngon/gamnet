@@ -115,7 +115,7 @@ void Handler_ServerState::Recv_ServerState_Req(const std::shared_ptr<Gamnet::Net
 			, "'", message["name"].asString(), "',"
 			, message["begin_count"].asInt64(), ","
 			, message["finish_count"].asInt64(), ","
-			, message["total_time"].asInt64() / message["finish_count"].asInt64(), ","
+			, 0 == message["finish_count"].asInt64() ? 0 : message["total_time"].asInt64() / message["finish_count"].asInt64(), ","
 			, message["max_time"].asInt64(), ","
 			, message["total_time"].asInt64(), "],"
 		);

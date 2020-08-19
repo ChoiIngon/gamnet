@@ -1,4 +1,5 @@
 #include "Singleton.h"
+#include "Time/Timer.h"
 
 namespace Gamnet {
 
@@ -25,8 +26,11 @@ void SingletonInitHelper::CallInitFunc(const std::string& name)
 	{
 		return;
 	}
+
+	LOG(GAMNET_INF, "[Gamnet::Singleton<", name, ">] start initialization...");
+	Time::ElapseTimer elapse;
 	info.func();
-	LOG(GAMNET_INF, "init complete singleton..", name);
+	LOG(GAMNET_INF, "[Gamnet::Singleton<", name, ">] complete initialization...(", elapse.Count(), "ms)");
 }
 
 }
