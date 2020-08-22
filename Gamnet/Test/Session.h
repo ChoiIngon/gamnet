@@ -10,25 +10,17 @@ namespace Gamnet { namespace Test {
 
 class Session : public Network::Tcp::Session 
 {
-	Network::Tcp::Connector reconnector;
-public:
+public :
 	Session();
 	virtual ~Session();
 
-	std::string	host;
-	int	port;
-	int test_seq;
-	Time::ElapseTimer elapse_timer;
-
-	//virtual void OnCreate() override {}
-	
-	virtual void OnConnect() = 0;
-
 	virtual bool Init() override;
+	virtual void Close(int reason) override;
+
+	virtual void OnConnect() = 0;
 
 	void AsyncSend(const std::shared_ptr<Network::Tcp::Packet>& packet);
 	void Next();
-
 	void Send_Connect_Req();
 	void Recv_Connect_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet);
 	void Send_Reconnect_Req();
@@ -36,9 +28,19 @@ public:
 	void Send_ReliableAck_Ntf();
 	void Send_Close_Req();
 	void Recv_Close_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet);
+
 private:
 	void OnReconnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
 	virtual void OnAccept() override {}
+
+private :
+	Network::Tcp::Connector reconnector;
+
+public:
+	std::string	host;
+	int	port;
+	int test_seq;
+	Time::ElapseTimer elapse_timer;
 };
 
 }} /* namespace Gamnet */

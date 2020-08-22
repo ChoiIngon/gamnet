@@ -17,13 +17,15 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 	struct Config
 	{
+		Config();
+
+		void ReadXml(const std::string& path);
+		
 		int port;
 		int max_count;
 		int keep_alive;
 		int accept_queue;
 		int thread_count;
-
-		void ReadXml(const std::string& path);
 	};
 
 	template <class SESSION_T>

@@ -15,7 +15,9 @@ namespace Component {
 	void Bag::Load()
 	{
 		Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
-			"SELECT item_seq, item_id, item_count, expire_date FROM user_item WHERE user_seq=", session->user_seq, " AND delete_yn='N' AND item_seq > ", last_item_seq
+			"SELECT item_seq, item_id, item_count, expire_date FROM ("
+				"SELECT * FROM user_item WHERE user_seq=", session->user_seq, " AND delete_yn='N'"
+			") a WHERE expire_date > NOW() AND item_seq > ", last_item_seq
 		);
 
 		Message::Item::MsgSvrCli_Item_Ntf ntf;
