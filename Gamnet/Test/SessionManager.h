@@ -13,23 +13,6 @@
 #include <functional>
 
 namespace Gamnet {	namespace Test { 
-	class SessionManagerImpl
-	{
-	public :
-		Log::Logger						log;
-		std::shared_ptr<Time::Timer>	log_timer;
-		std::atomic<int64_t>			begin_execute_count;
-		std::atomic<int64_t>			finish_execute_count;
-		int 							max_execute_count;
-		int								session_count;
-
-		std::string				host;
-		int						port;
-
-		void Init(const char* host, int port, int session_count, int loop_count);
-	private :
-		void OnLogTimerExpire();
-	};
 
 	template <class SESSION_T>
 	class SessionManager : public Network::SessionManager
@@ -51,41 +34,39 @@ namespace Gamnet {	namespace Test {
 			{
 				SESSION_T* session = new SESSION_T();
 				session->session_manager = session_manager;
-				session->host = static_cast<SessionManager<SESSION_T>*>(session_manager)->impl.host;
-				session->port = static_cast<SessionManager<SESSION_T>*>(session_manager)->impl.port;
+				session->host = static_cast<SessionManager<SESSION_T>*>(session_manager)->host;
+				session->port = static_cast<SessionManager<SESSION_T>*>(session_manager)->port;
 				return session;
 			}
 		};
 
 		struct TestCase
 		{
-			TestCase() : name(""), execute_count(0), fail_count(0), elapse_time(0) 
+			TestCase() 
+				: name("")
+				, execute_count(0)
+				, fail_count(0)
+				, total_time(0) 
+				, max_time(0)
+				, send_handler(nullptr)
 			{
 			}
 			std::string				name;
 			std::atomic<int64_t>	execute_count;
 			std::atomic<int64_t>	fail_count;
-			uint64_t				elapse_time;
+			std::atomic<int64_t>	total_time;
+			int64_t					max_time;
 			SEND_HANDLER_TYPE		send_handler;
 			std::map<uint32_t, RECV_HANDLER_TYPE> receive_handlers;
 		};
 
 		typedef Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> SessionPool;
 
-		std::map<std::string, std::shared_ptr<TestCase>>	test_cases;
-		std::map<uint32_t, RECV_HANDLER_TYPE> 				system_recv_handlers;
-		std::map<uint32_t, RECV_HANDLER_TYPE> 				global_recv_handlers;
-		std::vector<std::shared_ptr<TestCase>> 				test_sequence;
-		
-		SessionManagerImpl		impl;
-		Network::Tcp::Connector	connector;
-		SessionPool				session_pool;
-
 	public:
 		SessionManager();
 		virtual ~SessionManager();
 
-		void Init(const char* host, int port, int session_count, int loop_count);
+		void Init(const std::string& host, int port, int session_count, int loop_count);
 
 		virtual void Remove(const std::shared_ptr<Network::Session>& session) override;
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override;
@@ -156,6 +137,28 @@ namespace Gamnet {	namespace Test {
 			session->AsyncRead();
 			session->Send_Connect_Req();
 		}
+
+		void OnLogTimerExpire();
+
+	private :
+		Log::Logger						log;
+		std::shared_ptr<Time::Timer>	log_timer;
+
+		std::atomic<int64_t>			begin_execute_count;
+		std::atomic<int64_t>			finish_execute_count;
+		int 							max_execute_count;
+		int								session_count;
+
+		std::string				host;
+		int						port;
+
+		std::map<std::string, std::shared_ptr<TestCase>>	test_cases;
+		std::map<uint32_t, RECV_HANDLER_TYPE> 				system_recv_handlers;
+		std::map<uint32_t, RECV_HANDLER_TYPE> 				global_recv_handlers;
+		std::vector<std::shared_ptr<TestCase>> 				test_sequence;
+
+		Network::Tcp::Connector	connector;
+		SessionPool				session_pool;
 	};
 
 	template <class SESSION_T>
@@ -171,17 +174,32 @@ namespace Gamnet {	namespace Test {
 	SessionManager<SESSION_T>::~SessionManager() {}
 
 	template <class SESSION_T>
-	void SessionManager<SESSION_T>::Init(const char* host, int port, int session_count, int loop_count)
+	void SessionManager<SESSION_T>::Init(const std::string& host, int port, int session_count, int loop_count)
 	{
-		impl.Init(host, port, session_count, loop_count);
-		for (size_t i = 0; i < impl.session_count; i++)
+		this->host = host;
+		this->port = port;
+		this->begin_execute_count = 0;
+		this->finish_execute_count = 0;
+		this->session_count = session_count;
+		this->max_execute_count = session_count * loop_count;
+		if (0 == max_execute_count)
 		{
-			impl.begin_execute_count++;
-			if (impl.max_execute_count < impl.begin_execute_count)
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'session_count' should be set");
+		}
+
+		log.Init("test", "test", 5);
+		log_timer = Time::Timer::Create();
+		log_timer->AutoReset(true);
+		log_timer->SetTimer(1000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
+
+		for (size_t i = 0; i < session_count; i++)
+		{
+			begin_execute_count++;
+			if (max_execute_count < begin_execute_count)
 			{
 				break;
 			}
-			connector.AsyncConnect(impl.host.c_str(), impl.port, 0);
+			connector.AsyncConnect(host, port, 0);
 		}
 	}
 
@@ -266,8 +284,10 @@ namespace Gamnet {	namespace Test {
 				{
 					RECV_HANDLER_TYPE& recvHandler = itr->second;
 					try {
+						time_t elapsedTime = session->elapse_timer.Count();
+						testCase->total_time += elapsedTime;
+						testCase->max_time = std::max(testCase->max_time, elapsedTime);
 						recvHandler(session, packet);
-						testCase->elapse_time += session->elapse_timer.Count();;
 					}
 					catch (const Exception& /*e*/)
 					{
@@ -297,11 +317,36 @@ namespace Gamnet {	namespace Test {
 	void SessionManager<SESSION_T>::Remove(const std::shared_ptr<Network::Session>& session) 
 	{
 		Network::SessionManager::Remove(session);
-		impl.finish_execute_count++;
-		if (impl.max_execute_count > impl.begin_execute_count)
+		finish_execute_count++;
+		if (max_execute_count > begin_execute_count)
 		{
-			impl.begin_execute_count++;
-			connector.AsyncConnect(impl.host.c_str(), impl.port, 0);
+			begin_execute_count++;
+			connector.AsyncConnect(host.c_str(), port, 0);
+		}
+	}
+
+	template <class SESSION_T>
+	void SessionManager<SESSION_T>::OnLogTimerExpire()
+	{
+		//log.Write(GAMNET_INF, "[Gamnet::Test] link count..(active:", this->Size(), ", available:", link_pool.Available(), ", max:", link_pool.Capacity(), ")");
+		//log.Write(GAMNET_INF, "[Gamnet::Test] session count..(active:", this->session_manager.Size(), ", available:", this->session_pool.Available(), ", max:", this->session_pool.Capacity(), ")");
+		log.Write(GAMNET_INF, "[Gamnet::Test] begin count..(", begin_execute_count, "/", max_execute_count, ")");
+
+		for(auto& testCase : test_sequence)
+		{
+			log.Write(GAMNET_INF, "[Gamnet::Test] ",
+				"name:", testCase->name,
+				", execute_count:", testCase->execute_count,
+				", fail_count:", testCase->fail_count,
+				", average_time:", 0 == testCase->execute_count ? 0 : (testCase->total_time / testCase->execute_count),
+				", max_time:", testCase->max_time,
+				", total_time:", testCase->total_time
+			);
+		}
+		if (finish_execute_count >= max_execute_count)
+		{
+			log_timer->Cancel();
+			log.Write(GAMNET_INF, "[Gamnet::Test] test finished..(", finish_execute_count, "/", max_execute_count, ")");
 		}
 	}
 }} /* namespace Gamnet */

@@ -193,7 +193,6 @@
     <ClCompile Include="Network\Tcp\Session.cpp" />
     <ClCompile Include="Network\Tcp\Tcp.cpp" />
     <ClCompile Include="Test\Session.cpp" />
-    <ClCompile Include="Test\SessionManager.cpp" />
     <ClCompile Include="Test\Test.cpp" />
   </ItemGroup>
   <ItemGroup>
