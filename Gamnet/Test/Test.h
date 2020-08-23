@@ -59,6 +59,8 @@ namespace Gamnet { namespace Test {
 
 	struct Config
 	{
+		Config();
+
 		std::string host;
 		int port;
 		int session_count;
@@ -72,6 +74,11 @@ namespace Gamnet { namespace Test {
 	{
 		Config config;
 		config.ReadXml(path);
+		if(0 == config.port * config.session_count * config.loop_count)
+		{
+			return;
+		}
+
 		for(const auto& message : config.messages)
 		{
 			Singleton<SessionManager<SESSION_T>>::GetInstance().RegisterTestcase(message);

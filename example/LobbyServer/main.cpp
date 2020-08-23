@@ -24,7 +24,6 @@ int main(int argc, char** argv)
 	const char* config_path = vm["config"].as<std::string>().c_str();
 
 	Gamnet::InitCrashDump();
-	Gamnet::Log::ReadXml(config_path);
 	try {
 		Gamnet::Log::ReadXml(config_path);
 		LOG(INF, argv[0], " Server Starts.. config=", config_path);

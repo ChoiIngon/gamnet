@@ -28,16 +28,34 @@ namespace Gamnet { namespace Network { namespace Http {
 		}
 		acceptor->accept_handler = &OnAccept;
 		acceptor->Listen(port, accept_queue_size);
-		LOG(GAMNET_INF, "Gamnet::Http listener start(port:", port, ")");
+		LOG(GAMNET_INF, "[Gamnet::Netowrk::Http] listener start(port:", port, ")");
 	}
 
 	void ReadXml(const std::string& xml_path)
 	{
 		boost::property_tree::ptree ptree_;
-		boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
+		try {
+			boost::property_tree::xml_parser::read_xml(xml_path, ptree_);
+		}
+		catch (const boost::property_tree::xml_parser_error& e)
+		{
+			throw Exception(ErrorCode::FileNotFound, e.what());
+		}
 
-		int port = ptree_.get<int>("server.http.<xmlattr>.port");
-		Listen(port);
+		auto optional = ptree_.get_child_optional("server.http");
+		if (false == (bool)optional)
+		{
+			return;
+		}
+
+		try {
+			int port = ptree_.get<int>("server.http.<xmlattr>.port");
+			Listen(port);
+		}
+		catch (const boost::property_tree::ptree_bad_path& e)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, e.what());
+		}
 	}
 
 	void SendMsg(const std::shared_ptr<Session>& session, const Response& res)

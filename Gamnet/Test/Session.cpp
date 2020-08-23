@@ -176,6 +176,11 @@ void Session::Send_Close_Req()
 
 void Session::Recv_Close_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet)
 {
-	Network::Session::Close(ErrorCode::Success);
+	Close(ErrorCode::Success);
+}
+
+void Session::Close(int reason)
+{
+	Network::Session::Close(reason);
 }
 }}/* namespace Gamnet */

@@ -54,6 +54,15 @@ const boost::asio::ip::address& GetLocalAddress()
 	return localAddress;
 }
 
+Config::Config() 
+	: port(0)
+	, max_count(0)
+	, keep_alive(0)
+	, accept_queue(0)
+	, thread_count(0)
+{
+}
+
 void Config::ReadXml(const std::string& path)
 {
 	boost::property_tree::ptree ptree_;
@@ -65,6 +74,12 @@ void Config::ReadXml(const std::string& path)
 		throw Exception(ErrorCode::FileNotFound, e.what());
 	}
 
+	auto optional = ptree_.get_child_optional("server.tcp");
+	if (false == (bool)optional)
+	{
+		return;
+	}
+
 	try {
 		port = ptree_.get<int>("server.tcp.<xmlattr>.port");
 		max_count = ptree_.get<int>("server.tcp.<xmlattr>.max_count");
@@ -74,7 +89,6 @@ void Config::ReadXml(const std::string& path)
 	}
 	catch (const boost::property_tree::ptree_bad_path& e)
 	{
-		std::cerr << "[Gamnet::Network::Tcp] " << e.what() << std::endl;
 		throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, e.what());
 	}
 }
