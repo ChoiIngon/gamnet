@@ -2,6 +2,7 @@
 #include "../ConnectionPool.h"
 #include "../../Library/Singleton.h"
 #include "../../Library/Exception.h"
+#include "../../Library/ThreadPool.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/exception/diagnostic_information.hpp>
@@ -37,23 +38,33 @@ void ReadXml(const char* xml_path)
 bool Connect(int db_type, const std::string& host, int port, const std::string& id, const std::string& passwd, const std::string& db, bool fail_query_log)
 {
 	Connection::ConnectionInfo connInfo;
-	connInfo.db_ = db;
-	connInfo.id_ = id;
-	connInfo.passwd_ = passwd;
-	connInfo.port_ = port;
-	connInfo.uri_ = host;
-	connInfo.db_type_ = db_type;
-	connInfo.fail_query_log_ = fail_query_log;
+	connInfo.database = db;
+	connInfo.userid = id;
+	connInfo.password = passwd;
+	connInfo.port = port;
+	connInfo.host = host;
+	connInfo.db_num = db_type;
+	connInfo.fail_query_log = fail_query_log;
 	return Singleton<ConnectionPool<Connection>>::GetInstance().Connect(db_type, connInfo);
 }
 
 ResultSet Execute(int db_type, const std::string& query)
 {
 	std::shared_ptr<Connection> conn = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
-	ResultSet res;
-	res.impl_ = conn->Execute(query);
+	ResultSet res(conn->Execute(query));
 	return res;
 }
+
+/*
+void _AsyncExecute(int db_type, const std::string& query, const std::function<void(ResultSet&)>& callback)
+{
+	std::shared_ptr<Connection> conn = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
+	conn->AsyncExecute(query, [callback](const std::shared_ptr<ResultSetImpl> impl) {
+		ResultSet res(impl);
+		callback(res);
+	});
+}
+*/
 
 std::string RealEscapeString(int db_type, const std::string& str)
 {

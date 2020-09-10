@@ -66,6 +66,7 @@ namespace Gamnet { namespace Network { namespace Router
 			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", MSG::MSG_ID, ")");
 		}
 
+		ntf.msg_seq = session->send_seq;
 		packet->msg_seq = session->send_seq;
 		if (false == packet->Write(ntf))
 		{
@@ -109,7 +110,8 @@ namespace Gamnet { namespace Network { namespace Router
 			return false;
 		}
 
-		packet->msg_seq = ++session->msg_seq;
+		ntf.msg_seq = ++session->msg_seq;
+		packet->msg_seq = ntf.msg_seq;
 		if (false == packet->Write(ntf))
 		{
 			LOG(ERR, "fail to serialize message(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");

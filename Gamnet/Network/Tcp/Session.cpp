@@ -13,6 +13,11 @@ std::string Session::GenerateSessionToken(uint32_t session_key)
 }
 
 Session::Session()
+	: handover_safe(false)
+	, recv_seq(0)
+	, send_seq(0)
+	, last_recv_time(0)
+	, recv_packet(nullptr)
 {
 }
 

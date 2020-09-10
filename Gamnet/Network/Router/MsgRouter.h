@@ -423,11 +423,14 @@ struct MsgRouter_RegisterAddress_Ntf_Serializer {
 struct MsgRouter_SendMsg_Ntf {
 	enum { MSG_ID = 6 }; 
 	std::string	buffer;
+	uint32_t	msg_seq;
 	MsgRouter_SendMsg_Ntf()	{
+		msg_seq = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += sizeof(uint32_t); nSize += buffer.length();
+		nSize += sizeof(uint32_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -444,6 +447,7 @@ struct MsgRouter_SendMsg_Ntf {
 		size_t buffer_size = buffer.length();
 		std::memcpy(*_buf_, &buffer_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, buffer.c_str(), buffer.length()); (*_buf_) += buffer.length();
+		std::memcpy(*_buf_, &msg_seq, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -458,6 +462,7 @@ struct MsgRouter_SendMsg_Ntf {
 		uint32_t buffer_length = 0; std::memcpy(&buffer_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(nSize < buffer_length) { return false; }
 		buffer.assign((char*)*_buf_, buffer_length); (*_buf_) += buffer_length; nSize -= buffer_length;
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&msg_seq, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		return true;
 	}
 }; //MsgRouter_SendMsg_Ntf

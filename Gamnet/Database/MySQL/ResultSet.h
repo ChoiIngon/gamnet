@@ -17,27 +17,26 @@
 namespace Gamnet { namespace Database { namespace MySQL {
 	class Connection;
 
-	struct ResultSetImpl
+	class ResultSetImpl
 	{
-		const std::shared_ptr<Connection> conn_;
-
-		MYSQL_RES* res_;
-		unsigned int affectedRowCount_;
-		unsigned int lastInsertID_;
-		std::map<std::string, unsigned short> mapColumnName_;
-
+	public :
 		ResultSetImpl(const std::shared_ptr<Connection> conn);
 		~ResultSetImpl();
 
-		bool Execute(const std::string& query);
 		bool StoreResult();
 		bool NextResult();
+
+		MYSQL_RES* mysql_res;
+		uint64_t affected_rows;
+		uint64_t last_insert_id;
+		unsigned int error_code;
+		std::map<std::string, unsigned short> columns;
+	private :
+		const std::shared_ptr<Connection> conn;
 	};
 
 	struct ResultSet
 	{
-		std::shared_ptr<ResultSetImpl> impl_;
-
 		struct iterator
 		{
 			std::shared_ptr<ResultSetImpl> impl_;
@@ -70,12 +69,13 @@ namespace Gamnet { namespace Database { namespace MySQL {
 			Variant operator [] (const std::string& column_name) const;
 		};
 
-		ResultSet();
+		ResultSet(const std::shared_ptr<ResultSetImpl>& impl);
 		virtual ~ResultSet();
 
 		unsigned int GetAffectedRow() const;
 		unsigned int GetRowCount();
 		unsigned int GetLastInsertID() const;
+		unsigned int GetLastError() const;
 		bool NextResult();
 		Json::Value ToJson();
 
@@ -83,6 +83,9 @@ namespace Gamnet { namespace Database { namespace MySQL {
 		iterator end() const;
 		iterator operator [] (unsigned int index);
 
+		ResultSet& operator = (const std::shared_ptr<ResultSetImpl>& impl);
+	private :
+		std::shared_ptr<ResultSetImpl> impl_;
 	};
 
 } } }

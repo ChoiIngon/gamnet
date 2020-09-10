@@ -1,5 +1,5 @@
-#ifndef GAMNET_NETWORK_SERVICE_H_
-#define GAMNET_NETWORK_SERVICE_H_
+#ifndef GAMNET_NETWORK_SESSION_MANAGER_H_
+#define GAMNET_NETWORK_SESSION_MANAGER_H_
 
 #include "Session.h"
 #include <mutex>

@@ -138,6 +138,7 @@ message MsgRouter_RegisterAddress_Ntf		: 005
 message MsgRouter_SendMsg_Ntf				: 006
 {
 	string buffer;
+	uint32 msg_seq;
 };
 
 message MsgRouter_HeartBeat_Ntf				: 007
