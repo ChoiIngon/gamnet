@@ -34,7 +34,7 @@ void Transaction::Update(const std::string& tableName, const std::string& setCla
 
 ResultSet Transaction::Commit()
 {
-	ResultSet res;
+	ResultSet res(nullptr);
 	if(0 == query_count)
 	{
 		return res;
@@ -121,27 +121,23 @@ ResultSet Transaction::Commit()
 	}
 	
 	std::shared_ptr<Connection> connection = Singleton<ConnectionPool<Connection>>::GetInstance().GetConnection(db_type);
-	try {
-		if(1 == queryCount)
-		{
-			res.impl_ = connection->Execute(queries);
-		}
-		else 
-		{
-			res.impl_ = connection->Execute("start transaction;" + queries + " commit;");
-		}
-		while (res.NextResult());
-	}
-	catch (const Gamnet::Exception& e)
+	
+	if(1 == queryCount)
 	{
-		connection->Execute("rollback");
-		// CR_CONN_HOST_ERROR
-		if(nullptr != connection->logger_)
-		{
-			connection->logger_->Write(Log::Logger::LOG_LEVEL_INF, "start transaction; " + queries + " commit;");
-		}
-		throw e;
+		res = connection->Execute(queries);
 	}
+	else 
+	{
+		try {
+			res = connection->Execute("start transaction;" + queries + " commit;");
+		}
+		catch (const Gamnet::Exception& e)
+		{
+			connection->Execute("rollback");
+			throw e;
+		}
+	}
+	while (res.NextResult());
 	
 	Clear();
 	return res;

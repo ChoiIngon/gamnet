@@ -7,18 +7,12 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
-void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, const std::shared_ptr<Tcp::Packet>& packet)
+void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, const MsgRouter_Connect_Req& req)
 {
-	MsgRouter_Connect_Req req;
 	MsgRouter_Connect_Ans ans;
 	ans.error_code = 0;
 
 	try {
-		if (false == Network::Tcp::Packet::Load(req, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
-		}
-
 		SessionManager* sessionManager = static_cast<SessionManager*>(session->session_manager);
 		ans.router_address = sessionManager->local_address;
 
@@ -68,15 +62,9 @@ void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, co
 	}
 }
 
-void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, const MsgRouter_Connect_Ans& ans)
 {
-	MsgRouter_Connect_Ans ans;
 	try {
-		if(false == Network::Tcp::Packet::Load(ans, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
-		}
-
 		SessionManager* sessionManager = static_cast<SessionManager*>(session->session_manager);
 		
 		LOG(INF, "[Gamnet::Router] ",
@@ -117,17 +105,12 @@ void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, co
 	}
 }
 
-void RouterHandler::Recv_RegisterAddress_Req(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+void RouterHandler::Recv_RegisterAddress_Req(const std::shared_ptr<Session>& session, const MsgRouter_RegisterAddress_Req& req)
 {
-	MsgRouter_RegisterAddress_Req req;
 	MsgRouter_RegisterAddress_Ans ans;
 	ans.error_code = ErrorCode::Success;
 
 	try {
-		if(false == Network::Tcp::Packet::Load(req, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
-		}
 		LOG(INF, "[Gamnet::Router] ",
 			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
 			"localhost:", session->socket->local_endpoint().port(), " "
@@ -158,14 +141,8 @@ void RouterHandler::Recv_RegisterAddress_Req(const std::shared_ptr<Session>& ses
 	session->Network::Session::AsyncSend(ansPacket);
 }
 
-void RouterHandler::Recv_RegisterAddress_Ans(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+void RouterHandler::Recv_RegisterAddress_Ans(const std::shared_ptr<Session>& session, const MsgRouter_RegisterAddress_Ans& ans)
 {
-	MsgRouter_RegisterAddress_Ans ans;
-	if(false == Network::Tcp::Packet::Load(ans, packet))
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
-	}
-
 	LOG(INF, "[Gamnet::Router] ",
 		session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
 		"localhost:", session->socket->local_endpoint().port(), " "
@@ -184,15 +161,8 @@ void RouterHandler::Recv_RegisterAddress_Ans(const std::shared_ptr<Session>& ses
 	session->remote_endpoint.port(ans.router_port);
 }
 
-void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, const MsgRouter_SendMsg_Ntf& ntf)
 {
-	MsgRouter_SendMsg_Ntf ntf;
-	
-	if (false == Network::Tcp::Packet::Load(ntf, packet))
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
-	}
-
 	std::shared_ptr<Network::Tcp::Packet> buffer = Network::Tcp::Packet::Create();
 	if (nullptr == buffer)
 	{
@@ -201,22 +171,17 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 
 	buffer->Append(ntf.buffer.data(), ntf.buffer.size());
 	buffer->ReadHeader();
-	buffer->msg_seq = packet->msg_seq;
+	buffer->msg_seq = ntf.msg_seq;
 	Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
 }
 
-void RouterHandler::Recv_HeartBeat_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+void RouterHandler::Recv_HeartBeat_Ntf(const std::shared_ptr<Session>& session, const MsgRouter_HeartBeat_Ntf& ntf)
 {
 	LOG(DEV, "[Router] recv heartbeat message(address:", session->router_address.ToString(),")");
 }
 
-void RouterHandler::Recv_RegisterAddress_Ntf(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+void RouterHandler::Recv_RegisterAddress_Ntf(const std::shared_ptr<Session>& session, const MsgRouter_RegisterAddress_Ntf& ntf)
 {
-	MsgRouter_RegisterAddress_Ntf ntf;
-	if(false == Network::Tcp::Packet::Load(ntf, packet))
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
-	}
 	LOG(DEV, "[Gamnet::Router] MsgRouter_RegisterAddress_Ntf(address:", ntf.router_address.ToString(), ")");
 	session->router_address = ntf.router_address;
 	session->type = Session::TYPE::RECV;

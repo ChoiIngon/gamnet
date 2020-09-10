@@ -33,17 +33,20 @@ void Session::Next()
 
 void Session::AsyncSend(const std::shared_ptr<Network::Tcp::Packet>& packet)
 {
-	if(nullptr == socket && true == handover_safe)
-	{
-		reconnector.AsyncConnect(host, port, 0);
-	}
+	auto self = std::static_pointer_cast<Session>(shared_from_this());
+	Dispatch([this, self]() {
+		if (nullptr == socket && true == handover_safe)
+		{
+			reconnector.AsyncConnect(host, port, 0);
+		}
+	});
 	Network::Tcp::Session::AsyncSend(packet);
 }
 
 void Session::OnReconnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 {
 	auto self = shared_from_this();
-	Dispatch([this, self, socket](){
+	Dispatch([this, self, socket]() {
 		boost::asio::socket_base::linger linger( true, 0 );
 		socket->set_option( linger );
 

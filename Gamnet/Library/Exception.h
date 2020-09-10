@@ -60,7 +60,8 @@ public :
 		DecryptUpdateFail			= 204,
 		DecryptFinalFail			= 205,
 		RedisResultError			= 300,
-		FileNotFound				= 400,
+		ExecuteQueryError			= 301,
+		FileNotFound				= 400,		
 		SystemInitializeError		= 401,
 		UndefinedError				= 999
 	};

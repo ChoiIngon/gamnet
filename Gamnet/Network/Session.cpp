@@ -10,12 +10,12 @@ namespace Gamnet { namespace Network {
 static std::atomic<uint32_t> SESSION_KEY;
 static boost::asio::io_context& io_context = Singleton<boost::asio::io_context>::GetInstance();
 
-Session::Session() :
-	session_key(0),
-	session_manager(nullptr),
-	socket(nullptr),
-	strand(std::make_shared<strand_t>(io_context.get_executor())),
-	read_buffer(nullptr)
+Session::Session() 
+	: session_key(0)
+	, session_manager(nullptr)
+	, socket(nullptr)
+	, strand(std::make_shared<strand_t>(io_context.get_executor()))
+	, read_buffer(nullptr)
 {
 }
 
@@ -71,7 +71,6 @@ void Session::FlushSend()
 	
 	auto self = shared_from_this();
 	const std::shared_ptr<Buffer> buffer = send_buffers.front();
-	//boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), boost::asio::bind_executor(*strand, std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
 	boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), Bind(std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));
 }
 
@@ -87,6 +86,7 @@ void Session::OnSendHandler(const boost::system::error_code& ec, std::size_t tra
 	{
 		return;
 	}
+
 	send_buffers.pop_front();
 	FlushSend();
 }
@@ -164,7 +164,7 @@ void Session::AsyncRead()
 	assert(nullptr != socket);
 	auto self = shared_from_this();
 	socket->async_read_some(boost::asio::buffer(read_buffer->WritePtr(), read_buffer->Available()),
-		Bind([this, self](boost::system::error_code ec, std::size_t readbytes) 
+		Bind([this, self](boost::system::error_code ec, std::size_t readbytes)
 	{
 		if (0 != ec.value())
 		{

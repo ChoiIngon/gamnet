@@ -285,6 +285,7 @@ namespace Gamnet {	namespace Test {
 					RECV_HANDLER_TYPE& recvHandler = itr->second;
 					try {
 						time_t elapsedTime = session->elapse_timer.Count();
+						session->elapse_timer.Reset();
 						testCase->total_time += elapsedTime;
 						testCase->max_time = std::max(testCase->max_time, elapsedTime);
 						recvHandler(session, packet);

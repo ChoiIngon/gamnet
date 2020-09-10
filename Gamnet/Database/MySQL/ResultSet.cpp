@@ -7,83 +7,55 @@
 namespace Gamnet { namespace Database { namespace MySQL {
 
 ResultSetImpl::ResultSetImpl(const std::shared_ptr<Connection> conn) :
-		conn_(conn),
-		res_(nullptr),
-		affectedRowCount_(0),
-		lastInsertID_(0)
+	mysql_res(nullptr),
+	affected_rows(0),
+	last_insert_id(0),
+	error_code(0),
+	conn(conn)
 {
 }
 
 ResultSetImpl::~ResultSetImpl()
 {
-	if (nullptr != res_)
+	if (nullptr != mysql_res)
 	{
-		mysql_free_result(res_);
-		res_ = nullptr;
+		mysql_free_result(mysql_res);
+		mysql_res = nullptr;
 	}
-
-	// trash remain result
-	if (mysql_more_results(&(conn_->conn_)))
-	{
-		while (0 == mysql_next_result(&conn_->conn_))
-		{
-			MYSQL_RES* res = mysql_store_result(&conn_->conn_);
-			if (nullptr != res)
-			{
-				mysql_free_result(res);
-			}
-		}
-	}
-}
-
-bool ResultSetImpl::Execute(const std::string& query)
-{
-	assert(nullptr != conn_);
-	if(0 != mysql_real_query(&(conn_->conn_), query.c_str(), query.length()))
-	{
-		LOG(GAMNET_ERR, mysql_error(&(conn_->conn_)), "(query:", query, ")");
-		throw Exception(mysql_errno(&(conn_->conn_)), mysql_error(&(conn_->conn_)), "(query:", query, ")");
-	}
-
-	if(false == StoreResult())
-	{
-		LOG(GAMNET_ERR, mysql_error(&(conn_->conn_)), "(query:", query, ")");
-		throw Exception(mysql_errno(&(conn_->conn_)), mysql_error(&(conn_->conn_)), "(query:", query, ")");
-	}
-	return true;
+	conn->Release();
 }
 
 bool ResultSetImpl::StoreResult()
 {
-	affectedRowCount_ = 0;
-	lastInsertID_ = 0;
-	mapColumnName_.clear();
+	affected_rows = 0;
+	last_insert_id = 0;
+	columns.clear();
 
-	if (nullptr != res_)
+	if (nullptr != mysql_res)
 	{
-		mysql_free_result(res_);
-		res_ = nullptr;
+		mysql_free_result(mysql_res);
+		mysql_res = nullptr;
 	}
 
-	unsigned int num_fields = mysql_field_count(&conn_->conn_);
+	unsigned int num_fields = mysql_field_count(&conn->mysql_conn);
 	if (0 < num_fields)
 	{
-		res_ = mysql_store_result(&conn_->conn_);
-		if (nullptr == res_)
+		mysql_res = mysql_store_result(&conn->mysql_conn);
+		if (nullptr == mysql_res)
 		{
-			LOG(ERR, mysql_error(&conn_->conn_));
-			throw Exception(mysql_errno(&conn_->conn_), mysql_error(&conn_->conn_));
+			LOG(ERR, mysql_error(&conn->mysql_conn));
+			throw Exception(mysql_errno(&conn->mysql_conn), mysql_error(&conn->mysql_conn));
 		}
 		MYSQL_FIELD *field = nullptr;
-		for (unsigned int i = 0; (field = mysql_fetch_field(res_)); i++)
+		for (unsigned int i = 0; (field = mysql_fetch_field(mysql_res)); i++)
 		{
-			mapColumnName_[field->name] = i;
+			columns[field->name] = i;
 		}
 	}
 	else
 	{
-		affectedRowCount_ = (unsigned int)mysql_affected_rows(&(conn_->conn_));
-		lastInsertID_ = static_cast<unsigned int>(mysql_insert_id(&(conn_->conn_)));
+		affected_rows = mysql_affected_rows(&conn->mysql_conn);
+		last_insert_id = mysql_insert_id(&conn->mysql_conn);
 	}
 
 	return true;
@@ -91,24 +63,25 @@ bool ResultSetImpl::StoreResult()
 
 bool ResultSetImpl::NextResult()
 {
-	if(nullptr == &conn_->conn_)
+	if(nullptr == &conn->mysql_conn)
 	{
 		return false;
 	}
-	if(false == mysql_more_results(&conn_->conn_))
+	if(false == mysql_more_results(&conn->mysql_conn))
 	{
 		return false;
 	}
 
-	if(0 != mysql_next_result(&conn_->conn_))
+	if(0 != mysql_next_result(&conn->mysql_conn))
 	{
-		throw Exception(mysql_errno(&conn_->conn_), mysql_error(&conn_->conn_));
+		throw Exception(mysql_errno(&conn->mysql_conn), mysql_error(&conn->mysql_conn));
 	}
 	
 	return StoreResult();
 }
 
-ResultSet::ResultSet() : impl_(NULL)
+ResultSet::ResultSet(const std::shared_ptr<ResultSetImpl>& impl)
+	: impl_(impl)
 {
 }
 
@@ -122,7 +95,7 @@ unsigned int ResultSet::GetAffectedRow() const
 	{
 		return 0;
 	}
-	return impl_->affectedRowCount_;
+	return impl_->affected_rows;
 }
 
 unsigned int ResultSet::GetRowCount()
@@ -131,16 +104,21 @@ unsigned int ResultSet::GetRowCount()
 	{
 		return 0;
 	}
-	if (nullptr == impl_->res_)
+	if (nullptr == impl_->mysql_res)
 	{
 		return 0;
 	}
-	return (unsigned int)mysql_num_rows(impl_->res_);
+	return (unsigned int)mysql_num_rows(impl_->mysql_res);
 }
 
 unsigned int ResultSet::GetLastInsertID() const
 {
-	return impl_->lastInsertID_;
+	return impl_->last_insert_id;
+}
+
+unsigned int ResultSet::GetLastError() const
+{
+	return impl_->error_code;
 }
 
 bool ResultSet::NextResult()
@@ -151,19 +129,19 @@ bool ResultSet::NextResult()
 Json::Value ResultSet::ToJson()
 {
 	Json::Value root;
-	if (nullptr != impl_ && nullptr != impl_->res_)
+	if (nullptr != impl_ && nullptr != impl_->mysql_res)
 	{
-		unsigned int num_fields = impl_->mapColumnName_.size();
+		unsigned int num_fields = impl_->columns.size();
 		std::vector<std::string> columnNames(num_fields);
-		for(const auto& itr : impl_->mapColumnName_)
+		for(const auto& itr : impl_->columns)
 		{
 			columnNames[itr.second] = itr.first;
 		}
 
-		mysql_data_seek(impl_->res_, 0);
+		mysql_data_seek(impl_->mysql_res, 0);
 
 		MYSQL_ROW row = nullptr;
-		while(nullptr != (row = mysql_fetch_row(impl_->res_)))
+		while(nullptr != (row = mysql_fetch_row(impl_->mysql_res)))
 		{
 			Json::Value value;
 			for(unsigned int i=0; i<num_fields; i++)
@@ -174,6 +152,12 @@ Json::Value ResultSet::ToJson()
 		}
 	}
 	return root;
+}
+
+ResultSet& ResultSet::operator=(const std::shared_ptr<ResultSetImpl>& impl)
+{
+	impl_ = impl;
+	return *this;
 }
 
 ResultSet::iterator ResultSet::begin()
@@ -194,8 +178,8 @@ ResultSet::iterator::iterator(const std::shared_ptr<ResultSetImpl>& impl) : impl
 {
 	if (nullptr != impl_)
 	{
-		mysql_data_seek(impl_->res_, 0);
-		row_ = mysql_fetch_row(impl_->res_);
+		mysql_data_seek(impl_->mysql_res, 0);
+		row_ = mysql_fetch_row(impl_->mysql_res);
 		if (nullptr != row_ && nullptr == *row_)
 		{
 			row_ = nullptr;
@@ -216,7 +200,7 @@ ResultSet::iterator& ResultSet::iterator::operator ++ ()
 	}
 	else
 	{
-		row_ = mysql_fetch_row(impl_->res_);
+		row_ = mysql_fetch_row(impl_->mysql_res);
 	}
 	return *this;
 }
@@ -229,7 +213,7 @@ ResultSet::iterator& ResultSet::iterator::operator ++ (int)
 	}
 	else
 	{
-		row_ = mysql_fetch_row(impl_->res_);
+		row_ = mysql_fetch_row(impl_->mysql_res);
 	}
 	return *this;
 }
@@ -262,27 +246,27 @@ bool ResultSet::iterator::operator == (const ResultSet::iterator& itr) const
 ResultSet::iterator ResultSet::operator [] (unsigned int index)
 {
 	iterator itr;
-	if (nullptr == impl_ || nullptr == impl_->res_)
+	if (nullptr == impl_ || nullptr == impl_->mysql_res)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "invalid result set");
 	}
 
-	if (index >= mysql_num_rows(impl_->res_))
+	if (index >= mysql_num_rows(impl_->mysql_res))
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidArrayRangeError, "out range row index(index:", index, ")");
 	}
 
-	mysql_data_seek(impl_->res_, index);
+	mysql_data_seek(impl_->mysql_res, index);
 	itr.impl_ = impl_;
-	itr.row_ = mysql_fetch_row(impl_->res_);
+	itr.row_ = mysql_fetch_row(impl_->mysql_res);
 
 	return itr;
 }
 
 const std::string ResultSet::iterator::getString(const std::string& column_name) const
 {
-	auto itr = impl_->mapColumnName_.find(column_name);
-	if (impl_->mapColumnName_.end() == itr)
+	auto itr = impl_->columns.find(column_name);
+	if (impl_->columns.end() == itr)
 	{
 		throw GAMNET_EXCEPTION(ErrorCode::InvalidKeyError, "Unknown column '", column_name, "' in 'field list'");
 	}
