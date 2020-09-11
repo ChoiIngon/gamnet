@@ -54,18 +54,44 @@ namespace Component {
 
 	void Mail::Open(uint64_t mailSEQ)
 	{
-		auto itr = mail_datas.find(mailSEQ);
-		if(mail_datas.end() == itr)
+		if (0 == mail_datas.size())
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
-		auto mail = itr->second;
-		session->queries->Execute(
-			"UPDATE user_mail SET delete_yn='Y', delete_date=NOW() WHERE mail_seq=", mailSEQ
-		);
+
 		auto bag = session->GetComponent<Component::Bag>();
-		bag->Insert(Item::CreateInstance(session, mail->item_id, mail->item_count));
-		mail_datas.erase(itr);
+		if(0 == mailSEQ)
+		{
+			std::string mailSEQs = "";
+			for(auto& itr : mail_datas)
+			{
+				std::shared_ptr<Component::MailData> mail = itr.second;
+				if("" != mailSEQs)
+				{
+					mailSEQs += ",";
+				}
+				mailSEQs += std::to_string(mail->mail_seq);
+				bag->Insert(Item::CreateInstance(session, mail->item_id, mail->item_count));
+			}
+			session->queries->Execute(
+				"UPDATE user_mail SET delete_yn='Y', delete_date=NOW() WHERE mail_seq in (", mailSEQs, ")"
+			);
+			mail_datas.clear();
+		}
+		else
+		{		   
+			auto& itr = mail_datas.find(mailSEQ);
+			if(mail_datas.end() == itr)
+			{
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+			}
+			auto mail = itr->second;
+			session->queries->Execute(
+				"UPDATE user_mail SET delete_yn='Y', delete_date=NOW() WHERE mail_seq=", mailSEQ
+			);
+			bag->Insert(Item::CreateInstance(session, mail->item_id, mail->item_count));
+			mail_datas.erase(itr);
+		}
 	}
 
 	void Mail::SendMail(const std::shared_ptr<UserSession>& session, const std::shared_ptr<MailData>& mailData)

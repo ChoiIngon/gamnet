@@ -44,7 +44,8 @@ namespace Gamnet {	namespace Test {
 		{
 			TestCase() 
 				: name("")
-				, execute_count(0)
+				, send_count(0)
+				, recv_count(0)
 				, fail_count(0)
 				, total_time(0) 
 				, max_time(0)
@@ -52,7 +53,8 @@ namespace Gamnet {	namespace Test {
 			{
 			}
 			std::string				name;
-			std::atomic<int64_t>	execute_count;
+			std::atomic<int64_t>	send_count;
+			std::atomic<int64_t>	recv_count;
 			std::atomic<int64_t>	fail_count;
 			std::atomic<int64_t>	total_time;
 			int64_t					max_time;
@@ -116,7 +118,7 @@ namespace Gamnet {	namespace Test {
 			const std::shared_ptr<TestCase>& testCase = test_sequence[session->test_seq];
 			session->elapse_timer.Reset();
 			testCase->send_handler(std::static_pointer_cast<SESSION_T>(session));
-			testCase->execute_count++;
+			testCase->send_count++;
 		}
 		void OnConnectHandler(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 		{
@@ -143,6 +145,7 @@ namespace Gamnet {	namespace Test {
 	private :
 		Log::Logger						log;
 		std::shared_ptr<Time::Timer>	log_timer;
+		Time::ElapseTimer				total_time;;
 
 		std::atomic<int64_t>			begin_execute_count;
 		std::atomic<int64_t>			finish_execute_count;
@@ -191,6 +194,8 @@ namespace Gamnet {	namespace Test {
 		log_timer = Time::Timer::Create();
 		log_timer->AutoReset(true);
 		log_timer->SetTimer(1000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
+
+		total_time.Reset();
 
 		for (size_t i = 0; i < session_count; i++)
 		{
@@ -278,21 +283,22 @@ namespace Gamnet {	namespace Test {
 			int currentSEQ = session->test_seq;
 			if (test_sequence.size() > (size_t)session->test_seq)
 			{
-				const std::shared_ptr<TestCase>& testCase = test_sequence[session->test_seq];
-				auto itr = testCase->receive_handlers.find(packet->msg_id);
-				if(testCase->receive_handlers.end() != itr)
+				const std::shared_ptr<TestCase>& testcase = test_sequence[session->test_seq];
+				auto itr = testcase->receive_handlers.find(packet->msg_id);
+				if(testcase->receive_handlers.end() != itr)
 				{
 					RECV_HANDLER_TYPE& recvHandler = itr->second;
 					try {
 						time_t elapsedTime = session->elapse_timer.Count();
 						session->elapse_timer.Reset();
-						testCase->total_time += elapsedTime;
-						testCase->max_time = std::max(testCase->max_time, elapsedTime);
+						testcase->recv_count++;
+						testcase->total_time += elapsedTime;
+						testcase->max_time = std::max(testcase->max_time, elapsedTime);
 						recvHandler(session, packet);
 					}
 					catch (const Exception& /*e*/)
 					{
-						testCase->fail_count++;
+						testcase->fail_count++;
 					}
 				}
 			}
@@ -333,21 +339,22 @@ namespace Gamnet {	namespace Test {
 		//log.Write(GAMNET_INF, "[Gamnet::Test] session count..(active:", this->session_manager.Size(), ", available:", this->session_pool.Available(), ", max:", this->session_pool.Capacity(), ")");
 		log.Write(GAMNET_INF, "[Gamnet::Test] begin count..(", begin_execute_count, "/", max_execute_count, ")");
 
-		for(auto& testCase : test_sequence)
+		for(const auto& testcase : test_sequence)
 		{
 			log.Write(GAMNET_INF, "[Gamnet::Test] ",
-				"name:", testCase->name,
-				", execute_count:", testCase->execute_count,
-				", fail_count:", testCase->fail_count,
-				", average_time:", 0 == testCase->execute_count ? 0 : (testCase->total_time / testCase->execute_count),
-				", max_time:", testCase->max_time,
-				", total_time:", testCase->total_time
+				"name:", testcase->name,
+				", send_count:", testcase->send_count,
+				", recv_count:", testcase->recv_count,
+				", fail_count:", testcase->fail_count,
+				", avg_time:", 0 == testcase->recv_count ? 0 : (testcase->total_time / testcase->recv_count),
+				", max_time:", testcase->max_time,
+				", tot_time:", testcase->total_time
 			);
 		}
 		if (finish_execute_count >= max_execute_count)
 		{
 			log_timer->Cancel();
-			log.Write(GAMNET_INF, "[Gamnet::Test] test finished..(", finish_execute_count, "/", max_execute_count, ")");
+			log.Write(GAMNET_INF, "[Gamnet::Test] test finished..(", finish_execute_count, "/", max_execute_count, ", second:", total_time.Count<std::chrono::seconds>(), ")");
 		}
 	}
 }} /* namespace Gamnet */
