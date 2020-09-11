@@ -12,13 +12,13 @@
 	<redis  name="gamnet_redis" id="1"  host="localhost" port="6379"/>
 	<http port="8080"/>
 	<tcp port="40000" max_count="8000" accept_queue="4000" keep_alive="300" thread_count="20"/>
-	<!--
-	<test host="127.0.0.1" port="40000" session_count="400" loop_count="1000">
+	
+	<test host="127.0.0.1" port="40000" session_count="1" loop_count="1">
 		<message name="Test_User_Login"/>
 		<message name="Test_Lobby_Join"/>
 		<message name="Test_Lobby_OpenMail"/>
 		<message name="Test_Item_OpenPackage"/>
 		<message name="Test_User_Delete"/>
 	</test>
-	-->
+	
 </server>

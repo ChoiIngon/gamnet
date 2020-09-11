@@ -50,14 +50,9 @@ GAMNET_BIND_TCP_HANDLER(
 
 void Test_OpenMail_Req(const std::shared_ptr<TestSession>& session)
 {
-	for(auto& itr : session->mails)
-	{
-		const Message::MailData mail = itr.second;
-		Message::Lobby::MsgCliSvr_OpenMail_Req req;
-		req.mail_seq = mail.mail_seq;
-		Gamnet::Test::SendMsg(session, req);
-		return;
-	}
+	Message::Lobby::MsgCliSvr_OpenMail_Req req;
+	req.mail_seq = 0;
+	Gamnet::Test::SendMsg(session, req);
 }
 
 void Test_OpenMail_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
@@ -68,23 +63,20 @@ void Test_OpenMail_Ans(const std::shared_ptr<TestSession>& session, const std::s
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
-		session->mails.erase(ans.mail_seq);
+
+		if(0 == ans.mail_seq)
+		{
+			session->mails.clear();
+		}
+		else
+		{
+			session->mails.erase(ans.mail_seq);
+		}
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
-	if(0 < session->mails.size())
-	{
-		for (auto& itr : session->mails)
-		{
-			const Message::MailData mail = itr.second;
-			Message::Lobby::MsgCliSvr_OpenMail_Req req;
-			req.mail_seq = mail.mail_seq;
-			Gamnet::Test::SendMsg(session, req);
-			return;
-		}
-	}
 	session->Next();
 }
 
