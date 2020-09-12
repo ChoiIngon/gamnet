@@ -518,7 +518,6 @@ bool GenerateRuleCSharp::CompileStmtList(const Token::StmtList* pToken)
 	//std::cout << "using System.Threading.Tasks;" << std::endl;
 	std::cout << "using System.IO;" << std::endl;
 	
-	std::cout << "namespace "<< m_sFileName << "{" <<std::endl;
 	if(false == Parse(pToken))
 	{
 		return false;
@@ -558,7 +557,7 @@ bool GenerateRuleCSharp::CompileStmtList(const Token::StmtList* pToken)
 
 		std::cout << "};" << std::endl;
 	}
-	std::cout << "}" << std::endl;
+	
 	return true;
 }
 
