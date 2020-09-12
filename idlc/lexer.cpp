@@ -1,6 +1,6 @@
-#line 1 "lexer.cpp"
+#line 2 "lexer.cpp"
 
-#line 3 "lexer.cpp"
+#line 4 "lexer.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -550,9 +550,9 @@ std::string g_sBuf;
 #ifdef _WIN32
 #define strdup _strdup
 #endif
-#line 553 "lexer.cpp"
+#line 554 "lexer.cpp"
 
-#line 555 "lexer.cpp"
+#line 556 "lexer.cpp"
 
 #define INITIAL 0
 #define STATE_COMMENT 1
@@ -766,7 +766,7 @@ YY_DECL
 #line 57 "lexer.l"
 
 
-#line 769 "lexer.cpp"
+#line 770 "lexer.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1062,7 +1062,7 @@ YY_RULE_SETUP
 #line 114 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 1065 "lexer.cpp"
+#line 1066 "lexer.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STATE_COMMENT):
 case YY_STATE_EOF(STATE_LITERAL):
