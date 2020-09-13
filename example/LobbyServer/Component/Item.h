@@ -6,7 +6,7 @@
 
 #include <Gamnet/Library/MetaData.h>
 #include <Gamnet/Library/Time/Time.h>
-#include "../../idl/MessageCommon.h"
+#include <idl/MessageCommon.h>
 
 class UserSession;
 namespace Component {

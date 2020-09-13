@@ -1,7 +1,6 @@
 #include "Mail.h"
 #include "../UserSession.h"
-#include "../../idl/MessageCommon.h"
-#include "../../idl/MessageLobby.h"
+#include <idl/MessageLobby.h>
 #include "Bag.h"
 #include "Item.h"
 

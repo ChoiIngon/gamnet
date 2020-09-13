@@ -1,6 +1,6 @@
 #include "Counter.h"
+#include <idl/MessageUser.h>
 #include "../UserSession.h"
-#include "../../idl/MessageUser.h"
 
 namespace Component {
 

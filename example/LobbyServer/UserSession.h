@@ -4,7 +4,7 @@
 #include <Gamnet/Gamnet.h>
 #include <Gamnet/Library/Component.h>
 #include <Gamnet/Library/Time/DateTime.h>
-#include "../idl/MessageCommon.h"
+#include <idl/MessageCommon.h>
 
 enum class DatabaseType
 {

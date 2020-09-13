@@ -1,9 +1,9 @@
 #include "Bag.h"
 #include <Gamnet/Database/MySQL/MySQL.h>
+#include <idl/MessageUser.h>
+#include <idl/MessageItem.h>
 #include "../UserSession.h"
 #include "Item.h"
-#include "../../idl/MessageUser.h"
-#include "../../idl/MessageItem.h"
 
 namespace Component {
 	Bag::Bag(const std::shared_ptr<UserSession>& session)

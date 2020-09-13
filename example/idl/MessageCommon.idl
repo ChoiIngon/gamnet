@@ -55,6 +55,16 @@ enum ItemType
 	Package,
 };
 
+enum DungeonTileType
+{
+	Invalid,
+	Floor,
+	Wall,
+	Door,
+	StairDown,
+	StairUp
+};
+
 struct UserData
 {
 	uint64 user_seq;
