@@ -18,6 +18,7 @@
 		<message name="Test_Lobby_Join"/>
 		<message name="Test_Lobby_OpenMail"/>
 		<message name="Test_Item_OpenPackage"/>
+		<message name="Test_Dungeon_CreateDungeon"/>
 		<message name="Test_User_Delete"/>
 	</test>
 	

@@ -245,6 +245,53 @@ struct ItemType_Serializer {
 	}
 	static size_t Size(const ItemType& obj) { return sizeof(ItemType); }
 };
+enum class DungeonTileType {
+	Invalid,
+	Floor,
+	Wall,
+	Door,
+	StairDown,
+	StairUp,
+}; // DungeonTileType
+template <class T> const std::string& ToString(T);
+template <> inline const std::string& ToString<DungeonTileType>(DungeonTileType e) { 
+	static const std::map<DungeonTileType, std::string> table = {
+		{ DungeonTileType::Invalid, "Invalid"},
+		{ DungeonTileType::Floor, "Floor"},
+		{ DungeonTileType::Wall, "Wall"},
+		{ DungeonTileType::Door, "Door"},
+		{ DungeonTileType::StairDown, "StairDown"},
+		{ DungeonTileType::StairUp, "StairUp"},
+	};
+	auto itr = table.find(e); 
+	if(table.end() == itr) { throw std::runtime_error("ToString<DungeonTileType>()"); }
+	return itr->second;
+}
+template<class T> T Parse(const std::string&);
+template <> inline DungeonTileType Parse<DungeonTileType>(const std::string& s) {
+	static const std::map<std::string, DungeonTileType> table = {
+		{ "Invalid", DungeonTileType::Invalid},
+		{ "Floor", DungeonTileType::Floor},
+		{ "Wall", DungeonTileType::Wall},
+		{ "Door", DungeonTileType::Door},
+		{ "StairDown", DungeonTileType::StairDown},
+		{ "StairUp", DungeonTileType::StairUp},
+	};
+	auto itr = table.find(s); 
+	if(table.end() == itr) { throw std::runtime_error("Parse<DungeonTileType>()"); }
+	return itr->second;
+}
+struct DungeonTileType_Serializer {
+	static bool Store(char** _buf_, const DungeonTileType& obj) { 
+		(*(DungeonTileType*)(*_buf_)) = obj;	(*_buf_) += sizeof(DungeonTileType);
+		return true;
+	}
+	static bool Load(DungeonTileType& obj, const char** _buf_, size_t& nSize) { 
+		if(sizeof(DungeonTileType) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(DungeonTileType));		(*_buf_) += sizeof(DungeonTileType); nSize -= sizeof(DungeonTileType);
+		return true;
+	}
+	static size_t Size(const DungeonTileType& obj) { return sizeof(DungeonTileType); }
+};
 struct UserData {
 	uint64_t	user_seq;
 	std::string	user_name;

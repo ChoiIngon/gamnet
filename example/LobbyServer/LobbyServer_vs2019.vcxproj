@@ -77,7 +77,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>../../;C:\local\boost_1_71_0;C:\local\curl-7.43.0-win64\include;C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../;../../;C:\local\boost_1_71_0;C:\local\curl-7.43.0-win64\include;C:\local\OpenSSL-Win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0501;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
@@ -130,6 +130,10 @@
     <ClCompile Include="Component\Event.cpp" />
     <ClCompile Include="Component\Mail.cpp" />
     <ClCompile Include="Component\UserData.cpp" />
+    <ClCompile Include="Component\Dungeon\Dungeon.cpp" />
+    <ClCompile Include="Component\Dungeon\Rect.cpp" />
+    <ClCompile Include="Component\Dungeon\Tile.cpp" />
+    <ClCompile Include="Component\Dungeon\Vector2.cpp" />
     <ClCompile Include="Handler\Http\Handler_ServerState.cpp" />
     <ClCompile Include="Handler\Item\Handler_OpenPackage.cpp" />
     <ClCompile Include="Handler\Lobby\Handler_OpenMail.cpp" />
@@ -137,6 +141,7 @@
     <ClCompile Include="Handler\User\Handler_Delete.cpp" />
     <ClCompile Include="Handler\User\Handler_Login.cpp" />
     <ClCompile Include="Handler\Lobby\Handler_Join.cpp" />
+    <ClCompile Include="Handler\Dungeon\Handler_CreateDungeon.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Component\Item.cpp" />
     <ClCompile Include="UserSession.cpp" />
@@ -154,6 +159,10 @@
     <ClInclude Include="Component\Event.h" />
     <ClInclude Include="Component\Mail.h" />
     <ClInclude Include="Component\UserData.h" />
+    <ClInclude Include="Component\Dungeon\Dungeon.h" />
+    <ClInclude Include="Component\Dungeon\Rect.h" />
+    <ClInclude Include="Component\Dungeon\Tile.h" />
+    <ClInclude Include="Component\Dungeon\Vector2.h" />
     <ClInclude Include="Handler\Http\Handler_ServerState.h" />
     <ClInclude Include="Handler\Item\Handler_OpenPackage.h" />
     <ClInclude Include="Handler\Lobby\Handler_OpenMail.h" />
@@ -162,6 +171,7 @@
     <ClInclude Include="Handler\User\Handler_Create.h" />
     <ClInclude Include="Handler\Lobby\Handler_Join.h" />
     <ClInclude Include="Component\Item.h" />
+    <ClInclude Include="Handler\Dungeon\Handler_CreateDungeon.h" />
     <ClInclude Include="UserSession.h" />
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +197,13 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\idl\MessageItem.idl">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\MessageDungeon.idl">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">idl build : ..\..\x64\Debug\idlc.exe -lcpp  ..\idl\%(Filename).idl</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\idl\%(Filename).h</Outputs>

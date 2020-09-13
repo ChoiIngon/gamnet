@@ -1,7 +1,7 @@
 #ifndef _COMPONENT_ACCOUNT_H_
 #define _COMPONENT_ACCOUNT_H_
 
-#include "../../idl/MessageCommon.h"
+#include <idl/MessageCommon.h>
 
 namespace Component {
 	class Account

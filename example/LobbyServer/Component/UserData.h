@@ -1,7 +1,7 @@
 #ifndef _COMPONENT_USER_DATA_H_
 #define _COMPONENT_USER_DATA_H_
 
-#include "../../idl/MessageCommon.h"
+#include <idl/MessageCommon.h>
 #include <Gamnet/Library/Time/DateTime.h>
 
 namespace Component {
