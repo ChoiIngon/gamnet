@@ -62,11 +62,36 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Dungeon.cs" />
+    <Compile Include="Assets\Scripts\DungeonMain.cs" />
+    <Compile Include="Assets\Scripts\EventID.cs" />
+    <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\Gamnet\Buffer.cs" />
     <Compile Include="Assets\Scripts\Gamnet\Exception.cs" />
     <Compile Include="Assets\Scripts\Gamnet\Session.cs" />
-    <Compile Include="Assets\Scripts\IDL\Message.cs" />
-    <Compile Include="Assets\Scripts\UnityClient.cs" />
+    <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_CreateDungeon.cs" />
+    <Compile Include="Assets\Scripts\Handler\Item\Handler_Item.cs" />
+    <Compile Include="Assets\Scripts\Handler\User\Handler_Counter.cs" />
+    <Compile Include="Assets\Scripts\Handler\User\Handler_Create.cs" />
+    <Compile Include="Assets\Scripts\Handler\User\Handler_Login.cs" />
+    <Compile Include="Assets\Scripts\IDL\MessageCommon.cs" />
+    <Compile Include="Assets\Scripts\IDL\MessageDungeon.cs" />
+    <Compile Include="Assets\Scripts\IDL\MessageItem.cs" />
+    <Compile Include="Assets\Scripts\IDL\MessageLobby.cs" />
+    <Compile Include="Assets\Scripts\IDL\MessageUser.cs" />
+    <Compile Include="Assets\Scripts\LobbyMain.cs" />
+    <Compile Include="Assets\Scripts\ResourceManager.cs" />
+    <Compile Include="Assets\Scripts\Tile.cs" />
+    <Compile Include="Assets\Scripts\Util\EventSystem.cs" />
+    <Compile Include="Assets\Scripts\Util\Singleton.cs" />
+    <Compile Include="Assets\Scripts\Util\TouchInput.cs" />
+    <None Include="Assets\Resources\Tiles\LICENSE.txt" />
+    <None Include="Assets\Resources\Tiles\Monster\animals\animals.txt" />
+    <None Include="Assets\Resources\Tiles\utility\README.txt" />
+    <None Include="Assets\Resources\Tiles\utility\Raw List.txt" />
+    <None Include="Assets\Resources\Tiles\utility\Deleted List.txt" />
+    <None Include="Assets\Resources\Tiles\utility\Filtered List.txt" />
+    <None Include="Assets\Resources\Tiles\README.txt" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>D:/gamnet/example/unity_client/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
