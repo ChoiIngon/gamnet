@@ -77,13 +77,6 @@ void Dungeon::Init()
 void Dungeon::InitBlocks()
 {
 	int blockID = 1;
-	{
-		std::shared_ptr<Block> block = std::make_shared<Block>(blockID++);
-		block->type = Block::Type::Corridor;
-		block->rect.width = Gamnet::Random::Range(min_room_width, max_room_width - 1);
-		block->rect.height = Gamnet::Random::Range(min_room_height, max_room_height - 1);
-		blocks.push_back(block);
-	}
 
 	for(int i=0; i<room_count; i++)
 	{
@@ -93,6 +86,7 @@ void Dungeon::InitBlocks()
 		block->rect.height = Gamnet::Random::Range(min_room_height, max_room_height - 1);
 
 		MoveToEmptySpace(block);
+
 		int xMax = rect.xMax;
 		int yMax = rect.yMax;
 		rect.x = std::min(rect.x, block->rect.x);
@@ -172,10 +166,12 @@ void Dungeon::InitBlocks()
 					}
 				}
 
+				/*
 				if (0 == block->id % 3 && min_room_width <= block->rect.width && min_room_height <= block->rect.height)
 				{
 					block->type = Block::Type::Room;
 				}
+				*/
 				blocks.push_back(block);
 			}
 		}
@@ -196,9 +192,7 @@ void Dungeon::InitTiles()
 
 	for (int i = 0; i < tiles.size(); i++)
 	{
-		std::shared_ptr<Tile> tile = std::make_shared<Tile>();
-		tile->index = i;
-		tile->type = Tile::Type::Invalid;
+		std::shared_ptr<Tile> tile = std::make_shared<Tile>(i);
 		tile->position = Vector2Int(tile->index % rect.width, tile->index / rect.width);
 		tiles[i] = tile;
 	}
@@ -409,7 +403,7 @@ void Dungeon::FindDoor(std::shared_ptr<Block> block, std::shared_ptr<Block> neig
 				}
 			}
 
-			int door = overlapPoints[Gamnet::Random::Range(0, overlapPoints.size() - 1)];
+			int door = overlapPoints[Gamnet::Random::Range(0, (int32_t)overlapPoints.size() - 1)];
 			tiles[door]->type = Tile::Type::Door;
 			tiles[door + doorIndiceOfNeighbor[i]]->type = Tile::Type::Door;
 			block->doors.push_back(door + doorIndiceOfNeighbor[i]);
@@ -442,12 +436,12 @@ void Dungeon::MoveToEmptySpace(std::shared_ptr<Block> block)
 			if (1.0f > y / x)
 			{
 				block->rect.x += dx * min_distance;
-				block->rect.y = dy * (int)(y / x * block->rect.x);
+				block->rect.y = dy * (int)(y / x * block->rect.x) + Gamnet::Random::Range(0, 3);
 			}
 			else
 			{
 				block->rect.y += dy * min_distance;
-				block->rect.x = dx * (int)(x / y * block->rect.y);
+				block->rect.x = dx * (int)(x / y * block->rect.y) + Gamnet::Random::Range(0, 3);
 			}
 		}
 		else
@@ -618,7 +612,7 @@ void Dungeon::BuildCorridorInBlock(std::shared_ptr<Block> block)
 	{
 		int start = block->doors[0];
 
-		for (int i = 1; i < block->doors.size(); i++)
+		for (size_t i = 1; i < block->doors.size(); i++)
 		{
 			int dest = block->doors[i];
 
@@ -653,7 +647,7 @@ void Dungeon::BuildCorridorInBlock(std::shared_ptr<Block> block)
 			}
 
 			int prev = dest;
-			for (int j = queue.size() - 1; j >= 0; j--)
+			for (int j = (int)queue.size() - 1; j >= 0; j--)
 			{
 				std::shared_ptr<Path> path = queue[j];
 				if (prev == path->tile_index)

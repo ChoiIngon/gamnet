@@ -24,6 +24,20 @@ namespace Component
 			}
 		}
 
+		public Tile.Data GetTileData(int tileIndex)
+		{
+			if (0 > tileIndex || width * height <= tileIndex)
+			{
+				return null;
+			}
+			return tiles[tileIndex].data;
+		}
+
+		public Tile.Data GetTileData(int x, int y)
+		{
+			return GetTileData(y * width + x);
+		}
+
 		void OnDrawGizmosSelected()
 		{
 			/*

@@ -53,6 +53,7 @@ struct MsgSvrCli_CreateDungeon_Ans {
 	ErrorCode	error_code;
 	int32_t	width;
 	int32_t	height;
+	Vector2Int	start;
 	std::vector<DungeonTileType >	tiles;
 	MsgSvrCli_CreateDungeon_Ans()	{
 		width = 0;
@@ -63,6 +64,7 @@ struct MsgSvrCli_CreateDungeon_Ans {
 		nSize += ErrorCode_Serializer::Size(error_code);
 		nSize += sizeof(int32_t);
 		nSize += sizeof(int32_t);
+		nSize += Vector2Int_Serializer::Size(start);
 		nSize += sizeof(int32_t);
 		for(std::vector<DungeonTileType >::const_iterator tiles_itr = tiles.begin(); tiles_itr != tiles.end(); tiles_itr++)	{
 			const DungeonTileType& tiles_elmt = *tiles_itr;
@@ -84,6 +86,7 @@ struct MsgSvrCli_CreateDungeon_Ans {
 		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
 		std::memcpy(*_buf_, &width, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, &height, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		if(false == Vector2Int_Serializer::Store(_buf_, start)) { return false; }
 		size_t tiles_size = tiles.size();
 		std::memcpy(*_buf_, &tiles_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		for(std::vector<DungeonTileType >::const_iterator tiles_itr = tiles.begin(); tiles_itr != tiles.end(); tiles_itr++)	{
@@ -103,6 +106,7 @@ struct MsgSvrCli_CreateDungeon_Ans {
 		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
 		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&width, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
 		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&height, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
+		if(false == Vector2Int_Serializer::Load(start, _buf_, nSize)) { return false; }
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t tiles_length = 0; std::memcpy(&tiles_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		for(uint32_t i=0; i<tiles_length; i++) {

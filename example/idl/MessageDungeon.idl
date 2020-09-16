@@ -15,6 +15,7 @@ message MsgSvrCli_CreateDungeon_Ans : 040000001
 	ErrorCode error_code;
 	int32 width;
 	int32 height;
+	Vector2Int start;
 	array<DungeonTileType> tiles;
 };
 

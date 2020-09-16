@@ -1,8 +1,8 @@
 #include "Tile.h"
 
-Tile::Tile()
-	: type(Type::Invalid)
-	, index(0)
+Tile::Tile(int index)
+	: index(0)
+	, type(Type::Invalid)
 	, visible(false)
 {
 }

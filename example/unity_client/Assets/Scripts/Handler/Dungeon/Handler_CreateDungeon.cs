@@ -52,6 +52,8 @@ namespace Handler
 						dungeon.tiles.Add(tile);
 					}
 				}
+
+				GameManager.Instance.scenes.dungeon_main.dungeon = dungeon;
 			}
 		}
 	}

@@ -62,6 +62,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\BresenhamCircle2D.cs" />
+    <Compile Include="Assets\Scripts\BresenhamLine2D.cs" />
     <Compile Include="Assets\Scripts\Dungeon.cs" />
     <Compile Include="Assets\Scripts\DungeonMain.cs" />
     <Compile Include="Assets\Scripts\EventID.cs" />
@@ -80,8 +82,10 @@
     <Compile Include="Assets\Scripts\IDL\MessageLobby.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageUser.cs" />
     <Compile Include="Assets\Scripts\LobbyMain.cs" />
+    <Compile Include="Assets\Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\ResourceManager.cs" />
     <Compile Include="Assets\Scripts\Tile.cs" />
+    <Compile Include="Assets\Scripts\Unit.cs" />
     <Compile Include="Assets\Scripts\Util\EventSystem.cs" />
     <Compile Include="Assets\Scripts\Util\Singleton.cs" />
     <Compile Include="Assets\Scripts\Util\TouchInput.cs" />

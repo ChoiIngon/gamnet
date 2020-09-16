@@ -23,3 +23,18 @@ Vector2Int::Vector2Int(int x, int y)
 	, y(y)
 {
 }
+
+Vector2Int Vector2Int::operator = (const Message::Vector2Int& rhs)
+{
+	x = rhs.x;
+	y = rhs.y;
+	return *this;
+}
+
+Vector2Int::operator Message::Vector2Int() const
+{
+	Message::Vector2Int vec;
+	vec.x = x;
+	vec.y = y;
+	return vec;
+}
