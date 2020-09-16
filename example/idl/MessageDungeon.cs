@@ -42,6 +42,7 @@ public class MsgSvrCli_CreateDungeon_Ans {
 	public ErrorCode	error_code = new ErrorCode();
 	public int	width = 0;
 	public int	height = 0;
+	public Vector2Int	start = new Vector2Int();
 	public List<DungeonTileType >	tiles = new List<DungeonTileType >();
 	public MsgSvrCli_CreateDungeon_Ans() {
 	}
@@ -51,6 +52,7 @@ public class MsgSvrCli_CreateDungeon_Ans {
 			nSize += ErrorCode_Serializer.Size(error_code);
 			nSize += sizeof(int);
 			nSize += sizeof(int);
+			nSize += Vector2Int_Serializer.Size(start);
 			nSize += sizeof(int);
 			foreach(var tiles_itr in tiles) { 
 				DungeonTileType tiles_elmt = tiles_itr;
@@ -66,6 +68,7 @@ public class MsgSvrCli_CreateDungeon_Ans {
 			if(false == ErrorCode_Serializer.Store(_buf_, error_code)) { return false; }
 			_buf_.Write(BitConverter.GetBytes(width), 0, sizeof(int));
 			_buf_.Write(BitConverter.GetBytes(height), 0, sizeof(int));
+			if(false == Vector2Int_Serializer.Store(_buf_, start)) { return false; }
 			_buf_.Write(BitConverter.GetBytes(tiles.Count), 0, sizeof(int));
 			foreach(var tiles_itr in tiles) { 
 				DungeonTileType tiles_elmt = tiles_itr;
@@ -85,6 +88,7 @@ public class MsgSvrCli_CreateDungeon_Ans {
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
 			height = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(int);
+			if(false == Vector2Int_Serializer.Load(ref start, _buf_)) { return false; }
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
 			int tiles_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(int);

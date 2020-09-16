@@ -35,6 +35,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 
 		ans.width = dungeon->rect.width;
 		ans.height = dungeon->rect.height;
+		ans.start = Vector2Int(dungeon->start->rect.x, dungeon->start->rect.y);
 		for(auto tile : dungeon->tiles)
 		{
 			ans.tiles.push_back(tile->type);

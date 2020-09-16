@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class DungeonMain : MonoBehaviour
 {
+	public Component.Dungeon dungeon = null;
     // Start is called before the first frame update
     void Start()
     {
@@ -15,4 +16,9 @@ public class DungeonMain : MonoBehaviour
     {
         
     }
+
+	private void OnDestroy()
+	{
+		dungeon = null;
+	}
 }

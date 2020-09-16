@@ -10,10 +10,10 @@ class Tile
 public:
 	typedef Message::DungeonTileType Type;
 
-	Tile();
+	Tile(int index);
 public :
+	const int index;
 	Type type;
-	int index;
 	Vector2Int position;
 	bool visible;
 };
