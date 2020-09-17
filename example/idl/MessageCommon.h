@@ -512,6 +512,52 @@ struct ItemData_Serializer {
 	static bool Load(ItemData& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static size_t Size(const ItemData& obj) { return obj.Size(); }
 };
+struct Vector2Int {
+	int32_t	x;
+	int32_t	y;
+	Vector2Int()	{
+		x = 0;
+		y = 0;
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(int32_t);
+		nSize += sizeof(int32_t);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		std::memcpy(*_buf_, &x, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		std::memcpy(*_buf_, &y, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&x, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
+		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&y, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
+		return true;
+	}
+}; //Vector2Int
+struct Vector2Int_Serializer {
+	static bool Store(char** _buf_, const Vector2Int& obj) { return obj.Store(_buf_); }
+	static bool Load(Vector2Int& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const Vector2Int& obj) { return obj.Size(); }
+};
 
 }
 

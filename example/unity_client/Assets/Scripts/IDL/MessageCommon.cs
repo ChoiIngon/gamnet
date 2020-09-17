@@ -415,6 +415,49 @@ public struct ItemData_Serializer {
 	public static bool Load(ref ItemData obj, MemoryStream _buf_) { return obj.Load(_buf_); }
 	public static int Size(ItemData obj) { return obj.Size(); }
 };
+public class Vector2Int {
+	public int	x = 0;
+	public int	y = 0;
+	public Vector2Int() {
+	}
+	public virtual int Size() {
+		int nSize = 0;
+		try {
+			nSize += sizeof(int);
+			nSize += sizeof(int);
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public virtual bool Store(MemoryStream _buf_) {
+		try {
+			_buf_.Write(BitConverter.GetBytes(x), 0, sizeof(int));
+			_buf_.Write(BitConverter.GetBytes(y), 0, sizeof(int));
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public virtual bool Load(MemoryStream _buf_) {
+		try {
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			x = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			y = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct Vector2Int_Serializer {
+	public static bool Store(MemoryStream _buf_, Vector2Int obj) { return obj.Store(_buf_); }
+	public static bool Load(ref Vector2Int obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(Vector2Int obj) { return obj.Size(); }
+};
 
 }
 

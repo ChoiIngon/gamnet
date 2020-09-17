@@ -95,6 +95,12 @@ struct ItemData
 	int32 item_count;
 };
 
+struct Vector2Int
+{
+	int32 x;
+	int32 y;
+};
+
 .cpp %%
 }
 %%

@@ -25,7 +25,7 @@ class Dungeon
 		const int id;
 		Type type;
 
-		int distance;
+		size_t distance;
 		RectInt rect;
 		std::vector<std::shared_ptr<Block>> neighbors;
 		std::vector<int> doors;
