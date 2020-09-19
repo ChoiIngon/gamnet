@@ -2,9 +2,9 @@
 #define yyHEADER_H 1
 #define yyIN_HEADER 1
 
-#line 6 "lexer.h"
+#line 5 "lexer.h"
 
-#line 8 "lexer.h"
+#line 7 "lexer.h"
 
 #define  YY_INT_ALIGNED short int
 
@@ -466,6 +466,6 @@ extern int yylex (void);
 #line 114 "lexer.l"
 
 
-#line 470 "lexer.h"
+#line 469 "lexer.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

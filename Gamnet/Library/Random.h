@@ -30,14 +30,13 @@ namespace Gamnet {
 		static double Range(double min, double max);
 	};
 
-	template <class T>
+	template <class T, int WEIGHT_LIMIT = std::numeric_limits<int>::max()>
 	class WeightRandom
 	{
-		const uint32_t MAX_WEIGHT_CONSTRAINT = std::numeric_limits<uint32_t>::max();
-		uint32_t totalWeight_;
-		std::vector<std::pair<uint32_t, T>> valWeight_;
+		int total_weight;
+		std::vector<std::pair<int, T>> weighted_values;
 	public :
-		WeightRandom() : totalWeight_(0) {};
+		WeightRandom() : total_weight(0) {};
 		~WeightRandom() {};
 
 		void SetWeight(const T&& value, uint32_t weight)
@@ -46,12 +45,12 @@ namespace Gamnet {
 			{
 				return;
 			}
-			totalWeight_ += weight;
-			if (MAX_WEIGHT_CONSTRAINT < totalWeight_)
+			total_weight += weight;
+			if (WEIGHT_LIMIT < total_weight)
 			{
 				throw std::overflow_error("total weight was over limit");
 			}
-			valWeight_.push_back(std::make_pair(totalWeight_, value));
+			weighted_values.push_back(std::make_pair(total_weight, value));
 		}
 
 		void SetWeight(const T& value, uint32_t weight)
@@ -60,41 +59,41 @@ namespace Gamnet {
 			{
 				return;
 			}
-			totalWeight_ += weight;
-			if (MAX_WEIGHT_CONSTRAINT < totalWeight_)
+			total_weight += weight;
+			if (WEIGHT_LIMIT < total_weight)
 			{
 				throw std::overflow_error("total weight was over limit");
 			}
-			valWeight_.push_back(std::make_pair(totalWeight_, value));
+			weighted_values.push_back(std::make_pair(total_weight, value));
 		}
 
 		const T& Random() const
 		{
-			if (0 == valWeight_.size())
+			if (0 == weighted_values.size())
 			{
 				throw std::underflow_error("no weight info");
 			}
 
-			uint32_t r = Random::Range(0, totalWeight_ - 1);
-			for (const auto& itr : valWeight_)
+			int weight = Random::Range(0, total_weight - 1);
+			for (const auto& itr : weighted_values)
 			{
-				if (r < itr.first)
+				if (weight < itr.first)
 				{
 					return itr.second;
 				}
 			}
-			return valWeight_.back().second;
+			return weighted_values.back().second;
 		}
 
-		uint32_t GetTotalWeight() const
+		int GetTotalWeight() const
 		{
-			return totalWeight_;
+			return total_weight;
 		}
 
 		std::list<T> GetAllRandomEntity() const
 		{
 			std::list<T> entities;
-			for(const auto& itr : valWeight_)
+			for(const auto& itr : weighted_values)
 			{
 				entities.push_back(itr.second);
 			}
