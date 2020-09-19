@@ -15,7 +15,7 @@ public class Player : MonoBehaviour
 			//Camera.main.transform.position = new Vector3(position.x, position.y, Camera.main.transform.position.z);
 		}
 	}
-	
+
 	public class Suit
 	{
 		public GameObject head;
