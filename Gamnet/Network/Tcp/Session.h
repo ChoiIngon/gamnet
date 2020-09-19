@@ -12,6 +12,12 @@ public:
 	enum {
 		RELIABLE_PACKET_QUEUE_SIZE = 100
 	};
+	enum class State
+	{
+		Invalid,
+		AfterCreate,
+		AfterAccept
+	};
 public :
 	Session();
 	virtual ~Session();
@@ -25,8 +31,9 @@ public :
 	std::shared_ptr<Packet>								recv_packet;
 	std::deque<std::shared_ptr<Packet>>					send_packets;
 
-	std::string											session_token;
-	
+	std::string	session_token;
+	State		session_state;
+
 	virtual bool Init() override;
 	virtual void Clear() override;
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
