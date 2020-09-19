@@ -25,7 +25,7 @@ namespace Handler
 				Component.Dungeon dungeon = go.AddComponent<Component.Dungeon>();
 				dungeon.width = ans.width;
 				dungeon.height = ans.height;
-
+				
 				List<Tile.Data> tileDatas = new List<Tile.Data>(new Tile.Data[dungeon.width * dungeon.height]);
 				for (int y = 0; y < dungeon.height; y++)
 				{
@@ -54,6 +54,7 @@ namespace Handler
 				}
 
 				GameManager.Instance.scenes.dungeon_main.dungeon = dungeon;
+				GameManager.Instance.scenes.dungeon_main.player.position = new Vector2Int(ans.start.x, ans.start.y);
 			}
 		}
 	}
