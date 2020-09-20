@@ -18,6 +18,7 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
+	LOG(DEV, "OnCreate(session_key:", session_key, ")");
 	auto self = std::static_pointer_cast<UserSession>(shared_from_this());
 
 	AddComponent<Component::Counter>(std::make_shared<Component::Counter>(self));
@@ -28,7 +29,7 @@ void UserSession::OnCreate()
 
 void UserSession::OnAccept()
 {
-	//LOG(INF, "[session_key:", session_key, "] OnAccept");
+	LOG(DEV, "OnAccept(session_key:", session_key, ")");
 	auto disconnect = GetComponent<Component::Disconnect>();
 	if(nullptr != disconnect) // reconnect
 	{
@@ -39,12 +40,13 @@ void UserSession::OnAccept()
 
 void UserSession::OnClose(int reason)
 {
-	//LOG(INF, "[session_key:", session_key, "] OnClose");
+	LOG(DEV, "OnClose(session_key:", session_key, ")");
 	AddComponent<Component::Disconnect>();
 }
 
 void UserSession::OnDestroy()
 {
+	LOG(DEV, "OnDistroy(session_key:", session_key,")");
 	shard_index = 0;
 	user_seq = 0;
 	components.Clear();

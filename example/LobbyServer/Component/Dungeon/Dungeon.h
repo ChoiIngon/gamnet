@@ -7,6 +7,7 @@
 #include "Rect.h"
 #include "Tile.h"
 
+class Player;
 namespace Component {
 class Dungeon
 {
@@ -50,6 +51,7 @@ public :
 	Dungeon();
 
 	void Init();
+	std::shared_ptr<Tile> GetTile(int x, int y) const;
 private :
 	void InitBlocks();
 	void InitTiles();
@@ -78,6 +80,9 @@ public :
 	std::vector<std::shared_ptr<Tile>> tiles;
 	std::shared_ptr<Block> start;
 	std::shared_ptr<Block> end;
+
+public :
+	std::shared_ptr<Player> player;
 };
 
 }

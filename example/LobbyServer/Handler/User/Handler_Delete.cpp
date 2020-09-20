@@ -17,7 +17,7 @@ void Handler_Delete::Recv_Req(const std::shared_ptr<UserSession>& session, const
 	ans.error_code = Message::ErrorCode::Success;
 
 	try {
-		LOG(DEV, "MsgCliSvr_Delete_Req()");
+		LOG(DEV, "Message::User::MsgCliSvr_Delete_Req()");
 		auto account = session->GetComponent<Component::Account>();
 		if(nullptr == account)
 		{
@@ -54,7 +54,7 @@ void Handler_Delete::Recv_Req(const std::shared_ptr<UserSession>& session, const
 		ans.error_code = (Message::ErrorCode)e.error_code();
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-	LOG(DEV, "MsgSvrCli_Delete_Ans(error_code:", (int)ans.error_code, ")");
+	LOG(DEV, "Message::User::MsgSvrCli_Delete_Ans(error_code:", (int)ans.error_code, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 

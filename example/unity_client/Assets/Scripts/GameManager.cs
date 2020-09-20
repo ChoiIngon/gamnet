@@ -12,7 +12,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 	}
 
 	public Gamnet.Session session = new Gamnet.Session();
-	public bool run_in_background = true;
+	public bool run_in_background = false;
 	public Scenes scenes = new Scenes();
 	
 	private void Awake()

@@ -135,14 +135,15 @@ void Session::Close(int reason)
 			OnClose(reason);
 			session_state = State::AfterCreate;
 		}
-		
+
+		socket = nullptr;
+
 		if(State::AfterCreate == session_state && false == handover_safe)
 		{
 			OnDestroy();
 			session_state = State::Invalid;
+			session_manager->Remove(self);
 		}
-		socket = nullptr;
-		session_manager->Remove(self);
 	});
 }
 

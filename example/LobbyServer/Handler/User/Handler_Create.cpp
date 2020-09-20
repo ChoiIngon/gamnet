@@ -59,7 +59,7 @@ namespace Handler { namespace User {
 		ans.error_code = Message::ErrorCode::Success;
 
 		try {
-			LOG(DEV, "MsgCliSvr_User_Create_Req(account_id:", req.account_id, ")");
+			LOG(DEV, "Message::User::MsgCliSvr_User_Create_Req(account_id:", req.account_id, ")");
 
 			if(nullptr != session->GetComponent<Component::Account>())
 			{
@@ -88,7 +88,7 @@ namespace Handler { namespace User {
 				break;
 			}
 		}
-		LOG(DEV, "MsgSvrCli_User_Create_Ans(error_code:", (int)ans.error_code, ")");
+		LOG(DEV, "Message::User::MsgSvrCli_User_Create_Ans(error_code:", (int)ans.error_code, ")");
 		Gamnet::Network::Tcp::SendMsg(session, ans);
 	}
 

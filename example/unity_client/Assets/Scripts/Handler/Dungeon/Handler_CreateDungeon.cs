@@ -25,8 +25,8 @@ namespace Handler
 				Component.Dungeon dungeon = go.AddComponent<Component.Dungeon>();
 				dungeon.width = ans.width;
 				dungeon.height = ans.height;
-				
-				List<Tile.Data> tileDatas = new List<Tile.Data>(new Tile.Data[dungeon.width * dungeon.height]);
+				dungeon.tiles = new List<Tile>(new Tile[dungeon.width * dungeon.height]);
+
 				for (int y = 0; y < dungeon.height; y++)
 				{
 					for (int x = 0; x < dungeon.width; x++)
@@ -36,20 +36,19 @@ namespace Handler
 							continue;
 						}
 
-						GameObject obj = new GameObject();
-						obj.transform.SetParent(dungeon.transform, false);
-						obj.transform.localPosition = new Vector3(x, y, 0.0f);
-						//obj.SetActive(false);
-
-						Tile tile = obj.AddComponent<Tile>();
-
 						Tile.Data tileData = new Tile.Data();
 						tileData.index = y * dungeon.width + x;
 						tileData.type = ans.tiles[tileData.index];
 						tileData.position = new Vector2Int(x, y);
+						
+						GameObject obj = new GameObject();
+						obj.transform.SetParent(dungeon.transform, false);
+						obj.transform.localPosition = new Vector3(x, y, 0.0f);
+						obj.SetActive(false);
 
+						Tile tile = obj.AddComponent<Tile>();
 						tile.Init(tileData);
-						dungeon.tiles.Add(tile);
+						dungeon.tiles[y * dungeon.width + x] = tile;
 					}
 				}
 

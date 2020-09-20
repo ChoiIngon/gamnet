@@ -37,6 +37,8 @@ public class Player : MonoBehaviour
 
 	public Body body = new Body();
 	public Suit suit = new Suit();
+
+	private 
 	// Start is called before the first frame update
 	void Start()
     {
@@ -51,13 +53,47 @@ public class Player : MonoBehaviour
 		suit.head = RandomPartsSprite(transform, "Head", "Player/Head", 3);
 		suit.legs = RandomPartsSprite(transform, "Legs", "Player/Legs", 2);
 		suit.boots = RandomPartsSprite(transform, "Boots", "Player/Boots", 2);
+
+		Util.EventSystem.Subscribe<Vector2Int>(EventID.Event_OnTouch, OnMove);
 	}
 
-    // Update is called once per frame
-    void Update()
+	private void OnMove(Vector2Int to)
+	{
+		/*
+		AStarPathFinder pathFinder = new AStarPathFinder(GameManager.Instance.scenes.dungeon_main.dungeon, position, to);
+		if (0 == pathFinder.path.Count)
+		{
+			return;
+		}
+
+		pathFinder.path.RemoveAt(0);
+		path = pathFinder.path;
+		*/
+		Handler.Dungeon.Handler_PlayerMove.SendMsg(to);
+		delta_time = 1.0f;
+	}
+	// Update is called once per frame
+	void Update()
     {
-        
-    }
+		if (null != path)
+		{
+			if (0 >= path.Count)
+			{
+				path = null;
+				return;
+			}
+
+			delta_time += Time.deltaTime;
+			if (0.1f > delta_time)
+			{
+				return;
+			}
+
+			delta_time = 0.0f;
+			position = path[0];
+			path.RemoveAt(0);
+		}
+	}
 
 	private void SetFieldOfView(Vector2Int position, bool visible)
 	{
@@ -69,6 +105,10 @@ public class Player : MonoBehaviour
 			foreach (Vector2Int point in line)
 			{
 				Tile.Data tile = dungeon.GetTileData(point.x, point.y);
+				if (null == tile)
+				{
+					break;
+				}
 				tile.visible = visible;
 
 				if (Message.DungeonTileType.Wall == tile.type)
@@ -111,4 +151,7 @@ public class Player : MonoBehaviour
 		spriteRenderer.sortingOrder = sortingOrder;
 		return obj;
 	}
+
+	public List<Vector2Int> path = null;
+	private float delta_time = 1.0f;
 }

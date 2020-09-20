@@ -30,6 +30,11 @@ namespace Component
 			{
 				return null;
 			}
+			
+			if (null == tiles[tileIndex])
+			{
+				return null;
+			}
 			return tiles[tileIndex].data;
 		}
 
