@@ -19,7 +19,7 @@ void Handler_Join::Recv_Req(const std::shared_ptr<UserSession>& session, const M
 	ans.error_code = Message::ErrorCode::Success;
 	
 	try {
-		LOG(DEV, "Lobby::MsgCliSvr_Join_Req()");
+		LOG(DEV, "Message::Lobby::MsgCliSvr_Join_Req()");
 		if (nullptr == session->GetComponent<Component::UserData>())
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
@@ -33,7 +33,7 @@ void Handler_Join::Recv_Req(const std::shared_ptr<UserSession>& session, const M
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.error_code = (Message::ErrorCode)e.error_code();
 	}
-	LOG(DEV, "MsgSvrCli_User_JoinLobby_Ans(error_code:", (int)ans.error_code, ")");
+	LOG(DEV, "Message::Lobby::MsgSvrCli_User_JoinLobby_Ans(error_code:", (int)ans.error_code, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 

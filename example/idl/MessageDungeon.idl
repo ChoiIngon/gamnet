@@ -19,6 +19,17 @@ message MsgSvrCli_CreateDungeon_Ans : 040000001
 	array<DungeonTileType> tiles;
 };
 
+message MsgCliSvr_PlayerMove_Req : 040000002
+{
+	Vector2Int destination;
+};
+
+message MsgSvrCli_PlayerMove_Ans : 040000002
+{
+	ErrorCode error_code;
+	list<Vector2Int> path;
+};
+
 .cpp %%
 }}
 %%

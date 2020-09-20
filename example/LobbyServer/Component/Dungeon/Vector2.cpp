@@ -38,3 +38,15 @@ Vector2Int::operator Message::Vector2Int() const
 	vec.y = y;
 	return vec;
 }
+
+Vector2Int Vector2Int::zero = Vector2Int(0, 0);
+
+bool operator == (const Vector2Int& lhs, const Vector2Int& rhs)
+{
+	return lhs.x == rhs.x && lhs.y == rhs.y;
+}
+
+bool operator != (const Vector2Int& lhs, const Vector2Int& rhs)
+{
+	return lhs.x != rhs.x || lhs.y != rhs.y;
+}
