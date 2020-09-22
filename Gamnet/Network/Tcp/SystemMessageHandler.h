@@ -6,6 +6,7 @@
 #include "../SessionManager.h"
 #include "../Handler.h"
 #include "Packet.h"
+#include "Session.h"
 #undef max
 
 namespace Gamnet {	namespace Network {		namespace Tcp {
@@ -39,10 +40,10 @@ public:
 		try
 		{
 			session->OnCreate();
-			session->session_state = Session::State::AfterCreate;
+			session->session_state = Network::Tcp::Session::State::AfterCreate;
 
 			session->OnAccept();
-			session->session_state = Session::State::AfterAccept;
+			session->session_state = Network::Tcp::Session::State::AfterAccept;
 			session->session_manager->Add(session);
 			session->handover_safe = true;
 
@@ -117,7 +118,7 @@ public:
 				prevSession->send_buffers.clear();
 				prevSession->AsyncSend(ansPacket);
 				prevSession->OnAccept();
-				prevSession->session_state = Session::State::AfterAccept;
+				prevSession->session_state = Network::Tcp::Session::State::AfterAccept;
 				for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
 				{
 					prevSession->AsyncSend(sendPacket);
