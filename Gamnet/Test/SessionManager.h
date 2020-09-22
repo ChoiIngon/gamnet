@@ -136,6 +136,7 @@ namespace Gamnet {	namespace Test {
 			
 			session->socket = socket;
 			session->OnCreate();
+			session->session_state = Network::Tcp::Session::State::AfterCreate;
 			session->AsyncRead();
 			session->Send_Connect_Req();
 		}

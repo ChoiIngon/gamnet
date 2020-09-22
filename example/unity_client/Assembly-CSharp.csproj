@@ -62,6 +62,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\AStarPathFinder.cs" />
     <Compile Include="Assets\Scripts\BresenhamCircle2D.cs" />
     <Compile Include="Assets\Scripts\BresenhamLine2D.cs" />
     <Compile Include="Assets\Scripts\Dungeon.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Assets\Scripts\Gamnet\Exception.cs" />
     <Compile Include="Assets\Scripts\Gamnet\Session.cs" />
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_CreateDungeon.cs" />
+    <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_PlayerMove.cs" />
     <Compile Include="Assets\Scripts\Handler\Item\Handler_Item.cs" />
     <Compile Include="Assets\Scripts\Handler\User\Handler_Counter.cs" />
     <Compile Include="Assets\Scripts\Handler\User\Handler_Create.cs" />

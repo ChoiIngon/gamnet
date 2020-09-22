@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 public class DungeonMain : MonoBehaviour
 {
 	public Component.Dungeon dungeon = null;
+	public Player player;
     // Start is called before the first frame update
     void Start()
     {

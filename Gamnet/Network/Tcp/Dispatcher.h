@@ -63,6 +63,11 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't create message handler instance(name:", name, ", msg_id:", MsgType::MSG_ID, ")");
 			}
 
+			if(Network::Tcp::Session::State::AfterAccept != std::static_pointer_cast<SessionType>(session)->session_state)
+			{
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "invalid session error(name:", name, ", msg_id:", MsgType::MSG_ID, ")");
+			}
+
 			MsgType msg;
 			if (false == Gamnet::Network::Tcp::Packet::Load(msg, packet))
 			{

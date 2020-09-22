@@ -1,6 +1,7 @@
 #include "Handler_CreateDungeon.h"
 #include "../../Component/UserData.h"
 #include "../../Component/Dungeon/Dungeon.h"
+#include "../../Component/Dungeon/Player.h"
 
 namespace Handler { namespace Dungeon {
 
@@ -18,7 +19,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 	ans.error_code = Message::ErrorCode::Success;
 	
 	try {
-		LOG(DEV, "Message::Dungeon::::MsgCliSvr_CreateDungeon_Req()");
+		LOG(DEV, "Message::Dungeon::MsgCliSvr_CreateDungeon_Req()");
 		if(nullptr == session->GetComponent<Component::UserData>())
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
@@ -35,7 +36,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 
 		ans.width = dungeon->rect.width;
 		ans.height = dungeon->rect.height;
-		ans.start = Vector2Int(dungeon->start->rect.x, dungeon->start->rect.y);
+		ans.start = dungeon->player->position;
 		for(auto tile : dungeon->tiles)
 		{
 			ans.tiles.push_back(tile->type);
@@ -46,7 +47,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.error_code = (Message::ErrorCode)e.error_code();
 	}
-	LOG(DEV, "Item::MsgSvrCli_CreateDungeon_Ans(error_code:", (int)ans.error_code, ")");
+	LOG(DEV, "Message::Dungeon::MsgSvrCli_CreateDungeon_Ans(error_code:", (int)ans.error_code, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 

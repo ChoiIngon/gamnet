@@ -18,6 +18,7 @@ Session::Session()
 	, send_seq(0)
 	, last_recv_time(0)
 	, recv_packet(nullptr)
+	, session_state(State::Invalid)
 {
 }
 
@@ -53,6 +54,7 @@ void Session::Clear()
 {
 	recv_packet = nullptr;
 	send_packets.clear();
+	session_state = State::Invalid;
 	Network::Session::Clear();
 }
 
@@ -128,17 +130,19 @@ void Session::Close(int reason)
 {
 	auto self = shared_from_this();
 	Dispatch([this, self, reason]() {
-		if (nullptr != socket)
+		if (State::AfterAccept == session_state)
 		{
 			OnClose(reason);
-			socket = nullptr;
+			session_state = State::AfterCreate;
 		}
-		
-		if(0 != session_key && false == handover_safe)
+
+		socket = nullptr;
+
+		if(State::AfterCreate == session_state && false == handover_safe)
 		{
 			OnDestroy();
+			session_state = State::Invalid;
 			session_manager->Remove(self);
-			session_key = 0;
 		}
 	});
 }

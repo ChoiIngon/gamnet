@@ -1,4 +1,5 @@
 #include "Dungeon.h"
+#include "Player.h"
 #include <Gamnet/Library/Random.h>
 #include <iostream>
 
@@ -72,6 +73,17 @@ void Dungeon::Init()
 
 	tiles[(int)start->rect.Center().y * rect.width + (int)start->rect.Center().x]->type = Tile::Type::StairUp;
 	tiles[(int)end->rect.Center().y * rect.width + (int)end->rect.Center().x]->type = Tile::Type::StairDown;
+	player = std::make_shared<Player>();
+	player->position = Vector2Int(start->rect.Center().x, start->rect.Center().y);
+}
+
+std::shared_ptr<Tile> Dungeon::GetTile(int x, int y) const
+{
+	if (rect.x > x || rect.y > y || rect.xMax <= x || rect.yMax <= y)
+	{
+		return nullptr;
+	}
+	return tiles[y * rect.width + x];
 }
 
 void Dungeon::InitBlocks()

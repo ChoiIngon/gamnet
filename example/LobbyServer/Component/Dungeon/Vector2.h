@@ -21,6 +21,10 @@ struct Vector2Int
 
 	Vector2Int operator = (const Message::Vector2Int& rhs);
 	operator Message::Vector2Int () const;
+
+	static Vector2Int zero;
 };
 
+bool operator == (const Vector2Int& lhs, const Vector2Int& rhs);
+bool operator != (const Vector2Int& lhs, const Vector2Int& rhs);
 #endif

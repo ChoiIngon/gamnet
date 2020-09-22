@@ -14,7 +14,7 @@ Session::Session()
 	: session_key(0)
 	, session_manager(nullptr)
 	, socket(nullptr)
-	, strand(std::make_shared<strand_t>(io_context.get_executor()))
+	, strand(io_context.get_executor())
 	, read_buffer(nullptr)
 {
 }
@@ -34,6 +34,7 @@ void Session::Clear()
 {
 	read_buffer = nullptr;
 	send_buffers.clear();
+	session_key = 0;
 }
 
 void Session::AsyncSend(const char* data, size_t length)
@@ -153,8 +154,8 @@ void Session::Close(int reason)
 			return;
 		}
 		OnClose(reason);
-		socket = nullptr;
 		OnDestroy();
+		socket = nullptr;
 		session_manager->Remove(self);
 	});
 }

@@ -108,6 +108,97 @@ public struct MsgSvrCli_CreateDungeon_Ans_Serializer {
 	public static bool Load(ref MsgSvrCli_CreateDungeon_Ans obj, MemoryStream _buf_) { return obj.Load(_buf_); }
 	public static int Size(MsgSvrCli_CreateDungeon_Ans obj) { return obj.Size(); }
 };
+public class MsgCliSvr_PlayerMove_Req {
+	public const int MSG_ID = 40000002;
+	public Vector2Int	destination = new Vector2Int();
+	public MsgCliSvr_PlayerMove_Req() {
+	}
+	public virtual int Size() {
+		int nSize = 0;
+		try {
+			nSize += Vector2Int_Serializer.Size(destination);
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public virtual bool Store(MemoryStream _buf_) {
+		try {
+			if(false == Vector2Int_Serializer.Store(_buf_, destination)) { return false; }
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public virtual bool Load(MemoryStream _buf_) {
+		try {
+			if(false == Vector2Int_Serializer.Load(ref destination, _buf_)) { return false; }
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct MsgCliSvr_PlayerMove_Req_Serializer {
+	public static bool Store(MemoryStream _buf_, MsgCliSvr_PlayerMove_Req obj) { return obj.Store(_buf_); }
+	public static bool Load(ref MsgCliSvr_PlayerMove_Req obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(MsgCliSvr_PlayerMove_Req obj) { return obj.Size(); }
+};
+public class MsgSvrCli_PlayerMove_Ans {
+	public const int MSG_ID = 40000002;
+	public ErrorCode	error_code = new ErrorCode();
+	public List<Vector2Int >	path = new List<Vector2Int >();
+	public MsgSvrCli_PlayerMove_Ans() {
+	}
+	public virtual int Size() {
+		int nSize = 0;
+		try {
+			nSize += ErrorCode_Serializer.Size(error_code);
+			nSize += sizeof(int);
+			foreach(var path_itr in path) { 
+				Vector2Int path_elmt = path_itr;
+				nSize += Vector2Int_Serializer.Size(path_elmt);
+			}
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public virtual bool Store(MemoryStream _buf_) {
+		try {
+			if(false == ErrorCode_Serializer.Store(_buf_, error_code)) { return false; }
+			_buf_.Write(BitConverter.GetBytes(path.Count), 0, sizeof(int));
+			foreach(var path_itr in path) { 
+				Vector2Int path_elmt = path_itr;
+				if(false == Vector2Int_Serializer.Store(_buf_, path_elmt)) { return false; }
+			}
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public virtual bool Load(MemoryStream _buf_) {
+		try {
+			if(false == ErrorCode_Serializer.Load(ref error_code, _buf_)) { return false; }
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			int path_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+			for(int path_itr=0; path_itr<path_length; path_itr++) {
+				Vector2Int path_val = new Vector2Int();
+				if(false == Vector2Int_Serializer.Load(ref path_val, _buf_)) { return false; }
+				path.Add(path_val);
+			}
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct MsgSvrCli_PlayerMove_Ans_Serializer {
+	public static bool Store(MemoryStream _buf_, MsgSvrCli_PlayerMove_Ans obj) { return obj.Store(_buf_); }
+	public static bool Load(ref MsgSvrCli_PlayerMove_Ans obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(MsgSvrCli_PlayerMove_Ans obj) { return obj.Size(); }
+};
 
 }}
 

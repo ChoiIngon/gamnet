@@ -127,6 +127,8 @@
     <ClCompile Include="Component\Bag.cpp" />
     <ClCompile Include="Component\Counter.cpp" />
     <ClCompile Include="Component\Disconnect.cpp" />
+    <ClCompile Include="Component\Dungeon\AStarPathFinder.cpp" />
+    <ClCompile Include="Component\Dungeon\Player.cpp" />
     <ClCompile Include="Component\Event.cpp" />
     <ClCompile Include="Component\Mail.cpp" />
     <ClCompile Include="Component\UserData.cpp" />
@@ -134,6 +136,7 @@
     <ClCompile Include="Component\Dungeon\Rect.cpp" />
     <ClCompile Include="Component\Dungeon\Tile.cpp" />
     <ClCompile Include="Component\Dungeon\Vector2.cpp" />
+    <ClCompile Include="Handler\Dungeon\Handler_PlayerMove.cpp" />
     <ClCompile Include="Handler\Http\Handler_ServerState.cpp" />
     <ClCompile Include="Handler\Item\Handler_OpenPackage.cpp" />
     <ClCompile Include="Handler\Lobby\Handler_OpenMail.cpp" />
@@ -156,6 +159,8 @@
     <ClInclude Include="Component\Bag.h" />
     <ClInclude Include="Component\Counter.h" />
     <ClInclude Include="Component\Disconnect.h" />
+    <ClInclude Include="Component\Dungeon\AStarPathFinder.h" />
+    <ClInclude Include="Component\Dungeon\Player.h" />
     <ClInclude Include="Component\Event.h" />
     <ClInclude Include="Component\Mail.h" />
     <ClInclude Include="Component\UserData.h" />
@@ -163,6 +168,7 @@
     <ClInclude Include="Component\Dungeon\Rect.h" />
     <ClInclude Include="Component\Dungeon\Tile.h" />
     <ClInclude Include="Component\Dungeon\Vector2.h" />
+    <ClInclude Include="Handler\Dungeon\Handler_PlayerMove.h" />
     <ClInclude Include="Handler\Http\Handler_ServerState.h" />
     <ClInclude Include="Handler\Item\Handler_OpenPackage.h" />
     <ClInclude Include="Handler\Lobby\Handler_OpenMail.h" />

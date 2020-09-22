@@ -12,7 +12,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 	}
 
 	public Gamnet.Session session = new Gamnet.Session();
-	public bool run_in_background;
+	public bool run_in_background = false;
 	public Scenes scenes = new Scenes();
 	
 	private void Awake()
@@ -23,6 +23,14 @@ class GameManager : Util.MonoSingleton<GameManager>
 			Application.runInBackground = run_in_background;
 		}
 
+		session.onError += (Gamnet.Exception e) =>
+		{
+			if (Gamnet.ErrorCode.ReconnectFailError == e.ErrorCode)
+			{
+				session.Close();
+				SceneManager.LoadScene("SceneLobby");
+			}
+		};
 		session.RegisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Handler.User.Handler_Counter.OnRecv);
 		session.RegisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(Handler.Item.Handler_Item.OnRecv);
 	}

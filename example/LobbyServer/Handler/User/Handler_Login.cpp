@@ -24,7 +24,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 	ans.user_data.user_name = "";
 
 	try {
-		LOG(DEV, "MsgCliSvr_Login_Req(account_id:", req.account_id, ")");
+		LOG(DEV, "Message::User::MsgCliSvr_Login_Req(account_id:", req.account_id, ")");
 		ReadAccountData(session, req.account_id, req.account_type);
 		ReadUserData(session);
 		ReadUserCounter(session);
@@ -45,7 +45,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		session->user_seq = 0;
 		session->shard_index = 0;
 	}
-	LOG(DEV, "MsgSvrCli_Login_Ans(error_code:", (int)ans.error_code, ", user_seq:", ans.user_data.user_seq, ")");
+	LOG(DEV, "Message::User::MsgSvrCli_Login_Ans(error_code:", (int)ans.error_code, ", user_seq:", ans.user_data.user_seq, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 

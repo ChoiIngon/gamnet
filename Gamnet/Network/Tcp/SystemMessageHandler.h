@@ -6,6 +6,7 @@
 #include "../SessionManager.h"
 #include "../Handler.h"
 #include "Packet.h"
+#include "Session.h"
 #undef max
 
 namespace Gamnet {	namespace Network {		namespace Tcp {
@@ -38,10 +39,13 @@ public:
 
 		try
 		{
-			session->handover_safe = true;
 			session->OnCreate();
+			session->session_state = Network::Tcp::Session::State::AfterCreate;
+
 			session->OnAccept();
+			session->session_state = Network::Tcp::Session::State::AfterAccept;
 			session->session_manager->Add(session);
+			session->handover_safe = true;
 
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;
@@ -114,6 +118,7 @@ public:
 				prevSession->send_buffers.clear();
 				prevSession->AsyncSend(ansPacket);
 				prevSession->OnAccept();
+				prevSession->session_state = Network::Tcp::Session::State::AfterAccept;
 				for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
 				{
 					prevSession->AsyncSend(sendPacket);
@@ -140,6 +145,9 @@ public:
 
 		ansPacket->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
 		session->AsyncSend(ansPacket);
+		session->session_key = 0;
+		session->session_token = "";
+		session->Close(ErrorCode::InvalidSessionError);
 	}
 
 	void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
