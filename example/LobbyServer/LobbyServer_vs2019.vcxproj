@@ -128,6 +128,7 @@
     <ClCompile Include="Component\Counter.cpp" />
     <ClCompile Include="Component\Disconnect.cpp" />
     <ClCompile Include="Component\Dungeon\AStarPathFinder.cpp" />
+    <ClCompile Include="Component\Dungeon\BresenhamCircle2D.cpp" />
     <ClCompile Include="Component\Dungeon\Player.cpp" />
     <ClCompile Include="Component\Event.cpp" />
     <ClCompile Include="Component\Mail.cpp" />
@@ -160,6 +161,7 @@
     <ClInclude Include="Component\Counter.h" />
     <ClInclude Include="Component\Disconnect.h" />
     <ClInclude Include="Component\Dungeon\AStarPathFinder.h" />
+    <ClInclude Include="Component\Dungeon\BresenhamCircle2D.h" />
     <ClInclude Include="Component\Dungeon\Player.h" />
     <ClInclude Include="Component\Event.h" />
     <ClInclude Include="Component\Mail.h" />
