@@ -1,5 +1,6 @@
 #include "Dungeon.h"
 #include "Player.h"
+#include "Unit.h"
 #include <Gamnet/Library/Random.h>
 #include <iostream>
 

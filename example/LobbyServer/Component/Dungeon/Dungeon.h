@@ -8,6 +8,8 @@
 #include "Tile.h"
 
 class Player;
+class Unit;
+
 namespace Component {
 class Dungeon
 {
@@ -83,6 +85,7 @@ public :
 
 public :
 	std::shared_ptr<Player> player;
+	std::shared_ptr<Unit> monster;
 };
 
 }

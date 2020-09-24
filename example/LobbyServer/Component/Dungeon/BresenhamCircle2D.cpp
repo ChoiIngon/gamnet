@@ -8,9 +8,41 @@ BresenhamCircle2D::BresenhamCircle2D(const Vector2Int& center, int radious)
 {
 }
 
+BresenhamCircle2D::BresenhamCircle2D(BresenhamCircle2D&& other) noexcept
+	: center(other.center)
+	, radious(other.radious)
+	, enumerator(std::move(other.enumerator))
+{
+}
+
+BresenhamCircle2D& BresenhamCircle2D::operator=(BresenhamCircle2D&& other) noexcept
+{
+	center = other.center;
+	radious = other.radious;
+	std::swap(enumerator, other.enumerator);
+	return *this;
+}
+
+BresenhamCircle2D::operator bool() const noexcept
+{
+	return (bool)enumerator;
+}
+
+bool BresenhamCircle2D::operator!() const noexcept
+{
+	return !(bool)enumerator;
+}
+
 BresenhamCircle2D::Enumerator& BresenhamCircle2D::GetEnumerator()
 {
 	return enumerator;
+}
+
+Vector2Int BresenhamCircle2D::operator()()
+{
+	Vector2Int vector = enumerator.get();
+	enumerator();
+	return vector;
 }
 
 void BresenhamCircle2D::Coroutine(Yield& yield)
