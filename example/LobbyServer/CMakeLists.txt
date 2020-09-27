@@ -19,8 +19,10 @@ endif()
 
 if(LINUX) 
 	include_directories( 
+		../
 		../../
 		/usr/include/mysql 
+
 	) 
 	link_directories(
 		../../Gamnet/Debug
@@ -54,6 +56,7 @@ link_libraries(
 	boost_system
 	boost_program_options
 	boost_date_time
+	boost_context
 	curl
 	crypto
 	ssl

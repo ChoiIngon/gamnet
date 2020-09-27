@@ -11,10 +11,18 @@ public :
 
 	Unit();
 
+public :
+	int max_health;
+	int cur_health;
+	int attack;
+	int defense;
+	int speed;
+	int	sight;
+	float critical_chance;
+	float critical_rate;
 	Vector2Int	position;
-	int			sight;
 
-	Attribute attributes;
+	Attribute	attributes;
 };
 
 #endif

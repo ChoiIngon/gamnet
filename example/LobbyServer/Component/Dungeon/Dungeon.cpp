@@ -1,5 +1,4 @@
 #include "Dungeon.h"
-#include "Player.h"
 #include "Unit.h"
 #include <Gamnet/Library/Random.h>
 #include <iostream>
@@ -74,7 +73,7 @@ void Dungeon::Init()
 
 	tiles[(int)start->rect.Center().y * rect.width + (int)start->rect.Center().x]->type = Tile::Type::StairUp;
 	tiles[(int)end->rect.Center().y * rect.width + (int)end->rect.Center().x]->type = Tile::Type::StairDown;
-	player = std::make_shared<Player>();
+	player = std::make_shared<Unit>();
 	player->position = Vector2Int(start->rect.Center().x, start->rect.Center().y);
 }
 
@@ -338,7 +337,8 @@ void Dungeon::BuildPath()
 
 std::list<std::shared_ptr<Dungeon::Block>> Dungeon::FindPath(std::shared_ptr<Block> from, std::shared_ptr<Block> to)
 {
-	auto path = FindPath(from, to, std::set<int>());
+	std::set<int> vistedTileIndices;
+	auto path = FindPath(from, to, vistedTileIndices);
 	if(nullptr == path)
 	{
 		return std::list<std::shared_ptr<Dungeon::Block>>();

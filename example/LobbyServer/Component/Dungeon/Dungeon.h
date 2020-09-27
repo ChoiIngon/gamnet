@@ -84,7 +84,7 @@ public :
 	std::shared_ptr<Block> end;
 
 public :
-	std::shared_ptr<Player> player;
+	std::shared_ptr<Unit> player;
 	std::shared_ptr<Unit> monster;
 };
 

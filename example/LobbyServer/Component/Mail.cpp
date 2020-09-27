@@ -79,7 +79,7 @@ namespace Component {
 		}
 		else
 		{		   
-			auto& itr = mail_datas.find(mailSEQ);
+			auto itr = mail_datas.find(mailSEQ);
 			if(mail_datas.end() == itr)
 			{
 				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);

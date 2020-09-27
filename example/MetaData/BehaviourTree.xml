@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<BehaviourTree>
+	<Sequence>
+		<Executor class="RiseFromChair"/>
+		<Executor class="MoveToVendingMachine" money="200"/>
+		<RandomSelector>
+			<Executor class="BuyTea"/>
+			<Executor class="BuyCoffee"/>
+		</RandomSelector>
+		<Executor class="ReturnToChair"/>
+	</Sequence>
+</BehaviourTree>

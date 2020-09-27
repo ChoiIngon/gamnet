@@ -1,8 +1,8 @@
 #include "Handler_PlayerMove.h"
 #include "../../Component/UserData.h"
 #include "../../Component/Dungeon/Dungeon.h"
-#include "../../Component/Dungeon/Player.h"
 #include "../../Component/Dungeon/AStarPathFinder.h"
+#include "../../Component/Dungeon/Unit.h"
 
 namespace Handler { namespace Dungeon {
 
@@ -32,7 +32,7 @@ void Handler_PlayerMove::Recv_Req(const std::shared_ptr<UserSession>& session, c
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
 
-		std::shared_ptr<Player> player = dungeon->player;
+		std::shared_ptr<Unit> player = dungeon->player;
 		AStarPathFinder pathFinder(dungeon, player->position, Vector2Int(req.destination.x, req.destination.y));
 		for(const auto& point : pathFinder.path)
 		{
