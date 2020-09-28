@@ -9,16 +9,59 @@ Executor::Executor(const std::shared_ptr<UnitBehaviour>& tree)
 {
 }
 
-void LoadBehaviour(boost::property_tree::ptree& ptree)
+void LoadParams(std::shared_ptr<Config::Node> parent, boost::property_tree::ptree& ptree)
 {
-	/*
+	for (auto& child : ptree.get_child(""))
+	{
+		if("class" == child.first)
+		{
+			continue;
+		}
+		parent->params[child.first] = child.second.get_value<std::string>();
+	}
+}
+
+void LoadBehaviour(std::shared_ptr<Config::Node> parent, boost::property_tree::ptree& ptree)
+{
 	for (auto& child : ptree.get_child(""))
 	{
 		if ("<xmlattr>" == child.first)
 		{
+			LoadParams(parent, child.second);
 			return;
 		}
 
+		std::shared_ptr<Config::Node> node = nullptr;
+		if ("Sequence" == child.first)
+		{
+			node = std::make_shared<Config::Node>();
+			node->name = "Sequence";
+			node->type = "Sequence";
+			node->create = []() {
+				return std::make_shared<BehaviourTree::Sequence>();
+			};
+		}
+		else if("Executor" == child.first)
+		{
+			node = std::make_shared<Config::Node>();
+			node->name = "Executor";
+			node->type = child.second.get_child("<xmlattr>.class").get_value<std::string>();
+		}
+		else if("RandomSelector" == child.first)
+		{
+			node = std::make_shared<Config::Node>();
+			node->name = "RandomSelector";
+			node->type = "RandomSelector";
+			node->create = []() {
+				return std::make_shared<BehaviourTree::RandomSelector>();
+			};
+		}
+		if(nullptr == node)
+		{
+			return;
+		}
+		parent->children.push_back(node);
+	/*
 		std::shared_ptr<BehaviourTree::Node> node = nullptr;
 
 		if ("Sequence" == child.first)
@@ -37,9 +80,9 @@ void LoadBehaviour(boost::property_tree::ptree& ptree)
 			const std::string& className = child.second.get_child("<xmlattr>.class").get_value<std::string>();
 			node = executor_factory.Create(behaviour, className);
 		}
-
-	}
 	*/
+		LoadBehaviour(node, child.second);
+	}
 }
 
 
@@ -54,15 +97,15 @@ void Config::ReadXml(const std::string& path)
 		throw Gamnet::Exception(Gamnet::ErrorCode::FileNotFound, e.what());
 	}
 
-	//try {
-	//	for (auto& child : ptree_.get_child(""))
-	//	{
-	//		LoadBehaviour(behaviour, behaviour->root, child.second);
-	//	}
-	//}
-	//catch (const boost::property_tree::ptree_bad_path& e)
-	//{
-	//	throw GAMNET_EXCEPTION(Gamnet::ErrorCode::SystemInitializeError, e.what());
-	//}
-	//return behaviour;
+	root = std::make_shared<Node>();
+	try {
+		for (auto& child : ptree_.get_child(""))
+		{
+			LoadBehaviour(root, child.second);
+		}
+	}
+	catch (const boost::property_tree::ptree_bad_path& e)
+	{
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::SystemInitializeError, e.what());
+	}
 }

@@ -2,6 +2,7 @@
 #define _UNIT_BEHAVIOUR_H_
 
 #include "Unit/BehaviourTree.h"
+#include <map>
 
 class Unit;
 namespace Component {
@@ -25,10 +26,18 @@ protected:
 
 struct Config
 {
+	struct Node
+	{
+		std::string name;
+		std::string type;
+		std::map<std::string, std::string> params;
+		std::vector<std::shared_ptr<Node>> children;
+		std::function<std::shared_ptr<BehaviourTree::Node>()> create;
+	};
+
 	void ReadXml(const std::string& path);
 	std::shared_ptr<UnitBehaviour> Create();
-
-	
+	std::shared_ptr<Node> root;
 };
 
 #endif // !_UNIT_BEHAVIOUR_H_

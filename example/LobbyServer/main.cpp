@@ -4,7 +4,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-
+/*
 
 class Player
 {
@@ -188,27 +188,31 @@ std::shared_ptr<PlayerBehaviour> LoadBehaviour(const std::string& path)
 	}
 	return behaviour;
 }
+*/
+#include "Component/Dungeon/UnitBehaviour.h"
 
 int main(int argc, char** argv) 
 {
-	executor_factory.BindExcutorCreate<RiseFromChair>("RiseFromChair");
-	executor_factory.BindExcutorCreate<MoveToVendingMachine>("MoveToVendingMachine");
-	executor_factory.BindExcutorCreate<BuyTea>("BuyTea");
-	executor_factory.BindExcutorCreate<BuyCoffee>("BuyCoffee");
-	executor_factory.BindExcutorCreate<ReturnToChair>("ReturnToChair");
-
-	std::shared_ptr<PlayerBehaviour> behaviour = LoadBehaviour("../MetaData/BehaviourTree.xml");
-
-	std::shared_ptr<Player> player = std::make_shared<Player>();
-	player->money = 0;
-	behaviour->player = player;
-
-	behaviour->Run();
-	player->money = 200;
-	for(int i=0; i<10; i++)
-	{
-		behaviour->Run();
-	}
+	Config config;
+	config.ReadXml("../MetaData/BehaviourTree.xml");
+	///executor_factory.BindExcutorCreate<RiseFromChair>("RiseFromChair");
+	///executor_factory.BindExcutorCreate<MoveToVendingMachine>("MoveToVendingMachine");
+	///executor_factory.BindExcutorCreate<BuyTea>("BuyTea");
+	///executor_factory.BindExcutorCreate<BuyCoffee>("BuyCoffee");
+	///executor_factory.BindExcutorCreate<ReturnToChair>("ReturnToChair");
+	///
+	///std::shared_ptr<PlayerBehaviour> behaviour = LoadBehaviour("../MetaData/BehaviourTree.xml");
+	///
+	///std::shared_ptr<Player> player = std::make_shared<Player>();
+	///player->money = 0;
+	///behaviour->player = player;
+	///
+	///behaviour->Run();
+	///player->money = 200;
+	///for(int i=0; i<10; i++)
+	///{
+	///	behaviour->Run();
+	///}
 	
 	// for console command arguments
 	// <Binary>.exe --config=<config file path>
