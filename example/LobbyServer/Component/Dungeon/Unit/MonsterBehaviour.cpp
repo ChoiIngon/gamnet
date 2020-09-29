@@ -11,9 +11,14 @@ bool RiseFromChair::Run(const std::shared_ptr<Gamnet::Component>& component)
 	return true;
 }
 
+void MoveToVendingMachine::Init(const Json::Value& param)
+{
+	money = param["money"].asInt();
+}
+
 bool MoveToVendingMachine::Run(const std::shared_ptr<Gamnet::Component>& component)
 {
-	std::cout << "move to vending machine" << std::endl;
+	std::cout << "move to vending machine " << money << std::endl;
 	return true;
 }
 

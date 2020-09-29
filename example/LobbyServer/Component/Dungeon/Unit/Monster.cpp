@@ -16,15 +16,16 @@ Meta::Meta()
 	GAMNET_META_CUSTOM(behaviour, Meta::OnBehaviourPath);
 }
 
-void Meta::OnBehaviourPath(std::shared_ptr<BehaviourTree::Meta>& member, const std::string& value)
+void Meta::OnBehaviourPath(std::shared_ptr<BehaviourTree>& behaviour, const std::string& value)
 {
-	member = std::make_shared<BehaviourTree::Meta>();
-	member->ReadXml("../MetaData/" + value);
-	member->BindExcutorCreator<RiseFromChair>("RiseFromChair");
-	member->BindExcutorCreator<MoveToVendingMachine>("MoveToVendingMachine");
-	member->BindExcutorCreator<BuyTea>("BuyTea");
-	member->BindExcutorCreator<BuyCoffee>("BuyCoffee");
-	member->BindExcutorCreator<ReturnToChair>("ReturnToChair");
+	behaviour = std::make_shared<BehaviourTree>();
+	BehaviourTree::Meta meta;
+	meta.BindAction<RiseFromChair>("RiseFromChair");
+	meta.BindAction<MoveToVendingMachine>("MoveToVendingMachine");
+	meta.BindAction<BuyTea>("BuyTea");
+	meta.BindAction<BuyCoffee>("BuyCoffee");
+	meta.BindAction<ReturnToChair>("ReturnToChair");
+	behaviour->root = meta.ReadXml("../MetaData/" + value);
 }
 
 void Manager::Init()
@@ -90,7 +91,6 @@ std::shared_ptr<Data> Manager::CreateInstance(const std::shared_ptr<Meta>& meta)
 {
 	std::shared_ptr<Data> data = std::make_shared<Data>();
 	data->meta = meta;
-	data->behaviour = meta->behaviour->Create();
 	return data;
 }
 

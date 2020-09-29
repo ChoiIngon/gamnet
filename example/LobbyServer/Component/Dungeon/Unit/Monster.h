@@ -15,16 +15,15 @@ namespace Component { namespace Monster {
 		std::string id;
 		uint32_t	index;
 		std::string name;
-		std::shared_ptr<BehaviourTree::Meta> behaviour;
-
-		void OnBehaviourPath(std::shared_ptr<BehaviourTree::Meta>& member, const std::string& value);
+		std::shared_ptr<BehaviourTree> behaviour;
+	private :
+		void OnBehaviourPath(std::shared_ptr<BehaviourTree>& behaviour, const std::string& value);
 	};
 
 	class Data
 	{
 	public :
 		std::shared_ptr<Meta> meta;
-		std::shared_ptr<BehaviourTree> behaviour;
 	};
 
 	class Manager

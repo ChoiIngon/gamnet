@@ -22,7 +22,7 @@ public :
 	float critical_rate;
 	Vector2Int	position;
 
-	Attribute	attributes;
+	std::shared_ptr<Attribute>	attributes;
 };
 
 #endif

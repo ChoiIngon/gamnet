@@ -26,145 +26,88 @@ const std::vector<std::shared_ptr<BehaviourTree::Node>>& BehaviourTree::Node::Ge
 	return children;
 }
 
-void BehaviourTree::Meta::ReadXml(const std::string& path)
-{
-	boost::property_tree::ptree ptree_;
-	try {
-		boost::property_tree::xml_parser::read_xml(path, ptree_);
-	}
-	catch (const boost::property_tree::xml_parser_error& e)
-	{
-		throw Gamnet::Exception(Gamnet::ErrorCode::FileNotFound, e.what());
-	}
-
-	root = std::make_shared<Node>();
-	try {
-		for (auto& child : ptree_.get_child(""))
-		{
-			LoadNode(root, child.second);
-		}
-	}
-	catch (const boost::property_tree::ptree_bad_path& e)
-	{
-		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::SystemInitializeError, e.what());
-	}
-}
-
-void BehaviourTree::Meta::LoadNode(std::shared_ptr<BehaviourTree::Meta::Node> parent, boost::property_tree::ptree& ptree)
+void BehaviourTree::Meta::LoadNode(std::shared_ptr<BehaviourTree::Node> parent, boost::property_tree::ptree& ptree)
 {
 	for (auto& child : ptree.get_child(""))
 	{
 		if ("<xmlattr>" == child.first)
 		{
-			LoadParam(parent, child.second);
 			continue;
 		}
 
-		std::shared_ptr<BehaviourTree::Meta::Node> node = std::make_shared<BehaviourTree::Meta::Node>();
+		std::shared_ptr<BehaviourTree::Node> node = nullptr;
 		if ("Sequence" == child.first)
 		{
-			node->create = []() {
-				return std::make_shared<BehaviourTree::Sequence>();
-			};
+			node = std::make_shared<BehaviourTree::Sequence>();
 		}
-		else if ("Executor" == child.first)
+		else if ("Action" == child.first)
 		{
-			std::string& className = child.second.get_child("<xmlattr>.class").get_value<std::string>();
-			node->create = [this, className]() {
-				auto itr = this->creators.find(className);
-				if(this->creators.end() == itr)
-				{
-					throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "behaviour tree executor is not defined(name:", className, ")");
-				}
-				return this->creators[className]();
-			};
+			Json::Value params = LoadParam(child.second);
+			if (true == params["class"].isNull())
+			{
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "Action@class is null");
+			}
+			std::string& className = params["class"].asString();
+			auto itr = action_creators.find(className);
+			if(action_creators.end() == itr)
+			{
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "behaviour tree executor is not defined(name:", className, ")");
+			}
+			std::shared_ptr<BehaviourTree::Action> action = itr->second();
+			action->Init(params);
+			node = action;
 		}
 		else if ("Selector" == child.first)
 		{
-			node->create = []() {
-				return std::make_shared<BehaviourTree::Selector>();
-			};
+			node = std::make_shared<BehaviourTree::Selector>();
 		}
 		else if ("RandomSelector" == child.first)
 		{
-			node->create = []() {
-				return std::make_shared<BehaviourTree::RandomSelector>();
-			};
+			node = std::make_shared<BehaviourTree::RandomSelector>();
 		}
 		else if ("Inverter" == child.first)
 		{
-			node->create = []() {
-				return std::make_shared<BehaviourTree::Inverter>();
-			};
+			node = std::make_shared<BehaviourTree::Inverter>();
 		}
 		else if ("Succeeder" == child.first)
 		{
-			node->create = []() {
-				return std::make_shared<BehaviourTree::Succeeder>();
-			};
+			node = std::make_shared<BehaviourTree::Succeeder>();
 		}
 		else if ("Failer" == child.first)
 		{
-			node->create = []() {
-				return std::make_shared<BehaviourTree::Failer>();
-			};
+			node = std::make_shared<BehaviourTree::Failer>();
 		}
 		else if ("Repeater" == child.first)
 		{
-			node->create = [node]() {
-				int repeatCount = 0;
-				auto itr = node->params.find("repeat_count");
-				if (node->params.end() == itr)
-				{
-					throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-				}
-
-				repeatCount = std::stoi(itr->second);
-
-				return std::make_shared<BehaviourTree::Repeater>(repeatCount);
-			};
+			Json::Value params = LoadParam(child.second);
+			if(true == params["repeat_count"].isNull())
+			{
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "Repeater@repeat_count is null");
+			}
+			int repeatCount = params["repeat_count"].asInt();
+			
+			node = std::make_shared<BehaviourTree::Repeater>(repeatCount);
 		}
 		else if ("RepeatUntilFail" == child.first)
 		{
-			node->create = []() {
-				return std::make_shared<BehaviourTree::RepeatUntilFail>();
-			};
+			node = std::make_shared<BehaviourTree::RepeatUntilFail>();
 		}
 		else
 		{
 			return;
 		}
-		parent->children.push_back(node);
+		parent->AddChild(node);
 		LoadNode(node, child.second);
 	}
 }
-void BehaviourTree::Meta::LoadParam(std::shared_ptr<BehaviourTree::Meta::Node> parent, boost::property_tree::ptree& ptree)
+Json::Value BehaviourTree::Meta::LoadParam(boost::property_tree::ptree& ptree)
 {
-	for (auto& child : ptree.get_child(""))
+	Json::Value param;
+	for (auto& child : ptree.get_child("<xmlattr>"))
 	{
-		if ("class" == child.first)
-		{
-			continue;
-		}
-		parent->params[child.first] = child.second.get_value<std::string>();
+		param[child.first] = child.second.get_value<std::string>();
 	}
-}
-
-std::shared_ptr<BehaviourTree> BehaviourTree::Meta::Create()
-{
-	std::shared_ptr<BehaviourTree> behaviour = std::make_shared<BehaviourTree>();
-	Create(behaviour->root, root);
-	return behaviour;
-}
-
-void BehaviourTree::Meta::Create(std::shared_ptr<BehaviourTree::Node> behaviourNode, std::shared_ptr<BehaviourTree::Meta::Node> configNode)
-{
-	for (std::shared_ptr<BehaviourTree::Meta::Node>& configChildNode : configNode->children)
-	{
-		std::shared_ptr<BehaviourTree::Node> behaviourChildNode = configChildNode->create();
-		behaviourNode->AddChild(behaviourChildNode);
-		Create(behaviourChildNode, configChildNode);
-	}
+	return param;
 }
 
 bool BehaviourTree::Selector::Run(const std::shared_ptr<Gamnet::Component>& component)
@@ -224,22 +167,20 @@ bool BehaviourTree::Failer::Run(const std::shared_ptr<Gamnet::Component>& compon
 
 bool BehaviourTree::Repeater::Run(const std::shared_ptr<Gamnet::Component>& component)
 {
-	for (int i = 0; i < repeat_count - 1; i++)
+	for (int i = 0; i < repeat_count; i++)
 	{
-		GetChild()->Run(component);
+		if(false == GetChild()->Run(component))
+		{
+			return false;
+		}
 	}
-	return GetChild()->Run(component);
+	return true;
 }
 
 bool BehaviourTree::RepeatUntilFail::Run(const std::shared_ptr<Gamnet::Component>& component)
 {
 	while (GetChild()->Run(component)) {}
 	return true;
-}
-
-BehaviourTree::Action::Action(const Json::Value& params)
-	: params(params)
-{
 }
 
 class RootNode : public BehaviourTree::Node
@@ -252,11 +193,40 @@ public:
 };
 
 BehaviourTree::BehaviourTree()
-	: root(std::make_shared<RootNode>())
+	: root(nullptr)
 {
 }
 
 void BehaviourTree::Run(const std::shared_ptr<Gamnet::Component>& component)
 {
+	if(nullptr == root)
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+	}
 	root->Run(component);
+}
+
+std::shared_ptr<BehaviourTree::Node> BehaviourTree::Meta::ReadXml(const std::string& path)
+{
+	boost::property_tree::ptree ptree_;
+	try {
+		boost::property_tree::xml_parser::read_xml(path, ptree_);
+	}
+	catch (const boost::property_tree::xml_parser_error& e)
+	{
+		throw Gamnet::Exception(Gamnet::ErrorCode::FileNotFound, e.what());
+	}
+
+	std::shared_ptr<BehaviourTree::Node> root = std::make_shared<RootNode>();
+	try {
+		for (auto& child : ptree_.get_child(""))
+		{
+			LoadNode(root, child.second);
+		}
+	}
+	catch (const boost::property_tree::ptree_bad_path& e)
+	{
+		throw GAMNET_EXCEPTION(Gamnet::ErrorCode::SystemInitializeError, e.what());
+	}
+	return root;
 }

@@ -8,8 +8,8 @@
 #include <vector>
 #include <algorithm>
 #include <memory>
-#include <Gamnet/Library/Component.h>
 #include <boost/property_tree/ptree.hpp>
+#include <Gamnet/Library/Component.h>
 #include <Gamnet/Library/Json/json.h>
 
 class BehaviourTree 
@@ -29,36 +29,6 @@ public:
 		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) = 0;
 	private:
 		std::vector<std::shared_ptr<Node>> children;
-	};
-
-	class Meta
-	{
-	public:
-		struct Node
-		{
-			std::map<std::string, std::string> params;
-			std::vector<std::shared_ptr<Node>> children;
-			std::function<std::shared_ptr<BehaviourTree::Node>()> create;
-		};
-
-		void ReadXml(const std::string& path);
-		std::shared_ptr<BehaviourTree> Create();
-
-		template<class T>
-		void BindExcutorCreator(const std::string& name)
-		{
-			creators[name] = []()
-			{
-				return std::make_shared<T>();
-			};
-		}
-	private:
-		void Create(std::shared_ptr<BehaviourTree::Node> behaviourNode, std::shared_ptr<Node> configNode);
-		void LoadNode(std::shared_ptr<Node> parent, boost::property_tree::ptree& ptree);
-		void LoadParam(std::shared_ptr<Node> parent, boost::property_tree::ptree& ptree);
-	private:
-		std::shared_ptr<Node> root;
-		std::map<std::string, std::function<std::shared_ptr<BehaviourTree::Node>()>> creators;
 	};
 
 	class Selector : public Node 
@@ -137,13 +107,33 @@ public:
 	class Action : public Node
 	{
 	public :
-		Action(const Json::Value& params);
-		Json::Value const params;
+		virtual void Init(const Json::Value& param) {}
+	};
+
+	class Meta
+	{
+	public:
+		std::shared_ptr<BehaviourTree::Node> ReadXml(const std::string& path);
+
+		template<class T>
+		void BindAction(const std::string& name)
+		{
+			action_creators[name] = []()
+			{
+				return std::make_shared<T>();
+			};
+		}
+	private:
+		void LoadNode(std::shared_ptr<BehaviourTree::Node> parent, boost::property_tree::ptree& ptree);
+		Json::Value LoadParam(boost::property_tree::ptree& ptree);
+	private:
+		std::map<std::string, std::function<std::shared_ptr<BehaviourTree::Action>()>> action_creators;
 	};
 
 	BehaviourTree();
+	
 	void Run(const std::shared_ptr<Gamnet::Component>& component);
 
-	const std::shared_ptr<Node> root;
+	std::shared_ptr<Node> root;
 };
 #endif /* BEHAVIOURTREE_H_ */
