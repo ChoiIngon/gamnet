@@ -2,6 +2,7 @@
 #include "../../Component/UserData.h"
 #include "../../Component/Dungeon/Dungeon.h"
 #include "../../Component/Dungeon/Unit.h"
+#include "../../Component/Dungeon/Unit/Monster.h"
 
 namespace Handler { namespace Dungeon {
 
@@ -25,6 +26,8 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
 
+		std::shared_ptr<Component::Monster::Data> monster = Gamnet::Singleton<Component::Monster::Manager>::GetInstance().CreateInstance(1);
+		monster->behaviour->Run(nullptr);
 		std::shared_ptr<Component::Dungeon> dungeon = session->AddComponent<Component::Dungeon>();
 		dungeon->room_count = 7;
 		dungeon->min_room_width = 5;

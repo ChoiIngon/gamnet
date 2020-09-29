@@ -7,6 +7,15 @@
 			<Executor class="BuyTea"/>
 			<Executor class="BuyCoffee"/>
 		</RandomSelector>
+		<Selector>
+			<Inverter>
+				<Executor class="BuyTea"/>
+			</Inverter>
+			<Executor class="BuyCoffee"/>
+		</Selector>
 		<Executor class="ReturnToChair"/>
+		<Repeater repeat_count="10">
+			<Executor class="BuyCoffee"/>
+		</Repeater>
 	</Sequence>
 </BehaviourTree>

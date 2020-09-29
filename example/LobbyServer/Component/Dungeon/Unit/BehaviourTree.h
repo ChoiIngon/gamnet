@@ -8,12 +8,14 @@
 #include <vector>
 #include <algorithm>
 #include <memory>
-#include <string>
+#include <Gamnet/Library/Component.h>
+#include <boost/property_tree/ptree.hpp>
+#include <Gamnet/Library/Json/json.h>
 
 class BehaviourTree 
 {
 public:
-	class Node 
+	class Node
 	{
 	public:
 		Node();
@@ -24,27 +26,57 @@ public:
 		const std::vector<std::shared_ptr<Node>>& GetChildren() const;
 
 		//std::string name;
-		virtual bool Run() = 0;
-	private :
+		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) = 0;
+	private:
 		std::vector<std::shared_ptr<Node>> children;
+	};
+
+	class Meta
+	{
+	public:
+		struct Node
+		{
+			std::map<std::string, std::string> params;
+			std::vector<std::shared_ptr<Node>> children;
+			std::function<std::shared_ptr<BehaviourTree::Node>()> create;
+		};
+
+		void ReadXml(const std::string& path);
+		std::shared_ptr<BehaviourTree> Create();
+
+		template<class T>
+		void BindExcutorCreator(const std::string& name)
+		{
+			creators[name] = []()
+			{
+				return std::make_shared<T>();
+			};
+		}
+	private:
+		void Create(std::shared_ptr<BehaviourTree::Node> behaviourNode, std::shared_ptr<Node> configNode);
+		void LoadNode(std::shared_ptr<Node> parent, boost::property_tree::ptree& ptree);
+		void LoadParam(std::shared_ptr<Node> parent, boost::property_tree::ptree& ptree);
+	private:
+		std::shared_ptr<Node> root;
+		std::map<std::string, std::function<std::shared_ptr<BehaviourTree::Node>()>> creators;
 	};
 
 	class Selector : public Node 
 	{
 	public:
-		virtual bool Run() override;
+		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) override;
 	};
 
 	class RandomSelector : public Node 
 	{
 	public:
-		virtual bool Run() override;
+		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) override;
 	};
 
 	class Sequence : public Node 
 	{
 	public:
-		virtual bool Run() override;
+		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) override;
 	};
 
 	/**
@@ -54,7 +86,7 @@ public:
 	class Inverter : public Node 
 	{  
 	private:
-		virtual bool Run() override;
+		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) override;
 	};
 
 	/**
@@ -65,7 +97,7 @@ public:
 	class Succeeder : public Node 
 	{  
 	private:
-		virtual bool Run() override;
+		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) override;
 	};
 
 	/**
@@ -75,7 +107,7 @@ public:
 	class Failer : public Node 
 	{  
 	private:
-		virtual bool Run() override;
+		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) override;
 	};
 
 	/**
@@ -85,11 +117,11 @@ public:
 	*/
 	class Repeater : public Node 
 	{  
-	private:
+	public :
+		Repeater(int num = 0) : repeat_count(num) {}  // By default, never terminate.
+		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) override;
+	private :
 		int repeat_count;
-		static const int NOT_FOUND = -1;
-		Repeater(int num = NOT_FOUND) : repeat_count(num) {}  // By default, never terminate.
-		virtual bool Run() override;
 	};
 
 	/**
@@ -99,11 +131,18 @@ public:
 	class RepeatUntilFail : public Node 
 	{ 
 	private:
-		virtual bool Run() override;
+		virtual bool Run(const std::shared_ptr<Gamnet::Component>& component) override;
+	};
+
+	class Action : public Node
+	{
+	public :
+		Action(const Json::Value& params);
+		Json::Value const params;
 	};
 
 	BehaviourTree();
-	void Run();
+	void Run(const std::shared_ptr<Gamnet::Component>& component);
 
 	const std::shared_ptr<Node> root;
 };
