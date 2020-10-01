@@ -74,7 +74,7 @@ bool ResultSetImpl::NextResult()
 
 	if(0 != mysql_next_result(&conn->mysql_conn))
 	{
-		throw Exception(mysql_errno(&conn->mysql_conn), mysql_error(&conn->mysql_conn));
+		throw Exception((int)ErrorCode::ExecuteQueryError, mysql_error(&conn->mysql_conn), "(mysql_errno:", mysql_errno(&conn->mysql_conn), ")");
 	}
 	
 	return StoreResult();

@@ -1,14 +1,13 @@
 #ifndef __GAMNET_LIB_COMPONENT_H_
 #define __GAMNET_LIB_COMPONENT_H_
 
-#include <boost/any.hpp>
 #include <memory>
 #include <map>
 #include <string>
 
 namespace Gamnet {
 	class Component {
-		std::map<std::string, boost::any> components;
+		std::map<std::string, std::shared_ptr<void>> components;
 	public :
 		template <class T>
 		std::shared_ptr<T> AddComponent()
@@ -40,7 +39,7 @@ namespace Gamnet {
 			{
 				return nullptr;
 			}
-			return boost::any_cast<std::shared_ptr<T>>(itr->second);
+			return std::reinterpret_pointer_cast<T>(itr->second);
 		}
 
 		template <class T>

@@ -33,7 +33,7 @@ void Handler_Join::Recv_Req(const std::shared_ptr<UserSession>& session, const M
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.error_code = (Message::ErrorCode)e.error_code();
 	}
-	LOG(DEV, "Message::Lobby::MsgSvrCli_User_JoinLobby_Ans(error_code:", (int)ans.error_code, ")");
+	LOG(DEV, "Message::Lobby::MsgSvrCli_Join_Ans(error_code:", (int)ans.error_code, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 

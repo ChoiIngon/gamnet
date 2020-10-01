@@ -60,7 +60,7 @@ namespace Gamnet {	namespace Database { namespace MySQL {
 		mysql_options(&mysql_conn, MYSQL_OPT_CONNECT_TIMEOUT, (const char*)&conn_info.timeout);
 		mysql_options(&mysql_conn, MYSQL_OPT_RECONNECT, (bool*)&reconnectFlag);
 		mysql_options(&mysql_conn, MYSQL_SET_CHARSET_NAME, conn_info.charset.c_str());
-		mysql_options(&mysql_conn, MYSQL_INIT_COMMAND, Format("SET NAMES '", conn_info.charset, "';").c_str());
+		//mysql_options(&mysql_conn, MYSQL_INIT_COMMAND, Format("SET NAMES '", conn_info.charset, "';").c_str());
 		LOG(INF, "[Gamnet::Database::MySQL] connect...(db_num:", conn_info.db_num, ", host:", conn_info.host, ", port:", conn_info.port, ", db:", conn_info.database, ", user:", connInfo.userid, /*", passwd:", connInfo.passwd_, */")");
 		if (nullptr == mysql_real_connect(&mysql_conn, conn_info.host.c_str(), conn_info.userid.c_str(), conn_info.password.c_str(), conn_info.database.c_str(), conn_info.port, nullptr, CLIENT_MULTI_STATEMENTS))
 		{

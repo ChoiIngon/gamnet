@@ -130,14 +130,14 @@ ResultSet Transaction::Commit()
 	{
 		try {
 			res = connection->Execute("start transaction;" + queries + " commit;");
+			while (res.NextResult());
 		}
 		catch (const Gamnet::Exception& e)
 		{
 			connection->Execute("rollback");
-			throw e;
+			throw Exception(e.error_code(), e.what(), "\n\t", queries);
 		}
 	}
-	while (res.NextResult());
 	
 	Clear();
 	return res;
