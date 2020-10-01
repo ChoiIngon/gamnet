@@ -6,6 +6,7 @@
 
 #include "BehaviourTree.h"
 
+class Unit;
 namespace Component { namespace Monster {
 	class Meta : public Gamnet::MetaData
 	{
@@ -15,9 +16,9 @@ namespace Component { namespace Monster {
 		std::string id;
 		uint32_t	index;
 		std::string name;
-		std::shared_ptr<BehaviourTree> behaviour;
+		std::shared_ptr<BehaviourTree<Unit>> behaviour;
 	private :
-		void OnBehaviourPath(std::shared_ptr<BehaviourTree>& behaviour, const std::string& value);
+		void OnBehaviourPath(std::shared_ptr<BehaviourTree<Unit>>& behaviour, const std::string& value);
 	};
 
 	class Data

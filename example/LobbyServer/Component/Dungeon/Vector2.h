@@ -23,6 +23,9 @@ struct Vector2Int
 	operator Message::Vector2Int () const;
 
 	static Vector2Int zero;
+
+	//static Vector2Int Normalize(const Vector2Int& vec);
+	static float Distance(const Vector2Int& lhs, const Vector2Int& rhs);
 };
 
 bool operator == (const Vector2Int& lhs, const Vector2Int& rhs);

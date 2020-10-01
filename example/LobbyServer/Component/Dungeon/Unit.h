@@ -2,6 +2,7 @@
 #define _UNIT_H_
 
 #include <Gamnet/Library/Component.h>
+#include "Unit/BehaviourTree.h"
 #include "Vector2.h"
 
 class Unit

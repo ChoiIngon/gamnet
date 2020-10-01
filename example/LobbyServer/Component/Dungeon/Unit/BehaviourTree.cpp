@@ -3,6 +3,7 @@
 #include <Gamnet/Library/Exception.h>
 #include <idl/MessageCommon.h>
 
+/*
 BehaviourTree::Node::Node()
 {
 }
@@ -230,3 +231,4 @@ std::shared_ptr<BehaviourTree::Node> BehaviourTree::Meta::ReadXml(const std::str
 	}
 	return root;
 }
+*/

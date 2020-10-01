@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <BehaviourTree>
-	<Selector>
-		<Inverter>
-			<Action class="RiseFromChair"/>
-		</Inverter>
-		<Action class="MoveToVendingMachine" money="200"/>
+	<Sequence>
+		<Action class="SearchTarget"/>
+		<Action class="MoveToTarget"/>
 		<RandomSelector>
 			<Action class="BuyTea"/>
 			<Action class="BuyCoffee"/>
@@ -19,5 +17,5 @@
 		<Repeater repeat_count="10">
 			<Action class="BuyCoffee"/>
 		</Repeater>
-	</Selector>
+	</Sequence>
 </BehaviourTree>

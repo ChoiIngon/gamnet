@@ -27,10 +27,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		}
 
 		std::shared_ptr<Unit> unit = std::make_shared<Unit>();
-		unit->attributes->AddComponent<Component::Monster::Meta>(Gamnet::Singleton<Component::Monster::Manager>::GetInstance().FindMeta(1));
-
-		auto monster = unit->attributes->GetComponent<Component::Monster::Meta>();
-		monster->behaviour->Run(unit->attributes);
+		std::shared_ptr<Component::Monster::Meta> monster = unit->attributes->AddComponent<Component::Monster::Meta>(Gamnet::Singleton<Component::Monster::Manager>::GetInstance().FindMeta(1));
 		
 		std::shared_ptr<Component::Dungeon> dungeon = session->AddComponent<Component::Dungeon>();
 		dungeon->room_count = 7;
@@ -48,6 +45,11 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		{
 			ans.tiles.push_back(tile->type);
 		}
+
+		unit->attributes->AddComponent<Component::Dungeon>(dungeon);
+		unit->position = Vector2Int(dungeon->player->position.x + 1, dungeon->player->position.y + 1);
+		monster->behaviour->Run(*unit);
+		monster->behaviour->Run(*unit);
 	}
 	catch (const Gamnet::Exception& e)
 	{

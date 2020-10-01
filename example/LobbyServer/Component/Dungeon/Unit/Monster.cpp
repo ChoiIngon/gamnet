@@ -2,7 +2,7 @@
 #include "MonsterBehaviour.h"
 #include <Gamnet/Library/Singleton.h>
 #include <idl/MessageCommon.h>
-
+#include "../Unit.h"
 namespace Component { namespace Monster {
 Meta::Meta()
 	: id("")
@@ -16,15 +16,16 @@ Meta::Meta()
 	GAMNET_META_CUSTOM(behaviour, Meta::OnBehaviourPath);
 }
 
-void Meta::OnBehaviourPath(std::shared_ptr<BehaviourTree>& behaviour, const std::string& value)
+void Meta::OnBehaviourPath(std::shared_ptr<BehaviourTree<Unit>>& behaviour, const std::string& value)
 {
-	behaviour = std::make_shared<BehaviourTree>();
-	BehaviourTree::Meta meta;
+	behaviour = std::make_shared<BehaviourTree<Unit>>();
+	BehaviourTree<Unit>::Meta meta;
 	meta.BindAction<RiseFromChair>("RiseFromChair");
 	meta.BindAction<MoveToVendingMachine>("MoveToVendingMachine");
 	meta.BindAction<BuyTea>("BuyTea");
 	meta.BindAction<BuyCoffee>("BuyCoffee");
 	meta.BindAction<ReturnToChair>("ReturnToChair");
+	meta.BindAction<SearchTarget>("SearchTarget");
 	behaviour->root = meta.ReadXml("../MetaData/" + value);
 }
 
