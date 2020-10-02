@@ -12,7 +12,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 	}
 
 	public Gamnet.Session session = new Gamnet.Session();
-	public bool run_in_background = false;
+	public bool run_in_background = true;
 	public Scenes scenes = new Scenes();
 	
 	private void Awake()
@@ -31,12 +31,14 @@ class GameManager : Util.MonoSingleton<GameManager>
 				SceneManager.LoadScene("SceneLobby");
 			}
 		};
-		session.RegisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Handler.User.Handler_Counter.OnRecv);
-		session.RegisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(Handler.Item.Handler_Item.OnRecv);
 	}
 
 	private void Start()
 	{
+		if (true == Application.isEditor)
+		{
+			Application.runInBackground = run_in_background;
+		}
 	}
 
 	private void OnApplicationPause(bool pause)

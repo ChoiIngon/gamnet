@@ -44,7 +44,7 @@ namespace Handler
 						GameObject obj = new GameObject();
 						obj.transform.SetParent(dungeon.transform, false);
 						obj.transform.localPosition = new Vector3(x, y, 0.0f);
-						obj.SetActive(false);
+						//obj.SetActive(false);
 
 						Tile tile = obj.AddComponent<Tile>();
 						tile.Init(tileData);
@@ -53,7 +53,20 @@ namespace Handler
 				}
 
 				GameManager.Instance.scenes.dungeon_main.dungeon = dungeon;
-				GameManager.Instance.scenes.dungeon_main.player.position = new Vector2Int(ans.start.x, ans.start.y);
+				Unit player = GameManager.Instance.scenes.dungeon_main.player;
+				player.position = new Vector2Int(ans.start.x, ans.start.y);
+
+				foreach (var monster in ans.monsters)
+				{
+					GameObject obj = new GameObject();
+					obj.name = "Monster_" + monster.seq;
+					Unit unit = obj.AddComponent<Unit>();
+					unit.seq = monster.seq;
+					unit.position = new Vector2Int(monster.position.x, monster.position.y);
+					obj.transform.SetParent(GameManager.Instance.scenes.dungeon_main.transform);
+					obj.AddComponent<Monster>();
+					GameManager.Instance.scenes.dungeon_main.monsters[unit.seq] = unit;
+				}
 			}
 		}
 	}

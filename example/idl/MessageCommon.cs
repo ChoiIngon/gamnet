@@ -458,6 +458,47 @@ public struct Vector2Int_Serializer {
 	public static bool Load(ref Vector2Int obj, MemoryStream _buf_) { return obj.Load(_buf_); }
 	public static int Size(Vector2Int obj) { return obj.Size(); }
 };
+public class Monster {
+	public ulong	seq = 0;
+	public Vector2Int	position = new Vector2Int();
+	public Monster() {
+	}
+	public virtual int Size() {
+		int nSize = 0;
+		try {
+			nSize += sizeof(ulong);
+			nSize += Vector2Int_Serializer.Size(position);
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public virtual bool Store(MemoryStream _buf_) {
+		try {
+			_buf_.Write(BitConverter.GetBytes(seq), 0, sizeof(ulong));
+			if(false == Vector2Int_Serializer.Store(_buf_, position)) { return false; }
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public virtual bool Load(MemoryStream _buf_) {
+		try {
+			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
+			seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(ulong);
+			if(false == Vector2Int_Serializer.Load(ref position, _buf_)) { return false; }
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct Monster_Serializer {
+	public static bool Store(MemoryStream _buf_, Monster obj) { return obj.Store(_buf_); }
+	public static bool Load(ref Monster obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(Monster obj) { return obj.Size(); }
+};
 
 }
 

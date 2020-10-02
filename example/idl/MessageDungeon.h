@@ -55,6 +55,7 @@ struct MsgSvrCli_CreateDungeon_Ans {
 	int32_t	height;
 	Vector2Int	start;
 	std::vector<DungeonTileType >	tiles;
+	std::vector<Monster >	monsters;
 	MsgSvrCli_CreateDungeon_Ans()	{
 		width = 0;
 		height = 0;
@@ -69,6 +70,11 @@ struct MsgSvrCli_CreateDungeon_Ans {
 		for(std::vector<DungeonTileType >::const_iterator tiles_itr = tiles.begin(); tiles_itr != tiles.end(); tiles_itr++)	{
 			const DungeonTileType& tiles_elmt = *tiles_itr;
 			nSize += DungeonTileType_Serializer::Size(tiles_elmt);
+		}
+		nSize += sizeof(int32_t);
+		for(std::vector<Monster >::const_iterator monsters_itr = monsters.begin(); monsters_itr != monsters.end(); monsters_itr++)	{
+			const Monster& monsters_elmt = *monsters_itr;
+			nSize += Monster_Serializer::Size(monsters_elmt);
 		}
 		return nSize;
 	}
@@ -93,6 +99,12 @@ struct MsgSvrCli_CreateDungeon_Ans {
 			const DungeonTileType& tiles_elmt = *tiles_itr;
 			if(false == DungeonTileType_Serializer::Store(_buf_, tiles_elmt)) { return false; }
 		}
+		size_t monsters_size = monsters.size();
+		std::memcpy(*_buf_, &monsters_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		for(std::vector<Monster >::const_iterator monsters_itr = monsters.begin(); monsters_itr != monsters.end(); monsters_itr++)	{
+			const Monster& monsters_elmt = *monsters_itr;
+			if(false == Monster_Serializer::Store(_buf_, monsters_elmt)) { return false; }
+		}
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -113,6 +125,13 @@ struct MsgSvrCli_CreateDungeon_Ans {
 			DungeonTileType tiles_val;
 			if(false == DungeonTileType_Serializer::Load(tiles_val, _buf_, nSize)) { return false; }
 			tiles.push_back(tiles_val);
+		}
+		if(sizeof(int32_t) > nSize) { return false; }
+		uint32_t monsters_length = 0; std::memcpy(&monsters_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		for(uint32_t i=0; i<monsters_length; i++) {
+			Monster monsters_val;
+			if(false == Monster_Serializer::Load(monsters_val, _buf_, nSize)) { return false; }
+			monsters.push_back(monsters_val);
 		}
 		return true;
 	}
@@ -167,6 +186,7 @@ struct MsgSvrCli_PlayerMove_Ans {
 	enum { MSG_ID = 40000002 }; 
 	ErrorCode	error_code;
 	std::list<Vector2Int >	path;
+	std::map<uint64_t, std::list<Vector2Int > >	monster_moves;
 	MsgSvrCli_PlayerMove_Ans()	{
 	}
 	size_t Size() const {
@@ -176,6 +196,16 @@ struct MsgSvrCli_PlayerMove_Ans {
 		for(std::list<Vector2Int >::const_iterator path_itr = path.begin(); path_itr != path.end(); path_itr++)	{
 			const Vector2Int& path_elmt = *path_itr;
 			nSize += Vector2Int_Serializer::Size(path_elmt);
+		}
+		nSize += sizeof(uint32_t);
+		for(std::map<uint64_t, std::list<Vector2Int > >::const_iterator monster_moves_itr = monster_moves.begin(); monster_moves_itr != monster_moves.end(); monster_moves_itr++) {
+			const std::list<Vector2Int >& monster_moves_elmt = monster_moves_itr->second;
+			nSize += sizeof(uint64_t);
+			nSize += sizeof(int32_t);
+			for(std::list<Vector2Int >::const_iterator monster_moves_elmt_itr = monster_moves_elmt.begin(); monster_moves_elmt_itr != monster_moves_elmt.end(); monster_moves_elmt_itr++)	{
+				const Vector2Int& monster_moves_elmt_elmt = *monster_moves_elmt_itr;
+				nSize += Vector2Int_Serializer::Size(monster_moves_elmt_elmt);
+			}
 		}
 		return nSize;
 	}
@@ -197,6 +227,19 @@ struct MsgSvrCli_PlayerMove_Ans {
 			const Vector2Int& path_elmt = *path_itr;
 			if(false == Vector2Int_Serializer::Store(_buf_, path_elmt)) { return false; }
 		}
+		size_t monster_moves_size = monster_moves.size();
+		std::memcpy(*_buf_, &monster_moves_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		for(std::map<uint64_t, std::list<Vector2Int > >::const_iterator monster_moves_itr = monster_moves.begin(); monster_moves_itr != monster_moves.end(); monster_moves_itr++) {
+			const uint64_t& monster_moves_key = monster_moves_itr->first;
+			const std::list<Vector2Int >& monster_moves_elmt = monster_moves_itr->second;
+			std::memcpy(*_buf_, &monster_moves_key, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+			size_t monster_moves_elmt_size = monster_moves_elmt.size();
+			std::memcpy(*_buf_, &monster_moves_elmt_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+			for(std::list<Vector2Int >::const_iterator monster_moves_elmt_itr = monster_moves_elmt.begin(); monster_moves_elmt_itr != monster_moves_elmt.end(); monster_moves_elmt_itr++)	{
+				const Vector2Int& monster_moves_elmt_elmt = *monster_moves_elmt_itr;
+				if(false == Vector2Int_Serializer::Store(_buf_, monster_moves_elmt_elmt)) { return false; }
+			}
+		}
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -214,6 +257,21 @@ struct MsgSvrCli_PlayerMove_Ans {
 			Vector2Int path_val;
 			if(false == Vector2Int_Serializer::Load(path_val, _buf_, nSize)) { return false; }
 			path.push_back(path_val);
+		}
+		if(sizeof(int32_t) > nSize) { return false; }
+		uint32_t monster_moves_length = 0; std::memcpy(&monster_moves_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		for(uint32_t i=0; i<monster_moves_length; i++) {
+			uint64_t monster_moves_key;
+			if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&monster_moves_key, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+			std::list<Vector2Int > monster_moves_val;
+			if(sizeof(int32_t) > nSize) { return false; }
+			uint32_t monster_moves_val_length = 0; std::memcpy(&monster_moves_val_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+			for(uint32_t i=0; i<monster_moves_val_length; i++) {
+				Vector2Int monster_moves_val_val;
+				if(false == Vector2Int_Serializer::Load(monster_moves_val_val, _buf_, nSize)) { return false; }
+				monster_moves_val.push_back(monster_moves_val_val);
+			}
+			monster_moves.insert(std::make_pair(monster_moves_key, monster_moves_val));
 		}
 		return true;
 	}

@@ -5,7 +5,11 @@
 #include "Unit/BehaviourTree.h"
 #include "Vector2.h"
 
-class Unit
+namespace Component { 
+	class Dungeon;
+}
+
+class Unit : public std::enable_shared_from_this<Unit>
 {
 public :
 	typedef Gamnet::Component Attribute;
@@ -13,6 +17,7 @@ public :
 	Unit();
 
 public :
+	const uint64_t seq;
 	int max_health;
 	int cur_health;
 	int attack;
@@ -24,6 +29,10 @@ public :
 	Vector2Int	position;
 
 	std::shared_ptr<Attribute>	attributes;
+
+	std::shared_ptr<Component::Dungeon> dungeon;
+
+	void SetPosition(const Vector2Int& position);
 };
 
 #endif

@@ -3,6 +3,7 @@
 #include "../../Component/Dungeon/Dungeon.h"
 #include "../../Component/Dungeon/Unit.h"
 #include "../../Component/Dungeon/Unit/Monster.h"
+#include <Gamnet/Library/Random.h>
 
 namespace Handler { namespace Dungeon {
 
@@ -26,9 +27,6 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
 
-		std::shared_ptr<Unit> unit = std::make_shared<Unit>();
-		std::shared_ptr<Component::Monster::Meta> monster = unit->attributes->AddComponent<Component::Monster::Meta>(Gamnet::Singleton<Component::Monster::Manager>::GetInstance().FindMeta(1));
-		
 		std::shared_ptr<Component::Dungeon> dungeon = session->AddComponent<Component::Dungeon>();
 		dungeon->room_count = 7;
 		dungeon->min_room_width = 5;
@@ -38,6 +36,18 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		dungeon->min_distance = 5;
 		dungeon->Init();
 
+		Vector2 start = dungeon->start->rect.Center();
+		std::shared_ptr<Unit> player = std::make_shared<Unit>();
+		player->dungeon = dungeon;
+		player->SetPosition(Vector2Int((int)start.x, (int)start.y));
+		dungeon->player = player;
+
+		Vector2 end = dungeon->end->rect.Center();
+		std::shared_ptr<Unit> monster = Gamnet::Singleton<Component::Monster::Manager>::GetInstance().CreateInstance(1);
+		monster->dungeon = dungeon;
+		monster->SetPosition(Vector2Int((int)end.x, (int)end.y));
+		dungeon->monster.insert(std::make_pair(monster->seq, monster));
+
 		ans.width = dungeon->rect.width;
 		ans.height = dungeon->rect.height;
 		ans.start = dungeon->player->position;
@@ -46,10 +56,14 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 			ans.tiles.push_back(tile->type);
 		}
 
-		unit->attributes->AddComponent<Component::Dungeon>(dungeon);
-		unit->position = Vector2Int(dungeon->player->position.x + 1, dungeon->player->position.y + 1);
-		monster->behaviour->Run(*unit);
-		monster->behaviour->Run(*unit);
+		for(auto itr : dungeon->monster)
+		{
+			std::shared_ptr<Unit> monster = itr.second;
+			Message::Monster msgMonster;
+			msgMonster.seq = monster->seq;
+			msgMonster.position = monster->position;
+			ans.monsters.push_back(msgMonster);
+		}
 	}
 	catch (const Gamnet::Exception& e)
 	{

@@ -54,6 +54,7 @@ public :
 
 	void Init();
 	std::shared_ptr<Tile> GetTile(int x, int y) const;
+	std::shared_ptr<Tile> GetTile(const Vector2Int& coordinate) const;
 private :
 	void InitBlocks();
 	void InitTiles();
@@ -85,7 +86,7 @@ public :
 
 public :
 	std::shared_ptr<Unit> player;
-	std::shared_ptr<Unit> monster;
+	std::map<uint64_t, std::shared_ptr<Unit>> monster;
 };
 
 }

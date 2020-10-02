@@ -44,6 +44,7 @@ public class MsgSvrCli_CreateDungeon_Ans {
 	public int	height = 0;
 	public Vector2Int	start = new Vector2Int();
 	public List<DungeonTileType >	tiles = new List<DungeonTileType >();
+	public List<Monster >	monsters = new List<Monster >();
 	public MsgSvrCli_CreateDungeon_Ans() {
 	}
 	public virtual int Size() {
@@ -57,6 +58,11 @@ public class MsgSvrCli_CreateDungeon_Ans {
 			foreach(var tiles_itr in tiles) { 
 				DungeonTileType tiles_elmt = tiles_itr;
 				nSize += DungeonTileType_Serializer.Size(tiles_elmt);
+			}
+			nSize += sizeof(int);
+			foreach(var monsters_itr in monsters) { 
+				Monster monsters_elmt = monsters_itr;
+				nSize += Monster_Serializer.Size(monsters_elmt);
 			}
 		} catch(System.Exception) {
 			return -1;
@@ -73,6 +79,11 @@ public class MsgSvrCli_CreateDungeon_Ans {
 			foreach(var tiles_itr in tiles) { 
 				DungeonTileType tiles_elmt = tiles_itr;
 				if(false == DungeonTileType_Serializer.Store(_buf_, tiles_elmt)) { return false; }
+			}
+			_buf_.Write(BitConverter.GetBytes(monsters.Count), 0, sizeof(int));
+			foreach(var monsters_itr in monsters) { 
+				Monster monsters_elmt = monsters_itr;
+				if(false == Monster_Serializer.Store(_buf_, monsters_elmt)) { return false; }
 			}
 		} catch(System.Exception) {
 			return false;
@@ -96,6 +107,14 @@ public class MsgSvrCli_CreateDungeon_Ans {
 				DungeonTileType tiles_val = new DungeonTileType();
 				if(false == DungeonTileType_Serializer.Load(ref tiles_val, _buf_)) { return false; }
 				tiles.Add(tiles_val);
+			}
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			int monsters_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+			for(int monsters_itr=0; monsters_itr<monsters_length; monsters_itr++) {
+				Monster monsters_val = new Monster();
+				if(false == Monster_Serializer.Load(ref monsters_val, _buf_)) { return false; }
+				monsters.Add(monsters_val);
 			}
 		} catch(System.Exception) {
 			return false;
@@ -148,6 +167,7 @@ public class MsgSvrCli_PlayerMove_Ans {
 	public const int MSG_ID = 40000002;
 	public ErrorCode	error_code = new ErrorCode();
 	public List<Vector2Int >	path = new List<Vector2Int >();
+	public Dictionary<ulong, List<Vector2Int > >	monster_moves = new Dictionary<ulong, List<Vector2Int > >();
 	public MsgSvrCli_PlayerMove_Ans() {
 	}
 	public virtual int Size() {
@@ -158,6 +178,17 @@ public class MsgSvrCli_PlayerMove_Ans {
 			foreach(var path_itr in path) { 
 				Vector2Int path_elmt = path_itr;
 				nSize += Vector2Int_Serializer.Size(path_elmt);
+			}
+			nSize += sizeof(int);
+			foreach(var monster_moves_itr in monster_moves) {
+				ulong monster_moves_key = monster_moves_itr.Key;
+				List<Vector2Int > monster_moves_elmt = monster_moves_itr.Value;
+				nSize += sizeof(ulong);
+				nSize += sizeof(int);
+				foreach(var monster_moves_elmt_itr in monster_moves_elmt) { 
+					Vector2Int monster_moves_elmt_elmt = monster_moves_elmt_itr;
+					nSize += Vector2Int_Serializer.Size(monster_moves_elmt_elmt);
+				}
 			}
 		} catch(System.Exception) {
 			return -1;
@@ -171,6 +202,17 @@ public class MsgSvrCli_PlayerMove_Ans {
 			foreach(var path_itr in path) { 
 				Vector2Int path_elmt = path_itr;
 				if(false == Vector2Int_Serializer.Store(_buf_, path_elmt)) { return false; }
+			}
+			_buf_.Write(BitConverter.GetBytes(monster_moves.Count), 0, sizeof(int));
+			foreach(var monster_moves_itr in monster_moves) {
+				ulong monster_moves_key = monster_moves_itr.Key;
+				List<Vector2Int > monster_moves_elmt = monster_moves_itr.Value;
+				_buf_.Write(BitConverter.GetBytes(monster_moves_key), 0, sizeof(ulong));
+				_buf_.Write(BitConverter.GetBytes(monster_moves_elmt.Count), 0, sizeof(int));
+				foreach(var monster_moves_elmt_itr in monster_moves_elmt) { 
+					Vector2Int monster_moves_elmt_elmt = monster_moves_elmt_itr;
+					if(false == Vector2Int_Serializer.Store(_buf_, monster_moves_elmt_elmt)) { return false; }
+				}
 			}
 		} catch(System.Exception) {
 			return false;
@@ -187,6 +229,25 @@ public class MsgSvrCli_PlayerMove_Ans {
 				Vector2Int path_val = new Vector2Int();
 				if(false == Vector2Int_Serializer.Load(ref path_val, _buf_)) { return false; }
 				path.Add(path_val);
+			}
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			int monster_moves_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+			for(int monster_moves_itr=0; monster_moves_itr<monster_moves_length; monster_moves_itr++) {
+				ulong monster_moves_key = 0;
+				List<Vector2Int > monster_moves_elmt = new List<Vector2Int >();
+				if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
+				monster_moves_key = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
+				_buf_.Position += sizeof(ulong);
+				if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+				int monster_moves_elmt_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+				_buf_.Position += sizeof(int);
+				for(int monster_moves_elmt_itr=0; monster_moves_elmt_itr<monster_moves_elmt_length; monster_moves_elmt_itr++) {
+					Vector2Int monster_moves_elmt_val = new Vector2Int();
+					if(false == Vector2Int_Serializer.Load(ref monster_moves_elmt_val, _buf_)) { return false; }
+					monster_moves_elmt.Add(monster_moves_elmt_val);
+				}
+				monster_moves[monster_moves_key] = monster_moves_elmt;
 			}
 		} catch(System.Exception) {
 			return false;

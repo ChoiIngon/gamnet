@@ -49,7 +49,12 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		return packet;
 	}
 	
-	Packet::Packet() : Buffer(Buffer::MAX_SIZE)
+	Packet::Packet() 
+		: Buffer(Buffer::MAX_SIZE)
+		, length(0)
+		, msg_seq(0)
+		, msg_id(0)
+		, reliable(false)
 	{
 	}
 

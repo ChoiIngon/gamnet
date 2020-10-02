@@ -40,12 +40,14 @@ public class LobbyMain : MonoBehaviour
 			Log("success..connect");
 			Handler.User.Handler_Login.SendMsg();
 		};
+
+		GameManager.Instance.session.RegisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Handler.User.Handler_Counter.OnRecv);
+		GameManager.Instance.session.RegisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(Handler.Item.Handler_Item.OnRecv);
 	}
 
 	// Update is called once per frame
 	void Update()
     {
-        
     }
 
 	private void Log(string text)
@@ -62,6 +64,8 @@ public class LobbyMain : MonoBehaviour
 
 	private void OnDestroy()
 	{
+		GameManager.Instance.session.UnregisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Handler.User.Handler_Counter.OnRecv);
+		GameManager.Instance.session.UnregisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(Handler.Item.Handler_Item.OnRecv);
 		GameManager.Instance.scenes.lobby_main = null;
 	}
 }

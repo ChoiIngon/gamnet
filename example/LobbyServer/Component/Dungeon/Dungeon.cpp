@@ -73,8 +73,6 @@ void Dungeon::Init()
 
 	tiles[(int)start->rect.Center().y * rect.width + (int)start->rect.Center().x]->type = Tile::Type::StairUp;
 	tiles[(int)end->rect.Center().y * rect.width + (int)end->rect.Center().x]->type = Tile::Type::StairDown;
-	player = std::make_shared<Unit>();
-	player->position = Vector2Int(start->rect.Center().x, start->rect.Center().y);
 }
 
 std::shared_ptr<Tile> Dungeon::GetTile(int x, int y) const
@@ -84,6 +82,11 @@ std::shared_ptr<Tile> Dungeon::GetTile(int x, int y) const
 		return nullptr;
 	}
 	return tiles[y * rect.width + x];
+}
+
+std::shared_ptr<Tile> Dungeon::GetTile(const Vector2Int& coordinate) const
+{
+	return GetTile(coordinate.x, coordinate.y);
 }
 
 void Dungeon::InitBlocks()

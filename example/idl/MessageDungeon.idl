@@ -17,6 +17,7 @@ message MsgSvrCli_CreateDungeon_Ans : 040000001
 	int32 height;
 	Vector2Int start;
 	array<DungeonTileType> tiles;
+	array<Monster> monsters;
 };
 
 message MsgCliSvr_PlayerMove_Req : 040000002
@@ -28,6 +29,7 @@ message MsgSvrCli_PlayerMove_Ans : 040000002
 {
 	ErrorCode error_code;
 	list<Vector2Int> path;
+	map<uint64, list<Vector2Int>> monster_moves;
 };
 
 .cpp %%

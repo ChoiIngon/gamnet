@@ -816,7 +816,7 @@ namespace Gamnet
 				_handlers.Remove((uint)msg_id);
 			}
 		}
-
+		
 		const uint MsgID_Max = uint.MaxValue;
 		const uint MsgID_CliSvr_Connect_Req = MsgID_Max - 1;
 		const uint MsgID_SvrCli_Connect_Ans = MsgID_Max - 1;

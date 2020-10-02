@@ -84,6 +84,7 @@
     <Compile Include="Assets\Scripts\IDL\MessageLobby.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageUser.cs" />
     <Compile Include="Assets\Scripts\LobbyMain.cs" />
+    <Compile Include="Assets\Scripts\Monster.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\ResourceManager.cs" />
     <Compile Include="Assets\Scripts\Tile.cs" />

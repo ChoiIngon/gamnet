@@ -20,12 +20,29 @@ namespace Handler
 			public static void OnRecv(Message.Dungeon.MsgSvrCli_PlayerMove_Ans ans)
 			{
 				GameManager.Instance.session.UnregisterHandler<Message.Dungeon.MsgSvrCli_PlayerMove_Ans>(Handler_PlayerMove.OnRecv);
-				List<Vector2Int> path = new List<Vector2Int>();
-				foreach (Message.Vector2Int point in ans.path)
+
 				{
-					path.Add(new Vector2Int(point.x, point.y));
+					List<Vector2Int> path = new List<Vector2Int>();
+					foreach (Message.Vector2Int point in ans.path)
+					{
+						path.Add(new Vector2Int(point.x, point.y));
+					}
+
+					Unit player = GameManager.Instance.scenes.dungeon_main.player;
+					player.SetMovePath(path);
 				}
-				GameManager.Instance.scenes.dungeon_main.player.path = path;
+
+				foreach (var itr in ans.monster_moves)
+				{
+					List<Vector2Int> path = new List<Vector2Int>();
+					foreach (Message.Vector2Int point in itr.Value)
+					{
+						path.Add(new Vector2Int(point.x, point.y));
+					}
+
+					Unit monster = GameManager.Instance.scenes.dungeon_main.monsters[itr.Key];
+					monster.SetMovePath(path);
+				}
 			}
 		}
 	}

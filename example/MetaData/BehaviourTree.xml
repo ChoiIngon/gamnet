@@ -2,19 +2,7 @@
 <BehaviourTree>
 	<Sequence>
 		<Action class="SearchTarget"/>
-		<RandomSelector>
-			<Action class="BuyTea"/>
-			<Action class="BuyCoffee"/>
-		</RandomSelector>
-		<Selector>
-			<Inverter>
-				<Action class="BuyTea"/>
-			</Inverter>
-			<Action class="BuyCoffee"/>
-		</Selector>
-		<Action class="ReturnToChair"/>
-		<Repeater repeat_count="10">
-			<Action class="BuyCoffee"/>
-		</Repeater>
+		<Action class="FindPathToTarget"/>
+		<Action class="MoveToTarget"/>
 	</Sequence>
 </BehaviourTree>

@@ -101,6 +101,12 @@ struct Vector2Int
 	int32 y;
 };
 
+struct Monster
+{
+	uint64 seq;
+	Vector2Int position;
+};
+
 .cpp %%
 }
 %%

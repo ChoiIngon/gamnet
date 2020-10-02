@@ -131,7 +131,7 @@
     <ClCompile Include="Component\Dungeon\BresenhamCircle2D.cpp" />
     <ClCompile Include="Component\Dungeon\BresenhamLine2D.cpp" />
     <ClCompile Include="Component\Dungeon\Unit\Monster.cpp" />
-    <ClCompile Include="Component\Dungeon\Unit\MonsterBehaviour.cpp" />
+    <ClCompile Include="Component\Dungeon\Unit\MonsterAction.cpp" />
     <ClCompile Include="Component\Dungeon\Unit\Player.cpp" />
     <ClCompile Include="Component\Dungeon\Unit.cpp" />
     <ClCompile Include="Component\Event.cpp" />
@@ -169,7 +169,7 @@
     <ClInclude Include="Component\Dungeon\BresenhamLine2D.h" />
     <ClInclude Include="Component\Dungeon\Unit\BehaviourTree.h" />
     <ClInclude Include="Component\Dungeon\Unit\Monster.h" />
-    <ClInclude Include="Component\Dungeon\Unit\MonsterBehaviour.h" />
+    <ClInclude Include="Component\Dungeon\Unit\MonsterAction.h" />
     <ClInclude Include="Component\Dungeon\Unit\Player.h" />
     <ClInclude Include="Component\Dungeon\Unit.h" />
     <ClInclude Include="Component\Event.h" />

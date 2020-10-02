@@ -3,6 +3,7 @@
 #include "../../Component/Dungeon/Dungeon.h"
 #include "../../Component/Dungeon/AStarPathFinder.h"
 #include "../../Component/Dungeon/Unit.h"
+#include "../../Component/Dungeon/Unit/Monster.h"
 
 namespace Handler { namespace Dungeon {
 
@@ -36,8 +37,21 @@ void Handler_PlayerMove::Recv_Req(const std::shared_ptr<UserSession>& session, c
 		AStarPathFinder pathFinder(dungeon, player->position, Vector2Int(req.destination.x, req.destination.y));
 		for(const auto& point : pathFinder.path)
 		{
-			ans.path.push_back(point);
-			player->position = point;
+			player->SetPosition(point);
+
+			if(point != player->position)
+			{
+				break;
+			}
+			for(auto& itr : dungeon->monster)
+			{
+				std::shared_ptr<Unit> monster = itr.second;
+				auto data = monster->attributes->GetComponent<Component::Monster::Data>();
+
+				data->meta->Update(monster);
+				ans.monster_moves[monster->seq].push_back(monster->position);
+			}
+			ans.path.push_back(player->position);
 		}
 	}
 	catch (const Gamnet::Exception& e)

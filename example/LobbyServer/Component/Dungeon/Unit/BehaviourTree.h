@@ -38,7 +38,7 @@ public:
 			return children;
 		}
 		//std::string name;
-		virtual bool Run(T& component) = 0;
+		virtual bool Run(T param) = 0;
 	private:
 		std::vector<std::shared_ptr<Node>> children;
 	};
@@ -46,19 +46,19 @@ public:
 	class Selector : public Node 
 	{
 	public:
-		virtual bool Run(T& component) override;
+		virtual bool Run(T param) override;
 	};
 
 	class RandomSelector : public Node 
 	{
 	public:
-		virtual bool Run(T& component) override;
+		virtual bool Run(T param) override;
 	};
 
 	class Sequence : public Node 
 	{
 	public:
-		virtual bool Run(T& component) override;
+		virtual bool Run(T param) override;
 	};
 
 	/**
@@ -68,7 +68,7 @@ public:
 	class Inverter : public Node 
 	{  
 	private:
-		virtual bool Run(T& component) override;
+		virtual bool Run(T param) override;
 	};
 
 	/**
@@ -79,7 +79,7 @@ public:
 	class Succeeder : public Node 
 	{  
 	private:
-		virtual bool Run(T& component) override;
+		virtual bool Run(T param) override;
 	};
 
 	/**
@@ -89,7 +89,7 @@ public:
 	class Failer : public Node 
 	{  
 	private:
-		virtual bool Run(T& component) override;
+		virtual bool Run(T param) override;
 	};
 
 	/**
@@ -101,7 +101,7 @@ public:
 	{  
 	public :
 		Repeater(int num = 0) : repeat_count(num) {}  // By default, never terminate.
-		virtual bool Run(T& component) override;
+		virtual bool Run(T param) override;
 	private :
 		int repeat_count;
 	};
@@ -113,7 +113,7 @@ public:
 	class RepeatUntilFail : public Node 
 	{ 
 	private:
-		virtual bool Run(T& component) override;
+		virtual bool Run(T param) override;
 	};
 
 	class Action : public Node
@@ -144,7 +144,7 @@ public:
 
 	BehaviourTree();
 	
-	void Run(T& component);
+	void Run(T param);
 
 	std::shared_ptr<Node> root;
 };
@@ -242,11 +242,11 @@ Json::Value BehaviourTree<T>::Meta::LoadParam(boost::property_tree::ptree& ptree
 }
 
 template <class T>
-bool BehaviourTree<T>::Selector::Run(T& component)
+bool BehaviourTree<T>::Selector::Run(T param)
 {
 	for (const std::shared_ptr<Node>& child : BehaviourTree<T>::Node::GetChildren())
 	{
-		if (true == child->Run(component)) {
+		if (true == child->Run(param)) {
 			return true;
 		}
 	}
@@ -254,14 +254,14 @@ bool BehaviourTree<T>::Selector::Run(T& component)
 }
 
 template <class T>
-bool BehaviourTree<T>::RandomSelector::Run(T& component)
+bool BehaviourTree<T>::RandomSelector::Run(T param)
 {
 	std::vector<std::shared_ptr<Node>> temp = BehaviourTree<T>::Node::GetChildren();
 	// The order is shuffled
 	std::random_shuffle(temp.begin(), temp.end());
 	for (const std::shared_ptr<Node>& child : temp)
 	{
-		if (true == child->Run(component))
+		if (true == child->Run(param))
 		{
 			return true;
 		}
@@ -270,11 +270,11 @@ bool BehaviourTree<T>::RandomSelector::Run(T& component)
 }
 
 template <class T>
-bool BehaviourTree<T>::Sequence::Run(T& component)
+bool BehaviourTree<T>::Sequence::Run(T param)
 {
 	for (const std::shared_ptr<Node>& child : BehaviourTree<T>::Node::GetChildren())
 	{
-		if (false == child->Run(component))
+		if (false == child->Run(param))
 		{
 			return false;
 		}
@@ -283,31 +283,31 @@ bool BehaviourTree<T>::Sequence::Run(T& component)
 }
 
 template <class T>
-bool BehaviourTree<T>::Inverter::Run(T& component)
+bool BehaviourTree<T>::Inverter::Run(T param)
 {
-	return !BehaviourTree<T>::Node::GetChild()->Run(component);
+	return !BehaviourTree<T>::Node::GetChild()->Run(param);
 }
 
 template <class T>
-bool BehaviourTree<T>::Succeeder::Run(T& component)
+bool BehaviourTree<T>::Succeeder::Run(T param)
 {
-	BehaviourTree<T>::Node::GetChild()->Run(component);
+	BehaviourTree<T>::Node::GetChild()->Run(param);
 	return true;
 }
 
 template <class T>
-bool BehaviourTree<T>::Failer::Run(T& component)
+bool BehaviourTree<T>::Failer::Run(T param)
 {
-	BehaviourTree<T>::Node::GetChild()->Run(component);
+	BehaviourTree<T>::Node::GetChild()->Run(param);
 	return false;
 }
 
 template <class T>
-bool BehaviourTree<T>::Repeater::Run(T& component)
+bool BehaviourTree<T>::Repeater::Run(T param)
 {
 	for (int i = 0; i < repeat_count; i++)
 	{
-		if (false == BehaviourTree<T>::Node::GetChild()->Run(component))
+		if (false == BehaviourTree<T>::Node::GetChild()->Run(param))
 		{
 			return false;
 		}
@@ -316,9 +316,9 @@ bool BehaviourTree<T>::Repeater::Run(T& component)
 }
 
 template <class T>
-bool BehaviourTree<T>::RepeatUntilFail::Run(T& component)
+bool BehaviourTree<T>::RepeatUntilFail::Run(T param)
 {
-	while (BehaviourTree<T>::Node::GetChild()->Run(component)) {}
+	while (BehaviourTree<T>::Node::GetChild()->Run(param)) {}
 	return true;
 }
 
@@ -326,9 +326,9 @@ template <class T>
 class RootNode : public BehaviourTree<T>::Node
 {
 public:
-	virtual bool Run(T& component) override
+	virtual bool Run(T param) override
 	{
-		return BehaviourTree<T>::Node::GetChild()->Run(component);
+		return BehaviourTree<T>::Node::GetChild()->Run(param);
 	}
 };
 
@@ -339,13 +339,13 @@ BehaviourTree<T>::BehaviourTree()
 }
 
 template <class T>
-void BehaviourTree<T>::Run(T& component)
+void BehaviourTree<T>::Run(T param)
 {
 	if (nullptr == root)
 	{
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
-	root->Run(component);
+	root->Run(param);
 }
 
 template <class T>

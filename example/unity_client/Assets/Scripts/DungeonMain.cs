@@ -1,15 +1,25 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class DungeonMain : MonoBehaviour
 {
 	public Component.Dungeon dungeon = null;
-	public Player player;
+	public Unit player;
+	public Dictionary<UInt64, Unit> monsters = null;
+	
     // Start is called before the first frame update
     void Start()
     {
+		if (Gamnet.Session.ConnectionState.Connected != GameManager.Instance.session.state)
+		{
+			SceneManager.LoadScene("SceneLobby");
+			return;
+		}
 		GameManager.Instance.scenes.dungeon_main = this;
-		Handler.Dungeon.Handler_CreateDungeon.SendMsg();        
+		monsters = new Dictionary<ulong, Unit>();
+		Handler.Dungeon.Handler_CreateDungeon.SendMsg();     
     }
 
     // Update is called once per frame
@@ -21,5 +31,7 @@ public class DungeonMain : MonoBehaviour
 	private void OnDestroy()
 	{
 		dungeon = null;
+		player = null;
+		monsters = null;
 	}
 }

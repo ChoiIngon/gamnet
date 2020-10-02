@@ -4,7 +4,9 @@
 #include "Vector2.h"
 #include <Gamnet/Library/Delegate.h>
 #include <idl/MessageCommon.h>
+#include <memory>
 
+class Unit;
 class Tile
 {
 public:
@@ -16,6 +18,7 @@ public :
 	Type type;
 	Vector2Int position;
 	bool visible;
+	std::shared_ptr<Unit> unit;
 };
 
 #endif
