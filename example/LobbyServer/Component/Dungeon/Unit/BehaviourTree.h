@@ -19,13 +19,24 @@ public:
 	class Node
 	{
 	public:
-		Node();
 		virtual ~Node() {}
 
-		void AddChild(const std::shared_ptr<Node>& child);
-		const std::shared_ptr<Node> GetChild(unsigned int index = 0) const;
-		const std::vector<std::shared_ptr<Node>>& GetChildren() const;
-
+		void AddChild(const std::shared_ptr<Node>& child)
+		{
+			children.push_back(child);
+		}
+		const std::shared_ptr<Node> GetChild(unsigned int index = 0) const
+		{
+			if (index >= children.size())
+			{
+				return nullptr;
+			}
+			return children[index];
+		}
+		const std::vector<std::shared_ptr<Node>>& GetChildren() const
+		{
+			return children;
+		}
 		//std::string name;
 		virtual bool Run(T& component) = 0;
 	private:
@@ -116,12 +127,12 @@ public:
 	public:
 		std::shared_ptr<BehaviourTree::Node> ReadXml(const std::string& path);
 
-		template<class T>
+		template<class ACTION_T>
 		void BindAction(const std::string& name)
 		{
 			action_creators[name] = []()
 			{
-				return std::make_shared<T>();
+				return std::make_shared<ACTION_T>();
 			};
 		}
 	private:
@@ -142,33 +153,6 @@ public:
 #include <boost/property_tree/xml_parser.hpp>
 #include <Gamnet/Library/Exception.h>
 #include <idl/MessageCommon.h>
-
-template <class T>
-BehaviourTree<T>::Node::Node()
-{
-}
-
-template <class T>
-void BehaviourTree<T>::Node::AddChild(const std::shared_ptr<Node>& child)
-{
-	children.push_back(child);
-}
-
-template <class T>
-const std::shared_ptr<typename BehaviourTree<T>::Node> BehaviourTree<T>::Node::GetChild(unsigned int index) const
-{
-	if (index >= children.size())
-	{
-		return nullptr;
-	}
-	return children[index];
-}
-
-template <class T>
-const std::vector<std::shared_ptr<typename BehaviourTree<T>::Node>>& BehaviourTree<T>::Node::GetChildren() const
-{
-	return children;
-}
 
 template <class T>
 void BehaviourTree<T>::Meta::LoadNode(std::shared_ptr<BehaviourTree<T>::Node> parent, boost::property_tree::ptree& ptree)
@@ -192,7 +176,7 @@ void BehaviourTree<T>::Meta::LoadNode(std::shared_ptr<BehaviourTree<T>::Node> pa
 			{
 				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "Action@class is null");
 			}
-			std::string& className = params["class"].asString();
+			const std::string& className = params["class"].asString();
 			auto itr = action_creators.find(className);
 			if (action_creators.end() == itr)
 			{
@@ -260,7 +244,7 @@ Json::Value BehaviourTree<T>::Meta::LoadParam(boost::property_tree::ptree& ptree
 template <class T>
 bool BehaviourTree<T>::Selector::Run(T& component)
 {
-	for (const std::shared_ptr<Node>& child : GetChildren())
+	for (const std::shared_ptr<Node>& child : BehaviourTree<T>::Node::GetChildren())
 	{
 		if (true == child->Run(component)) {
 			return true;
@@ -272,7 +256,7 @@ bool BehaviourTree<T>::Selector::Run(T& component)
 template <class T>
 bool BehaviourTree<T>::RandomSelector::Run(T& component)
 {
-	std::vector<std::shared_ptr<Node>> temp = GetChildren();
+	std::vector<std::shared_ptr<Node>> temp = BehaviourTree<T>::Node::GetChildren();
 	// The order is shuffled
 	std::random_shuffle(temp.begin(), temp.end());
 	for (const std::shared_ptr<Node>& child : temp)
@@ -288,7 +272,7 @@ bool BehaviourTree<T>::RandomSelector::Run(T& component)
 template <class T>
 bool BehaviourTree<T>::Sequence::Run(T& component)
 {
-	for (const std::shared_ptr<Node>& child : GetChildren())
+	for (const std::shared_ptr<Node>& child : BehaviourTree<T>::Node::GetChildren())
 	{
 		if (false == child->Run(component))
 		{
@@ -301,20 +285,20 @@ bool BehaviourTree<T>::Sequence::Run(T& component)
 template <class T>
 bool BehaviourTree<T>::Inverter::Run(T& component)
 {
-	return !GetChild()->Run(component);
+	return !BehaviourTree<T>::Node::GetChild()->Run(component);
 }
 
 template <class T>
 bool BehaviourTree<T>::Succeeder::Run(T& component)
 {
-	GetChild()->Run(component);
+	BehaviourTree<T>::Node::GetChild()->Run(component);
 	return true;
 }
 
 template <class T>
 bool BehaviourTree<T>::Failer::Run(T& component)
 {
-	GetChild()->Run(component);
+	BehaviourTree<T>::Node::GetChild()->Run(component);
 	return false;
 }
 
@@ -323,7 +307,7 @@ bool BehaviourTree<T>::Repeater::Run(T& component)
 {
 	for (int i = 0; i < repeat_count; i++)
 	{
-		if (false == GetChild()->Run(component))
+		if (false == BehaviourTree<T>::Node::GetChild()->Run(component))
 		{
 			return false;
 		}
@@ -334,7 +318,7 @@ bool BehaviourTree<T>::Repeater::Run(T& component)
 template <class T>
 bool BehaviourTree<T>::RepeatUntilFail::Run(T& component)
 {
-	while (GetChild()->Run(component)) {}
+	while (BehaviourTree<T>::Node::GetChild()->Run(component)) {}
 	return true;
 }
 
@@ -344,7 +328,7 @@ class RootNode : public BehaviourTree<T>::Node
 public:
 	virtual bool Run(T& component) override
 	{
-		return GetChild()->Run(component);
+		return BehaviourTree<T>::Node::GetChild()->Run(component);
 	}
 };
 

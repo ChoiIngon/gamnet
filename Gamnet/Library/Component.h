@@ -39,7 +39,7 @@ namespace Gamnet {
 			{
 				return nullptr;
 			}
-			return std::reinterpret_pointer_cast<T>(itr->second);
+			return std::static_pointer_cast<T>(itr->second);
 		}
 
 		template <class T>

@@ -88,7 +88,7 @@ namespace Component {
 				int count = std::min(item->item_count, item->meta->max_stack);
 				session->queries->Insert("user_item", {
 					{ "item_id", item->meta->item_id },
-					{ "item_count", item->item_count },
+					{ "item_count", count },
 					{ "expire_date", item->expire_date.ToString() },
 					{ "user_seq", session->user_seq }
 				});

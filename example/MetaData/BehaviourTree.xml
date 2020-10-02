@@ -2,7 +2,6 @@
 <BehaviourTree>
 	<Sequence>
 		<Action class="SearchTarget"/>
-		<Action class="MoveToTarget"/>
 		<RandomSelector>
 			<Action class="BuyTea"/>
 			<Action class="BuyCoffee"/>

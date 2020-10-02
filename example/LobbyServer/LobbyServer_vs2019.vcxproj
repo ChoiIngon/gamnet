@@ -130,7 +130,6 @@
     <ClCompile Include="Component\Dungeon\AStarPathFinder.cpp" />
     <ClCompile Include="Component\Dungeon\BresenhamCircle2D.cpp" />
     <ClCompile Include="Component\Dungeon\BresenhamLine2D.cpp" />
-    <ClCompile Include="Component\Dungeon\Unit\BehaviourTree.cpp" />
     <ClCompile Include="Component\Dungeon\Unit\Monster.cpp" />
     <ClCompile Include="Component\Dungeon\Unit\MonsterBehaviour.cpp" />
     <ClCompile Include="Component\Dungeon\Unit\Player.cpp" />
