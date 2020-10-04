@@ -14,10 +14,10 @@ namespace Component {
 	struct ItemData;
 	struct ItemMeta : public std::enable_shared_from_this<ItemMeta>
 	{
-		struct SellMeta
+		struct PriceMeta
 		{
-			Message::CounterType price_type;
-			int price;
+			Message::CounterType type;
+			int value;
 		};
 
 		struct ExpireMeta
@@ -28,15 +28,15 @@ namespace Component {
 				Bag = 1,
 				Equip = 2
 			};
-			Type expire_type;
-			int64_t expire_time;
-			Gamnet::Time::DateTime expire_date;
+			Type type;
+			int64_t time;
+			Gamnet::Time::DateTime date;
 		};
 
 		struct PackageMeta
 		{
-			uint32_t item_id;
-			int		 item_count;
+			std::string id;
+			int		 count;
 		};
 
 		ItemMeta();
@@ -45,9 +45,9 @@ namespace Component {
 		Message::ItemType	item_type;
 		int			grade;
 		int			max_stack;
-		std::shared_ptr<SellMeta> sell_meta;
-		std::shared_ptr<ExpireMeta> expire_meta;
-		std::vector<std::shared_ptr<PackageMeta>> package_metas;
+		std::shared_ptr<PriceMeta> price;
+		std::shared_ptr<ExpireMeta> expire;
+		std::vector<std::shared_ptr<PackageMeta>> packages;
 	};
 
 struct ItemData
@@ -112,8 +112,9 @@ class Manager_Item
 	std::map<int, std::shared_ptr<ItemMeta>> item_metas;
 public :
 	void Init();
-	std::shared_ptr<ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t itemid, int32_t count);
-	std::shared_ptr<ItemMeta> FindMeta(int itemID);
+	std::shared_ptr<ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t itemIndex, int32_t count);
+	std::shared_ptr<ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, const std::string& itemid, int32_t count);
+	std::shared_ptr<ItemMeta> FindMeta(uint32_t itemIndex);
 };
 }
 namespace Item {

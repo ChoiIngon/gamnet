@@ -7,7 +7,8 @@ namespace Gamnet
 {
 	void MetaData::Bind(const std::string& name, bool& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
 			if("" == value)
 			{
 				return;
@@ -28,7 +29,8 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, int16_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
 			if ("" == value)
 			{
 				return;
@@ -39,7 +41,8 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, uint16_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
 			if ("" == value)
 			{
 				return;
@@ -50,18 +53,15 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, int32_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
-			if ("" == value)
-			{
-				return;
-			}
-			member = boost::lexical_cast<int32_t>(value);
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
 	void MetaData::Bind(const std::string& name, uint32_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
 			if ("" == value)
 			{
 				return;
@@ -72,7 +72,8 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, int64_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
 			if ("" == value)
 			{
 				return;
@@ -83,7 +84,8 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, uint64_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
 			if ("" == value)
 			{
 				return;
@@ -94,7 +96,8 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, float& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
 			if ("" == value)
 			{
 				return;
@@ -105,7 +108,8 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, double& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
 			if ("" == value)
 			{
 				return;
@@ -116,14 +120,15 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, std::string& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
-			member = value;
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
 	void MetaData::Bind(const std::string& name, Time::DateTime& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
 			if ("" == value)
 			{
 				return;
@@ -136,14 +141,15 @@ namespace Gamnet
 	{
 		for(auto& cell : row["cells"])
 		{
-			const std::string& key = cell["key"].asString();
-			const std::string& value = cell["value"].asString();
+			const Json::Value header = cell["header"];
+			const std::string& key = header["name"].asString();
+			//const std::string& value = cell["value"].asString();
 			if(bind_functions.end() == bind_functions.find(key))
 			{
 				continue;
 			}
 			try {
-				bind_functions[key](value);
+				bind_functions[key](cell);
 			}
 			catch(const boost::bad_lexical_cast& e)
 			{
@@ -154,11 +160,26 @@ namespace Gamnet
 				throw Exception(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] meta data load fail(file:", row["file"].asString(), ", name:", key, ", row_num:", row["row_num"].asInt(), ", reason:", e.what(), ")");
 			}
 		}
-		bind_functions.clear();
+		//bind_functions.clear();
 	}
 
 	bool MetaData::OnLoad() 
 	{
 		return true;
+	}
+
+	void MetaData::Allocation(int32_t& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		if ("" == value)
+		{
+			return;
+		}
+		member = boost::lexical_cast<int32_t>(value);
+	}
+	void MetaData::Allocation(std::string& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		member = value;
 	}
 }

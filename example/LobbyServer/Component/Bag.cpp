@@ -40,7 +40,7 @@ namespace Component {
 	{
 		if(nullptr != item->expire)
 		{
-			if(ItemMeta::ExpireMeta::Type::Bag == item->meta->expire_meta->expire_type)
+			if(ItemMeta::ExpireMeta::Type::Bag == item->meta->expire->type)
 			{
 				item->expire->StartExpire();
 			}

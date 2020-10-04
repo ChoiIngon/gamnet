@@ -1,27 +1,8 @@
 #include "UserSession.h"
 #include <boost/program_options.hpp>
-#include "Component/Dungeon/Unit/Monster.h"
 
 int main(int argc, char** argv) 
 {
-	/*
-	BehaviourTree::Meta meta;
-	meta.BindExcutorCreator<RiseFromChair>("RiseFromChair");
-	meta.BindExcutorCreator<MoveToVendingMachine>("MoveToVendingMachine");
-	meta.BindExcutorCreator<BuyTea>("BuyTea");
-	meta.BindExcutorCreator<BuyCoffee>("BuyCoffee");
-	meta.BindExcutorCreator<ReturnToChair>("ReturnToChair");
-	meta.ReadXml("../MetaData/BehaviourTree.xml");
-	std::shared_ptr<BehaviourTree> behaviour = meta.Create();
-
-	std::shared_ptr<Gamnet::Component> component = std::make_shared<Gamnet::Component>();
-	std::shared_ptr<Player> player = component->AddComponent<Player>();
-	player->money = 0;
-	behaviour->Run(component);
-
-	player->money = 200;
-	behaviour->Run(component);
-	*/
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
 		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")

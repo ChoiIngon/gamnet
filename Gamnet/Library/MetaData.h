@@ -15,7 +15,9 @@ namespace Gamnet {
 
 class MetaData
 {
-	std::map<std::string, std::function<void(const std::string&)>>	bind_functions;
+public:
+	void Init(const Json::Value& row);
+	virtual bool OnLoad();
 protected:
 	void Bind(const std::string& name, bool& member);
 	void Bind(const std::string& name, int16_t& member);
@@ -29,24 +31,61 @@ protected:
 	void Bind(const std::string& name, std::string& member);
 	void Bind(const std::string& name, Time::DateTime& member);
 	template <class T>
+	void Bind(const std::string& name, T& member)
+	{
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& value) {
+			this->Allocation(member, value);
+		}));
+	}
+
+	template <class T>
 	void Bind(const std::string& name, std::vector<T>& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const std::string& value) {
-			if ("" == value)
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& value) {
+			if ("" == value["value"].asString())
 			{
 				return;
 			}
-			member.push_back(boost::lexical_cast<T>(value));
+			int index = value["header"]["index"].asInt();
+			if(member.size() <= index)
+			{
+				member.resize(index + 1);
+			}
+			T& elmt = member[index];
+			Allocation(elmt, value);
 		}));
 	}
 	template <class F>
 	void CustomBind(const std::string& name, F f)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), f));
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [f](const Json::Value& cell) {
+			const std::string& value = cell["value"].asString();
+			if ("" == value)
+			{
+				return;
+			}
+			f(value);
+		}));
 	}
-public:
-	void Init(const Json::Value& row);
-	virtual bool OnLoad();
+private :
+	void Allocation(int32_t& member, const Json::Value& cell);
+	void Allocation(std::string& member, const Json::Value& cell);
+	template <class T>
+	void Allocation(T& member, const Json::Value& cell)
+	{
+		Json::Value row;
+		row["file"] = cell["file"];
+		row["row_num"] = cell["row_num"];
+
+		Json::Value column;
+		column["header"] = cell["header"]["children"];
+		column["value"] = cell["value"];
+		row["cells"].append(column);
+
+		member.Init(row);
+	}
+private:
+	std::map<std::string, std::function<void(const Json::Value&)>>	bind_functions;
 };
 
 template <class T>
@@ -57,6 +96,9 @@ public :
 	const MetaDatas& Read(const std::string& filePath)
 	{
 		meta_datas.clear();
+
+		Json::Value root;
+		root["file"] = filePath;
 		std::ifstream file(filePath);
 		if(true == file.fail())
 		{
@@ -66,7 +108,7 @@ public :
 		std::string	line;
 		std::string cell;
 		std::vector<std::string>	columnNames;
-
+		
 		// read column
 		{
 			std::getline(file, line);
@@ -75,15 +117,23 @@ public :
 			while (std::getline(lineStream, cell, ','))
 			{
 				boost::algorithm::to_lower(cell);
-				std::size_t pos = cell.find('[');
-				cell = cell.substr(0, pos);
+				//std::size_t pos = cell.find('[');
+				//cell = cell.substr(0, pos);
 				columnNames.push_back(cell);
+				root["headers"].append(ReadColumnName(cell));
 			}
 		}
-
+		
 		// skip data type
 		{
 			std::getline(file, line);
+			std::stringstream lineStream(line);
+			int order = 0;
+			while (std::getline(lineStream, cell, ','))
+			{
+				Json::Value& header = root["headers"][order++];
+				ReadColumnType(header, cell);
+			}
 		}
 
 		// read data rows
@@ -113,11 +163,11 @@ public :
 				while (std::getline(lineStream, cell, ','))
 				{
 					Json::Value column;
-					column["key"] = columnNames[index++];
+					column["header"] = root["headers"][index++];
 					column["value"] = cell;
 					row["cells"].append(column);
 				}
-
+				
 				std::shared_ptr<T> meta = std::make_shared<T>();
 				meta->Init(row);
 				if(false == meta->OnLoad())
@@ -134,6 +184,43 @@ public :
 	const MetaDatas& GetAllMetaData() const
 	{
 		return meta_datas;
+	}
+
+	Json::Value ReadColumnName(const std::string& cell)
+	{
+		Json::Value root;
+		const std::string cellValue = boost::algorithm::to_lower_copy(cell);
+		std::string column = cellValue; 
+		std::size_t dotPos = cellValue.find('.');
+		if (std::string::npos != dotPos) // cellValue has '.'. it means this column is hierarchy
+		{
+			column = cellValue.substr(0, dotPos);
+		}
+
+		std::size_t braceStartPos = column.find('[');
+		std::size_t braceEndPos = column.find(']');
+		if (std::string::npos != braceStartPos && std::string::npos != braceEndPos) // column has '[' and  ']'. it means column is array
+		{
+			root["index"] = boost::lexical_cast<int>(column.substr(braceStartPos + 1, braceEndPos - braceStartPos - 1));
+		}
+
+		std::size_t columnEndPos = std::min(dotPos, braceStartPos);
+		root["name"] = column.substr(0, columnEndPos);
+		if (std::string::npos != dotPos)
+		{
+			root["children"] = ReadColumnName(cellValue.substr(dotPos + 1));
+		}
+		return root;
+	}
+
+	void ReadColumnType(Json::Value& header, const std::string& cell)
+	{
+		if(true == header["children"].isNull())
+		{
+			header["type"] = cell;
+			return;
+		}
+		ReadColumnType(header["children"], cell);
 	}
 private :
 	MetaDatas meta_datas;
