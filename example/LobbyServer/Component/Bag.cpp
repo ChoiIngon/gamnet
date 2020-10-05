@@ -49,7 +49,7 @@ namespace Component {
 		if(nullptr == item->stack)
 		{
 			session->queries->Insert("user_item", {
-				{ "item_id", item->meta->item_id },
+				{ "item_id", item->meta->index },
 				{ "item_count", 1 },
 				{ "expire_date", item->expire_date.ToString() },
 				{ "user_seq", session->user_seq }
@@ -60,7 +60,7 @@ namespace Component {
 			for(int i=0; i<loop; i++)
 			{
 				session->queries->Insert("user_item", {
-					{ "item_id", item->meta->item_id },
+					{ "item_id", item->meta->index },
 					{ "item_count", item->meta->max_stack },
 					{ "expire_date", item->expire_date.ToString() },
 					{ "user_seq", session->user_seq }
@@ -87,7 +87,7 @@ namespace Component {
 			{
 				int count = std::min(item->item_count, item->meta->max_stack);
 				session->queries->Insert("user_item", {
-					{ "item_id", item->meta->item_id },
+					{ "item_id", item->meta->index },
 					{ "item_count", count },
 					{ "expire_date", item->expire_date.ToString() },
 					{ "user_seq", session->user_seq }
