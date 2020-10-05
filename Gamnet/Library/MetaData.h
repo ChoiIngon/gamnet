@@ -18,6 +18,7 @@ class MetaData
 public:
 	void Init(const Json::Value& row);
 	virtual bool OnLoad();
+
 protected:
 	void Bind(const std::string& name, bool& member);
 	void Bind(const std::string& name, int16_t& member);
@@ -37,7 +38,6 @@ protected:
 			this->Allocation(member, value);
 		}));
 	}
-
 	template <class T>
 	void Bind(const std::string& name, std::vector<T>& member)
 	{
@@ -55,6 +55,9 @@ protected:
 			Allocation(elmt, value);
 		}));
 	}
+	/*
+		F = void(T& member, const std::string& value)
+	*/
 	template <class F>
 	void CustomBind(const std::string& name, F f)
 	{
@@ -124,8 +127,7 @@ public :
 	{
 		meta_datas.clear();
 
-		Json::Value root;
-		root["file"] = filePath;
+		Json::Value headers;
 		std::ifstream file(filePath);
 		if(true == file.fail())
 		{
@@ -144,10 +146,8 @@ public :
 			while (std::getline(lineStream, cell, ','))
 			{
 				boost::algorithm::to_lower(cell);
-				//std::size_t pos = cell.find('[');
-				//cell = cell.substr(0, pos);
 				columnNames.push_back(cell);
-				root["headers"].append(ReadColumnName(cell));
+				headers.append(ReadColumnName(cell));
 			}
 		}
 		
@@ -158,7 +158,7 @@ public :
 			int order = 0;
 			while (std::getline(lineStream, cell, ','))
 			{
-				Json::Value& header = root["headers"][order++];
+				Json::Value& header = headers[order++];
 				ReadColumnType(header, cell);
 			}
 		}
@@ -190,7 +190,7 @@ public :
 				while (std::getline(lineStream, cell, ','))
 				{
 					Json::Value column;
-					column["header"] = root["headers"][index++];
+					column["header"] = headers[index++];
 					column["value"] = cell;
 					row["cells"].append(column);
 				}
