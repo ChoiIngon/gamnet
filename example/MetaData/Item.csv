@@ -1,8 +1,8 @@
 name,id,index,type,grade,max_stack,price.type,price.value,expire.type,expire.time,expire.date,packages[0].id,packages[0].count,packages[1].id,packages[1].count,packages[1].id,packages[1].count
 Text,Text,Int,ItemType,Int,Int,CounterType,Int,ItemMeta::ExpireMeta::Type,seconds,DateTime,Text,Int,Text,Int,Text,Int
-NonStackItem,ITEM_001,100001,Equip,1,1,Gold,100,Equip,,2020-12-25 00:00:00,,,,,,
-StackItem,ITEM_002,100002,Equip,2,999,Gold,100,None,,,,,,,,
+NonStackItem,ITEM_001,100001,Equip,1,1,Gold,100,Equip,,2020-12-25 0:00,,,,,,
+StackItem,ITEM_002,100002,Equip,2,999,Gold,100,,,,,,,,,
 PackageItem,ITEM_003,100003,Package,3,1,Gold,100,Bag,86400,,ITEM_004,4,ITEM_005,5,ITEM_006,6
-PackageRewardItem01,ITEM_004,100004,Equip,4,1,Gold,100,None,,,,,,,,
-PackageRewardItem01,ITEM_005,100005,Equip,5,1,Gold,100,None,,,,,,,,
-PackageRewardItem01,ITEM_006,100006,Equip,6,1,Gold,100,None,,,,,,,,
+PackageRewardItem01,ITEM_004,100004,Equip,4,1,Gold,100,,,,,,,,,
+PackageRewardItem01,ITEM_005,100005,Equip,5,1,Gold,100,,,,,,,,,
+PackageRewardItem01,ITEM_006,100006,Equip,6,1,Gold,100,,,,,,,,,

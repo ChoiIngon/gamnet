@@ -7,47 +7,22 @@ namespace Gamnet
 {
 	void MetaData::Bind(const std::string& name, bool& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
-			const std::string& value = cell["value"].asString();
-			if("" == value)
-			{
-				return;
-			}
-			if("false" == boost::algorithm::to_lower_copy(value))
-			{
-				member = false;
-				return;
-			}
-			else if("true" == boost::algorithm::to_lower_copy(value))
-			{ 
-				member = true;
-				return;
-			}
-			member = boost::lexical_cast<bool>(value);
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
 	void MetaData::Bind(const std::string& name, int16_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
-			const std::string& value = cell["value"].asString();
-			if ("" == value)
-			{
-				return;
-			}
-			member = boost::lexical_cast<int16_t>(value);
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
 	void MetaData::Bind(const std::string& name, uint16_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
-			const std::string& value = cell["value"].asString();
-			if ("" == value)
-			{
-				return;
-			}
-			member = boost::lexical_cast<uint16_t>(value);
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
@@ -60,61 +35,36 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, uint32_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
-			const std::string& value = cell["value"].asString();
-			if ("" == value)
-			{
-				return;
-			}
-			member = boost::lexical_cast<uint32_t>(value);
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
 	void MetaData::Bind(const std::string& name, int64_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
-			const std::string& value = cell["value"].asString();
-			if ("" == value)
-			{
-				return;
-			}
-			member = boost::lexical_cast<int64_t>(value);
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
 	void MetaData::Bind(const std::string& name, uint64_t& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
-			const std::string& value = cell["value"].asString();
-			if ("" == value)
-			{
-				return;
-			}
-			member = boost::lexical_cast<uint64_t>(value);
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
 	void MetaData::Bind(const std::string& name, float& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
-			const std::string& value = cell["value"].asString();
-			if ("" == value)
-			{
-				return;
-			}
-			member = boost::lexical_cast<float>(value);
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
 	void MetaData::Bind(const std::string& name, double& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
-			const std::string& value = cell["value"].asString();
-			if ("" == value)
-			{
-				return;
-			}
-			member = boost::lexical_cast<double>(value);
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
@@ -127,13 +77,8 @@ namespace Gamnet
 
 	void MetaData::Bind(const std::string& name, Time::DateTime& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [&member](const Json::Value& cell) {
-			const std::string& value = cell["value"].asString();
-			if ("" == value)
-			{
-				return;
-			}
-			member = value;
+		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const Json::Value& cell) {
+			this->Allocation(member, cell);
 		}));
 	}
 
@@ -143,7 +88,11 @@ namespace Gamnet
 		{
 			const Json::Value header = cell["header"];
 			const std::string& key = header["name"].asString();
-			//const std::string& value = cell["value"].asString();
+			const std::string& value = cell["value"].asString();
+			if("" == value)
+			{
+				continue;
+			}
 			if(bind_functions.end() == bind_functions.find(key))
 			{
 				continue;
@@ -168,16 +117,77 @@ namespace Gamnet
 		return true;
 	}
 
+	void MetaData::Allocation(bool& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		if ("false" == boost::algorithm::to_lower_copy(value))
+		{
+			member = false;
+			return;
+		}
+		else if ("true" == boost::algorithm::to_lower_copy(value))
+		{
+			member = true;
+			return;
+		}
+		member = boost::lexical_cast<bool>(value);
+	}
+
+	void MetaData::Allocation(int16_t& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		member = boost::lexical_cast<int16_t>(value);
+	}
+
+	void MetaData::Allocation(uint16_t& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		member = boost::lexical_cast<uint16_t>(value);
+	}
+
 	void MetaData::Allocation(int32_t& member, const Json::Value& cell)
 	{
 		const std::string& value = cell["value"].asString();
-		if ("" == value)
-		{
-			return;
-		}
 		member = boost::lexical_cast<int32_t>(value);
 	}
+
+	void MetaData::Allocation(uint32_t& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		member = boost::lexical_cast<uint32_t>(value);
+	}
+
+	void MetaData::Allocation(int64_t& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		member = boost::lexical_cast<int64_t>(value);
+	}
+
+	void MetaData::Allocation(uint64_t& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		member = boost::lexical_cast<uint64_t>(value);
+	}
+
+	void MetaData::Allocation(float& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		member = boost::lexical_cast<float>(value);
+	}
+
+	void MetaData::Allocation(double& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		member = boost::lexical_cast<double>(value);
+	}
+
 	void MetaData::Allocation(std::string& member, const Json::Value& cell)
+	{
+		const std::string& value = cell["value"].asString();
+		member = value;
+	}
+
+	void MetaData::Allocation(Time::DateTime& member, const Json::Value& cell)
 	{
 		const std::string& value = cell["value"].asString();
 		member = value;

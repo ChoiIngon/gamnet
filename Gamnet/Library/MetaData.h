@@ -68,8 +68,17 @@ protected:
 		}));
 	}
 private :
+	void Allocation(bool& member, const Json::Value& cell);
+	void Allocation(int16_t& member, const Json::Value& cell);
+	void Allocation(uint16_t& member, const Json::Value& cell);
 	void Allocation(int32_t& member, const Json::Value& cell);
+	void Allocation(uint32_t& member, const Json::Value& cell);
+	void Allocation(int64_t& member, const Json::Value& cell);
+	void Allocation(uint64_t& member, const Json::Value& cell);
+	void Allocation(float& member, const Json::Value& cell);
+	void Allocation(double& member, const Json::Value& cell);
 	void Allocation(std::string& member, const Json::Value& cell);
+	void Allocation(Time::DateTime& member, const Json::Value& cell);
 	template <class T>
 	void Allocation(T& member, const Json::Value& cell)
 	{
@@ -83,6 +92,24 @@ private :
 		row["cells"].append(column);
 
 		member.Init(row);
+	}
+	template <class T>
+	void Allocation(std::shared_ptr<T>& member, const Json::Value& cell)
+	{
+		Json::Value row;
+		row["file"] = cell["file"];
+		row["row_num"] = cell["row_num"];
+
+		Json::Value column;
+		column["header"] = cell["header"]["children"];
+		column["value"] = cell["value"];
+		row["cells"].append(column);
+
+		if(nullptr == member)
+		{
+			member = std::make_shared<T>();
+		}
+		member->Init(row);
 	}
 private:
 	std::map<std::string, std::function<void(const Json::Value&)>>	bind_functions;
