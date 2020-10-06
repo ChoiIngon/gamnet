@@ -20,6 +20,9 @@ enum ErrorCode
 	CanNotCreateCastGroup = 5001,
 	DuplicateNameError,
 	CreateAccountError,
+	InvalidItemID,
+	InvalidItemIndex,
+	InvalidItemSEQ,
 	UndefineError = 99999,
 };
 
@@ -76,7 +79,7 @@ struct MailData
 	uint64 mail_seq;
 	string mail_message;
 	uint64 expire_date;
-	uint32 item_id;
+	uint32 item_index;
 	uint32 item_count;
 };
 

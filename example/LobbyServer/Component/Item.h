@@ -9,14 +9,14 @@
 #include <idl/MessageCommon.h>
 
 class UserSession;
-namespace Component {
-
-	struct ItemData;
-	struct ItemMeta : public std::enable_shared_from_this<ItemMeta>, public Gamnet::MetaData
+namespace Item 
+{
+	class Data;
+	struct Meta : public std::enable_shared_from_this<Meta>, public Gamnet::MetaData
 	{
-		struct PriceMeta : public Gamnet::MetaData
+		struct Price : public Gamnet::MetaData
 		{
-			PriceMeta();
+			Price();
 
 			void OnPriceType(Message::CounterType& member, const std::string& value);
 
@@ -24,36 +24,46 @@ namespace Component {
 			int value;
 		};
 
-		struct ExpireMeta : public Gamnet::MetaData
+		struct Expire : public Gamnet::MetaData
 		{
-			enum Type
+			enum class TriggerType
 			{
 				None = 0,
-				Bag = 1,
-				Equip = 2
+				OnCreate = 1,
+				OnEquip = 2
 			};
 
-			ExpireMeta();
+			enum class ExpireType
+			{
+				Infinite = 0,
+				DueDate = 1,
+				Period = 2
+			};
 
-			void OnExpireType(Type& member, const std::string& value);
+			Expire();
 
-			Type type;
+			void OnTriggerType(TriggerType& triggerType, const std::string& value);
+			void OnExpireType(ExpireType& expireType, const std::string& value);
+
+			TriggerType trigger_type;
+			ExpireType expire_type;
 			int64_t time;
 			Gamnet::Time::DateTime date;
 		};
 
-		struct PackageMeta : public Gamnet::MetaData
+		struct Package : public Gamnet::MetaData
 		{
-			PackageMeta();
+			Package();
 
 			std::string id;
 			int		 count;
 		};
 
-		ItemMeta();
+		Meta();
 
-		std::shared_ptr<ItemData> CreateInstance(const std::shared_ptr<UserSession>& session);
+		virtual bool OnLoad() override;
 		void OnItemType(Message::ItemType& member, const std::string& value);
+		std::shared_ptr<Data> CreateInstance(const std::shared_ptr<UserSession>& session);
 
 		std::string			id;
 		uint32_t			index;
@@ -61,85 +71,97 @@ namespace Component {
 		int					grade;
 		int					max_stack;
 
-		std::shared_ptr<PriceMeta> price;
-		std::shared_ptr<ExpireMeta> expire;
-		std::vector<std::shared_ptr<PackageMeta>> packages;
+		std::shared_ptr<Price> price;
+		std::shared_ptr<Expire> expire;
+		std::vector<std::shared_ptr<Package>> packages;
 	};
-
-struct ItemData
-{
-	class Equip
+			   
+	class Data
 	{
-	};
+	public :
+		class Equip
+		{
+		}; 
+		
+		class Expire
+		{
+		public :
+			Expire(const std::shared_ptr<Meta::Expire>& meta);
 
-	struct Expire
-	{
-		Expire(const std::shared_ptr<ItemData>& item);
-		void StartExpire();
+			void TriggerExpire(Meta::Expire::TriggerType triggerType);
+			
+			void SetDate(const Gamnet::Time::DateTime& date);
+			const Gamnet::Time::DateTime& GetDate() const;
+		private :
+			const std::shared_ptr<Meta::Expire> meta;
+			Gamnet::Time::DateTime expire_date;
+		};
+		
+		class Package
+		{
+		public :
+			Package(const std::shared_ptr<Data>& item);
+			void Use();
+		private:
+			const std::weak_ptr<Data> item;
+		};
+		
+		class Stack
+		{
+		public :
+			Stack(const std::shared_ptr<Data>& item);
+			void Merge(const std::shared_ptr<Data>& other);
 
+		public :
+			int count;
+		private:
+			const std::weak_ptr<Data> item;
+		};
+
+		Data(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Meta>& meta);
+		
+		// Property Functions..
+		int GetCount() const;
+		const Gamnet::Time::DateTime& GetExpireDate() const;
+
+		// Event Functions..
+		void OnBag();
+		void OnEquip();
+		
+		uint64_t					seq;
+		const std::shared_ptr<Meta>	meta;
+		std::shared_ptr<Equip>		equip;
+		std::shared_ptr<Expire>		expire;
+		std::shared_ptr<Package>	package;
+		std::shared_ptr<Stack>		stack;
+		
+		operator Message::ItemData() const
+		{
+			Message::ItemData data;
+			data.item_id = meta->index;
+			data.item_type = meta->type;
+			data.item_seq = seq;
+			data.item_count = 0;
+			return data;
+		}
 	private :
-		const std::weak_ptr<ItemData> item_data;
+		std::weak_ptr<UserSession> session;
 	};
 
-	struct Package
+	class Manager
 	{
-		Package(const std::shared_ptr<ItemData>& item);
-		void Use();
+	public :
+		void Init();
 
-	private:
-		const std::weak_ptr<ItemData> item_data;
+		std::shared_ptr<Data> CreateInstance(const std::shared_ptr<UserSession>& session, const std::string& id, int count);
+		std::shared_ptr<Data> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t index, int count);
+
+		std::shared_ptr<Meta> FindMeta(const std::string& id);
+		std::shared_ptr<Meta> FindMeta(uint32_t index);
+	private :
+		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
+		std::map<std::string, std::shared_ptr<Meta>> id_metas;
 	};
-
-	struct Stack
-	{
-		Stack(const std::shared_ptr<ItemData>& item);
-
-		void Merge(const std::shared_ptr<ItemData>& other);
-	private:
-		const std::weak_ptr<ItemData> item_data;
-	};
-
-	ItemData(const std::shared_ptr<UserSession>& session, const std::shared_ptr<ItemMeta>& meta);
-	
-	uint64_t item_seq;
-	int32_t item_count;
-	Gamnet::Time::DateTime expire_date;
-
-	const std::shared_ptr<ItemMeta>	meta;
-	std::shared_ptr<Expire>		expire;
-	std::shared_ptr<Package>	package;
-	std::shared_ptr<Stack>		stack;
-
-	operator Message::ItemData() const
-	{
-		Message::ItemData data;
-		data.item_id = meta->index;
-		data.item_type = meta->type;
-		data.item_seq = item_seq;
-		data.item_count = item_count;
-		return data;
-	}
-private :
-	std::weak_ptr<UserSession> session;
-};
-
-class Manager_Item
-{
-public :
-	void Init();
-	std::shared_ptr<ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, const std::string& id, int32_t count);
-	std::shared_ptr<ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t index, int32_t count);
-
-	std::shared_ptr<ItemMeta> FindMeta(const std::string& id);
-	std::shared_ptr<ItemMeta> FindMeta(uint32_t index);
-private :
-	std::map<uint32_t, std::shared_ptr<ItemMeta>> index_metas;
-	std::map<std::string, std::shared_ptr<ItemMeta>> id_metas;
-};
-}
-namespace Item {
-	std::shared_ptr<Component::ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, const std::string& id, int32_t count);
-	std::shared_ptr<Component::ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t index, int32_t count);
 };
 
 #endif

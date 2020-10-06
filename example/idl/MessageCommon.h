@@ -24,6 +24,9 @@ enum class ErrorCode {
 	CanNotCreateCastGroup = 5001,
 	DuplicateNameError,
 	CreateAccountError,
+	InvalidItemID,
+	InvalidItemIndex,
+	InvalidItemSEQ,
 	UndefineError = 99999,
 }; // ErrorCode
 template <class T> const std::string& ToString(T);
@@ -42,6 +45,9 @@ template <> inline const std::string& ToString<ErrorCode>(ErrorCode e) {
 		{ ErrorCode::CanNotCreateCastGroup, "CanNotCreateCastGroup"},
 		{ ErrorCode::DuplicateNameError, "DuplicateNameError"},
 		{ ErrorCode::CreateAccountError, "CreateAccountError"},
+		{ ErrorCode::InvalidItemID, "InvalidItemID"},
+		{ ErrorCode::InvalidItemIndex, "InvalidItemIndex"},
+		{ ErrorCode::InvalidItemSEQ, "InvalidItemSEQ"},
 		{ ErrorCode::UndefineError, "UndefineError"},
 	};
 	auto itr = table.find(e); 
@@ -64,6 +70,9 @@ template <> inline ErrorCode Parse<ErrorCode>(const std::string& s) {
 		{ "CanNotCreateCastGroup", ErrorCode::CanNotCreateCastGroup},
 		{ "DuplicateNameError", ErrorCode::DuplicateNameError},
 		{ "CreateAccountError", ErrorCode::CreateAccountError},
+		{ "InvalidItemID", ErrorCode::InvalidItemID},
+		{ "InvalidItemIndex", ErrorCode::InvalidItemIndex},
+		{ "InvalidItemSEQ", ErrorCode::InvalidItemSEQ},
 		{ "UndefineError", ErrorCode::UndefineError},
 	};
 	auto itr = table.find(s); 
@@ -346,12 +355,12 @@ struct MailData {
 	uint64_t	mail_seq;
 	std::string	mail_message;
 	uint64_t	expire_date;
-	uint32_t	item_id;
+	uint32_t	item_index;
 	uint32_t	item_count;
 	MailData()	{
 		mail_seq = 0;
 		expire_date = 0;
-		item_id = 0;
+		item_index = 0;
 		item_count = 0;
 	}
 	size_t Size() const {
@@ -379,7 +388,7 @@ struct MailData {
 		std::memcpy(*_buf_, &mail_message_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, mail_message.c_str(), mail_message.length()); (*_buf_) += mail_message.length();
 		std::memcpy(*_buf_, &expire_date, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
-		std::memcpy(*_buf_, &item_id, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
+		std::memcpy(*_buf_, &item_index, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		std::memcpy(*_buf_, &item_count, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		return true;
 	}
@@ -397,7 +406,7 @@ struct MailData {
 		if(nSize < mail_message_length) { return false; }
 		mail_message.assign((char*)*_buf_, mail_message_length); (*_buf_) += mail_message_length; nSize -= mail_message_length;
 		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&expire_date, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
-		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&item_id, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&item_index, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&item_count, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		return true;
 	}

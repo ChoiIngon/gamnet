@@ -1,16 +1,31 @@
 #include "Event.h"
 #include "../UserSession.h"
 #include "Mail.h"
+#include "Item.h"
 
 namespace Component {
 	EventMeta::EventMeta()
+		: event_id(0)
+		, mail_message("")
+		, mail_expire_day(0)
+		, item_index(0)
+		, item_count(0)
 	{
 		GAMNET_META_MEMBER(event_id);
 		GAMNET_META_MEMBER(mail_message);
 		GAMNET_META_MEMBER(mail_expire_day);
-		GAMNET_META_MEMBER(item_id);
+		GAMNET_META_MEMBER(item_index);
 		GAMNET_META_MEMBER(item_count);
 	};
+
+	bool EventMeta::OnLoad() 
+	{
+		if(nullptr == Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(item_index))
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemIndex, "(event_id:", event_id, ", item_index:", item_index, ")");
+		}
+		return true;
+	}
 
 	void Manager_Event::Init()
 	{
@@ -62,8 +77,8 @@ namespace Component {
 
 				std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
 				mailData->expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->mail_expire_day * 86400);
+				mailData->item_index = meta->item_index;
 				mailData->item_count = meta->item_count;
-				mailData->item_id = meta->item_id;
 				mailData->mail_message = meta->mail_message;
 				Mail::SendMail(session, mailData);
 			}
@@ -75,8 +90,8 @@ namespace Component {
 					session->queries->Execute("UPDATE user_event SET update_date=NOW() WHERE user_seq=", session->user_seq, " AND event_id=", eventData->event_id);
 					std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
 					mailData->expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->mail_expire_day * 86400);
+					mailData->item_index = meta->item_index;
 					mailData->item_count = meta->item_count;
-					mailData->item_id = meta->item_id;
 					mailData->mail_message = meta->mail_message;
 					Mail::SendMail(session, mailData);
 				}

@@ -13,10 +13,11 @@ namespace Component {
 	{
 		EventMeta();
 
+		virtual bool OnLoad() override;
 		uint32_t event_id;
 		std::string mail_message;
 		int mail_expire_day;
-		uint32_t item_id;
+		uint32_t item_index;
 		int item_count;
 	};
 

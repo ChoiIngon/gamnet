@@ -21,7 +21,7 @@ namespace Component {
 		}
 
 		auto rows = Gamnet::Database::MySQL::Execute(session->shard_index,
-			"SELECT mail_seq, expire_date, mail_message, item_id, item_count FROM user_mail WHERE user_seq=", session->user_seq, " AND expire_date > now() AND delete_yn='N' and mail_seq>", last_mail_seq
+			"SELECT mail_seq, expire_date, mail_message, item_index, item_count FROM user_mail WHERE user_seq=", session->user_seq, " AND expire_date > now() AND delete_yn='N' and mail_seq>", last_mail_seq
 		);
 
 		Message::Lobby::MsgSvrCli_Mail_Ntf ntf;
@@ -31,7 +31,7 @@ namespace Component {
 			mailData->mail_seq = row->getUInt64("mail_seq");
 			mailData->expire_date = row->getString("expire_date");
 			mailData->mail_message = row->getString("mail_message");
-			mailData->item_id = row->getUInt32("item_id");
+			mailData->item_index = row->getUInt32("item_index");
 			mailData->item_count = row->getInt32("item_count");
 			last_mail_seq = std::max(last_mail_seq, mailData->mail_seq);
 			mail_datas.insert(std::make_pair(mailData->mail_seq, mailData));
@@ -39,7 +39,7 @@ namespace Component {
 			Message::MailData mail;
 			mail.expire_date = Gamnet::Time::UnixTimestamp(mailData->expire_date);
 			mail.item_count = mailData->item_count;
-			mail.item_id = mailData->item_id;
+			mail.item_index = mailData->item_index;
 			mail.mail_message = mailData->mail_message;
 			mail.mail_seq = mailData->mail_seq;
 			ntf.mail_datas.push_back(mail);
@@ -70,7 +70,7 @@ namespace Component {
 					mailSEQs += ",";
 				}
 				mailSEQs += std::to_string(mail->mail_seq);
-				bag->Insert(Item::CreateInstance(session, mail->item_id, mail->item_count));
+				bag->Insert(Gamnet::Singleton<Item::Manager>::GetInstance().CreateInstance(session, mail->item_index, mail->item_count));
 			}
 			session->queries->Execute(
 				"UPDATE user_mail SET delete_yn='Y', delete_date=NOW() WHERE mail_seq in (", mailSEQs, ")"
@@ -88,7 +88,7 @@ namespace Component {
 			session->queries->Execute(
 				"UPDATE user_mail SET delete_yn='Y', delete_date=NOW() WHERE mail_seq=", mailSEQ
 			);
-			bag->Insert(Item::CreateInstance(session, mail->item_id, mail->item_count));
+			bag->Insert(Gamnet::Singleton<Item::Manager>::GetInstance().CreateInstance(session, mail->item_index, mail->item_count));
 			mail_datas.erase(itr);
 		}
 	}
@@ -104,7 +104,7 @@ namespace Component {
 			{ "user_seq", session->user_seq },
 			{ "expire_date", mailData->expire_date.ToString() },
 			{ "mail_message", mailData->mail_message },
-			{ "item_id", mailData->item_id },
+			{ "item_index", mailData->item_index },
 			{ "item_count", mailData->item_count }
 		});
 		mail->last_update_time = 0;

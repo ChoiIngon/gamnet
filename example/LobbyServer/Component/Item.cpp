@@ -4,59 +4,80 @@
 #include "../UserSession.h"
 #include "Bag.h"
 
-namespace Component {
+namespace Item {
 
-	ItemMeta::PriceMeta::PriceMeta()
+	Meta::Price::Price()
 		: type(Message::CounterType::Invalid)
 		, value(0)
 	{
-		GAMNET_META_CUSTOM(type, PriceMeta::OnPriceType);
+		GAMNET_META_CUSTOM(type, Price::OnPriceType);
 		GAMNET_META_MEMBER(value);
 	}
 
-	void ItemMeta::PriceMeta::OnPriceType(Message::CounterType& member, const std::string& value)
+	void Meta::Price::OnPriceType(Message::CounterType& member, const std::string& value)
 	{
 		member = Message::Parse<Message::CounterType>(value);
 	}
 
-	ItemMeta::ExpireMeta::ExpireMeta()
-		: type(ExpireMeta::None)
+	Meta::Expire::Expire()
+		: trigger_type(TriggerType::None)
+		, expire_type(ExpireType::Infinite)
 		, time(0)
 		, date(0)
 	{
-		GAMNET_META_CUSTOM(type, ExpireMeta::OnExpireType);
+		GAMNET_META_CUSTOM(trigger_type, Expire::OnTriggerType);
+		GAMNET_META_CUSTOM(expire_type, Expire::OnExpireType);
 		GAMNET_META_MEMBER(time);
 		GAMNET_META_MEMBER(date);
 	}
 
-	void ItemMeta::ExpireMeta::OnExpireType(Type& member, const std::string& value)
+	void Meta::Expire::OnTriggerType(TriggerType& member, const std::string& value)
 	{
-		if ("Bag" == value)
+		member = TriggerType::None;
+
+		if ("OnCreate" == value)
 		{
-			member = Type::Bag;
+			member = TriggerType::OnCreate;
 			return;
 		}
-		else if ("Equip" == value)
+		else if ("OnEquip" == value)
 		{
-			member = Type::Equip;
-			return;
-		}
-		else if ("None" == value)
-		{
-			member = Type::None;
+			member = TriggerType::OnEquip;
 			return;
 		}
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
 
-	ItemMeta::PackageMeta::PackageMeta()
+	void Meta::Expire::OnExpireType(ExpireType& expireType, const std::string& value)
+	{
+		expireType = ExpireType::Infinite;
+
+		if ("Infinite" == value)
+		{
+			expireType = ExpireType::Infinite;
+			return;
+		}
+		else if ("DueDate" == value)
+		{
+			expireType = ExpireType::DueDate;
+			return;
+		}
+		else if ("Period" == value)
+		{
+			expireType = ExpireType::Period;
+			return;
+		}
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+	}
+
+	Meta::Package::Package()
 		: count(0)
 	{
 		GAMNET_META_MEMBER(id);
 		GAMNET_META_MEMBER(count);
 	}
 	
-	ItemMeta::ItemMeta()
+	Meta::Meta()
 		: id("")
 		, index(0)
 		, type(Message::ItemType::Invalid)
@@ -65,7 +86,7 @@ namespace Component {
 	{
 		GAMNET_META_MEMBER(id);
 		GAMNET_META_MEMBER(index);
-		GAMNET_META_CUSTOM(type, ItemMeta::OnItemType);
+		GAMNET_META_CUSTOM(type, Meta::OnItemType);
 		GAMNET_META_MEMBER(grade);
 		GAMNET_META_MEMBER(max_stack);
 		GAMNET_META_MEMBER(price);
@@ -73,37 +94,46 @@ namespace Component {
 		GAMNET_META_MEMBER(packages);
 	}
 
-	void ItemMeta::OnItemType(Message::ItemType& member, const std::string& value)
+	bool Meta::OnLoad() 
+	{
+		if(nullptr != expire)
+		{
+			if(Expire::TriggerType::None == expire->trigger_type || Expire::ExpireType::Infinite == expire->expire_type)
+			{
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+			}
+		}
+		return true;
+	}
+	void Meta::OnItemType(Message::ItemType& member, const std::string& value)
 	{
 		member = Message::Parse<Message::ItemType>(value);
 	}
 
-	std::shared_ptr<ItemData> ItemMeta::CreateInstance(const std::shared_ptr<UserSession>& session)
+	std::shared_ptr<Data> Meta::CreateInstance(const std::shared_ptr<UserSession>& session)
 	{
-		std::shared_ptr<ItemData> item = std::make_shared<ItemData>(session, shared_from_this());
-		if(nullptr != expire)
+		std::shared_ptr<Data> item = std::make_shared<Data>(session, shared_from_this());
+		if (nullptr != expire)
 		{
-			item->expire = std::make_shared<ItemData::Expire>(item);
+			item->expire = std::make_shared<Data::Expire>(this->expire);
 		}
 
 		if (0 < packages.size())
 		{
-			item->package = std::make_shared<ItemData::Package>(item);
+			item->package = std::make_shared<Data::Package>(item);
 		}
 
-		if (1 < max_stack)
+		if(1 < max_stack)
 		{
-			item->stack = std::make_shared<ItemData::Stack>(item);
+			item->stack = std::make_shared<Data::Stack>(item);
 		}
-
 		return item;
 	}
-
-	ItemData::ItemData(const std::shared_ptr<UserSession>& session, const std::shared_ptr<ItemMeta>& meta)
-		: item_seq(0)
-		, item_count(0)
-		, expire_date(Gamnet::Time::DateTime::MaxValue)
+	
+	Data::Data(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Meta>& meta)
+		: seq(0)
 		, meta(meta)
+		, equip(nullptr)
 		, expire(nullptr)
 		, package(nullptr)
 		, stack(nullptr)
@@ -111,81 +141,127 @@ namespace Component {
 	{
 	}
 
-	ItemData::Expire::Expire(const std::shared_ptr<ItemData>& item)
-		: item_data(item)
+	Data::Expire::Expire(const std::shared_ptr<Meta::Expire>& meta)
+		: meta(meta)
+		, expire_date(Gamnet::Time::DateTime::MaxValue)
 	{
 	}
 
-	void ItemData::Expire::StartExpire()
+	void Data::Expire::TriggerExpire(Meta::Expire::TriggerType triggerType)
 	{
-		auto self = item_data.lock();
-		if(Gamnet::Time::DateTime::MaxValue > self->expire_date)
+		if (Meta::Expire::ExpireType::Infinite == meta->expire_type)
 		{
 			return;
 		}
-		auto relative = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + self->meta->expire->time);
-		self->expire_date = std::min(self->meta->expire->date, relative);
+
+		if (triggerType != meta->trigger_type)
+		{
+			return;
+		}
+
+		if (Gamnet::Time::DateTime::MaxValue > expire_date) // already start
+		{
+			return;
+		}
+
+		if (Meta::Expire::ExpireType::DueDate == meta->expire_type)
+		{
+			expire_date = meta->date;
+		}
+		else
+		{
+			expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->time);
+		}
 	}
-	
-	ItemData::Package::Package(const std::shared_ptr<ItemData>& item)
-		: item_data(item)
+
+	void Data::Expire::SetDate(const Gamnet::Time::DateTime& date)
+	{
+		expire_date = date;
+	}
+
+	const Gamnet::Time::DateTime& Data::Expire::GetDate() const
+	{
+		return expire_date;
+	}
+
+	Data::Package::Package(const std::shared_ptr<Data>& item)
+		: item(item)
 	{
 	}
 
-	void ItemData::Package::Use()
+	void Data::Package::Use()
 	{
-		auto self = item_data.lock();
-		if(0 >= self->item_count)
+		auto self = item.lock();
+		if(0 >= self->GetCount())
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
 		auto session = self->session.lock();
 		auto bag = session->GetComponent<Component::Bag>();
-		std::shared_ptr<ItemMeta> meta = item_data.lock()->meta;
+
+		std::shared_ptr<Meta> meta = item.lock()->meta;
 		for(auto& package : meta->packages)
 		{
-			std::shared_ptr<ItemData> item = Item::CreateInstance(session, package->id, package->count);
+			std::shared_ptr<Data> item = Gamnet::Singleton<Manager>::GetInstance().CreateInstance(session, package->id, package->count);
 			bag->Insert(item);
 		}
-		bag->Remove(self->item_seq, 1);
 	}
 
-	ItemData::Stack::Stack(const std::shared_ptr<ItemData>& item)
-		: item_data(item)
+	Data::Stack::Stack(const std::shared_ptr<Data>& item)
+		: count(0)
+		, item(item)
 	{
 	}
 
-	void ItemData::Stack::Merge(const std::shared_ptr<ItemData>& other)
+	void Data::Stack::Merge(const std::shared_ptr<Data>& other)
 	{
-		auto self = item_data.lock();
+		auto self = item.lock();
 		if (other->meta->id != self->meta->id)
 		{
 			return;
 		}
 
-		if (other->expire_date != self->expire_date)
+		if (other->GetExpireDate() != self->GetExpireDate())
 		{
 			return;
 		}
 
-		if (self->meta->max_stack <= self->item_count)
+		if (self->meta->max_stack <= self->GetCount())
 		{
 			return;
 		}
 
-		int32_t count = std::min(self->meta->max_stack - self->item_count, other->item_count);
-		self->item_count += count;
-		other->item_count -= count;
-		
-		auto session = self->session.lock();
-		session->queries->Update("user_item", Gamnet::Format("item_count=", self->item_count), {
-			{ "item_seq", self->item_seq }
-		});
+		int32_t count = std::min(self->meta->max_stack - self->GetCount(), other->GetCount());
+		self->stack->count += count;
+		other->stack->count -= count;
+		//auto session = self->session.lock();
+		//session->queries->Update("user_item", Gamnet::Format("item_count=", self->stack->count), {
+		//	{ "item_seq", self->seq }
+		//});
 	}
-			
-	void Manager_Item::Init()
+
+	int Data::GetCount() const 
 	{
-		Gamnet::MetaReader<ItemMeta> reader;
+		if(nullptr == stack)
+		{
+			return 1;
+		}
+		return stack->count;
+	}
+
+	const Gamnet::Time::DateTime& Data::GetExpireDate() const
+	{
+		if(nullptr == expire)
+		{
+			return Gamnet::Time::DateTime::MaxValue;
+		}
+
+		return expire->GetDate();
+	}
+
+	void Manager::Init()
+	{
+		Gamnet::MetaReader<Meta> reader;
 		auto& rows = reader.Read("../MetaData/Item.csv");
 		for (auto& row : rows)
 		{
@@ -199,24 +275,37 @@ namespace Component {
 			}
 		}
 	}
-
-	std::shared_ptr<ItemData> Manager_Item::CreateInstance(const std::shared_ptr<UserSession>& session, const std::string& id, int32_t count)
+	
+	std::shared_ptr<Item::Data> Manager::CreateInstance(const std::shared_ptr<UserSession>& session, const std::string& id, int count)
 	{
-		std::shared_ptr<ItemMeta> meta = FindMeta(id);
-		std::shared_ptr<ItemData> data = meta->CreateInstance(session);
-		data->item_count = count;
+		std::shared_ptr<Item::Meta> meta = FindMeta(id);
+		if(nullptr == meta)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemID);
+		}
+		std::shared_ptr<Item::Data> data = meta->CreateInstance(session);
+		if(nullptr != data->stack)
+		{
+			data->stack->count = count;
+		}
 		return data;
 	}
 
-	std::shared_ptr<ItemData> Manager_Item::CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t index, int32_t count)
+	std::shared_ptr<Item::Data> Manager::CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t index, int count)
 	{
-		std::shared_ptr<ItemMeta> meta = FindMeta(index);
-		std::shared_ptr<ItemData> data = meta->CreateInstance(session);
-		data->item_count = count;
+		std::shared_ptr<Item::Meta> meta = FindMeta(index);
+		if (nullptr == meta)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemIndex);
+		}
+		std::shared_ptr<Item::Data> data = meta->CreateInstance(session);
+		if (nullptr != data->stack)
+		{
+			data->stack->count = count;
+		}
 		return data;
 	}
-
-	std::shared_ptr<ItemMeta> Manager_Item::FindMeta(const std::string& id)
+	std::shared_ptr<Meta> Manager::FindMeta(const std::string& id)
 	{
 		auto itr = id_metas.find(id);
 		if (id_metas.end() == itr)
@@ -226,7 +315,7 @@ namespace Component {
 		return itr->second;
 	}
 
-	std::shared_ptr<ItemMeta> Manager_Item::FindMeta(uint32_t index)
+	std::shared_ptr<Meta> Manager::FindMeta(uint32_t index)
 	{
 		auto itr = index_metas.find(index);
 		if(index_metas.end() == itr)
@@ -236,17 +325,5 @@ namespace Component {
 		return itr->second;
 	}
 
-	GAMNET_BIND_INIT_HANDLER(Manager_Item, Init);
-}
-
-namespace Item {
-	std::shared_ptr<Component::ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, const std::string& id, int32_t count)
-	{
-		return Gamnet::Singleton<Component::Manager_Item>::GetInstance().CreateInstance(session, id, count);
-	}
-
-	std::shared_ptr<Component::ItemData> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t index, int32_t count)
-	{
-		return Gamnet::Singleton<Component::Manager_Item>::GetInstance().CreateInstance(session, index, count);
-	}
+	GAMNET_BIND_INIT_HANDLER(Manager, Init);	
 }

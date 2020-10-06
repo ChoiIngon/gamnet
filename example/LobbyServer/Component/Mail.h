@@ -12,7 +12,7 @@ namespace Component {
 	{
 		uint64_t	mail_seq;
 		std::string mail_message;
-		uint32_t	item_id;
+		uint32_t	item_index;
 		int			item_count;
 		Gamnet::Time::DateTime expire_date;
 	};
