@@ -19,7 +19,6 @@ const Address& GetRouterAddress()
 void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler, const std::function<void(const Address& addr)>& closeHandler)
 {
 	IHandlerFactory* handlerFactory = new Network::HandlerStatic<RouterHandler>();
-	typedef Tcp::HandlerFunctor<Session, std::shared_ptr<Tcp::Packet>> HandlerFunctorType;
 	Tcp::BindHandler<Session, MsgRouter_Connect_Req>("MsgRouter_Connect_Req", &RouterHandler::Recv_Connect_Req, handlerFactory);
 	Tcp::BindHandler<Session, MsgRouter_Connect_Ans>("MsgRouter_Connect_Ans", &RouterHandler::Recv_Connect_Ans, handlerFactory);
 	Tcp::BindHandler<Session, MsgRouter_RegisterAddress_Req>("MsgRouter_RegisterAddress_Req", &RouterHandler::Recv_RegisterAddress_Req, handlerFactory);

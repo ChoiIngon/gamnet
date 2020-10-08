@@ -198,7 +198,7 @@ namespace Gamnet {	namespace Test {
 
 		total_time.Reset();
 
-		for (size_t i = 0; i < session_count; i++)
+		for (int i = 0; i < session_count; i++)
 		{
 			begin_execute_count++;
 			if (max_execute_count < begin_execute_count)

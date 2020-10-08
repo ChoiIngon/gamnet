@@ -2,7 +2,7 @@
 #include <atomic>
 #include "Dungeon.h"
 
-static std::atomic<uint64_t> UNIT_SEQ = 0;
+static std::atomic<uint64_t> UNIT_SEQ;
 
 Unit::Unit()
 	: seq(++UNIT_SEQ)

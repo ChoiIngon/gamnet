@@ -47,7 +47,7 @@ protected:
 				return;
 			}
 			int index = value["header"]["index"].asInt();
-			if(member.size() <= index)
+			if((int)member.size() <= index)
 			{
 				member.resize(index + 1);
 			}

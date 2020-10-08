@@ -205,7 +205,7 @@ void Dungeon::InitTiles()
 {
 	tiles.resize((size_t)rect.width * rect.height);
 
-	for (int i = 0; i < tiles.size(); i++)
+	for (int i = 0; i < (int)tiles.size(); i++)
 	{
 		std::shared_ptr<Tile> tile = std::make_shared<Tile>(i);
 		tile->position = Vector2Int(tile->index % rect.width, tile->index / rect.width);
@@ -261,7 +261,7 @@ void Dungeon::BuildPath()
 
 		bool finish = true;
 		int visitCount = 0;
-		for (int i = 0; i < edges.size() - visitCount;)
+		for (int i = 0; i < (int)edges.size() - visitCount;)
 		{
 			std::shared_ptr<Edge> e = edges[i];
 			if (true == e->visit)
@@ -287,7 +287,6 @@ void Dungeon::BuildPath()
 		std::list<std::shared_ptr<Dungeon::Block>> neighbors = FindNeighborBlocks(edge->id);
 		for(auto neighbor : neighbors)
 		{
-			int edgeID = neighbor->id;
 			auto itr = std::find_if(edges.begin(), edges.end(), [neighbor](const std::shared_ptr<Edge>& e) { return e->id == neighbor->id; });
 			std::shared_ptr<Edge> next = *itr;
 			int distance = std::min(next->distance, edge->distance + Gamnet::Random::Range(1, 1000));
@@ -404,7 +403,7 @@ void Dungeon::FindDoor(std::shared_ptr<Block> block, std::shared_ptr<Block> neig
 		-rect.width
 	};
 
-	for (int i = 0; i < offsets.size(); i++)
+	for (int i = 0; i < (int)offsets.size(); i++)
 	{
 		RectInt offset = offsets[i];
 		RectInt blockRect(block->rect.x + offset.x, block->rect.y + offset.y, block->rect.width + offset.width, block->rect.height + offset.height);
@@ -523,7 +522,7 @@ std::list<std::shared_ptr<Dungeon::Block>> Dungeon::FindNeighborBlocks(int block
 			continue;
 		}
 
-		for (int i = 0; i < offsets.size(); i++)
+		for (int i = 0; i < (int)offsets.size(); i++)
 		{
 			const RectInt& offset = offsets[i];
 			RectInt blockRect(block->rect.x + offset.x, block->rect.y + offset.y, block->rect.width + offset.width, block->rect.height + offset.height);
@@ -639,7 +638,7 @@ void Dungeon::BuildCorridorInBlock(std::shared_ptr<Block> block)
 			visit.insert(start);
 
 			int queueIndex = 0;
-			while (queueIndex < queue.size())
+			while (queueIndex < (int)queue.size())
 			{
 				std::shared_ptr<Path> path = queue[queueIndex++];
 				if (dest == path->tile_index)
@@ -690,7 +689,7 @@ void Dungeon::BuildCorridorInBlock(std::shared_ptr<Block> block)
 	{
 		tiles[tileIndex]->type = Tile::Type::Floor;
 
-		for (int i = 0; i < surroundTileOffsets.size(); i++)
+		for (int i = 0; i < (int)surroundTileOffsets.size(); i++)
 		{
 			int surroundTileIndex = tileIndex + surroundTileOffsets[i];
 			if (0 <= surroundTileIndex && surroundTileIndex < rect.width * rect.height)

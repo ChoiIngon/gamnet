@@ -36,7 +36,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 		{
 			int totalSentBytes = 0;
 			const std::string send_buffer = query + "\r\n";
-			while (send_buffer.length() > totalSentBytes)
+			while ((int)send_buffer.length() > totalSentBytes)
 			{
 				boost::system::error_code ec;
 				int sentBytes = boost::asio::write(*(socket), boost::asio::buffer(&send_buffer[0] + totalSentBytes, send_buffer.length() - totalSentBytes), ec);
