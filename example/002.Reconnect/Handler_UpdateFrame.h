@@ -9,7 +9,7 @@ public:
 	Handler_UpdateFrame();
 	virtual ~Handler_UpdateFrame();
 
-	void Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet);
+	void Recv_Req(const std::shared_ptr<UserSession>& session, const MsgCliSvr_UpdateFrame_Req& req);
 };
 
 #endif /* HANDLER_LOGIN_H_ */

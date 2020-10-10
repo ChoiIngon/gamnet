@@ -10,19 +10,13 @@ Handler_UpdateFrame::~Handler_UpdateFrame()
 
 static std::atomic<int> USER_SEQ;
 
-void Handler_UpdateFrame::Recv_Req(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Handler_UpdateFrame::Recv_Req(const std::shared_ptr<UserSession>& session, const MsgCliSvr_UpdateFrame_Req& req)
 {
-	MsgCliSvr_UpdateFrame_Req req;
 	MsgSvrCli_UpdateFrame_Ans ans;
 	ans.error_code = ErrorCode::Success;
 	ans.frame = 0;
 
 	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(req, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
-		}
-
 		LOG(DEV, "MsgCliSvr_UpdateFrame_Req()");
 
 		std::shared_ptr<UserData> userData = session->GetComponent<UserData>();

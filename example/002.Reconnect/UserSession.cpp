@@ -10,7 +10,6 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
-	component = std::make_shared<Gamnet::Component>();
 	LOG(DEV, "session_key:", session_key);
 }
 
@@ -26,8 +25,8 @@ void UserSession::OnClose(int reason)
 
 void UserSession::OnDestroy()
 {
-	component = nullptr;
 	LOG(DEV, "session_key:", session_key);
+	components.Clear();
 }
 
 void TestSession::OnCreate()

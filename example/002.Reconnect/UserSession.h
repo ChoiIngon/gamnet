@@ -7,7 +7,6 @@
 
 class UserSession 
 	: public Gamnet::Network::Tcp::Session
-	, public Gamnet::Component
 {
 public:
 	UserSession();
@@ -17,7 +16,36 @@ public:
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 
-	std::shared_ptr<Gamnet::Component> component;
+	template <class T>
+	std::shared_ptr<T> AddComponent()
+	{
+		return components.AddComponent<T>();
+	}
+
+	template <class T>
+	std::shared_ptr<T> AddComponent(const std::shared_ptr<T>& component)
+	{
+		return components.AddComponent<T>(component);
+	}
+
+	template <class T>
+	std::shared_ptr<T> AddComponent(const std::string& name)
+	{
+		return components.AddComponent<T>(name);
+	}
+	template <class T>
+	std::shared_ptr<T> GetComponent()
+	{
+		return components.GetComponent<T>();
+	}
+
+	template <class T>
+	void RemoveComponent()
+	{
+		components.RemoveComponent<T>();
+	}
+private :
+	Gamnet::Component components;
 };
 
 class TestSession : public Gamnet::Test::Session 
