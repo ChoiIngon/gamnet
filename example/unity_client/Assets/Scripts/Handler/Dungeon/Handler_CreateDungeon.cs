@@ -12,7 +12,9 @@ namespace Handler
 				GameManager.Instance.session.RegisterHandler<Message.Dungeon.MsgSvrCli_CreateDungeon_Ans>(Handler_CreateDungeon.OnRecv);
 
 				Message.Dungeon.MsgCliSvr_CreateDungeon_Req req = new Message.Dungeon.MsgCliSvr_CreateDungeon_Req();
-				GameManager.Instance.session.SendMsg(req, true);
+				GameManager.Instance.session.SendMsg(req, true).SetTimeout(Message.Dungeon.MsgSvrCli_CreateDungeon_Ans.MSG_ID, 1, () =>
+				{
+				});
 			}
 
 			public static void OnRecv(Message.Dungeon.MsgSvrCli_CreateDungeon_Ans ans)
