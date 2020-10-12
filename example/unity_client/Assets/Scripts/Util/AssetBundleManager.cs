@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 {
 	private Dictionary<string, AssetBundle> asset_bundles = new Dictionary<string, AssetBundle>();
 	private Dictionary<string, AssetBundle> asset_name_to_bundle = new Dictionary<string, AssetBundle>();
 	private AssetBundleManifest manifest;
+	public string url;
 	private void Awake()
 	{
 		DontDestroyOnLoad(transform.gameObject);
@@ -40,20 +44,13 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 #if UNITY_IOS
 		manifestName = "iOS";
 #endif
-		//string url = "file:///" + Application.dataPath + "/AssetBundles/Unity/" + assetBundleName.ToLower();
-		string url = "http://assetbundles-ygmwl.run.goorm.io/AssetBundles/Unity/" + manifestName;
-#if UNITY_ANDROID
-		url = "http://assetbundles-ygmwl.run.goorm.io/AssetBundles/Android/" +  + manifestName;
-#endif
-#if UNITY_IOS
-		url = "http://assetbundles-ygmwl.run.goorm.io/AssetBundles/iOS/" +  + manifestName;
-#endif
-		UnityWebRequest request = UnityWebRequestAssetBundle.GetAssetBundle(url, 0);
+		string assetBundleRepository = GetAssetBundleRepository(manifestName);
+		UnityWebRequest request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleRepository, 0);
 		yield return request.SendWebRequest();
 		AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(request);
 		if (null == request)
 		{
-			throw new System.Exception("Failed to request(url:" + url + ")");
+			throw new System.Exception("Failed to request(url:" + assetBundleRepository + ")");
 		}
 
 		manifest = assetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
@@ -72,15 +69,9 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 			yield break;
 		}
 
-		//string url = "file:///" + Application.dataPath + "/AssetBundles/Unity/" + assetBundleName.ToLower();
-		string url = "http://assetbundles-ygmwl.run.goorm.io/AssetBundles/Unity/" + assetBundleName.ToLower();
-#if UNITY_ANDROID
-		url = "http://assetbundles-ygmwl.run.goorm.io/AssetBundles/Android/" + assetBundleName.ToLower();
-#endif
-#if UNITY_IOS
-		url = "http://assetbundles-ygmwl.run.goorm.io/AssetBundles/iOS/" + assetBundleName.ToLower();
-#endif
-		UnityWebRequest request = UnityWebRequestAssetBundle.GetAssetBundle(url, 0);
+		string assetBundleRepository = GetAssetBundleRepository(assetBundleName.ToLower());
+
+		UnityWebRequest request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleRepository, 0);
 		yield return request.SendWebRequest();
 		AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(request);
 		if (null == request)
@@ -97,7 +88,32 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		}
 		asset_bundles.Add(assetBundleName.ToLower(), assetBundle);
 	}
-
+	private string GetAssetBundleRepository(string assetBundleName)
+	{
+		string assetBundleRepository = url;
+#if UNITY_ANDROID
+		assetBundleRepository += "/AssetBundles/Android/" + assetBundleName;
+#endif
+#if UNITY_IOS
+		assetBundleRepository += "/AssetBundles/iOS/" + assetBundleName;
+#endif
+#if UNITY_EDITOR
+		if (true == EditorPrefs.GetBool(Menu_LocalServer, false))
+		{
+			string path = "/AssetBundles/Unity/";
+			if (true == EditorPrefs.GetBool(Menu_PlatformAndroid))
+			{
+				path = "/AssetBundles/Android/";
+			}
+			else if (true == EditorPrefs.GetBool(Menu_PlatformiOS))
+			{
+				path = "/AssetBundles/iOS/";
+			}
+			assetBundleRepository = "file:///" + Application.dataPath + path + assetBundleName;
+		}
+#endif
+		return assetBundleRepository;
+	}
 	public T LoadAsset<T>(string assetName) where T : Object
 	{
 		if (false == asset_name_to_bundle.ContainsKey(assetName.ToLower()))
@@ -108,11 +124,76 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		AssetBundle assetBundle = asset_name_to_bundle[assetName.ToLower()];
 		return assetBundle.LoadAsset<T>(assetName.ToLower());
 	}
+#if UNITY_EDITOR
+	const string Menu_LocalServer = "AssetBundle/LocalServer";
+	const string Menu_PlatformEditor = "AssetBundle/Platform/Editor";
+	const string Menu_PlatformAndroid = "AssetBundle/Platform/Android";
+	const string Menu_PlatformiOS = "AssetBundle/Platform/iOS";
 
+	[MenuItem("AssetBundle/Build", priority = 1)]
+	static void Build()
+	{
+		string assetBundleDirectory = "Assets/AssetBundles/Unity";
+		BuildTarget buildTarget = BuildTarget.StandaloneWindows;
+		if (true == EditorPrefs.GetBool(Menu_PlatformAndroid))
+		{
+			assetBundleDirectory = "Assets/AssetBundles/Android";
+			buildTarget = BuildTarget.Android;
+		}
+		else if (true == EditorPrefs.GetBool(Menu_PlatformiOS))
+		{
+			assetBundleDirectory = "Assets/AssetBundles/iOS";
+			buildTarget = BuildTarget.iOS;
+		}
+			
+		if (false == Directory.Exists(assetBundleDirectory))
+		{
+			Directory.CreateDirectory(assetBundleDirectory);
+		}
 
-	// Update is called once per frame
-	void Update()
-    {
-        
-    }	
+		BuildPipeline.BuildAssetBundles(assetBundleDirectory, BuildAssetBundleOptions.None, buildTarget);
+		AssetDatabase.Refresh();
+	}
+
+	[MenuItem(Menu_LocalServer)]
+	static void LocalServer()
+	{
+		MenuToggle(Menu_LocalServer);
+	}
+
+	[MenuItem("AssetBundle/Platform/Editor")]
+	static void PlatformEditor()
+	{
+		MenuSetBool(Menu_PlatformEditor, true);
+		MenuSetBool(Menu_PlatformAndroid, false);
+		MenuSetBool(Menu_PlatformiOS, false);
+	}
+	[MenuItem("AssetBundle/Platform/Android")]
+	static void PlatformAndroid()
+	{
+		MenuSetBool(Menu_PlatformEditor, false);
+		MenuSetBool(Menu_PlatformAndroid, true);
+		MenuSetBool(Menu_PlatformiOS, false);
+	}
+	[MenuItem("AssetBundle/Platform/iOS")]
+	static void PlatformiOS()
+	{
+		MenuSetBool(Menu_PlatformEditor, false);
+		MenuSetBool(Menu_PlatformAndroid, false);
+		MenuSetBool(Menu_PlatformiOS, true);
+	}
+	static bool MenuToggle(string menu)
+	{
+		bool enable = EditorPrefs.GetBool(menu, false);
+		Menu.SetChecked(menu, !enable);
+		EditorPrefs.SetBool(menu, !enable);
+		return !enable;
+	}
+
+	static void MenuSetBool(string menu, bool enable)
+	{
+		Menu.SetChecked(menu, enable);
+		EditorPrefs.SetBool(menu, enable);
+	}
+#endif
 }

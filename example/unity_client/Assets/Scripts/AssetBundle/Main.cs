@@ -9,6 +9,14 @@ public class Main : MonoBehaviour
 	// Start is called before the first frame update
 	IEnumerator Start()
     {
+		yield return AssetBundleManager.Instance.LoadAssetBundle("MetaData");
+		
+		{
+			TextAsset textAsset = AssetBundleManager.Instance.LoadAsset<TextAsset>("Item");
+			CSVTable table = new CSVTable();
+			table.ReadStream(textAsset.text);
+		}
+		
 		yield return AssetBundleManager.Instance.LoadAssetBundle("AssetBundle1");
 		{
 			var prefab = AssetBundleManager.Instance.LoadAsset<GameObject>("AssetBundle1_1");

@@ -6,14 +6,12 @@ public class BuildAssetBundles
 	[MenuItem("Assets/Build AssetBundles")]
 	static void Build()
 	{
-#if UNITY_EDITOR
 		string assetBundleDirectory = "Assets/AssetBundles/Unity/";
-#endif
 #if UNITY_ANDROID
-		string assetBundleDirectory = "Assets/AssetBundles/Android";
+		assetBundleDirectory = "Assets/AssetBundles/Android";
 #endif
 #if UNITY_IOS
-		string assetBundleDirectory = "Assets/AssetBundles/iOS";
+		assetBundleDirectory = "Assets/AssetBundles/iOS";
 #endif
 		if (false == Directory.Exists(assetBundleDirectory))
 		{
