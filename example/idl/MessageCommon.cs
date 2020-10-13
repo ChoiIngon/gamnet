@@ -19,6 +19,9 @@ public enum ErrorCode {
 	CanNotCreateCastGroup = 5001,
 	DuplicateNameError,
 	CreateAccountError,
+	InvalidItemID,
+	InvalidItemIndex,
+	InvalidItemSEQ,
 	UndefineError = 99999,
 }; // ErrorCode
 public struct ErrorCode_Serializer {
@@ -245,7 +248,7 @@ public class MailData {
 	public ulong	mail_seq = 0;
 	public string	mail_message = "";
 	public ulong	expire_date = 0;
-	public uint	item_id = 0;
+	public uint	item_index = 0;
 	public uint	item_count = 0;
 	public MailData() {
 	}
@@ -275,7 +278,7 @@ public class MailData {
 				_buf_.Write(BitConverter.GetBytes(0), 0, sizeof(int));
 			}
 			_buf_.Write(BitConverter.GetBytes(expire_date), 0, sizeof(ulong));
-			_buf_.Write(BitConverter.GetBytes(item_id), 0, sizeof(uint));
+			_buf_.Write(BitConverter.GetBytes(item_index), 0, sizeof(uint));
 			_buf_.Write(BitConverter.GetBytes(item_count), 0, sizeof(uint));
 		} catch(System.Exception) {
 			return false;
@@ -299,7 +302,7 @@ public class MailData {
 			expire_date = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(ulong);
 			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
-			item_id = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			item_index = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(uint);
 			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
 			item_count = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);

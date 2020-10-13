@@ -6,7 +6,8 @@ using System.IO;
 
 public class CSVTable : IEnumerable
 {
-	private Dictionary<string, int> columnNames = null;
+	private Dictionary<string, int> column_name_to_index = null;
+	private List<string> column_names = null;
 	private List<List<string>> rows = null;
 
 	public class Row
@@ -28,11 +29,12 @@ public class CSVTable : IEnumerable
 
 	public void ReadStream(string stream)
 	{
-		columnNames = new Dictionary<string, int>();
+		column_name_to_index = new Dictionary<string, int>();
 		rows = new List<List<string>>();
 		string[] data = stream.Split('\n');
 		char[] trimChar = "\r\"".ToCharArray();
 		string[] names = data[0].Trim(trimChar).Split(',');
+		column_names = new List<string>(names);
 		string[] types = data[1].Trim(trimChar).Split(',');
 
 		for (int i = 0; i < names.Length; ++i)
@@ -43,7 +45,7 @@ public class CSVTable : IEnumerable
 			}
 
 			names[i] = names[i].Trim(trimChar).ToLower();
-			columnNames.Add(names[i], i);
+			column_name_to_index.Add(names[i], i);
 		}
 
 		for (int i = 3; i < data.Length; ++i)
@@ -75,12 +77,17 @@ public class CSVTable : IEnumerable
 
 	public int GetIndex(string columnName)
 	{
-		if (false == columnNames.ContainsKey(columnName))
+		if (false == column_name_to_index.ContainsKey(columnName))
 		{
 			return -1;
 		}
 
-		return columnNames[columnName];
+		return column_name_to_index[columnName];
+	}
+
+	public List<string> GetColumnNames()
+	{
+		return column_names;
 	}
 
 	public Row GetRow(int index)

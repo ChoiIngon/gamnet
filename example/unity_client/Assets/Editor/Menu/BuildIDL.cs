@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class Menu_BuildIDL
 {
-	[MenuItem("Assets/Build IDL")]
+	[MenuItem("IDL/Build")]
 	static void Build()
 	{
 		string idlc_path = System.IO.Path.Combine(Application.dataPath, "../../../x64/Debug");
@@ -26,6 +26,7 @@ public class Menu_BuildIDL
 				System.Diagnostics.Process.Start(idlc_path + "/idlc", "/K -lcs " + message_path + "/" + file + ".idl");
 				System.IO.File.Copy(message_path + "/" + file + ".cs", Application.dataPath + "/Scripts/IDL/" + file + ".cs", true);
 			}
+			AssetDatabase.Refresh();
 		}
 		/*
 		else if(Application.platform == RuntimePlatform.OSXEditor)

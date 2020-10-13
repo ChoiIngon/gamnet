@@ -37,7 +37,7 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 	private IEnumerator LoadManifest()
 	{
 		Debug.Log("start to load AssetBundle manifest");
-		string manifestName = "Unity";
+		string manifestName = "Windows";
 #if UNITY_ANDROID
 		manifestName = "Android";
 #endif
@@ -46,11 +46,17 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 #endif
 		string assetBundleRepository = GetAssetBundleRepository(manifestName);
 		UnityWebRequest request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleRepository, 0);
-		yield return request.SendWebRequest();
-		AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(request);
 		if (null == request)
 		{
 			throw new System.Exception("Failed to request(url:" + assetBundleRepository + ")");
+		}
+
+		yield return request.SendWebRequest();
+
+		AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(request);
+		if (null == assetBundle)
+		{
+			throw new System.Exception("Failed to load asset bundle(url:" + assetBundleRepository + ",  bundle_name:" + manifest + ")");
 		}
 
 		manifest = assetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
@@ -91,29 +97,24 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 	private string GetAssetBundleRepository(string assetBundleName)
 	{
 		string assetBundleRepository = url;
-#if UNITY_ANDROID
-		assetBundleRepository += "/AssetBundles/Android/" + assetBundleName;
-#endif
-#if UNITY_IOS
-		assetBundleRepository += "/AssetBundles/iOS/" + assetBundleName;
-#endif
 #if UNITY_EDITOR
-		if (true == EditorPrefs.GetBool(Menu_LocalServer, false))
+		if (true == EditorPrefs.GetBool(Menu_Local, false))
 		{
-			string path = "/AssetBundles/Unity/";
-			if (true == EditorPrefs.GetBool(Menu_PlatformAndroid))
-			{
-				path = "/AssetBundles/Android/";
-			}
-			else if (true == EditorPrefs.GetBool(Menu_PlatformiOS))
-			{
-				path = "/AssetBundles/iOS/";
-			}
-			assetBundleRepository = "file:///" + Application.dataPath + path + assetBundleName;
+			assetBundleRepository = "file:///" + Application.dataPath;
 		}
 #endif
+		string platform = "Windows";
+#if UNITY_ANDROID
+		platform = "Android";
+#endif
+#if UNITY_IOS
+		platform = "iOS";
+#endif
+		assetBundleRepository += "/AssetBundles/" + platform + "/" + assetBundleName;
+		Debug.Log("asset bundle url:" + assetBundleRepository);
 		return assetBundleRepository;
 	}
+
 	public T LoadAsset<T>(string assetName) where T : Object
 	{
 		if (false == asset_name_to_bundle.ContainsKey(assetName.ToLower()))
@@ -125,27 +126,25 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		return assetBundle.LoadAsset<T>(assetName.ToLower());
 	}
 #if UNITY_EDITOR
-	const string Menu_LocalServer = "AssetBundle/LocalServer";
-	const string Menu_PlatformEditor = "AssetBundle/Platform/Editor";
-	const string Menu_PlatformAndroid = "AssetBundle/Platform/Android";
-	const string Menu_PlatformiOS = "AssetBundle/Platform/iOS";
-
-	[MenuItem("AssetBundle/Build", priority = 1)]
-	static void Build()
+	[MenuItem("AssetBundle/Build/Windows", priority = 1)]
+	static void BuildUnity()
 	{
-		string assetBundleDirectory = "Assets/AssetBundles/Unity";
-		BuildTarget buildTarget = BuildTarget.StandaloneWindows;
-		if (true == EditorPrefs.GetBool(Menu_PlatformAndroid))
-		{
-			assetBundleDirectory = "Assets/AssetBundles/Android";
-			buildTarget = BuildTarget.Android;
-		}
-		else if (true == EditorPrefs.GetBool(Menu_PlatformiOS))
-		{
-			assetBundleDirectory = "Assets/AssetBundles/iOS";
-			buildTarget = BuildTarget.iOS;
-		}
-			
+		Build(BuildTarget.StandaloneWindows, "Windows");
+	}
+	[MenuItem("AssetBundle/Build/Android", priority = 1)]
+	static void BuildAndroid()
+	{
+		Build(BuildTarget.Android, "Android");
+	}
+	[MenuItem("AssetBundle/Build/iOS", priority = 1)]
+	static void BuildiOS()
+	{
+		Build(BuildTarget.iOS, "iOS");
+	}
+
+	static void Build(BuildTarget buildTarget, string outputPath)
+	{
+		string assetBundleDirectory = "Assets/AssetBundles/" + outputPath;
 		if (false == Directory.Exists(assetBundleDirectory))
 		{
 			Directory.CreateDirectory(assetBundleDirectory);
@@ -155,45 +154,13 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		AssetDatabase.Refresh();
 	}
 
-	[MenuItem(Menu_LocalServer)]
-	static void LocalServer()
+	const string Menu_Local = "AssetBundle/Local";
+	[MenuItem(Menu_Local)]
+	static void Local()
 	{
-		MenuToggle(Menu_LocalServer);
-	}
-
-	[MenuItem("AssetBundle/Platform/Editor")]
-	static void PlatformEditor()
-	{
-		MenuSetBool(Menu_PlatformEditor, true);
-		MenuSetBool(Menu_PlatformAndroid, false);
-		MenuSetBool(Menu_PlatformiOS, false);
-	}
-	[MenuItem("AssetBundle/Platform/Android")]
-	static void PlatformAndroid()
-	{
-		MenuSetBool(Menu_PlatformEditor, false);
-		MenuSetBool(Menu_PlatformAndroid, true);
-		MenuSetBool(Menu_PlatformiOS, false);
-	}
-	[MenuItem("AssetBundle/Platform/iOS")]
-	static void PlatformiOS()
-	{
-		MenuSetBool(Menu_PlatformEditor, false);
-		MenuSetBool(Menu_PlatformAndroid, false);
-		MenuSetBool(Menu_PlatformiOS, true);
-	}
-	static bool MenuToggle(string menu)
-	{
-		bool enable = EditorPrefs.GetBool(menu, false);
-		Menu.SetChecked(menu, !enable);
-		EditorPrefs.SetBool(menu, !enable);
-		return !enable;
-	}
-
-	static void MenuSetBool(string menu, bool enable)
-	{
-		Menu.SetChecked(menu, enable);
-		EditorPrefs.SetBool(menu, enable);
+		bool enable = EditorPrefs.GetBool(Menu_Local, false);
+		Menu.SetChecked(Menu_Local, !enable);
+		EditorPrefs.SetBool(Menu_Local, !enable);
 	}
 #endif
 }
