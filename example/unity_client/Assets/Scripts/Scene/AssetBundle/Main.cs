@@ -7,14 +7,27 @@ using UnityEngine.Networking;
 public class Main : MonoBehaviour
 {
 	// Start is called before the first frame update
+	public class ItemMeta : MetaData
+	{
+		public int index;
+	}
 	IEnumerator Start()
     {
 		yield return AssetBundleManager.Instance.LoadAssetBundle("MetaData");
-		
+
+		List<string> list = new List<string>();
+		if (typeof(IEnumerable) == list.GetType())
+		{
+			Debug.Log("test");
+		}
 		{
 			TextAsset textAsset = AssetBundleManager.Instance.LoadAsset<TextAsset>("Item");
-			CSVTable table = new CSVTable();
-			table.ReadStream(textAsset.text);
+			CSVReader reader = new CSVReader();
+			reader.ReadStream(textAsset.text);
+			MetaData.Reader<ItemMeta> metaReader = new MetaData.Reader<ItemMeta>();
+			metaReader.Read(reader);
+
+			
 		}
 		
 		yield return AssetBundleManager.Instance.LoadAssetBundle("AssetBundle1");

@@ -1,10 +1,9 @@
-﻿
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-public class CSVTable : IEnumerable
+public class CSVReader : IEnumerable
 {
 	private Dictionary<string, int> column_name_to_index = null;
 	private List<string> column_names = null;
@@ -12,19 +11,24 @@ public class CSVTable : IEnumerable
 
 	public class Row
 	{
-		public Row(CSVTable table, List<string> row)
+		public Row(CSVReader reader, List<string> row)
 		{
-			this.table = table;
+			this.reader = reader;
 			this.row = row;
 		}
 
 		public string GetValue(string columnName)
 		{
-			return row[table.GetIndex(columnName.ToLower())];
+			return GetValue(reader.GetIndex(columnName.ToLower()));
+		}
+
+		public string GetValue(int index)
+		{
+			return row[index];
 		}
 
 		private List<string> row;
-		private CSVTable table;
+		private CSVReader reader;
 	}
 
 	public void ReadStream(string stream)
@@ -63,7 +67,7 @@ public class CSVTable : IEnumerable
 		}
 	}
 
-	public void OpenFile(string fileName)
+	public void ReadFile(string fileName)
 	{
 		FileStream file = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
@@ -114,6 +118,3 @@ public class CSVTable : IEnumerable
 		}
 	}
 }
-
-
-
