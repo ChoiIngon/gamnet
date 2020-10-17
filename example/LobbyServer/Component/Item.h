@@ -4,17 +4,17 @@
 #define _WIN32_WINNT 0x0501
 #define WIN32_LEAN_AND_MEAN
 
-#include <Gamnet/Library/MetaData.h>
 #include <Gamnet/Library/Time/Time.h>
 #include <idl/MessageCommon.h>
+#include "../Util/MetaData.h"
 
 class UserSession;
 namespace Item 
 {
 	class Data;
-	struct Meta : public std::enable_shared_from_this<Meta>, public Gamnet::MetaData
+	struct Meta : public std::enable_shared_from_this<Meta>, public MetaData
 	{
-		struct Price : public Gamnet::MetaData
+		struct Price : public MetaData
 		{
 			Price();
 
@@ -24,7 +24,7 @@ namespace Item
 			int value;
 		};
 
-		struct Expire : public Gamnet::MetaData
+		struct Expire : public MetaData
 		{
 			enum class TriggerType
 			{
@@ -51,7 +51,7 @@ namespace Item
 			Gamnet::Time::DateTime date;
 		};
 
-		struct Package : public Gamnet::MetaData
+		struct Package : public MetaData
 		{
 			Package();
 
@@ -61,7 +61,7 @@ namespace Item
 
 		Meta();
 
-		virtual bool OnLoad() override;
+		virtual void OnLoad() override;
 		void OnItemType(Message::ItemType& member, const std::string& value);
 		std::shared_ptr<Data> CreateInstance(const std::shared_ptr<UserSession>& session);
 

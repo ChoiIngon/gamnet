@@ -2,13 +2,13 @@
 #define _MONSTER_H_
 
 
-#include <Gamnet/Library/MetaData.h>
+#include "../../../Util/MetaData.h"
 #include "../Vector2.h"
 #include "MonsterAction.h"
 
 class Unit;
 namespace Component { namespace Monster {
-	class Meta : public Gamnet::MetaData
+	class Meta : public MetaData
 	{
 	public :
 		Meta();

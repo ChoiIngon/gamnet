@@ -22,7 +22,7 @@ namespace Handler
 				GameManager.Instance.session.UnregisterHandler<Message.Dungeon.MsgSvrCli_CreateDungeon_Ans>(Handler_CreateDungeon.OnRecv);
 				GameObject go = new GameObject();
 				go.name = "Dungeon";
-				go.transform.SetParent(GameManager.Instance.scenes.dungeon_main.transform, false);
+				go.transform.SetParent(GameManager.Instance.scenes.dungeon.transform, false);
 
 				Component.Dungeon dungeon = go.AddComponent<Component.Dungeon>();
 				dungeon.width = ans.width;
@@ -54,8 +54,8 @@ namespace Handler
 					}
 				}
 
-				GameManager.Instance.scenes.dungeon_main.dungeon = dungeon;
-				Unit player = GameManager.Instance.scenes.dungeon_main.player;
+				GameManager.Instance.scenes.dungeon.dungeon = dungeon;
+				Unit player = GameManager.Instance.scenes.dungeon.player;
 				player.position = new Vector2Int(ans.start.x, ans.start.y);
 
 				foreach (var monster in ans.monsters)
@@ -65,9 +65,9 @@ namespace Handler
 					Unit unit = obj.AddComponent<Unit>();
 					unit.seq = monster.seq;
 					unit.position = new Vector2Int(monster.position.x, monster.position.y);
-					obj.transform.SetParent(GameManager.Instance.scenes.dungeon_main.transform);
+					obj.transform.SetParent(GameManager.Instance.scenes.dungeon.transform);
 					obj.AddComponent<Monster>();
-					GameManager.Instance.scenes.dungeon_main.monsters[unit.seq] = unit;
+					GameManager.Instance.scenes.dungeon.monsters[unit.seq] = unit;
 				}
 			}
 		}

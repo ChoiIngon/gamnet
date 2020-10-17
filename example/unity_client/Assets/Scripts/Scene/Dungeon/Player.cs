@@ -67,7 +67,7 @@ public class Player : MonoBehaviour
 	public void SetFieldOfView(Vector2Int position, bool visible)
 	{
 		Unit self = GetComponent<Unit>();
-		Component.Dungeon dungeon = GameManager.Instance.scenes.dungeon_main.dungeon;
+		Component.Dungeon dungeon = GameManager.Instance.scenes.dungeon.dungeon;
 		BresenhamCircle2D circle = new BresenhamCircle2D(self.position, 10 - 1);
 
 		foreach (Vector2Int circumference in circle)

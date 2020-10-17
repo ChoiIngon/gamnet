@@ -10,8 +10,8 @@ namespace Item {
 		: type(Message::CounterType::Invalid)
 		, value(0)
 	{
-		GAMNET_META_CUSTOM(type, Price::OnPriceType);
-		GAMNET_META_MEMBER(value);
+		META_CUSTOM(type, Price::OnPriceType);
+		META_MEMBER(value);
 	}
 
 	void Meta::Price::OnPriceType(Message::CounterType& member, const std::string& value)
@@ -25,10 +25,10 @@ namespace Item {
 		, time(0)
 		, date(0)
 	{
-		GAMNET_META_CUSTOM(trigger_type, Expire::OnTriggerType);
-		GAMNET_META_CUSTOM(expire_type, Expire::OnExpireType);
-		GAMNET_META_MEMBER(time);
-		GAMNET_META_MEMBER(date);
+		META_CUSTOM(trigger_type, Expire::OnTriggerType);
+		META_CUSTOM(expire_type, Expire::OnExpireType);
+		META_MEMBER(time);
+		META_MEMBER(date);
 	}
 
 	void Meta::Expire::OnTriggerType(TriggerType& member, const std::string& value)
@@ -73,8 +73,8 @@ namespace Item {
 	Meta::Package::Package()
 		: count(0)
 	{
-		GAMNET_META_MEMBER(id);
-		GAMNET_META_MEMBER(count);
+		META_MEMBER(id);
+		META_MEMBER(count);
 	}
 	
 	Meta::Meta()
@@ -84,17 +84,17 @@ namespace Item {
 		, grade(0)
 		, max_stack(0)
 	{
-		GAMNET_META_MEMBER(id);
-		GAMNET_META_MEMBER(index);
-		GAMNET_META_CUSTOM(type, Meta::OnItemType);
-		GAMNET_META_MEMBER(grade);
-		GAMNET_META_MEMBER(max_stack);
-		GAMNET_META_MEMBER(price);
-		GAMNET_META_MEMBER(expire);
-		GAMNET_META_MEMBER(packages);
+		META_MEMBER(id);
+		META_MEMBER(index);
+		META_CUSTOM(type, Meta::OnItemType);
+		META_MEMBER(grade);
+		META_MEMBER(max_stack);
+		META_MEMBER(price);
+		META_MEMBER(expire);
+		META_MEMBER(packages);
 	}
 
-	bool Meta::OnLoad() 
+	void Meta::OnLoad() 
 	{
 		if(nullptr != expire)
 		{
@@ -103,7 +103,6 @@ namespace Item {
 				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 			}
 		}
-		return true;
 	}
 	void Meta::OnItemType(Message::ItemType& member, const std::string& value)
 	{
@@ -261,7 +260,7 @@ namespace Item {
 
 	void Manager::Init()
 	{
-		Gamnet::MetaReader<Meta> reader;
+		MetaReader<Meta> reader;
 		auto& rows = reader.Read("../MetaData/Item.csv");
 		for (auto& row : rows)
 		{

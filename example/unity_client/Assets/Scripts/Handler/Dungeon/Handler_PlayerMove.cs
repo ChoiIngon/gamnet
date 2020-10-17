@@ -28,7 +28,7 @@ namespace Handler
 						path.Add(new Vector2Int(point.x, point.y));
 					}
 
-					Unit player = GameManager.Instance.scenes.dungeon_main.player;
+					Unit player = GameManager.Instance.scenes.dungeon.player;
 					player.SetMovePath(path);
 				}
 
@@ -40,7 +40,7 @@ namespace Handler
 						path.Add(new Vector2Int(point.x, point.y));
 					}
 
-					Unit monster = GameManager.Instance.scenes.dungeon_main.monsters[itr.Key];
+					Unit monster = GameManager.Instance.scenes.dungeon.monsters[itr.Key];
 					monster.SetMovePath(path);
 				}
 			}

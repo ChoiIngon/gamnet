@@ -1,8 +1,5 @@
 #include "UserSession.h"
 #include <boost/program_options.hpp>
-#include <boost/coroutine2/all.hpp>
-
-#include <Gamnet/Library/MetaData.h>
 
 void OnRouterConnect(const Gamnet::Network::Router::Address& address)
 {

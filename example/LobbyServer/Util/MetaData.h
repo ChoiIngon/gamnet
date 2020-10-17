@@ -1,23 +1,21 @@
-#ifndef _GAMNET_LIB_META_DATA_H_
-#define _GAMNET_LIB_META_DATA_H_
+#ifndef _META_DATA_H_
+#define _META_DATA_H_
 
-#include <map>
-#include <string>
 #include <functional>
-#include <memory>
 #include <fstream>
 #include <list>
-#include "Time/DateTime.h"
-#include "Json/json.h"
-#include "Exception.h"
-
-namespace Gamnet {
+#include <map>
+#include <memory>
+#include <string>
+#include <Gamnet/Library/Time/DateTime.h>
+#include <Gamnet/Library/Json/json.h>
+#include <Gamnet/Library/Exception.h>
 
 class MetaData
 {
 public:
 	void Init(const Json::Value& row);
-	virtual bool OnLoad();
+	virtual void OnLoad();
 
 protected:
 	void Bind(const std::string& name, bool& member);
@@ -30,7 +28,7 @@ protected:
 	void Bind(const std::string& name, float& member);
 	void Bind(const std::string& name, double& member);
 	void Bind(const std::string& name, std::string& member);
-	void Bind(const std::string& name, Time::DateTime& member);
+	void Bind(const std::string& name, Gamnet::Time::DateTime& member);
 	template <class T>
 	void Bind(const std::string& name, T& member)
 	{
@@ -81,7 +79,7 @@ private :
 	void Allocation(float& member, const Json::Value& cell);
 	void Allocation(double& member, const Json::Value& cell);
 	void Allocation(std::string& member, const Json::Value& cell);
-	void Allocation(Time::DateTime& member, const Json::Value& cell);
+	void Allocation(Gamnet::Time::DateTime& member, const Json::Value& cell);
 	template <class T>
 	void Allocation(T& member, const Json::Value& cell)
 	{
@@ -131,7 +129,7 @@ public :
 		std::ifstream file(filePath);
 		if(true == file.fail())
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] can not find meta file(path:", filePath, ")");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "[MetaData] can not find meta file(path:", filePath, ")");
 		}
 
 		std::string	line;
@@ -197,10 +195,7 @@ public :
 				
 				std::shared_ptr<T> meta = std::make_shared<T>();
 				meta->Init(row);
-				if(false == meta->OnLoad())
-				{
-					throw Exception(ErrorCode::SystemInitializeError, "[Gamnet::MetaData] OnLoad fail(file:", filePath, ", row_num:", rowNum, ")");
-				}
+				meta->OnLoad();
 				meta_datas.push_back(meta);
 				rowNum++;
 			}
@@ -253,10 +248,10 @@ private :
 	MetaDatas meta_datas;
 };
 
-#define GAMNET_META_MEMBER(member) \
+#define META_MEMBER(member) \
 	Bind(#member, member)
 
-#define GAMNET_META_CUSTOM(member, func_ptr) \
+#define META_CUSTOM(member, func_ptr) \
 	CustomBind(#member, std::bind(&func_ptr, this, std::ref(member), std::placeholders::_1))
-}
+
 #endif

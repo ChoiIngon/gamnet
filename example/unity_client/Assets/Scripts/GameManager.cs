@@ -7,8 +7,8 @@ class GameManager : Util.MonoSingleton<GameManager>
 {
 	public class Scenes
 	{
-		public LobbyMain lobby_main = null;
-		public DungeonMain dungeon_main = null;
+		public Scene.Lobby.Main lobby = null;
+		public Scene.Dungeon.Main dungeon = null;
 	}
 
 	public Gamnet.Session session = new Gamnet.Session();
@@ -28,7 +28,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 			if (Gamnet.ErrorCode.ReconnectFailError == e.ErrorCode)
 			{
 				session.Close();
-				SceneManager.LoadScene("SceneLobby");
+				SceneManager.LoadScene(Scene.Lobby.Main.GetName());
 			}
 		};
 	}

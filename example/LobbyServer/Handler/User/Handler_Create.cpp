@@ -1,6 +1,7 @@
 #include "Handler_Create.h"
 
 #include "../../Component/Account.h"
+#include "../../Util/MetaData.h"
 
 namespace Handler { namespace User {
 
@@ -23,7 +24,7 @@ namespace Handler { namespace User {
 	class ShardIndex
 	{
 	public:
-		struct ShardData : public Gamnet::MetaData
+		struct ShardData : public MetaData
 		{
 			ShardData();
 
@@ -40,7 +41,7 @@ namespace Handler { namespace User {
 		static int Generate();
 	private:
 		std::atomic<int> shard_mod;
-		Gamnet::MetaReader<ShardData> meta_reader;
+		MetaReader<ShardData> meta_reader;
 		int _Generate();
 	};
 
@@ -155,13 +156,13 @@ namespace Handler { namespace User {
 
 	ShardIndex::ShardData::ShardData()
 	{
-		GAMNET_META_MEMBER(shard_num);
-		GAMNET_META_MEMBER(shard_index);
-		GAMNET_META_MEMBER(master_ip);
-		GAMNET_META_MEMBER(master_port);
-		GAMNET_META_MEMBER(db_name);
-		GAMNET_META_MEMBER(db_user);
-		GAMNET_META_MEMBER(db_password);
+		META_MEMBER(shard_num);
+		META_MEMBER(shard_index);
+		META_MEMBER(master_ip);
+		META_MEMBER(master_port);
+		META_MEMBER(db_name);
+		META_MEMBER(db_user);
+		META_MEMBER(db_password);
 	}
 
 	void ShardIndex::Init()

@@ -26,7 +26,7 @@ namespace Handler
 					return;
 				}
 
-				SceneManager.LoadScene("SceneDungeon");
+				SceneManager.LoadScene(Scene.Dungeon.Main.GetName());
 			}
 		}
 	}

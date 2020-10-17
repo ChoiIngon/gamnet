@@ -26,20 +26,12 @@ public class MetaData
 		public List<Cell> cells = new List<Cell>();
 	}
 
+	public MetaData()
+	{
+	}
+
 	public void Init(Row row)
 	{
-		Type type = this.GetType();
-		IEnumerable<FieldInfo> fieldInfos = type.GetFields().Select(field => field);
-
-		Dictionary<string, FieldInfo> members = new Dictionary<string, FieldInfo>();
-		foreach (FieldInfo fieldInfo in fieldInfos)
-		{
-			Debug.Log("\nName    : " + fieldInfo.Name);
-			Debug.Log("FieldType : " + fieldInfo.FieldType);
-
-			members.Add(fieldInfo.Name, fieldInfo);
-		}
-
 		foreach (Cell cell in row.cells)
 		{
 			Header header = cell.header;
@@ -48,39 +40,120 @@ public class MetaData
 				continue;
 			}
 
-			if (false == members.ContainsKey(header.name))
+			Type type = this.GetType();
+			FieldInfo fieldInfo = type.GetField(cell.header.name);
+			if (null == fieldInfo)
 			{
 				continue;
 			}
 
-			FieldInfo fieldInfo = members[header.name];
-			if (typeof(System.Int32) == fieldInfo.FieldType)
-			{
-				fieldInfo.SetValue(this, Int32.Parse(cell.value));
-				Debug.Log("Value : " + fieldInfo.GetValue(this));
-			}
-			else if (typeof(string) == fieldInfo.FieldType)
-			{
-				fieldInfo.SetValue(this, cell.value);
-			}
-			// https://stackoverflow.com/questions/27771648/determine-if-a-type-is-a-generic-list-of-enum-types
-			else if (typeof(IEnumerable) == fieldInfo.FieldType)
-			{
-				Debug.Log("enumberable");
-			}
+			object member = fieldInfo.GetValue(this);
+			SetValue(fieldInfo.FieldType, ref member, cell);
+			fieldInfo.SetValue(this, member);
 		}
 	}
-	protected void Bind(string name, ref bool member)
+	public virtual void OnLoad() { }
+	protected void CustomBind(string name, ValueTransform translator)
 	{
-		bind_functions.Add(name, (object obj) => {
-			FieldInfo fld = typeof(MetaData).GetField(name);
-			fld.GetValue(null);
-		});
+		bind_functions.Add(name, translator);
+	}
+	public void SetValue(Type type, ref object member, Cell cell)
+	{
+		Header header = cell.header;
+		if (true == bind_functions.ContainsKey(header.name))
+		{
+			bind_functions[header.name](ref member, cell.value);
+			return;
+		}
+
+		if (type == typeof(Boolean))
+		{
+			member = Boolean.Parse(cell.value);
+		}
+		else if (type == typeof(Int16))
+		{
+			member = Int16.Parse(cell.value);
+		}
+		else if (type == typeof(UInt16))
+		{
+			member = UInt16.Parse(cell.value);
+		}
+		else if (type == typeof(Int32))
+		{
+			member = Int32.Parse(cell.value);
+		}
+		else if (type == typeof(UInt32))
+		{
+			member = UInt32.Parse(cell.value);
+		}
+		else if (type == typeof(Int64))
+		{
+			member = Int64.Parse(cell.value);
+		}
+		else if (type == typeof(UInt64))
+		{
+			member = UInt64.Parse(cell.value);
+		}
+		else if (type == typeof(float))
+		{
+			member = float.Parse(cell.value);
+		}
+		else if (type == typeof(double))
+		{
+			member = double.Parse(cell.value);
+		}
+		else if (type == typeof(string))
+		{
+			member = cell.value;
+		}
+		else if (type == typeof(DateTime))
+		{
+			member = DateTime.Parse(cell.value);
+		}
+		else if (true == typeof(IList).IsAssignableFrom(type))
+		{
+			if (null == member)
+			{
+				member = (IList)Activator.CreateInstance(type);
+			}
+
+			IList list = (IList)member;
+			Type itemType = type.GetGenericArguments().Single();
+			object item = null;
+			if (list.Count > header.index)
+			{
+				item = list[header.index];
+			}
+			
+			SetValue(itemType, ref item, cell);
+			if (list.Count <= header.index)
+			{
+				list.Insert(header.index, item);
+			}
+		}
+		else
+		{
+			if (null == member)
+			{
+				member = (MetaData)Activator.CreateInstance(type);
+			}
+			cell.header = cell.header.child;
+			MetaData meta = (MetaData)member;
+			FieldInfo childFiledInfo = type.GetField(cell.header.name);
+			if (null == childFiledInfo)
+			{
+				return;
+			}
+
+			object childMember = childFiledInfo.GetValue(meta);
+			meta.SetValue(childFiledInfo.FieldType, ref childMember, cell);
+			childFiledInfo.SetValue(meta, childMember);
+		}
 	}
 
-	private Dictionary<string, Action<object>> bind_functions = new Dictionary<string, Action<object>>();
-
-	public class Reader<T> where T : MetaData, new()
+	public delegate void ValueTransform(ref object member, string value);
+	private Dictionary<string, ValueTransform> bind_functions = new Dictionary<string, ValueTransform>();
+	public class Reader<T> : IEnumerable where T : MetaData, new()
 	{
 		private List<T> meta_datas = null;
 
@@ -108,6 +181,8 @@ public class MetaData
 				}
 				T meta = new T();
 				meta.Init(root);
+				meta.OnLoad();
+				meta_datas.Add(meta);
 			}
 		}
 
@@ -135,7 +210,7 @@ public class MetaData
 			}
 			if (-1 == braceStartPos)
 			{
-				braceStartPos = Int32.MaxValue; 
+				braceStartPos = Int32.MaxValue;
 			}
 			if (-1 == braceEndPos)
 			{
@@ -145,13 +220,19 @@ public class MetaData
 			int columnEndPos = Math.Min(dotPos, braceStartPos);
 			columnEndPos = Math.Min(columnEndPos, column.Length);
 			header.name = column.Substring(0, columnEndPos);
-			Debug.Log("colunm name:" + header.name);
+			Console.WriteLine("column name:" + header.name);
 			if (Int32.MaxValue != dotPos)
 			{
 				header.child = ReadColumnName(cellValue.Substring(dotPos + 1));
 			}
 			return header;
 		}
-
+		public IEnumerator GetEnumerator()
+		{
+			foreach (T meta in meta_datas)
+			{
+				yield return meta;
+			}
+		}
 	}
 }

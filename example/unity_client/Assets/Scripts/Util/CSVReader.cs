@@ -52,7 +52,7 @@ public class CSVReader : IEnumerable
 			column_name_to_index.Add(names[i], i);
 		}
 
-		for (int i = 3; i < data.Length; ++i)
+		for (int i = 2; i < data.Length; ++i)
 		{
 			List<string> row = new List<string>(data[i].Trim(trimChar).Split(','));
 			if (names.Length != row.Count)

@@ -11,20 +11,19 @@ namespace Component {
 		, item_index(0)
 		, item_count(0)
 	{
-		GAMNET_META_MEMBER(event_id);
-		GAMNET_META_MEMBER(mail_message);
-		GAMNET_META_MEMBER(mail_expire_day);
-		GAMNET_META_MEMBER(item_index);
-		GAMNET_META_MEMBER(item_count);
+		META_MEMBER(event_id);
+		META_MEMBER(mail_message);
+		META_MEMBER(mail_expire_day);
+		META_MEMBER(item_index);
+		META_MEMBER(item_count);
 	};
 
-	bool EventMeta::OnLoad() 
+	void EventMeta::OnLoad() 
 	{
 		if(nullptr == Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(item_index))
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemIndex, "(event_id:", event_id, ", item_index:", item_index, ")");
 		}
-		return true;
 	}
 
 	void Manager_Event::Init()
@@ -32,7 +31,7 @@ namespace Component {
 		reader.Read("../MetaData/Event.csv");
 	}
 
-	const Gamnet::MetaReader<EventMeta>::MetaDatas& Manager_Event::GetAllMetaData() const
+	const MetaReader<EventMeta>::MetaDatas& Manager_Event::GetAllMetaData() const
 	{
 		return reader.GetAllMetaData();
 	}
@@ -46,7 +45,7 @@ namespace Component {
 
 	void Event::Load()
 	{
-		const Gamnet::MetaReader<EventMeta>::MetaDatas& metas = Gamnet::Singleton<Manager_Event>::GetInstance().GetAllMetaData();
+		const MetaReader<EventMeta>::MetaDatas& metas = Gamnet::Singleton<Manager_Event>::GetInstance().GetAllMetaData();
 		if(metas.size() > events.size())
 		{
 			auto rows = Gamnet::Database::MySQL::Execute(session->shard_index,

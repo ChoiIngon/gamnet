@@ -3,17 +3,17 @@
 
 #include <memory>
 #include <Gamnet/Library/Time/Time.h>
-#include <Gamnet/Library/MetaData.h>
+#include "../Util/MetaData.h"
 
 class UserSession;
 
 namespace Component {
 	
-	struct EventMeta : public Gamnet::MetaData
+	struct EventMeta : public MetaData
 	{
 		EventMeta();
 
-		virtual bool OnLoad() override;
+		virtual void OnLoad() override;
 		uint32_t event_id;
 		std::string mail_message;
 		int mail_expire_day;
@@ -25,9 +25,9 @@ namespace Component {
 	{
 	public :
 		void Init();
-		const Gamnet::MetaReader<EventMeta>::MetaDatas& GetAllMetaData() const;
+		const MetaReader<EventMeta>::MetaDatas& GetAllMetaData() const;
 	private :
-		Gamnet::MetaReader<EventMeta> reader;
+		MetaReader<EventMeta> reader;
 	};
 
 	class EventData

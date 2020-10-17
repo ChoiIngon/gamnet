@@ -3,7 +3,7 @@
 
 #include "../../UserSession.h"
 #include "../../../idl/MessageUser.h"
-#include <Gamnet/Library/MetaData.h>
+
 
 namespace Handler { namespace User {
 	

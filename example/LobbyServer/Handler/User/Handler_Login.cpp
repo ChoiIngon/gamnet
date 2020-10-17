@@ -1,10 +1,10 @@
 #include "Handler_Login.h"
 #include "../../Component/Counter.h"
-#include "../../../idl/MessageItem.h"
 #include "../../Component/Account.h"
 #include "../../Component/UserData.h"
 #include "../../Component/Item.h"
 #include "../../Component/Bag.h"
+#include "../../../idl/MessageItem.h"
 
 namespace Handler { namespace User {
 

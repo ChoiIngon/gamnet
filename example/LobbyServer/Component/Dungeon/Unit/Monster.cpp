@@ -14,10 +14,10 @@ Meta::Meta()
 	, name("")
 	, behaviour(nullptr)
 {
-	GAMNET_META_MEMBER(id);
-	GAMNET_META_MEMBER(index);
-	GAMNET_META_MEMBER(name);
-	GAMNET_META_CUSTOM(behaviour, Meta::OnBehaviourPath);
+	META_MEMBER(id);
+	META_MEMBER(index);
+	META_MEMBER(name);
+	META_CUSTOM(behaviour, Meta::OnBehaviourPath);
 }
 
 bool Meta::IsVisible(std::shared_ptr<Unit>& self, const Vector2Int& target)
@@ -72,7 +72,7 @@ Data::~Data()
 
 void Manager::Init()
 {
-	Gamnet::MetaReader<Meta> reader;
+	MetaReader<Meta> reader;
 	auto& rows = reader.Read("../MetaData/Monster.csv");
 	for (auto& row : rows)
 	{
