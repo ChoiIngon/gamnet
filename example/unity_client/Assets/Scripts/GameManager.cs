@@ -14,7 +14,9 @@ class GameManager : Util.MonoSingleton<GameManager>
 	public Gamnet.Session session = new Gamnet.Session();
 	public bool run_in_background = true;
 	public Scenes scenes = new Scenes();
-	
+	public Component.Counter counter = new Component.Counter();
+	public Component.Bag bag = new Component.Bag();
+	public Component.Mail mail = new Component.Mail();
 	private void Awake()
 	{
 		DontDestroyOnLoad(transform.gameObject);

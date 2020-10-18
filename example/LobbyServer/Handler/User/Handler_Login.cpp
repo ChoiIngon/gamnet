@@ -207,7 +207,7 @@ void Test_Counter_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 
 	for(auto& counter : ntf.counter_datas)
 	{
-		session->counters.insert(std::make_pair((int)counter.counter_id, counter));
+		session->counters.insert(std::make_pair(counter.counter_type, counter));
 	}
 }
 

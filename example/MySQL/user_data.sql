@@ -30,7 +30,7 @@ ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `user_counter` (
 	`counter_seq` INT NOT NULL AUTO_INCREMENT COMMENT 'counter unique identifier',
-	`counter_id` INT NOT NULL,
+	`counter_type` INT NOT NULL,
 	`user_seq`  INT NOT NULL,
 	`counter` INT NOT NULL DEFAULT 0,
 	`update_date` timestamp not null default '0000-00-00 00:00:00',
@@ -58,10 +58,10 @@ ENGINE=InnoDB;
 CREATE TABLE IF NOT EXISTS `user_event` (
 	`event_seq` INT NOT NULL AUTO_INCREMENT,
 	`user_seq`  INT NOT NULL,
-	`event_id` INT NOT NULL,
+	`event_index` INT NOT NULL,
 	`update_date` timestamp not null default '0000-00-00 00:00:00',
 	PRIMARY KEY(`event_seq`),
-	UNIQUE INDEX `unique_index_1` (`user_seq`, `event_id`)
+	UNIQUE INDEX `unique_index_1` (`user_seq`, `event_index`)
 )
 DEFAULT CHARACTER SET=utf8mb4 COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB;

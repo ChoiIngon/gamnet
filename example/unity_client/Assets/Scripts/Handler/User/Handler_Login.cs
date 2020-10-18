@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Handler
 {
@@ -26,7 +25,7 @@ namespace Handler
 					return;
 				}
 
-				SceneManager.LoadScene(Scene.Dungeon.Main.GetName());
+				Handler.Lobby.Handler_Join.SendMsg();
 			}
 		}
 	}

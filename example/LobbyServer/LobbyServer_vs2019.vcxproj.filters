@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="UserSession.cpp" />
+    <ClCompile Include="Component\Account.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\AStarPathFinder.cpp">
+      <Filter>Component\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Bag.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\BresenhamCircle2D.cpp">
+      <Filter>Component\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\BresenhamLine2D.cpp">
+      <Filter>Component\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Counter.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Disconnect.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\Dungeon.cpp">
+      <Filter>Component\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Event.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler\User\Handler_Create.cpp">
+      <Filter>Handler</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler\Dungeon\Handler_CreateDungeon.cpp">
+      <Filter>Handler</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler\User\Handler_Delete.cpp">
+      <Filter>Handler</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler\Lobby\Handler_Join.cpp">
+      <Filter>Handler</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler\User\Handler_Login.cpp">
+      <Filter>Handler</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler\Lobby\Handler_OpenMail.cpp">
+      <Filter>Handler</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler\Item\Handler_OpenPackage.cpp">
+      <Filter>Handler</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler\Dungeon\Handler_PlayerMove.cpp">
+      <Filter>Handler</Filter>
+    </ClCompile>
+    <ClCompile Include="Handler\Http\Handler_ServerState.cpp">
+      <Filter>Handler</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Item.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Mail.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\MetaData.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\Unit\Monster.cpp">
+      <Filter>Component\Dungeon\Unit</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\Unit\MonsterAction.cpp">
+      <Filter>Component\Dungeon\Unit</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\Unit\Player.cpp">
+      <Filter>Component\Dungeon\Unit</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\UserData.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\Rect.cpp">
+      <Filter>Component\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\Tile.cpp">
+      <Filter>Component\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\Vector2.cpp">
+      <Filter>Component\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="Component\Dungeon\Unit.cpp">
+      <Filter>Component\Dungeon\Unit</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="UserSession.h" />
+    <ClInclude Include="Component\Account.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\AStarPathFinder.h">
+      <Filter>Component\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Bag.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\Unit\BehaviourTree.h">
+      <Filter>Component\Dungeon\Unit</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\BresenhamCircle2D.h">
+      <Filter>Component\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\BresenhamLine2D.h">
+      <Filter>Component\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Counter.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Disconnect.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\Dungeon.h">
+      <Filter>Component\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Event.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler\User\Handler_Create.h">
+      <Filter>Handler</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler\Dungeon\Handler_CreateDungeon.h">
+      <Filter>Handler</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler\User\Handler_Delete.h">
+      <Filter>Handler</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler\Lobby\Handler_Join.h">
+      <Filter>Handler</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler\User\Handler_Login.h">
+      <Filter>Handler</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler\Lobby\Handler_OpenMail.h">
+      <Filter>Handler</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler\Item\Handler_OpenPackage.h">
+      <Filter>Handler</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler\Dungeon\Handler_PlayerMove.h">
+      <Filter>Handler</Filter>
+    </ClInclude>
+    <ClInclude Include="Handler\Http\Handler_ServerState.h">
+      <Filter>Handler</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Item.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Mail.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\MetaData.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\Unit\Monster.h">
+      <Filter>Component\Dungeon\Unit</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\Unit\MonsterAction.h">
+      <Filter>Component\Dungeon\Unit</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\Unit\Player.h">
+      <Filter>Component\Dungeon\Unit</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\UserData.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\Tile.h">
+      <Filter>Component\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\Rect.h">
+      <Filter>Component\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\Vector2.h">
+      <Filter>Component\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Dungeon\Unit.h">
+      <Filter>Component\Dungeon\Unit</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\idl\MessageUser.idl" />
+    <CustomBuild Include="..\idl\MessageCommon.idl" />
+    <CustomBuild Include="..\idl\MessageLobby.idl" />
+    <CustomBuild Include="..\idl\MessageItem.idl" />
+    <CustomBuild Include="..\idl\MessageDungeon.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Component">
+      <UniqueIdentifier>{c7f0c8ef-e30c-4078-b99a-cda878ab8a57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Handler">
+      <UniqueIdentifier>{f7338c4e-9635-4625-80a5-cd7b5511f598}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{a3502260-f97e-4b74-aade-07947ec0f688}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Dungeon">
+      <UniqueIdentifier>{2a1556e6-ceb8-44b7-9904-480bf2c95af6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Dungeon\Unit">
+      <UniqueIdentifier>{64876d02-1370-4caa-ab5c-1a4198b5d0c1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

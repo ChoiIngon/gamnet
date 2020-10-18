@@ -46,7 +46,7 @@ namespace Handler
 						GameObject obj = new GameObject();
 						obj.transform.SetParent(dungeon.transform, false);
 						obj.transform.localPosition = new Vector3(x, y, 0.0f);
-						//obj.SetActive(false);
+						obj.SetActive(false);
 
 						Tile tile = obj.AddComponent<Tile>();
 						tile.Init(tileData);

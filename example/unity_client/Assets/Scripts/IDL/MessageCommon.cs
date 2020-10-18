@@ -319,7 +319,7 @@ public struct MailData_Serializer {
 	public static int Size(MailData obj) { return obj.Size(); }
 };
 public class CounterData {
-	public CounterType	counter_id = new CounterType();
+	public CounterType	counter_type = new CounterType();
 	public ulong	update_date = 0;
 	public int	count = 0;
 	public CounterData() {
@@ -327,7 +327,7 @@ public class CounterData {
 	public virtual int Size() {
 		int nSize = 0;
 		try {
-			nSize += CounterType_Serializer.Size(counter_id);
+			nSize += CounterType_Serializer.Size(counter_type);
 			nSize += sizeof(ulong);
 			nSize += sizeof(int);
 		} catch(System.Exception) {
@@ -337,7 +337,7 @@ public class CounterData {
 	}
 	public virtual bool Store(MemoryStream _buf_) {
 		try {
-			if(false == CounterType_Serializer.Store(_buf_, counter_id)) { return false; }
+			if(false == CounterType_Serializer.Store(_buf_, counter_type)) { return false; }
 			_buf_.Write(BitConverter.GetBytes(update_date), 0, sizeof(ulong));
 			_buf_.Write(BitConverter.GetBytes(count), 0, sizeof(int));
 		} catch(System.Exception) {
@@ -347,7 +347,7 @@ public class CounterData {
 	}
 	public virtual bool Load(MemoryStream _buf_) {
 		try {
-			if(false == CounterType_Serializer.Load(ref counter_id, _buf_)) { return false; }
+			if(false == CounterType_Serializer.Load(ref counter_type, _buf_)) { return false; }
 			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
 			update_date = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(ulong);
@@ -367,7 +367,7 @@ public struct CounterData_Serializer {
 };
 public class ItemData {
 	public ulong	item_seq = 0;
-	public uint	item_id = 0;
+	public uint	item_index = 0;
 	public ItemType	item_type = new ItemType();
 	public int	item_count = 0;
 	public ItemData() {
@@ -387,7 +387,7 @@ public class ItemData {
 	public virtual bool Store(MemoryStream _buf_) {
 		try {
 			_buf_.Write(BitConverter.GetBytes(item_seq), 0, sizeof(ulong));
-			_buf_.Write(BitConverter.GetBytes(item_id), 0, sizeof(uint));
+			_buf_.Write(BitConverter.GetBytes(item_index), 0, sizeof(uint));
 			if(false == ItemType_Serializer.Store(_buf_, item_type)) { return false; }
 			_buf_.Write(BitConverter.GetBytes(item_count), 0, sizeof(int));
 		} catch(System.Exception) {
@@ -401,7 +401,7 @@ public class ItemData {
 			item_seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(ulong);
 			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
-			item_id = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			item_index = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(uint);
 			if(false == ItemType_Serializer.Load(ref item_type, _buf_)) { return false; }
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }

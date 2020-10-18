@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Scene { namespace Lobby {
+namespace Scene.Lobby {
 	public class Main : MonoBehaviour
 	{
 		public InputField input_host;
@@ -44,6 +44,7 @@ namespace Scene { namespace Lobby {
 
 			GameManager.Instance.session.RegisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Handler.User.Handler_Counter.OnRecv);
 			GameManager.Instance.session.RegisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(Handler.Item.Handler_Item.OnRecv);
+			GameManager.Instance.session.RegisterHandler<Message.Lobby.MsgSvrCli_Mail_Ntf>(Handler.Lobby.Handler_Mail.OnRecv);
 		}
 
 		// Update is called once per frame
@@ -67,11 +68,12 @@ namespace Scene { namespace Lobby {
 		{
 			GameManager.Instance.session.UnregisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Handler.User.Handler_Counter.OnRecv);
 			GameManager.Instance.session.UnregisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(Handler.Item.Handler_Item.OnRecv);
+			GameManager.Instance.session.UnregisterHandler<Message.Lobby.MsgSvrCli_Mail_Ntf>(Handler.Lobby.Handler_Mail.OnRecv);
 			GameManager.Instance.scenes.lobby = null;
 		}
-			public static string GetName()
-			{
-				return "SceneLobby";
-			}
+		public static string GetName()
+		{
+			return "SceneLobby";
 		}
-}}
+	}
+}

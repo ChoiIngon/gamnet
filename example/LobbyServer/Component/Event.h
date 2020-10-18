@@ -14,7 +14,8 @@ namespace Component {
 		EventMeta();
 
 		virtual void OnLoad() override;
-		uint32_t event_id;
+
+		uint32_t index;
 		std::string mail_message;
 		int mail_expire_day;
 		uint32_t item_index;
@@ -30,21 +31,22 @@ namespace Component {
 		MetaReader<EventMeta> reader;
 	};
 
-	class EventData
-	{
-	public :
-		uint32_t event_id;
-		Gamnet::Time::DateTime update_date;
-	};
-
 	class Event
 	{
+	public :
+		class Data
+		{
+		public:
+			uint32_t index;
+			Gamnet::Time::DateTime update_date;
+		};
+
 	public :
 		Event(const std::shared_ptr<UserSession>& session);
 		void Load();
 	private :
 		std::shared_ptr<UserSession> session;
-		std::map<uint32_t, std::shared_ptr<EventData>> events;
+		std::map<uint32_t, std::shared_ptr<Data>> events;
 	};
 
 }

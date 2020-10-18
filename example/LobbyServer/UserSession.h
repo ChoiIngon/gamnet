@@ -100,7 +100,7 @@ public:
 	{
 		components.RemoveComponent<T>();
 	}
-	std::map<uint32_t, Message::CounterData> counters;
+	std::map<Message::CounterType, Message::CounterData> counters;
 	std::map<uint64_t, Message::MailData> mails;
 	std::map<uint64_t, Message::ItemData> items;
 private:

@@ -63,11 +63,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Component\Bag.cs" />
+    <Compile Include="Assets\Scripts\Component\Counter.cs" />
+    <Compile Include="Assets\Scripts\Component\Mail.cs" />
     <Compile Include="Assets\Scripts\EventID.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_CreateDungeon.cs" />
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_PlayerMove.cs" />
     <Compile Include="Assets\Scripts\Handler\Item\Handler_Item.cs" />
+    <Compile Include="Assets\Scripts\Handler\Lobby\Handler_Join.cs" />
+    <Compile Include="Assets\Scripts\Handler\Lobby\Handler_Mail.cs" />
+    <Compile Include="Assets\Scripts\Handler\Lobby\Handler_OpenMail.cs" />
     <Compile Include="Assets\Scripts\Handler\User\Handler_Counter.cs" />
     <Compile Include="Assets\Scripts\Handler\User\Handler_Create.cs" />
     <Compile Include="Assets\Scripts\Handler\User\Handler_Login.cs" />

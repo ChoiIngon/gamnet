@@ -138,7 +138,7 @@ namespace Item
 		operator Message::ItemData() const
 		{
 			Message::ItemData data;
-			data.item_id = meta->index;
+			data.item_index = meta->index;
 			data.item_type = meta->type;
 			data.item_seq = seq;
 			data.item_count = 0;

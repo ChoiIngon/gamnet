@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace Handler
+﻿namespace Handler
 {
 	namespace User
 	{
@@ -8,6 +6,10 @@ namespace Handler
 		{
 			public static void OnRecv(Message.User.MsgSvrCli_Counter_Ntf ntf)
 			{
+				foreach (Message.CounterData counter in ntf.counter_datas)
+				{
+					GameManager.Instance.counter.AddCounter(counter);
+				}
 			}
 		}
 	}

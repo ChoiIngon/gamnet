@@ -5,13 +5,13 @@
 
 namespace Component {
 	EventMeta::EventMeta()
-		: event_id(0)
+		: index(0)
 		, mail_message("")
 		, mail_expire_day(0)
 		, item_index(0)
 		, item_count(0)
 	{
-		META_MEMBER(event_id);
+		META_MEMBER(index);
 		META_MEMBER(mail_message);
 		META_MEMBER(mail_expire_day);
 		META_MEMBER(item_index);
@@ -22,7 +22,7 @@ namespace Component {
 	{
 		if(nullptr == Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(item_index))
 		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemIndex, "(event_id:", event_id, ", item_index:", item_index, ")");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemIndex, "(event_index:", index, ", item_index:", item_index, ")");
 		}
 	}
 
@@ -49,30 +49,30 @@ namespace Component {
 		if(metas.size() > events.size())
 		{
 			auto rows = Gamnet::Database::MySQL::Execute(session->shard_index,
-				"SELECT event_id, update_date FROM user_event WHERE user_seq=", session->user_seq
+				"SELECT event_index, update_date FROM user_event WHERE user_seq=", session->user_seq
 			);
 
 			for(auto& row : rows)
 			{
-				std::shared_ptr<EventData> eventData = std::make_shared<EventData>();
-				eventData->event_id = row->getUInt32("event_id");
+				std::shared_ptr<Data> eventData = std::make_shared<Data>();
+				eventData->index = row->getUInt32("event_index");
 				eventData->update_date = row->getString("update_date");
-				events[eventData->event_id] = eventData;
+				events[eventData->index] = eventData;
 			}
 		}
 
 		for (auto& meta : metas)
 		{
-			auto itr = events.find(meta->event_id);
+			auto itr = events.find(meta->index);
 			if (events.end() == itr)
 			{
 				session->queries->Execute(
-					"INSERT INTO user_event (user_seq, event_id, update_date) VALUES (", session->user_seq, ",", meta->event_id, ",NOW())"
+					"INSERT INTO user_event (user_seq, event_index, update_date) VALUES (", session->user_seq, ",", meta->index, ",NOW())"
 				);
-				std::shared_ptr<EventData> eventData = std::make_shared<EventData>();
-				eventData->event_id = meta->event_id;
+				std::shared_ptr<Data> eventData = std::make_shared<Data>();
+				eventData->index = meta->index;
 				eventData->update_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now());
-				events[eventData->event_id] = eventData;
+				events[eventData->index] = eventData;
 
 				std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
 				mailData->expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->mail_expire_day * 86400);
@@ -86,7 +86,7 @@ namespace Component {
 				auto eventData = itr->second;
 				if (1 <= Gamnet::Time::DateDiff(Gamnet::Time::DateTime(Gamnet::Time::Local::Now()), eventData->update_date))
 				{
-					session->queries->Execute("UPDATE user_event SET update_date=NOW() WHERE user_seq=", session->user_seq, " AND event_id=", eventData->event_id);
+					session->queries->Execute("UPDATE user_event SET update_date=NOW() WHERE user_seq=", session->user_seq, " AND event_index=", eventData->index);
 					std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
 					mailData->expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->mail_expire_day * 86400);
 					mailData->item_index = meta->item_index;

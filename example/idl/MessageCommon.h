@@ -417,7 +417,7 @@ struct MailData_Serializer {
 	static size_t Size(const MailData& obj) { return obj.Size(); }
 };
 struct CounterData {
-	CounterType	counter_id;
+	CounterType	counter_type;
 	uint64_t	update_date;
 	int32_t	count;
 	CounterData()	{
@@ -426,7 +426,7 @@ struct CounterData {
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += CounterType_Serializer::Size(counter_id);
+		nSize += CounterType_Serializer::Size(counter_type);
 		nSize += sizeof(uint64_t);
 		nSize += sizeof(int32_t);
 		return nSize;
@@ -442,7 +442,7 @@ struct CounterData {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		if(false == CounterType_Serializer::Store(_buf_, counter_id)) { return false; }
+		if(false == CounterType_Serializer::Store(_buf_, counter_type)) { return false; }
 		std::memcpy(*_buf_, &update_date, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
 		std::memcpy(*_buf_, &count, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		return true;
@@ -455,7 +455,7 @@ struct CounterData {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(false == CounterType_Serializer::Load(counter_id, _buf_, nSize)) { return false; }
+		if(false == CounterType_Serializer::Load(counter_type, _buf_, nSize)) { return false; }
 		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&update_date, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
 		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&count, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
 		return true;
@@ -468,12 +468,12 @@ struct CounterData_Serializer {
 };
 struct ItemData {
 	uint64_t	item_seq;
-	uint32_t	item_id;
+	uint32_t	item_index;
 	ItemType	item_type;
 	int32_t	item_count;
 	ItemData()	{
 		item_seq = 0;
-		item_id = 0;
+		item_index = 0;
 		item_count = 0;
 	}
 	size_t Size() const {
@@ -496,7 +496,7 @@ struct ItemData {
 	}
 	bool Store(char** _buf_) const {
 		std::memcpy(*_buf_, &item_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
-		std::memcpy(*_buf_, &item_id, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
+		std::memcpy(*_buf_, &item_index, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
 		if(false == ItemType_Serializer::Store(_buf_, item_type)) { return false; }
 		std::memcpy(*_buf_, &item_count, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		return true;
@@ -510,7 +510,7 @@ struct ItemData {
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
 		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&item_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
-		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&item_id, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&item_index, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(false == ItemType_Serializer::Load(item_type, _buf_, nSize)) { return false; }
 		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&item_count, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
 		return true;
