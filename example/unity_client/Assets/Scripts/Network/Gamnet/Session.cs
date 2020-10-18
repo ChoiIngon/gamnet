@@ -124,11 +124,13 @@ namespace Gamnet
 				return;
 			}
 
-			timers[msg_id][0].Stop();
+			System.Timers.Timer timer = timers[msg_id][0];
+			timer.Enabled = false;
+			timer.Stop();
+			timer.Dispose();
 			timers[msg_id].RemoveAt(0);
 		}
 	}
-
 	public class Session
 	{
 		public enum ConnectionState
@@ -180,7 +182,6 @@ namespace Gamnet
 
 		public int heartbeat_time = 60000;
 		private int _connect_timeout = 60000;
-		private object _sync_obj = new object();
 		private Socket _socket = null;
 		private IPEndPoint _endpoint = null;
 		private bool _connect_complete = false;
@@ -294,44 +295,44 @@ namespace Gamnet
 			_handlers.Add(MsgID_SvrCli_Kickout_Ntf, new KickoutHandler(this));
 			_handlers.Add(MsgID_SvrCli_Close_Ans, new CloseHandler(this));
 		}
-		public void Connect(string host, int port, int timeout_sec = 60)
+		public void Connect(string host, int port, int timeout_sec = 10)
 		{
 			try
 			{
-				lock (_sync_obj)
+				lock (this)
 				{
 					_send_queue_idx = 0;
 					_send_queue.Clear();
-				}
 
-				_networkReachability = Application.internetReachability;
-				_timeout_monitor = new TimeoutMonitor();
-				_socket = null;
-				_endpoint = null;
-				_timer = null;
-				_send_seq = 0;
-				_recv_seq = 0;
-				_state = ConnectionState.OnConnecting;
-				_connect_timeout = timeout_sec * 1000;
+					_networkReachability = Application.internetReachability;
+					_timeout_monitor = new TimeoutMonitor();
+					_socket = null;
+					_endpoint = null;
+					_timer = null;
+					_send_seq = 0;
+					_recv_seq = 0;
+					_state = ConnectionState.OnConnecting;
+					_connect_timeout = timeout_sec * 1000;
 
-				IPAddress ip = null;
-				try
-				{
-					ip = IPAddress.Parse(host);
-				}
-				catch (System.FormatException)
-				{
-					IPHostEntry hostEntry = Dns.GetHostEntry(host);
-					if (hostEntry.AddressList.Length > 0)
+					IPAddress ip = null;
+					try
 					{
-						ip = hostEntry.AddressList[0];
+						ip = IPAddress.Parse(host);
 					}
-				}
-				_endpoint = new IPEndPoint(ip, port);
+					catch (System.FormatException)
+					{
+						IPHostEntry hostEntry = Dns.GetHostEntry(host);
+						if (hostEntry.AddressList.Length > 0)
+						{
+							ip = hostEntry.AddressList[0];
+						}
+					}
+					_endpoint = new IPEndPoint(ip, port);
 
-				Socket socket = new Socket(_endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-				socket.BeginConnect(_endpoint, new AsyncCallback(Callback_Connect), socket);
-				SetConnectTimeout();
+					Socket socket = new Socket(_endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+					socket.BeginConnect(_endpoint, new AsyncCallback(Callback_Connect), socket);
+					SetConnectTimeout();
+				}
 			}
 			catch (SocketException e)
 			{
@@ -343,28 +344,33 @@ namespace Gamnet
 		{
 			try
 			{
-				_socket = (Socket)result.AsyncState;
-				_socket.EndConnect(result);
-				_socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
-				_socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
-				//_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
-				//_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
-				_timer.Stop();
+				lock (this)
+				{
+					_socket = (Socket)result.AsyncState;
+					_socket.EndConnect(result);
+					_socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
+					_socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
+					//_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
+					//_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
+					_timer.Stop();
+					Debug.Log("timer stoped");
 
-				Receive();
+					Receive();
 
-				_state = ConnectionState.Connected;
-				_disconnectState = DisconnectState.Invalid;
+					_state = ConnectionState.Connected;
+					_disconnectState = DisconnectState.Invalid;
 
-				Send_Connect_Req();
+					Send_Connect_Req();
 
-				_timer = new System.Timers.Timer();
-				_timer.Interval = heartbeat_time;
-				_timer.AutoReset = true;
-				_timer.Elapsed += delegate {
-					Send_HeartBeat_Req();
-				};
-				_timer.Start();
+					_timer = new System.Timers.Timer();
+					_timer.Interval = heartbeat_time;
+					_timer.AutoReset = true;
+					_timer.Elapsed += delegate
+					{
+						Send_HeartBeat_Req();
+					};
+					_timer.Start();
+				}
 			}
 			catch (System.Exception e)
 			{
@@ -373,71 +379,58 @@ namespace Gamnet
 				Disconnect();
 			}
 		}
-
-		public void Resume()
-		{
-			if (false == _connect_complete)
-			{
-				return;
-			}
-			Debug.Log("[Session.Resume]");
-			Reconnect();
-		}
-
-		public void Pause()
-		{
-			Debug.Log("[Session.Pause]");
-			Disconnect();
-			_disconnectState = DisconnectState.Pause;
-		}
-
 		private void Reconnect()
 		{
-			if (null == _endpoint)
+			lock (this)
 			{
-				Debug.LogError("[Session.Reconnect] invalid destination address");
-				return;
+				if (null == _endpoint)
+				{
+					Debug.LogError("[Session.Reconnect] invalid destination address");
+					return;
+				}
+				if (ConnectionState.Disconnected != _state)
+				{
+					return;
+				}
+				if (DisconnectState.Closed == _disconnectState)
+				{
+					Debug.LogError("[Session.Reconnect] closed session should not try to reconnect");
+					return;
+				}
+				_state = ConnectionState.OnConnecting;
+				Socket socket = new Socket(_endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				socket.BeginConnect(_endpoint, new AsyncCallback(Callback_Reconnect), socket);
+				SetConnectTimeout();
 			}
-			if (ConnectionState.Disconnected != _state)
-			{
-				return;
-			}
-			if (DisconnectState.Closed == _disconnectState)
-			{
-				Debug.LogError("[Session.Reconnect] closed session should not try to reconnect");
-				return;
-			}
-			_state = ConnectionState.OnConnecting;
-			Socket socket = new Socket(_endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-			socket.BeginConnect(_endpoint, new AsyncCallback(Callback_Reconnect), socket);
-			SetConnectTimeout();
 		}
 		private void Callback_Reconnect(IAsyncResult result)
 		{
 			try
 			{
-				_socket = (Socket)result.AsyncState;
-				_socket.EndConnect(result);
-				_socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
-				_socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
-				_timer.Stop();
-
-				Receive();
-
-				_state = ConnectionState.Connected;
-
-				lock (_sync_obj)
+				lock (this)
 				{
+					_socket = (Socket)result.AsyncState;
+					_socket.EndConnect(result);
+					_socket.ReceiveBufferSize = Gamnet.Buffer.BUFFER_SIZE;
+					_socket.SendBufferSize = Gamnet.Buffer.BUFFER_SIZE;
+					_timer.Stop();
+
+					Receive();
+
+					_state = ConnectionState.Connected;
+
 					Send_Reconnect_Req();
 					Send_HeartBeat_Req();
+					
+					_timer = new System.Timers.Timer();
+					_timer.Interval = heartbeat_time;
+					_timer.AutoReset = true;
+					_timer.Elapsed += delegate
+					{
+						Send_HeartBeat_Req();
+					};
+					_timer.Start();
 				}
-				_timer = new System.Timers.Timer();
-				_timer.Interval = heartbeat_time;
-				_timer.AutoReset = true;
-				_timer.Elapsed += delegate {
-					Send_HeartBeat_Req();
-				};
-				_timer.Start();
 			}
 			catch (SocketException e)
 			{
@@ -446,7 +439,6 @@ namespace Gamnet
 				Disconnect();
 			}
 		}
-
 		private void Receive()
 		{
 			try
@@ -465,23 +457,24 @@ namespace Gamnet
 		{
 			try
 			{
-				Gamnet.Buffer buffer = (Gamnet.Buffer)result.AsyncState;
-				int recvBytes = _socket.EndReceive(result);
-				if (0 == recvBytes)
+				lock (this)
 				{
-					Debug.Log("socket read '0' byte. close socket");
-					Disconnect();
-					return;
-				}
-				buffer.write_index += recvBytes;
+					Gamnet.Buffer buffer = (Gamnet.Buffer)result.AsyncState;
+					int recvBytes = _socket.EndReceive(result);
+					if (0 == recvBytes)
+					{
+						Debug.Log("socket read '0' byte. close socket");
+						Disconnect();
+						return;
+					}
+					buffer.write_index += recvBytes;
 
-				ReceiveEvent evt = new ReceiveEvent(this);
-				evt.buffer = buffer;
-				lock (_sync_obj)
-				{
+					ReceiveEvent evt = new ReceiveEvent(this);
+					evt.buffer = buffer;
 					_event_queue.Add(evt);
+
+					Receive();
 				}
-				Receive();
 			}
 			catch (SocketException e)
 			{
@@ -556,12 +549,26 @@ namespace Gamnet
 				_recv_buff.read_index += packetLength - Packet.HEADER_SIZE;
 			}
 		}
-
+		public void Resume()
+		{
+			if (false == _connect_complete)
+			{
+				return;
+			}
+			Debug.Log("[Session.Resume]");
+			Reconnect();
+		}
+		public void Pause()
+		{
+			Debug.Log("[Session.Pause]");
+			Disconnect();
+			_disconnectState = DisconnectState.Pause;
+		}
 		public void Error(Gamnet.Exception e)
 		{
 			ErrorEvent evt = new ErrorEvent(this);
 			evt.exception = e;
-			lock (_sync_obj)
+			lock (this)
 			{
 				_event_queue.Add(evt);
 			}
@@ -569,60 +576,71 @@ namespace Gamnet
 
 		public void Close()
 		{
-			Debug.Log("[Session.Close]");
-			Send_Close_Req();
+			lock (this)
+			{
+				Debug.Log("[Session.Close]");
+				Send_Close_Req();
+			}
 		}
 
 		private void Disconnect()
 		{
-			if (ConnectionState.Disconnected == _state)
+			lock (this)
 			{
-				return;
-			}
-			Debug.Log("[Session.Disconnect] session state:" + _state + ", disconnect state:" + _disconnectState);
-			try
-			{
-				_state = ConnectionState.Disconnected;
-				_timer.Stop();
-
-				if (null == _socket)
+				if (ConnectionState.Disconnected == _state)
 				{
 					return;
 				}
-				//_socket.Shutdown(SocketShutdown.Send);
-				//_socket.BeginDisconnect(false, new AsyncCallback(Callback_Disconnect), _socket);
-				_socket.Close();
-				CloseEvent evt = new CloseEvent(this);
-				lock (_sync_obj)
+				Debug.Log("[Session.Disconnect] session state:" + _state + ", disconnect state:" + _disconnectState);
+				try
 				{
+					_state = ConnectionState.Disconnected;
+					_timer.Enabled = false;
+					_timer.Stop();
+					_timer.Dispose();
+
+					if (null == _socket)
+					{
+						return;
+					}
+					_socket.Shutdown(SocketShutdown.Send);
+					_socket.BeginDisconnect(false, new AsyncCallback(Callback_Disconnect), _socket);
+					//_socket.Close();
+					CloseEvent evt = new CloseEvent(this);
+					lock (this)
+					{
+						_event_queue.Add(evt);
+					}
+				}
+				catch (SocketException e)
+				{
+					Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
+					Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.ToString()));
+				}
+				catch (ObjectDisposedException e)
+				{
+					Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
+				}
+			}
+		}
+		
+		private void Callback_Disconnect(IAsyncResult result) {
+			try
+			{
+				lock (this)
+				{
+					_socket.EndDisconnect(result);
+
+					CloseEvent evt = new CloseEvent(this);
 					_event_queue.Add(evt);
 				}
 			}
 			catch (SocketException e)
 			{
-				Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
-				Error(new Gamnet.Exception(ErrorCode.UndefinedError, e.ToString()));
-			}
-			catch (ObjectDisposedException e)
-			{
-				Debug.LogError("[Session.Disconnect] exception:" + e.ToString());
+				Debug.Log("[Session.Callback_Disconnect] session_state:" + _state + ", exception:" + e.ToString());
 			}
 		}
-		/*
-		private void Callback_Disconnect(IAsyncResult result) {
-			try	{
-				_socket.EndDisconnect(result);
-				
-				CloseEvent evt = new CloseEvent(this);
-				lock(_sync_obj)	{
-					_event_queue.Add(evt);
-				}
-			}
-			catch (SocketException e) {
-                Debug.Log ("[Session.Callback_Disconnect] session_state:" + _state + ", exception:" + e.ToString ());
-			}
-		}
-        */
+        
 		public TimeoutMonitor SendMsg(object msg, bool handOverRelility = false)
 		{
 			if (null == _endpoint)
@@ -664,10 +682,13 @@ namespace Gamnet
 				packet.reliable = handOverRelility;
 				packet.Append(ms);
 
-				SendMsg(packet);
-				if (0 == _send_seq % 30 && ConnectionState.Connected == _state)
+				lock (this)
 				{
-					Send_HeartBeat_Req();
+					SendMsg(packet);
+					if (0 == _send_seq % 30 && ConnectionState.Connected == _state)
+					{
+						Send_HeartBeat_Req();
+					}
 				}
 			}
 			catch (System.Exception e)
@@ -680,21 +701,18 @@ namespace Gamnet
 		}
 		private void SendMsg(Gamnet.Packet packet)
 		{
-			lock (_sync_obj)
+			_send_queue.Add(packet);
+			if (ConnectionState.Connected == _state && 1 == _send_queue.Count - _send_queue_idx)
 			{
-				_send_queue.Add(packet);
-				if (ConnectionState.Connected == _state && 1 == _send_queue.Count - _send_queue_idx)
-				{
-					//Debug.Log("begin send 1(msg_seq:" + _send_queue[_send_queue_idx].msg_seq + ", msg_id:" + _send_queue[_send_queue_idx].msg_id + ")");
-					_socket.BeginSend(_send_queue[_send_queue_idx].data, 0, _send_queue[_send_queue_idx].Size(), 0, new AsyncCallback(Callback_SendMsg), packet);
-				}
+				//Debug.Log("begin send 1(msg_seq:" + _send_queue[_send_queue_idx].msg_seq + ", msg_id:" + _send_queue[_send_queue_idx].msg_id + ")");
+				_socket.BeginSend(_send_queue[_send_queue_idx].data, 0, _send_queue[_send_queue_idx].Size(), 0, new AsyncCallback(Callback_SendMsg), packet);
 			}
 		}
 		private void Callback_SendMsg(IAsyncResult result)
 		{
 			try
 			{
-				lock (_sync_obj)
+				lock (this)
 				{
 					int writedBytes = _socket.EndSend(result);
 					Gamnet.Packet packet = _send_queue[_send_queue_idx];
@@ -730,32 +748,29 @@ namespace Gamnet
 				Error(new Gamnet.Exception(ErrorCode.SendMsgFailError, e.ToString()));
 			}
 		}
-
-		void RemoveSentPacket(uint msg_seq)
+		private void RemoveSentPacket(uint msg_seq)
 		{
-			lock (_sync_obj)
+			while (0 < _send_queue.Count)
 			{
-				while (0 < _send_queue.Count)
+				if (_send_queue[0].msg_seq > msg_seq)
 				{
-					if (_send_queue[0].msg_seq > msg_seq)
-					{
-						break;
-					}
-					if (true == _send_queue[0].reliable)
-					{
-						_send_queue_idx--;
-					}
-					_send_queue.RemoveAt(0);
+					break;
 				}
-
+				if (true == _send_queue[0].reliable)
+				{
+					_send_queue_idx--;
+				}
+				_send_queue.RemoveAt(0);
 			}
 		}
-		void SetConnectTimeout()
+		private void SetConnectTimeout()
 		{
 			_timer = new System.Timers.Timer();
 			_timer.Interval = _connect_timeout;
 			_timer.AutoReset = false;
-			_timer.Elapsed += delegate {
+			_timer.Elapsed += delegate
+			{
+				Debug.Log("connect timeout. exception(" + _endpoint.ToString() + ")");
 				Error(new Gamnet.Exception(ErrorCode.ConnectTimeoutError, "connect timeout. exception(" + _endpoint.ToString() + ")"));
 				Disconnect();
 			};
@@ -763,7 +778,7 @@ namespace Gamnet
 		}
 		public void Update()
 		{
-			lock (_sync_obj)
+			lock (this)
 			{
 				while (0 < _event_queue.Count)
 				{
@@ -830,7 +845,7 @@ namespace Gamnet
 		const uint MsgID_CliSvr_Close_Req = MsgID_Max - 6;
 		const uint MsgID_SvrCli_Close_Ans = MsgID_Max - 6;
 
-		void Send_Connect_Req()
+		private void Send_Connect_Req()
 		{
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = Packet.HEADER_SIZE;
@@ -883,7 +898,7 @@ namespace Gamnet
 			public uint session_key = 0;
 			public string session_token = "";
 		}
-		void Send_Reconnect_Req()
+		private void Send_Reconnect_Req()
 		{
 			Msg_Reconnect_Req req = new Msg_Reconnect_Req();
 			req.session_key = _session_key;
@@ -911,7 +926,6 @@ namespace Gamnet
 				_send_queue.Add(itr);
 			}
 		}
-
 		[System.Serializable]
 		class Msg_Reconnect_Ans
 		{
@@ -961,8 +975,7 @@ namespace Gamnet
 				session._disconnectState = DisconnectState.Invalid;
 			}
 		}
-
-		void Send_HeartBeat_Req()
+		private void Send_HeartBeat_Req()
 		{
 			Reconnect();
 			Gamnet.Packet packet = new Gamnet.Packet();
@@ -973,7 +986,6 @@ namespace Gamnet
 			//Debug.Log("[Session.Send_HeartBeat_Req] send heartbeat req(msg_seq:" + packet.msg_seq + ")");
 			SendMsg(packet);
 		}
-
 		[System.Serializable]
 		class Msg_HeartBeat_Ans
 		{
@@ -1001,13 +1013,12 @@ namespace Gamnet
 				session.RemoveSentPacket(ans.msg_seq);
 			}
 		}
-
 		[System.Serializable]
 		class Msg_ReliableAck_Ntf
 		{
 			public uint ack_seq = 0;
 		}
-		void Send_ReliableAck_Ntf(uint msgSEQ)
+		private void Send_ReliableAck_Ntf(uint msgSEQ)
 		{
 			Reconnect();
 			Msg_ReliableAck_Ntf ntf = new Msg_ReliableAck_Ntf();
@@ -1046,8 +1057,7 @@ namespace Gamnet
 				session.Close();
 			}
 		}
-
-		void Send_Close_Req()
+		private void Send_Close_Req()
 		{
 			if (ConnectionState.Disconnected == _state)
 			{
@@ -1061,7 +1071,6 @@ namespace Gamnet
 			Debug.Log("[Session.Send_Close_Req]");
 			SendMsg(packet);
 		}
-
 		public class CloseHandler : IMsgHandler
 		{
 			private Session session;
