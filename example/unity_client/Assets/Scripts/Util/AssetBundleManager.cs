@@ -56,7 +56,7 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(request);
 		if (null == assetBundle)
 		{
-			throw new System.Exception("Failed to load asset bundle(url:" + assetBundleRepository + ",  bundle_name:" + manifest + ")");
+			throw new System.Exception("Failed to load asset bundle(url:" + assetBundleRepository + ",  bundle_name:" + manifestName + ")");
 		}
 
 		manifest = assetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
@@ -77,7 +77,8 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 
 		string assetBundleRepository = GetAssetBundleRepository(assetBundleName.ToLower());
 
-		UnityWebRequest request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleRepository, 0);
+		Hash128 hash = manifest.GetAssetBundleHash(assetBundleName);
+		UnityWebRequest request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleRepository, hash, 0);
 		yield return request.SendWebRequest();
 		AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(request);
 		if (null == request)
