@@ -8,7 +8,7 @@
 			{
 				foreach (Message.CounterData counter in ntf.counter_datas)
 				{
-					GameManager.Instance.counter.AddCounter(counter);
+					GameManager.Instance.counter.SetCounter(counter);
 				}
 			}
 		}

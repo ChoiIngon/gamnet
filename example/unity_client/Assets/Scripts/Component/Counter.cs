@@ -5,9 +5,19 @@ namespace Component
 {
 	public class Counter : IEnumerable
 	{
-		public Message.CounterData AddCounter(Message.CounterData data)
+		public Message.CounterData SetCounter(Message.CounterData data)
 		{
-			counters.Add(data.counter_type, data);
+			Message.CounterData counter = GetCounter(data.counter_type);
+			if (null == counter)
+			{
+				counters.Add(data.counter_type, data);
+			}
+			else
+			{
+				counters[data.counter_type] = data;
+			}
+
+			Util.EventSystem.Publish<Message.CounterData>(EventID.Event_OnUpdate_Counter_Gold, counter);
 			return data;
 		}
 
@@ -20,6 +30,7 @@ namespace Component
 			}
 			return data;
 		}
+
 		public IEnumerator GetEnumerator()
 		{
 			foreach (var itr in counters)
