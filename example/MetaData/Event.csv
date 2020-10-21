@@ -1,5 +1,5 @@
-Index,Mail_Message,Mail_Expire_Day,Item_Index,Item_Count
+﻿Index,Mail_Message,Mail_Expire_Day,Item_Index,Item_Count
 Int,Text,Int,Int,Int
-1,Event_1,14,100001,10
+1,한글,14,100001,10
 2,Event_2,14,100002,10000
 3,Event_3,365,100003,10
