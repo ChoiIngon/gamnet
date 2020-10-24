@@ -141,6 +141,7 @@
     <ClCompile Include="Component\Dungeon\Rect.cpp" />
     <ClCompile Include="Component\Dungeon\Tile.cpp" />
     <ClCompile Include="Component\Dungeon\Vector2.cpp" />
+    <ClCompile Include="Util\CSVReader.cpp" />
     <ClCompile Include="Handler\Dungeon\Handler_PlayerMove.cpp" />
     <ClCompile Include="Handler\Http\Handler_ServerState.cpp" />
     <ClCompile Include="Handler\Item\Handler_OpenPackage.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="Component\Dungeon\Rect.h" />
     <ClInclude Include="Component\Dungeon\Tile.h" />
     <ClInclude Include="Component\Dungeon\Vector2.h" />
+    <ClInclude Include="Util\CSVReader.h" />
     <ClInclude Include="Handler\Dungeon\Handler_PlayerMove.h" />
     <ClInclude Include="Handler\Http\Handler_ServerState.h" />
     <ClInclude Include="Handler\Item\Handler_OpenPackage.h" />

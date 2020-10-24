@@ -90,6 +90,7 @@
     <ClCompile Include="Component\Dungeon\Unit.cpp">
       <Filter>Component\Dungeon\Unit</Filter>
     </ClCompile>
+    <ClCompile Include="Util\CSVReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="UserSession.h" />
@@ -183,6 +184,7 @@
     <ClInclude Include="Component\Dungeon\Unit.h">
       <Filter>Component\Dungeon\Unit</Filter>
     </ClInclude>
+    <ClInclude Include="Util\CSVReader.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\idl\MessageUser.idl" />
