@@ -10,6 +10,7 @@
 #include <Gamnet/Library/Time/DateTime.h>
 #include <Gamnet/Library/Json/json.h>
 #include <Gamnet/Library/Exception.h>
+#include "CSVReader.h"
 
 class MetaData
 {
@@ -123,84 +124,37 @@ public :
 	typedef std::vector<std::shared_ptr<T>> MetaDatas;
 	const MetaDatas& Read(const std::string& filePath)
 	{
+		CSVReader csv;
+		csv.ReadFile(filePath);
 		meta_datas.clear();
 
 		Json::Value headers;
-		std::ifstream file(filePath);
-		if(true == file.fail())
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "[MetaData] can not find meta file(path:", filePath, ")");
-		}
-
-		std::string	line;
-		std::string cell;
-		std::vector<std::string>	columnNames;
-		
 		// read column
+		for(const std::string& cell : csv.GetColumnNames())
 		{
-			std::getline(file, line);
-			std::stringstream lineStream(line);
-			
-			while (std::getline(lineStream, cell, ','))
-			{
-				boost::algorithm::to_lower(cell);
-				columnNames.push_back(cell);
-				headers.append(ReadColumnName(cell));
-			}
+			headers.append(ReadColumnName(cell));
 		}
 		
-		// skip data type
-		{
-			std::getline(file, line);
-			std::stringstream lineStream(line);
-			int order = 0;
-			while (std::getline(lineStream, cell, ','))
-			{
-				Json::Value& header = headers[order++];
-				ReadColumnType(header, cell);
-			}
-		}
-
 		// read data rows
+		int rowNum = 1;
+		for(auto itr : csv)
 		{
-			int rowNum = 1;
-			while(std::getline(file, line))
+			Json::Value row;
+			row["file"] = filePath;
+			row["row_num"] = rowNum;
+			for(int i=0; i< csv.GetColumnNames().size(); i++)
 			{
-				size_t pos = 0;
-				pos = line.find_last_of('\n');
-				if (std::string::npos != pos)
-				{
-					line = line.substr(0, pos);
-				}
-
-				pos = line.find_last_of('\r');
-				if(std::string::npos != pos)
-				{
-					line = line.substr(0, pos);
-				}
-			
-				std::stringstream lineStream(line);
-		
-				Json::Value row;
-				row["file"] = filePath;
-				row["row_num"] = rowNum;
-				int index = 0;
-				while (std::getline(lineStream, cell, ','))
-				{
-					Json::Value column;
-					column["header"] = headers[index++];
-					column["value"] = cell;
-					row["cells"].append(column);
-				}
-				
-				std::shared_ptr<T> meta = std::make_shared<T>();
-				meta->Init(row);
-				meta->OnLoad();
-				meta_datas.push_back(meta);
-				rowNum++;
+				Json::Value column;
+				column["header"] = headers[i];
+				column["value"] = itr.GetValue(i);
+				row["cells"].append(column);
 			}
+			std::shared_ptr<T> meta = std::make_shared<T>();
+			meta->Init(row);
+			meta->OnLoad();
+			meta_datas.push_back(meta);
+			rowNum++;
 		}
-		
 		return meta_datas;
 	}
 	const MetaDatas& GetAllMetaData() const
