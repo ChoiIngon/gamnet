@@ -33,37 +33,78 @@ public class CSVReader : IEnumerable
 
 	public void ReadStream(string stream)
 	{
-		column_name_to_index = new Dictionary<string, int>();
-		rows = new List<List<string>>();
-		string[] data = stream.Split('\n');
-		char[] trimChar = "\r\"".ToCharArray();
-		string[] names = data[0].Trim(trimChar).Split(',');
-		column_names = new List<string>(names);
-		string[] types = data[1].Trim(trimChar).Split(',');
+		StringReader reader = new StringReader(stream);
+		char[] trimChar = "\r".ToCharArray();
 
-		for (int i = 0; i < names.Length; ++i)
+		// read column name
 		{
-			if (true == String.IsNullOrEmpty(names[i]))
+			string line = reader.ReadLine();
+			column_names = new List<string>(line.Trim(trimChar).Split(','));
+			column_name_to_index = new Dictionary<string, int>();
+			for (int i = 0; i < column_names.Count; ++i)
 			{
-				throw new System.Exception("error");
-			}
+				if (true == String.IsNullOrEmpty(column_names[i]))
+				{
+					throw new System.Exception("empty or null column name is not allowed");
+				}
 
-			names[i] = names[i].Trim(trimChar).ToLower();
-			column_name_to_index.Add(names[i], i);
+				column_names[i] = column_names[i].Trim(trimChar).ToLower();
+				column_name_to_index.Add(column_names[i], i);
+			}
 		}
 
-		for (int i = 2; i < data.Length; ++i)
+		// read data type
 		{
-			List<string> row = new List<string>(data[i].Trim(trimChar).Split(','));
-			if (names.Length != row.Count)
+			reader.ReadLine();
+		}
+
+		{
+			rows = new List<List<string>>();
+			List<string> row = new List<string>();
+			int quotes = 0;
+			int prev = 0;
+			int ch = 0;
+
+			string cell = "";
+			while ((ch = reader.Read()) >= 0)
 			{
-				continue;
+				switch (ch)
+				{
+					case '"':
+						++quotes;
+						break;
+					case ',':
+					case '\n':
+						if (0 == quotes || ('"' == prev && 0 == quotes % 2))
+						{
+							if (2 <= quotes)
+							{
+								cell = cell.Substring(1);
+								cell = cell.Substring(0, cell.Length - 1);
+							}
+							if (2 < quotes)
+							{
+								cell = cell.Replace("\"\"", "\"");
+							}
+							cell = cell.Trim(trimChar);
+							row.Add(cell);
+							cell = "";
+							prev = 0;
+							quotes = 0;
+							if ('\n' == ch)
+							{
+								rows.Add(row);
+								row = new List<string>();
+							}
+							continue;
+						}
+						break;
+					default:
+						break;
+				}
+				prev = ch;
+				cell += Convert.ToChar(prev);
 			}
-			for (int j = 0; j < row.Count; ++j)
-			{
-				row[j] = row[j].Trim(trimChar);
-			}
-			rows.Add(row);
 		}
 	}
 
