@@ -14,9 +14,13 @@ class GameManager : Util.MonoSingleton<GameManager>
 	public Gamnet.Session session = new Gamnet.Session();
 	public bool run_in_background = true;
 	public Scenes scenes = new Scenes();
-	public Component.Counter counter = new Component.Counter();
-	public Component.Bag bag = new Component.Bag();
-	public Component.Mail mail = new Component.Mail();
+	public ResourceManager resource = new ResourceManager();
+
+	public Component.Counter counter = null;
+	public Component.Bag bag = null;
+	public Component.MailBox mailbox = null;
+
+	public UI.Main ui;
 	private void Awake()
 	{
 		DontDestroyOnLoad(transform.gameObject);
@@ -41,6 +45,16 @@ class GameManager : Util.MonoSingleton<GameManager>
 		{
 			Application.runInBackground = run_in_background;
 		}
+		
+		session = new Gamnet.Session();
+		resource = new ResourceManager();
+
+		scenes = new Scenes();
+
+		counter = new Component.Counter();
+		bag = new Component.Bag();
+		mailbox = new Component.MailBox();
+		ui = gameObject.AddComponent<UI.Main>();
 	}
 
 	private void OnApplicationPause(bool pause)

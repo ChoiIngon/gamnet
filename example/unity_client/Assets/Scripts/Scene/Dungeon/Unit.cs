@@ -76,7 +76,7 @@ public class Unit : MonoBehaviour
 		obj.name = name;
 		obj.transform.SetParent(parent, false);
 		SpriteRenderer spriteRenderer = obj.AddComponent<SpriteRenderer>();
-		spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>(spritePath);
+		spriteRenderer.sprite = GameManager.Instance.resource.Load<Sprite>(spritePath);
 		spriteRenderer.sortingLayerName = "Unit";
 		spriteRenderer.sortingOrder = sortingOrder;
 		return obj;

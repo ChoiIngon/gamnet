@@ -6,4 +6,8 @@
 	public const string Event_OnJoinMonster = "Event_OnJoinMonster";
 	public const string Event_OnUpdate_Counter_Gold = "Event_OnUpdate_Counter_Gold";
 	public const string Event_OnUpdate_Counter_Cash = "Event_OnUpdate_Counter_Cash";
+
+	public const string Event_OnAddMail = "Event_OnAddMail";
+	public const string Event_OnRemoveMail = "Event_OnRemoveMail";
+	public const string Event_OnRemoveMailAll = "Event_OnRemoveMailAll";
 }
