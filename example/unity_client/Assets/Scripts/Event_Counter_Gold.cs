@@ -10,13 +10,13 @@ class Event_Counter_Gold : MonoBehaviour
 		gold = GetComponent<Text>();
 		Util.EventSystem.Subscribe<Message.CounterData>(event_id, OnUpdate);
 
-		Message.CounterData counter = GameManager.Instance.counter.GetCounter(Message.CounterType.Gold);
-		if (null == counter)
-		{
-			gold.text = "0";
-			return;
-		}
-		gold.text = counter.count.ToString();
+		//Message.CounterData counter = GameManager.Instance.counter.GetCounter(Message.CounterType.Gold);
+		//if (null == counter)
+		//{
+		//	gold.text = "0";
+		//	return;
+		//}
+		//gold.text = counter.count.ToString();
 	}
 
 	private void OnUpdate(Message.CounterData counter)

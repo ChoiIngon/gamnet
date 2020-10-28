@@ -28,6 +28,7 @@ namespace UI
 		private void OnEnable()
 		{
 			int childIndex = 0;
+			/*
 			foreach (Message.MailData data in GameManager.Instance.mailbox)
 			{
 				Mail mail = null;
@@ -43,6 +44,7 @@ namespace UI
 				}
 				mail.SetMailData(data);
 			}
+			*/
 		}
 
 		private void OnDisable()

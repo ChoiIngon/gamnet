@@ -13,14 +13,14 @@ namespace Scene { namespace Dungeon	{
 		// Start is called before the first frame update
 		void Start()
 		{
-			if (Gamnet.Session.ConnectionState.Connected != GameManager.Instance.session.state)
-			{
-				SceneManager.LoadScene(Scene.Lobby.Main.GetName());
-				return;
-			}
-			GameManager.Instance.scenes.dungeon = this;
-			monsters = new Dictionary<ulong, Unit>();
-			Handler.Dungeon.Handler_CreateDungeon.SendMsg();
+			//if (Gamnet.Session.ConnectionState.Connected != GameManager.Instance.session.state)
+			//{
+			//	SceneManager.LoadScene(Scene.Lobby.Main.GetName());
+			//	return;
+			//}
+			//GameManager.Instance.scenes.dungeon = this;
+			//monsters = new Dictionary<ulong, Unit>();
+			//Handler.Dungeon.Handler_CreateDungeon.SendMsg();
 		}
 
 		// Update is called once per frame

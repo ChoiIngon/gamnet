@@ -9,16 +9,17 @@ namespace Handler
 		{
 			public static void SendMsg(Vector2Int dest)
 			{
-				GameManager.Instance.session.RegisterHandler<Message.Dungeon.MsgSvrCli_PlayerMove_Ans>(Handler_PlayerMove.OnRecv);
-
-				Message.Dungeon.MsgCliSvr_PlayerMove_Req req = new Message.Dungeon.MsgCliSvr_PlayerMove_Req();
-				req.destination.x = dest.x;
-				req.destination.y = dest.y;
-				GameManager.Instance.session.SendMsg(req, true);
+				//GameManager.Instance.session.RegisterHandler<Message.Dungeon.MsgSvrCli_PlayerMove_Ans>(Handler_PlayerMove.OnRecv);
+				//
+				//Message.Dungeon.MsgCliSvr_PlayerMove_Req req = new Message.Dungeon.MsgCliSvr_PlayerMove_Req();
+				//req.destination.x = dest.x;
+				//req.destination.y = dest.y;
+				//GameManager.Instance.session.SendMsg(req, true);
 			}
 
 			public static void OnRecv(Message.Dungeon.MsgSvrCli_PlayerMove_Ans ans)
 			{
+				/*
 				GameManager.Instance.session.UnregisterHandler<Message.Dungeon.MsgSvrCli_PlayerMove_Ans>(Handler_PlayerMove.OnRecv);
 
 				{
@@ -43,6 +44,7 @@ namespace Handler
 					Unit monster = GameManager.Instance.scenes.dungeon.monsters[itr.Key];
 					monster.SetMovePath(path);
 				}
+				*/
 			}
 		}
 	}

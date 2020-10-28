@@ -5,22 +5,15 @@ using UnityEditor;
 
 class GameManager : Util.MonoSingleton<GameManager>
 {
-	public class Scenes
+	public bool run_in_background = true;
+
+	private Network.LobbySession lobby_session = new Network.LobbySession();
+	public Network.LobbySession LobbySession
 	{
-		public Scene.Lobby.Main lobby = null;
-		public Scene.Dungeon.Main dungeon = null;
+		get { return lobby_session; }
 	}
 
-	public Gamnet.Session session = new Gamnet.Session();
-	public bool run_in_background = true;
-	public Scenes scenes = new Scenes();
-	public ResourceManager resource = new ResourceManager();
-
-	public Component.Counter counter = null;
-	public Component.Bag bag = null;
-	public Component.MailBox mailbox = null;
-
-	public UI.Main ui;
+	public UI.UIMain ui;
 	private void Awake()
 	{
 		DontDestroyOnLoad(transform.gameObject);
@@ -28,15 +21,6 @@ class GameManager : Util.MonoSingleton<GameManager>
 		{
 			Application.runInBackground = run_in_background;
 		}
-
-		session.onError += (Gamnet.Exception e) =>
-		{
-			if (Gamnet.ErrorCode.ReconnectFailError == e.ErrorCode)
-			{
-				session.Close();
-				SceneManager.LoadScene(Scene.Lobby.Main.GetName());
-			}
-		};
 	}
 
 	private void Start()
@@ -46,37 +30,17 @@ class GameManager : Util.MonoSingleton<GameManager>
 			Application.runInBackground = run_in_background;
 		}
 		
-		session = new Gamnet.Session();
-		resource = new ResourceManager();
+		ui = GetComponent<UI.UIMain>();
 
-		scenes = new Scenes();
-
-		counter = new Component.Counter();
-		bag = new Component.Bag();
-		mailbox = new Component.MailBox();
-		ui = gameObject.AddComponent<UI.Main>();
+		ui.SetActive(UI.UIMain.UIKey_Login, true);
 	}
 
-	private void OnApplicationPause(bool pause)
+	private void Update()
 	{
-		if (true == pause)
+		if (null != lobby_session)
 		{
-			session.Pause();
+			lobby_session.Update();
 		}
-		else
-		{
-			session.Resume();
-		}
-	}
-
-	private void OnApplicationQuit()
-	{
-		session.Close();
-	}
-	
-	void Update()
-	{
-		session.Update();
 	}
 }
 

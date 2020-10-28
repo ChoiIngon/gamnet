@@ -353,7 +353,6 @@ namespace Gamnet
 					//_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
 					//_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
 					_timer.Stop();
-					Debug.Log("timer stoped");
 
 					Receive();
 
@@ -595,22 +594,17 @@ namespace Gamnet
 				try
 				{
 					_state = ConnectionState.Disconnected;
-					_timer.Enabled = false;
 					_timer.Stop();
-					_timer.Dispose();
-
+					
 					if (null == _socket)
 					{
 						return;
 					}
-					_socket.Shutdown(SocketShutdown.Send);
+					//_socket.Shutdown(SocketShutdown.Send);
 					_socket.BeginDisconnect(false, new AsyncCallback(Callback_Disconnect), _socket);
 					//_socket.Close();
-					CloseEvent evt = new CloseEvent(this);
-					lock (this)
-					{
-						_event_queue.Add(evt);
-					}
+					//CloseEvent evt = new CloseEvent(this);
+					//_event_queue.Add(evt);
 				}
 				catch (SocketException e)
 				{

@@ -55,27 +55,27 @@ public class Tile : MonoBehaviour
     {
 		if (Message.DungeonTileType.Floor == data.type)
 		{
-			spriteRenderer.sprite = GameManager.Instance.resource.Load<Sprite>("Tiles/Dungeon/Floor/floor_vines0"); ;
+			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Floor/floor_vines0"); ;
 		}
 
 		if (Message.DungeonTileType.Wall == data.type)
 		{
-			spriteRenderer.sprite = GameManager.Instance.resource.Load<Sprite>("Tiles/Dungeon/Wall/crystal_wall00");
+			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Wall/crystal_wall00");
 		}
 
 		if (Message.DungeonTileType.Door == data.type)
 		{
-			spriteRenderer.sprite = GameManager.Instance.resource.Load<Sprite>("Tiles/Dungeon/dngn_open_door"); ;
+			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/dngn_open_door"); ;
 		}
 
 		if (Message.DungeonTileType.StairUp == data.type)
 		{
-			spriteRenderer.sprite = GameManager.Instance.resource.Load<Sprite>("Tiles/Dungeon/Gateways/stone_stairs_up"); ;
+			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Gateways/stone_stairs_up"); ;
 		}
 
 		if (Message.DungeonTileType.StairDown == data.type)
 		{
-			spriteRenderer.sprite = GameManager.Instance.resource.Load<Sprite>("Tiles/Dungeon/Gateways/stone_stairs_down"); ;
+			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Gateways/stone_stairs_down"); ;
 		}
 	}
 

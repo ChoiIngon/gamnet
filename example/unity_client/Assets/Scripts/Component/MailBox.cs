@@ -9,12 +9,12 @@ namespace Component
 	{
 		public MailBox()
 		{
-			GameManager.Instance.session.RegisterHandler<Message.Lobby.MsgSvrCli_Mail_Ntf>(AddMail);
+			//GameManager.Instance.session.RegisterHandler<Message.Lobby.MsgSvrCli_Mail_Ntf>(AddMail);
 		}
 
 		~MailBox()
 		{
-			GameManager.Instance.session.UnregisterHandler<Message.Lobby.MsgSvrCli_Mail_Ntf>(AddMail);
+			//GameManager.Instance.session.UnregisterHandler<Message.Lobby.MsgSvrCli_Mail_Ntf>(AddMail);
 		}
 
 		public void AddMail(Message.Lobby.MsgSvrCli_Mail_Ntf ntf)
@@ -34,15 +34,15 @@ namespace Component
 
 		public void OpenMail(UInt64 mailSEQ)
 		{
-			GameManager.Instance.session.RegisterHandler<Message.Lobby.MsgSvrCli_OpenMail_Ans>(RemoveMail);
+			//GameManager.Instance.session.RegisterHandler<Message.Lobby.MsgSvrCli_OpenMail_Ans>(RemoveMail);
 			Message.Lobby.MsgCliSvr_OpenMail_Req req = new Message.Lobby.MsgCliSvr_OpenMail_Req();
 			req.mail_seq = mailSEQ;
-			GameManager.Instance.session.SendMsg(req, true);
+			//GameManager.Instance.session.SendMsg(req, true);
 		}
 
 		public void RemoveMail(Message.Lobby.MsgSvrCli_OpenMail_Ans ans)
 		{
-			GameManager.Instance.session.UnregisterHandler<Message.Lobby.MsgSvrCli_OpenMail_Ans>(RemoveMail);
+			//GameManager.Instance.session.UnregisterHandler<Message.Lobby.MsgSvrCli_OpenMail_Ans>(RemoveMail);
 
 			if (Message.ErrorCode.Success != ans.error_code)
 			{

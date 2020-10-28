@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class ResourceManager
+public class ResourceManager : Util.Singleton<ResourceManager>
 {
 	Dictionary<string, Object> resource = new Dictionary<string, Object>();
 

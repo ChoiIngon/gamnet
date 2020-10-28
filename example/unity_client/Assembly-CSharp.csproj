@@ -72,10 +72,8 @@
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_CreateDungeon.cs" />
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_PlayerMove.cs" />
     <Compile Include="Assets\Scripts\Handler\Item\Handler_Item.cs" />
-    <Compile Include="Assets\Scripts\Handler\Lobby\Handler_Join.cs" />
     <Compile Include="Assets\Scripts\Handler\User\Handler_Counter.cs" />
     <Compile Include="Assets\Scripts\Handler\User\Handler_Create.cs" />
-    <Compile Include="Assets\Scripts\Handler\User\Handler_Login.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageCommon.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageDungeon.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageItem.cs" />
@@ -84,6 +82,7 @@
     <Compile Include="Assets\Scripts\Network\Gamnet\Buffer.cs" />
     <Compile Include="Assets\Scripts\Network\Gamnet\Exception.cs" />
     <Compile Include="Assets\Scripts\Network\Gamnet\Session.cs" />
+    <Compile Include="Assets\Scripts\Network\LobbySession.cs" />
     <Compile Include="Assets\Scripts\Scene\AssetBundle\Main.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\AStarPathFinder.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\BresenhamCircle2D.cs" />
@@ -96,10 +95,11 @@
     <Compile Include="Assets\Scripts\Scene\Dungeon\Tile.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Unit.cs" />
     <Compile Include="Assets\Scripts\Scene\Lobby\Main.cs" />
+    <Compile Include="Assets\Scripts\UI\Lobby.cs" />
     <Compile Include="Assets\Scripts\UI\Login.cs" />
     <Compile Include="Assets\Scripts\UI\MailBox\Mail.cs" />
     <Compile Include="Assets\Scripts\UI\MailBox\MailBox.cs" />
-    <Compile Include="Assets\Scripts\UI\Main.cs" />
+    <Compile Include="Assets\Scripts\UI\UIMain.cs" />
     <Compile Include="Assets\Scripts\Util\AssetBundleManager.cs" />
     <Compile Include="Assets\Scripts\Util\CSVReader.cs" />
     <Compile Include="Assets\Scripts\Util\EventSystem.cs" />

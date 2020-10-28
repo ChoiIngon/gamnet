@@ -9,16 +9,19 @@ namespace Handler
 		{
 			public static void SendMsg()
 			{
+				/*
 				GameManager.Instance.session.RegisterHandler<Message.Dungeon.MsgSvrCli_CreateDungeon_Ans>(Handler_CreateDungeon.OnRecv);
 
 				Message.Dungeon.MsgCliSvr_CreateDungeon_Req req = new Message.Dungeon.MsgCliSvr_CreateDungeon_Req();
 				GameManager.Instance.session.SendMsg(req, true).SetTimeout(Message.Dungeon.MsgSvrCli_CreateDungeon_Ans.MSG_ID, 1, () =>
 				{
 				});
+				*/
 			}
 
 			public static void OnRecv(Message.Dungeon.MsgSvrCli_CreateDungeon_Ans ans)
 			{
+				/*
 				GameManager.Instance.session.UnregisterHandler<Message.Dungeon.MsgSvrCli_CreateDungeon_Ans>(Handler_CreateDungeon.OnRecv);
 				GameObject go = new GameObject();
 				go.name = "Dungeon";
@@ -54,9 +57,9 @@ namespace Handler
 					}
 				}
 
-				GameManager.Instance.scenes.dungeon.dungeon = dungeon;
-				Unit player = GameManager.Instance.scenes.dungeon.player;
-				player.position = new Vector2Int(ans.start.x, ans.start.y);
+				//GameManager.Instance.scenes.dungeon.dungeon = dungeon;
+				//Unit player = GameManager.Instance.scenes.dungeon.player;
+				//player.position = new Vector2Int(ans.start.x, ans.start.y);
 
 				foreach (var monster in ans.monsters)
 				{
@@ -65,10 +68,11 @@ namespace Handler
 					Unit unit = obj.AddComponent<Unit>();
 					unit.seq = monster.seq;
 					unit.position = new Vector2Int(monster.position.x, monster.position.y);
-					obj.transform.SetParent(GameManager.Instance.scenes.dungeon.transform);
+					//obj.transform.SetParent(GameManager.Instance.scenes.dungeon.transform);
 					obj.AddComponent<Monster>();
-					GameManager.Instance.scenes.dungeon.monsters[unit.seq] = unit;
+					//GameManager.Instance.scenes.dungeon.monsters[unit.seq] = unit;
 				}
+				*/
 			}
 		}
 	}
