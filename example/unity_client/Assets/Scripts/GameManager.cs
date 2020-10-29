@@ -6,7 +6,7 @@ using UnityEditor;
 class GameManager : Util.MonoSingleton<GameManager>
 {
 	public bool run_in_background = true;
-
+	public Component.Counter counter = null;
 	private Network.LobbySession lobby_session = new Network.LobbySession();
 	public Network.LobbySession LobbySession
 	{
@@ -21,6 +21,9 @@ class GameManager : Util.MonoSingleton<GameManager>
 		{
 			Application.runInBackground = run_in_background;
 		}
+
+
+		counter = new Component.Counter();
 	}
 
 	private void Start()
@@ -41,6 +44,10 @@ class GameManager : Util.MonoSingleton<GameManager>
 		{
 			lobby_session.Update();
 		}
+	}
+
+	private void Recv_Counter_Ntf(Message.User.MsgSvrCli_Counter_Ntf ntf)
+	{
 	}
 }
 

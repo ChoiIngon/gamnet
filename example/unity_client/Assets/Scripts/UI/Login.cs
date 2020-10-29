@@ -16,11 +16,18 @@ namespace UI
 
 		private int line_count = 0;
 		private const int LINE_LIMIT = 1000;
-		private void Awake()
-		{
-		}
 
 		// Start is called before the first frame update
+		private void Awake()
+		{
+			GameManager.Instance.LobbySession.RegisterHandler<Message.User.MsgSvrCli_Login_Ans>(Recv_Login_Ans);
+			GameManager.Instance.LobbySession.RegisterHandler<Message.User.MsgSvrCli_Create_Ans>(Recv_CreateUser_Ans);
+		}
+		private void OnDestroy()
+		{
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.User.MsgSvrCli_Login_Ans>(Recv_Login_Ans);
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.User.MsgSvrCli_Create_Ans>(Recv_CreateUser_Ans);
+		}
 		void Start()
 		{
 			input_host.gameObject.SetActive(false);
@@ -67,8 +74,6 @@ namespace UI
 			input_port.gameObject.SetActive(true);
 			button_connect.gameObject.SetActive(true);
 			button_close.gameObject.SetActive(true);
-			//GameManager.Instance.session.RegisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Handler.User.Handler_Counter.OnRecv);
-			//GameManager.Instance.session.RegisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(Handler.Item.Handler_Item.OnRecv);
 		}
 
 		private void OnConnect()
@@ -113,18 +118,9 @@ namespace UI
 			scrollrect.verticalNormalizedPosition = 0.0f;
 		}
 
-		private void OnDestroy()
-		{
-			//GameManager.Instance.session.UnregisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Handler.User.Handler_Counter.OnRecv);
-			//GameManager.Instance.session.UnregisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(Handler.Item.Handler_Item.OnRecv);
-			//GameManager.Instance.scenes.lobby = null;
-		}
-
 
 		public void Send_Login_Req()
 		{
-			GameManager.Instance.LobbySession.RegisterHandler<Message.User.MsgSvrCli_Login_Ans>(Recv_Login_Ans);
-
 			Message.User.MsgCliSvr_Login_Req req = new Message.User.MsgCliSvr_Login_Req();
 			req.account_id = SystemInfo.deviceUniqueIdentifier;
 			req.account_type = Message.AccountType.Dev;
@@ -132,13 +128,28 @@ namespace UI
 		}
 		public void Recv_Login_Ans(Message.User.MsgSvrCli_Login_Ans ans)
 		{
-			GameManager.Instance.LobbySession.UnregisterHandler<Message.User.MsgSvrCli_Login_Ans>(Recv_Login_Ans);
 			if (Message.ErrorCode.InvalidUserError == ans.error_code)
 			{
-				Handler.User.Handler_Create.SendMsg();
+				Send_CreateUser_Req();
 				return;
 			}
 			button_start.gameObject.SetActive(true);
+		}
+		public void Send_CreateUser_Req()
+		{
+			Message.User.MsgCliSvr_Create_Req req = new Message.User.MsgCliSvr_Create_Req();
+			req.account_id = SystemInfo.deviceUniqueIdentifier;
+			req.account_type = Message.AccountType.Dev;
+			GameManager.Instance.LobbySession.SendMsg(req, true);
+		}
+		public void Recv_CreateUser_Ans(Message.User.MsgSvrCli_Create_Ans ans)
+		{
+			if (Message.ErrorCode.Success != ans.error_code)
+			{
+				GameManager.Instance.LobbySession.Close();
+				return;
+			}
+			Send_Login_Req();
 		}
 	}
 }

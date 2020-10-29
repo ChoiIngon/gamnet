@@ -27,7 +27,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		LOG(DEV, "Message::User::MsgCliSvr_Login_Req(account_id:", req.account_id, ")");
 		ReadAccountData(session, req.account_id, req.account_type);
 		ReadUserData(session);
-		//ReadUserCounter(session);
+		ReadUserCounter(session);
 		//ReadUserItem(session);
 		
 		std::shared_ptr<Component::UserData> userData = session->GetComponent<Component::UserData>();

@@ -1,10 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Component
 {
 	public class Counter : IEnumerable
 	{
+		public Counter()
+		{
+			GameManager.Instance.LobbySession.RegisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Recv_Counter_Ntf);
+			Debug.Log("init counter");
+		}
+
+		~Counter()
+		{
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Recv_Counter_Ntf);
+		}
+
 		public Message.CounterData SetCounter(Message.CounterData data)
 		{
 			Message.CounterData counter = GetCounter(data.counter_type);
@@ -17,7 +29,7 @@ namespace Component
 				counters[data.counter_type] = data;
 			}
 
-			Util.EventSystem.Publish<Message.CounterData>(EventID.Event_OnUpdate_Counter_Gold, counter);
+			Util.EventSystem.Publish(EventID.Event_OnUpdate_Counter_Gold);
 			return data;
 		}
 
@@ -37,6 +49,15 @@ namespace Component
 			{
 				Message.CounterData counter = itr.Value;
 				yield return counter;
+			}
+		}
+
+		private void Recv_Counter_Ntf(Message.User.MsgSvrCli_Counter_Ntf ntf)
+		{
+			Debug.Log("successed to load counter");
+			foreach (Message.CounterData counter in ntf.counter_datas)
+			{
+				SetCounter(counter);
 			}
 		}
 		private Dictionary<Message.CounterType, Message.CounterData> counters = new Dictionary<Message.CounterType, Message.CounterData>();

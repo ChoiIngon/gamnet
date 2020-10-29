@@ -67,13 +67,10 @@
     <Compile Include="Assets\Scripts\Component\Counter.cs" />
     <Compile Include="Assets\Scripts\Component\MailBox.cs" />
     <Compile Include="Assets\Scripts\EventID.cs" />
-    <Compile Include="Assets\Scripts\Event_Counter_Gold.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_CreateDungeon.cs" />
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_PlayerMove.cs" />
     <Compile Include="Assets\Scripts\Handler\Item\Handler_Item.cs" />
-    <Compile Include="Assets\Scripts\Handler\User\Handler_Counter.cs" />
-    <Compile Include="Assets\Scripts\Handler\User\Handler_Create.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageCommon.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageDungeon.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageItem.cs" />
@@ -95,6 +92,7 @@
     <Compile Include="Assets\Scripts\Scene\Dungeon\Tile.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Unit.cs" />
     <Compile Include="Assets\Scripts\Scene\Lobby\Main.cs" />
+    <Compile Include="Assets\Scripts\UI\Hud\Top\Gold.cs" />
     <Compile Include="Assets\Scripts\UI\Lobby.cs" />
     <Compile Include="Assets\Scripts\UI\Login.cs" />
     <Compile Include="Assets\Scripts\UI\MailBox\Mail.cs" />
