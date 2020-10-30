@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI.Hud.Top
+namespace UI
 {
-	class Gold : MonoBehaviour
+	public class Gold : MonoBehaviour
 	{
 		private Text gold_amount;
 		private void Awake()

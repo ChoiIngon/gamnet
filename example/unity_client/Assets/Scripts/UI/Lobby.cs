@@ -12,7 +12,7 @@ namespace UI
 
 		private void OnEnable()
 		{
-			//Send_Join_Req();
+			Send_Join_Req();
         }
 		// Update is called once per frame
 		void Update()

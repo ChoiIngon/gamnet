@@ -7,6 +7,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 {
 	public bool run_in_background = true;
 	public Component.Counter counter = null;
+	public Component.MailBox mailbox = null;
 	private Network.LobbySession lobby_session = new Network.LobbySession();
 	public Network.LobbySession LobbySession
 	{
@@ -24,6 +25,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 
 
 		counter = new Component.Counter();
+		mailbox = new Component.MailBox();
 	}
 
 	private void Start()
@@ -35,7 +37,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 		
 		ui = GetComponent<UI.UIMain>();
 
-		ui.SetActive(UI.UIMain.UIKey_Login, true);
+		ui.login.gameObject.SetActive(true);
 	}
 
 	private void Update()

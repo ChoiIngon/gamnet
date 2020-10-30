@@ -20,27 +20,11 @@ namespace UI
 		// Start is called before the first frame update
 		private void Awake()
 		{
-			GameManager.Instance.LobbySession.RegisterHandler<Message.User.MsgSvrCli_Login_Ans>(Recv_Login_Ans);
-			GameManager.Instance.LobbySession.RegisterHandler<Message.User.MsgSvrCli_Create_Ans>(Recv_CreateUser_Ans);
-		}
-		private void OnDestroy()
-		{
-			GameManager.Instance.LobbySession.UnregisterHandler<Message.User.MsgSvrCli_Login_Ans>(Recv_Login_Ans);
-			GameManager.Instance.LobbySession.UnregisterHandler<Message.User.MsgSvrCli_Create_Ans>(Recv_CreateUser_Ans);
-		}
-		void Start()
-		{
 			input_host.gameObject.SetActive(false);
 			input_port.gameObject.SetActive(false);
 			button_connect.gameObject.SetActive(false);
 			button_close.gameObject.SetActive(false);
 			button_start.gameObject.SetActive(false);
-
-			input_host.text = PlayerPrefs.GetString("host");
-			input_port.text = PlayerPrefs.GetInt("port").ToString();
-
-			GameManager.Instance.LobbySession.onConnect += OnConnect;
-			GameManager.Instance.LobbySession.onError += OnError;
 
 			button_connect.onClick.AddListener(() =>
 			{
@@ -57,13 +41,33 @@ namespace UI
 
 			button_start.onClick.AddListener(() =>
 			{
-				GameManager.Instance.ui.SetActive(UI.UIMain.UIKey_Login, false);
-				GameManager.Instance.ui.SetActive(UI.UIMain.UIKey_Lobby, true);
+				GameManager.Instance.ui.login.gameObject.SetActive(false);
+				GameManager.Instance.ui.lobby.gameObject.SetActive(true);
+				GameManager.Instance.ui.hud.gameObject.SetActive(true);
 			});
+
+			GameManager.Instance.LobbySession.onConnect += OnConnect;
+			GameManager.Instance.LobbySession.onError += OnError;
+
+			GameManager.Instance.LobbySession.RegisterHandler<Message.User.MsgSvrCli_Login_Ans>(Recv_Login_Ans);
+			GameManager.Instance.LobbySession.RegisterHandler<Message.User.MsgSvrCli_Create_Ans>(Recv_CreateUser_Ans);
+		}
+		private void OnDestroy()
+		{
+			GameManager.Instance.LobbySession.onConnect -= OnConnect;
+			GameManager.Instance.LobbySession.onError -= OnError;
+
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.User.MsgSvrCli_Login_Ans>(Recv_Login_Ans);
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.User.MsgSvrCli_Create_Ans>(Recv_CreateUser_Ans);
+		}
+		void Start()
+		{
+			input_host.text = PlayerPrefs.GetString("host");
+			input_port.text = PlayerPrefs.GetInt("port").ToString();
 
 			string host = PlayerPrefs.GetString("host");
 			int port = PlayerPrefs.GetInt("port");
-			Log("Try to connect to host(" + host + ":" + port + ")");
+
 			if ("" != host && 0 != port)
 			{
 				GameManager.Instance.LobbySession.Connect(host, port);
@@ -83,7 +87,7 @@ namespace UI
 
 		private void OnConnectFail()
 		{
-			Log("Can not connect to host(" + input_host.text + ":" + input_port.text + ")");
+			GameManager.Instance.ui.alert.Open("Connect Fail", "Can not connect to host(" + input_host.text + ":" + input_port.text + ")");
 			input_host.gameObject.SetActive(true);
 			input_port.gameObject.SetActive(true);
 			button_connect.gameObject.SetActive(true);
@@ -118,13 +122,15 @@ namespace UI
 			scrollrect.verticalNormalizedPosition = 0.0f;
 		}
 
-
 		public void Send_Login_Req()
 		{
 			Message.User.MsgCliSvr_Login_Req req = new Message.User.MsgCliSvr_Login_Req();
 			req.account_id = SystemInfo.deviceUniqueIdentifier;
 			req.account_type = Message.AccountType.Dev;
-			GameManager.Instance.LobbySession.SendMsg(req, true);
+			GameManager.Instance.LobbySession.SendMsg(req, true).SetTimeout(Message.User.MsgSvrCli_Login_Ans.MSG_ID, 5, () =>
+			{
+
+			});
 		}
 		public void Recv_Login_Ans(Message.User.MsgSvrCli_Login_Ans ans)
 		{

@@ -10,8 +10,15 @@ namespace UI
         public Text mail_message;
         public Text expire_date;
         public Text item_count;
-
-        public void SetMailData(Message.MailData data)
+        public Button recv_button;
+		private void Awake()
+		{
+            recv_button.onClick.AddListener(() =>
+            {
+                GameManager.Instance.mailbox.OpenMail(this.mail_seq);
+            });
+		}
+		public void SetMailData(Message.MailData data)
         {
             mail_seq = data.mail_seq;
             mail_message.text = data.mail_message;

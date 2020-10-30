@@ -12,11 +12,18 @@ namespace UI
 		}
 		public Mail mail_prefab;
 		public Transform contents;
-
-		private void Start()
+		public const int MAX_MAIL_COUNT = 30;
+		private void Awake()
 		{
 			Util.EventSystem.Subscribe<Message.MailData>(Event.AddMail, OnAddMail);
 			Util.EventSystem.Subscribe<UInt64>(Event.RemoveMail, OnRemoveMail);
+
+			for (int i = 0; i < MAX_MAIL_COUNT; i++)
+			{
+				Mail mail = GameObject.Instantiate<Mail>(mail_prefab);
+				mail.transform.SetParent(contents, false);
+				mail.gameObject.SetActive(false);
+			}
 		}
 
 		private void OnDestroy()
@@ -28,23 +35,24 @@ namespace UI
 		private void OnEnable()
 		{
 			int childIndex = 0;
-			/*
 			foreach (Message.MailData data in GameManager.Instance.mailbox)
 			{
-				Mail mail = null;
-				Transform child = contents.GetChild(childIndex);
-				if (null == child)
+				if (MAX_MAIL_COUNT <= childIndex)
 				{
-					mail = GameObject.Instantiate<Mail>(mail_prefab);
-					mail.transform.SetParent(contents, false);
+					break;
 				}
-				else
-				{
-					mail = child.gameObject.GetComponent<Mail>();
-				}
+				
+				Mail mail = contents.GetChild(childIndex).GetComponent<Mail>();
 				mail.SetMailData(data);
+				mail.gameObject.SetActive(true);
+				childIndex++;
 			}
-			*/
+
+			for (; childIndex < MAX_MAIL_COUNT; childIndex++)
+			{
+				Mail mail = contents.GetChild(childIndex).GetComponent<Mail>();
+				mail.gameObject.SetActive(false);
+			}
 		}
 
 		private void OnDisable()
