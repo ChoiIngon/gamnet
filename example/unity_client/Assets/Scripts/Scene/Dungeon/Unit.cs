@@ -4,6 +4,7 @@ using System;
 
 public class Unit : MonoBehaviour
 {
+	public Component.Dungeon dungeon;
 	public UInt64 seq;
 	public int max_health;
 	public int cur_health;
@@ -14,7 +15,7 @@ public class Unit : MonoBehaviour
 	public float critical_chance;
 	public float critical_rate;
 
-	public Vector2Int position
+	public virtual Vector2Int position
 	{
 		get
 		{
@@ -22,18 +23,7 @@ public class Unit : MonoBehaviour
 		}
 		set
 		{
-			Player player = GetComponent<Player>();
-			if (null != player)
-			{
-				player.SetFieldOfView(value, false);
-			}
-
 			transform.position = new Vector3(value.x, value.y, 0.0f);
-
-			if (null != player)
-			{
-				player.SetFieldOfView(value, true);
-			}
 		}
 	}
 
@@ -69,7 +59,6 @@ public class Unit : MonoBehaviour
 			path.RemoveAt(0);
 		}
 	}
-
 	static public GameObject InitPartsSprite(Transform parent, string name, string spritePath, int sortingOrder)
 	{
 		GameObject obj = new GameObject();

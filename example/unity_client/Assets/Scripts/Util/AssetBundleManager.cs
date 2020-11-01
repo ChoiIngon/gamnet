@@ -70,12 +70,13 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 
 	private IEnumerator _LoadAssetBundle(string assetBundleName)
 	{
-		if (true == asset_bundles.ContainsKey(assetBundleName.ToLower()))
+		assetBundleName = assetBundleName.ToLower();
+		if (true == asset_bundles.ContainsKey(assetBundleName))
 		{
 			yield break;
 		}
 
-		string assetBundleRepository = GetAssetBundleRepository(assetBundleName.ToLower());
+		string assetBundleRepository = GetAssetBundleRepository(assetBundleName);
 
 		Hash128 hash = manifest.GetAssetBundleHash(assetBundleName);
 		UnityWebRequest request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleRepository, hash, 0);
@@ -89,11 +90,11 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		string [] assetNames = assetBundle.GetAllAssetNames();
 		foreach (string fullAssetName in assetNames)
 		{
-			string assetName = Path.GetFileNameWithoutExtension(fullAssetName).ToLower();
+			string assetName = Path.ChangeExtension(fullAssetName.ToLower(), null);
 			Debug.Log("asset name:" + assetName);
 			asset_name_to_bundle.Add(assetName, assetBundle);
 		}
-		asset_bundles.Add(assetBundleName.ToLower(), assetBundle);
+		asset_bundles.Add(assetBundleName, assetBundle);
 	}
 	private string GetAssetBundleRepository(string assetBundleName)
 	{
@@ -118,13 +119,16 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 
 	public T LoadAsset<T>(string assetName) where T : Object
 	{
-		if (false == asset_name_to_bundle.ContainsKey(assetName.ToLower()))
+		assetName = assetName.ToLower();
+		if (false == asset_name_to_bundle.ContainsKey(assetName))
 		{
 			return null;
 		}
 
-		AssetBundle assetBundle = asset_name_to_bundle[assetName.ToLower()];
-		return assetBundle.LoadAsset<T>(assetName.ToLower());
+		AssetBundle assetBundle = asset_name_to_bundle[assetName];
+
+		assetName = Path.GetFileName(assetName);
+		return assetBundle.LoadAsset<T>(assetName);
 	}
 #if UNITY_EDITOR
 	[MenuItem("AssetBundle/Build/Windows", priority = 1)]

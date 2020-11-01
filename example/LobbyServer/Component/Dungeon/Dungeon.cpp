@@ -1,5 +1,6 @@
 #include "Dungeon.h"
 #include "Unit.h"
+#include <Gamnet/Library/Singleton.h>
 #include <Gamnet/Library/Random.h>
 #include <iostream>
 
@@ -13,13 +14,8 @@ void Dungeon::Block::AddNeighbor(std::shared_ptr<Block> block)
 	}
 }
 
-Dungeon::Dungeon()
-	: room_count(0)
-	, min_room_width(0)
-	, max_room_width(0)
-	, min_room_height(0)
-	, max_room_height(0)
-	, min_distance(0)
+Dungeon::Dungeon(const Dungeon::Meta& meta)
+	: meta(meta)
 	, start(nullptr)
 	, end(nullptr)
 {
@@ -27,13 +23,6 @@ Dungeon::Dungeon()
 
 void Dungeon::Init()
 {
-	room_count = std::max(room_count, 1);
-	min_room_width = std::max(min_room_width, 3);
-	max_room_width = std::max(max_room_width, 3);
-	min_room_height = std::max(min_room_height, 3);
-	max_room_height = std::max(max_room_height, 3);
-	min_distance = std::max(min_distance, 1);
-
 	InitBlocks();
 	InitTiles();
 	BuildPath();
@@ -93,12 +82,12 @@ void Dungeon::InitBlocks()
 {
 	int blockID = 1;
 
-	for(int i=0; i<room_count; i++)
+	for(int i=0; i<meta.room.count; i++)
 	{
 		std::shared_ptr<Block> block = std::make_shared<Block>(blockID++);
 		block->type = Block::Type::Room;
-		block->rect.width = Gamnet::Random::Range(min_room_width, max_room_width - 1);
-		block->rect.height = Gamnet::Random::Range(min_room_height, max_room_height - 1);
+		block->rect.width = Gamnet::Random::Range(meta.room.min_width, meta.room.max_width);
+		block->rect.height = Gamnet::Random::Range(meta.room.min_height, meta.room.max_height);
 
 		MoveToEmptySpace(block);
 
@@ -131,8 +120,8 @@ void Dungeon::InitBlocks()
 			block->rect.width = 1;
 			block->rect.height = 1;
 
-			int width = Gamnet::Random::Range(min_room_width, max_room_width - 1);
-			int height = Gamnet::Random::Range(min_room_height, max_room_height - 1);
+			int width = Gamnet::Random::Range(meta.room.min_width, meta.room.max_width);
+			int height = Gamnet::Random::Range(meta.room.min_height, meta.room.max_height);
 
 			if(false == OverlapWithExistBlocks(block))
 			{
@@ -450,12 +439,12 @@ void Dungeon::MoveToEmptySpace(std::shared_ptr<Block> block)
 		{
 			if (1.0f > y / x)
 			{
-				block->rect.x += dx * min_distance;
+				block->rect.x += dx * meta.room.min_distance;
 				block->rect.y = dy * (int)(y / x * block->rect.x) + Gamnet::Random::Range(0, 3);
 			}
 			else
 			{
-				block->rect.y += dy * min_distance;
+				block->rect.y += dy * meta.room.min_distance;
 				block->rect.x = dx * (int)(x / y * block->rect.y) + Gamnet::Random::Range(0, 3);
 			}
 		}
@@ -713,5 +702,97 @@ Dungeon::Path::Path(int prev, int tileIndex)
 	: prev(prev)
 	, tile_index(tileIndex)
 {
+}
+
+Dungeon::Meta::Room::Room()
+	: count(0)
+	, min_width(0)
+	, max_width(0)
+	, min_height(0)
+	, max_height(0)
+	, min_distance(0)
+{
+	META_MEMBER(count);
+	META_MEMBER(min_width);
+	META_MEMBER(max_width);
+	META_MEMBER(min_height);
+	META_MEMBER(max_height);
+	META_MEMBER(min_distance);
+}
+
+Dungeon::Meta::Monster::Monster()
+	: id("")
+	, level(0)
+	, count(0)
+{
+	META_MEMBER(id);
+	META_MEMBER(level);
+	META_MEMBER(count);
+}
+
+Dungeon::Meta::Meta()
+	: id("")
+	, index(0)
+	, level(0)
+{
+	META_MEMBER(id);
+	META_MEMBER(index);
+	META_MEMBER(level);
+	META_MEMBER(room);
+	META_MEMBER(monsters);
+}
+
+void Dungeon::Manager::Init()
+{
+	MetaReader<Meta> reader;
+	auto& rows = reader.Read("../MetaData/Dungeon.csv");
+	for (auto& row : rows)
+	{
+		if (false == id_metas.insert(std::make_pair(row->id, row)).second)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item id(", row->id, ")");
+		}
+		if (false == index_metas.insert(std::make_pair(row->index, row)).second)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item index(", row->index, ")");
+		}
+	}
+}
+
+GAMNET_BIND_INIT_HANDLER(Dungeon::Manager, Init);
+
+std::shared_ptr<Dungeon> Dungeon::Meta::CreateInstance()
+{
+	return std::make_shared<Dungeon>(*this);
+}
+
+void Dungeon::Meta::OnLoad()
+{
+	room.count = std::max(room.count, 1);
+	room.min_width = std::max(room.min_width, 3);
+	room.max_width = std::max(room.max_width, 3);
+	room.min_height = std::max(room.min_height, 3);
+	room.max_height = std::max(room.min_height, 3);
+	room.min_distance = std::max(room.min_distance, 1);
+}
+
+std::shared_ptr<Dungeon::Meta> Dungeon::Manager::FindMeta(const std::string& id)
+{
+	auto itr = id_metas.find(id);
+	if (id_metas.end() == itr)
+	{
+		return nullptr;
+	}
+	return itr->second;
+}
+
+std::shared_ptr<Dungeon::Meta> Dungeon::Manager::FindMeta(uint32_t index)
+{
+	auto itr = index_metas.find(index);
+	if (index_metas.end() == itr)
+	{
+		return nullptr;
+	}
+	return itr->second;
 }
 }

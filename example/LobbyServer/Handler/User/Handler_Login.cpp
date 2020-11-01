@@ -28,7 +28,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		ReadAccountData(session, req.account_id, req.account_type);
 		ReadUserData(session);
 		ReadUserCounter(session);
-		//ReadUserItem(session);
+		ReadUserItem(session);
 		
 		std::shared_ptr<Component::UserData> userData = session->GetComponent<Component::UserData>();
 		ans.user_data.user_seq = userData->user_seq;

@@ -8,13 +8,13 @@ namespace UI
 		private Text gold_amount;
 		private void Awake()
 		{
-			Util.EventSystem.Subscribe(EventID.Event_OnUpdate_Counter_Gold, OnUpdate);
+			Util.EventSystem.Subscribe(Component.Counter.Event.SetCounter, OnUpdate);
 			gold_amount = transform.Find("Text").GetComponent<Text>();
 			gold_amount.text = "LOAD ERROR";
 		}
 		private void OnDestroy()
 		{
-			Util.EventSystem.Unsubscribe(EventID.Event_OnUpdate_Counter_Gold, OnUpdate);
+			Util.EventSystem.Unsubscribe(Component.Counter.Event.SetCounter, OnUpdate);
 		}
 		private void OnEnable()
 		{

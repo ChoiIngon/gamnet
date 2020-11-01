@@ -7,6 +7,14 @@ namespace Component
 {
 	class MailBox : IEnumerable
 	{
+		public class Event
+		{
+			public const string AddMail = "MailBox.Event.AddMail";
+			public const string RemoveMail = "MailBox.Event.RemoveMail";
+		}
+
+		private Dictionary<UInt64, Message.MailData> mail_datas = new Dictionary<UInt64, Message.MailData>();
+
 		public MailBox()
 		{
 			GameManager.Instance.LobbySession.RegisterHandler<Message.Lobby.MsgSvrCli_Mail_Ntf>(AddMail);
@@ -28,7 +36,7 @@ namespace Component
 		{
 			Debug.Log("recv mail:" + data.mail_message);
 			mail_datas.Add(data.mail_seq, data);
-			Util.EventSystem.Publish<Message.MailData>(UI.MailBox.Event.AddMail, data);
+			Util.EventSystem.Publish<Message.MailData>(Event.AddMail, data);
 			return data;
 		}
 
@@ -57,7 +65,7 @@ namespace Component
 			{
 				RemoveMail(ans.mail_seq);
 			}
-			Util.EventSystem.Publish<UInt64>(UI.MailBox.Event.RemoveMail, ans.mail_seq);
+			Util.EventSystem.Publish<UInt64>(Event.RemoveMail, ans.mail_seq);
 		}
 		public Message.MailData GetMail(UInt64 mailSEQ)
 		{
@@ -85,7 +93,5 @@ namespace Component
 				yield return mail;
 			}
 		}
-		
-		private Dictionary<UInt64, Message.MailData> mail_datas = new Dictionary<UInt64, Message.MailData>();
 	}
 }

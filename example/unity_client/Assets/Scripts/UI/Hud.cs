@@ -7,7 +7,7 @@ namespace UI
 	{
 		public Gold gold;
 		public Button mail_button;
-		public Button quest_button;
+		public Button bag_button;
 		public Button setting_button;
 
 		private void Awake()
@@ -16,10 +16,20 @@ namespace UI
 			{
 				GameManager.Instance.ui.mailbox.gameObject.SetActive(true);
 			});
+
+			bag_button.onClick.AddListener(() =>
+			{
+				GameManager.Instance.ui.bag.gameObject.SetActive(true);
+			});
+		}
+
+		private void OnEnable()
+		{
+			
 		}
 		private void OnDestroy()
 		{
 			
-		}
+		}		
 	}
 }

@@ -9,18 +9,18 @@ namespace Handler
 		{
 			public static void SendMsg(Vector2Int dest)
 			{
-				//GameManager.Instance.session.RegisterHandler<Message.Dungeon.MsgSvrCli_PlayerMove_Ans>(Handler_PlayerMove.OnRecv);
-				//
-				//Message.Dungeon.MsgCliSvr_PlayerMove_Req req = new Message.Dungeon.MsgCliSvr_PlayerMove_Req();
-				//req.destination.x = dest.x;
-				//req.destination.y = dest.y;
-				//GameManager.Instance.session.SendMsg(req, true);
+				GameManager.Instance.LobbySession.RegisterHandler<Message.Dungeon.MsgSvrCli_PlayerMove_Ans>(Handler_PlayerMove.OnRecv);
+				
+				Message.Dungeon.MsgCliSvr_PlayerMove_Req req = new Message.Dungeon.MsgCliSvr_PlayerMove_Req();
+				req.destination.x = dest.x;
+				req.destination.y = dest.y;
+				GameManager.Instance.LobbySession.SendMsg(req, true);
 			}
 
 			public static void OnRecv(Message.Dungeon.MsgSvrCli_PlayerMove_Ans ans)
 			{
-				/*
-				GameManager.Instance.session.UnregisterHandler<Message.Dungeon.MsgSvrCli_PlayerMove_Ans>(Handler_PlayerMove.OnRecv);
+				
+				GameManager.Instance.LobbySession.UnregisterHandler<Message.Dungeon.MsgSvrCli_PlayerMove_Ans>(Handler_PlayerMove.OnRecv);
 
 				{
 					List<Vector2Int> path = new List<Vector2Int>();
@@ -29,10 +29,11 @@ namespace Handler
 						path.Add(new Vector2Int(point.x, point.y));
 					}
 
-					Unit player = GameManager.Instance.scenes.dungeon.player;
+					Unit player = GameManager.Instance.dungeon.player;
 					player.SetMovePath(path);
 				}
 
+				/*
 				foreach (var itr in ans.monster_moves)
 				{
 					List<Vector2Int> path = new List<Vector2Int>();

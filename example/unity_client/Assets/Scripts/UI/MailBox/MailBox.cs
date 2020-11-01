@@ -1,23 +1,30 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UI
 {
     public class MailBox : MonoBehaviour
     {
-		public class Event
-		{
-			public const string AddMail = "UI.MailBox.Event.AddMail";
-			public const string RemoveMail = "UI.MailBox.Event.RemoveMail";
-		}
 		public Mail mail_prefab;
-		public Transform contents;
-		public const int MAX_MAIL_COUNT = 30;
+		private Transform contents = null;
+		private const int MAX_MAIL_COUNT = 30;
+		public Button close_button;
+		public Button recv_all_button;
 		private void Awake()
 		{
-			Util.EventSystem.Subscribe<Message.MailData>(Event.AddMail, OnAddMail);
-			Util.EventSystem.Subscribe<UInt64>(Event.RemoveMail, OnRemoveMail);
+			contents = transform.Find("ScrollRect/Viewport/Content");
+			Util.EventSystem.Subscribe<Message.MailData>(Component.MailBox.Event.AddMail, OnAddMail);
+			Util.EventSystem.Subscribe<UInt64>(Component.MailBox.Event.RemoveMail, OnRemoveMail);
 
+			close_button.onClick.AddListener(() =>
+			{
+				this.gameObject.SetActive(false);
+			});
+			recv_all_button.onClick.AddListener(() =>
+			{
+				GameManager.Instance.mailbox.OpenMail(0);
+			});
 			for (int i = 0; i < MAX_MAIL_COUNT; i++)
 			{
 				Mail mail = GameObject.Instantiate<Mail>(mail_prefab);
@@ -25,13 +32,11 @@ namespace UI
 				mail.gameObject.SetActive(false);
 			}
 		}
-
 		private void OnDestroy()
 		{
-			Util.EventSystem.Unsubscribe<Message.MailData>(Event.AddMail);
-			Util.EventSystem.Unsubscribe<UInt64>(Event.RemoveMail);
+			Util.EventSystem.Unsubscribe<Message.MailData>(Component.MailBox.Event.AddMail);
+			Util.EventSystem.Unsubscribe<UInt64>(Component.MailBox.Event.RemoveMail);
 		}
-
 		private void OnEnable()
 		{
 			int childIndex = 0;
@@ -54,7 +59,6 @@ namespace UI
 				mail.gameObject.SetActive(false);
 			}
 		}
-
 		private void OnDisable()
 		{
 			
@@ -65,10 +69,18 @@ namespace UI
 			mail.SetMailData(data);
 			mail.transform.SetParent(contents);
 		}
-
 		private void OnRemoveMail(UInt64 mailSEQ)
 		{
 			if (0 == mailSEQ)
+			{
+				while (0 < contents.childCount)
+				{
+					Transform child = contents.GetChild(0);
+					child.SetParent(null);
+					GameObject.Destroy(child.gameObject);
+				}
+			}
+			else
 			{
 				foreach (Transform child in contents.transform)
 				{
@@ -82,15 +94,6 @@ namespace UI
 							return;
 						}
 					}
-				}
-			}
-			else
-			{
-				while (0 < contents.childCount)
-				{
-					Transform child = contents.GetChild(0);
-					child.SetParent(null);
-					GameObject.Destroy(child.gameObject);
 				}
 			}
 		}

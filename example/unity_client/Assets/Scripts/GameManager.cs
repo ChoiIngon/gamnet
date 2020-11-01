@@ -2,19 +2,28 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
+using System.Collections;
 
 class GameManager : Util.MonoSingleton<GameManager>
 {
+	private Network.LobbySession lobby_session = new Network.LobbySession();
+
 	public bool run_in_background = true;
+	public string asset_bundle_url = "";
+
+	public Component.Lobby lobby = null;
+	public Component.Dungeon dungeon = null;
+
 	public Component.Counter counter = null;
 	public Component.MailBox mailbox = null;
-	private Network.LobbySession lobby_session = new Network.LobbySession();
+	public Component.Bag bag = null;
+
+	public UI.UIMain ui = null;
 	public Network.LobbySession LobbySession
 	{
 		get { return lobby_session; }
 	}
 
-	public UI.UIMain ui;
 	private void Awake()
 	{
 		DontDestroyOnLoad(transform.gameObject);
@@ -23,20 +32,22 @@ class GameManager : Util.MonoSingleton<GameManager>
 			Application.runInBackground = run_in_background;
 		}
 
+		AssetBundleManager.Instance.url = asset_bundle_url;
 
-		counter = new Component.Counter();
-		mailbox = new Component.MailBox();
+		lobby		= transform.Find("Lobby").GetComponent<Component.Lobby>();
+		dungeon		= transform.Find("Dungeon").GetComponent<Component.Dungeon>();
+
+		counter		= new Component.Counter();
+		mailbox		= new Component.MailBox();
+		bag			= new Component.Bag();
+
+		ui = GetComponent<UI.UIMain>();
 	}
 
-	private void Start()
+	private IEnumerator Start()
 	{
-		if (true == Application.isEditor)
-		{
-			Application.runInBackground = run_in_background;
-		}
-		
-		ui = GetComponent<UI.UIMain>();
-
+		yield return Item.Manager.Instance.Init();
+		lobby.gameObject.SetActive(true);
 		ui.login.gameObject.SetActive(true);
 	}
 
@@ -46,10 +57,6 @@ class GameManager : Util.MonoSingleton<GameManager>
 		{
 			lobby_session.Update();
 		}
-	}
-
-	private void Recv_Counter_Ntf(Message.User.MsgSvrCli_Counter_Ntf ntf)
-	{
 	}
 }
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : Unit
 {
 	public class Suit
 	{
@@ -25,21 +25,33 @@ public class Player : MonoBehaviour
 
 	public Body body = new Body();
 	public Suit suit = new Suit();
-
 	// Start is called before the first frame update
+	public override Vector2Int position
+	{
+		get
+		{
+			return new Vector2Int((int)transform.position.x, (int)transform.position.y);
+		}
+		set
+		{
+			dungeon.SetFieldOfView(this, false);
+			transform.position = new Vector3(value.x, value.y, 0.0f);
+			dungeon.SetFieldOfView(this, true);
+		}
+	}
 	private void Start()
     {
-		body.body = RandomPartsSprite(transform, "Body", "Player/Base", 1);
-		body.beard = RandomPartsSprite(transform, "Beard", "Player/Beard", 3);
-		body.hair = RandomPartsSprite(transform, "Hair", "Player/Hair", 2);
 		suit.cloak = RandomPartsSprite(transform, "Clock", "Player/Cloak", 0);
+		body.body = RandomPartsSprite(transform, "Body", "Player/Base", 1);
+		body.hair = RandomPartsSprite(transform, "Hair", "Player/Hair", 2);
 		suit.shirt = RandomPartsSprite(transform, "Shirt", "Player/Body", 2);
+		suit.legs = RandomPartsSprite(transform, "Legs", "Player/Legs", 2);
+		suit.boots = RandomPartsSprite(transform, "Boots", "Player/Boots", 2);
+		body.beard = RandomPartsSprite(transform, "Beard", "Player/Beard", 3);
+		suit.head = RandomPartsSprite(transform, "Head", "Player/Head", 3);
 		suit.gloves = RandomPartsSprite(transform, "Gloves", "Player/Gloves", 3);
 		suit.hand_1 = RandomPartsSprite(transform, "Hand1", "Player/Hand1", 4);
 		suit.hand_2 = RandomPartsSprite(transform, "Hand2", "Player/Hand2", 4);
-		suit.head = RandomPartsSprite(transform, "Head", "Player/Head", 3);
-		suit.legs = RandomPartsSprite(transform, "Legs", "Player/Legs", 2);
-		suit.boots = RandomPartsSprite(transform, "Boots", "Player/Boots", 2);
 
 		Util.EventSystem.Subscribe<Vector2Int>(EventID.Event_OnTouch, OnMove);
 	}
@@ -64,54 +76,7 @@ public class Player : MonoBehaviour
 		Handler.Dungeon.Handler_PlayerMove.SendMsg(to);
 	}
 	
-	public void SetFieldOfView(Vector2Int position, bool visible)
-	{
-		/*
-		Unit self = GetComponent<Unit>();
-		Component.Dungeon dungeon = GameManager.Instance.scenes.dungeon.dungeon;
-		BresenhamCircle2D circle = new BresenhamCircle2D(self.position, 10 - 1);
-
-		foreach (Vector2Int circumference in circle)
-		{
-			BresenhamLine2D line = new BresenhamLine2D(self.position, circumference);
-			foreach (Vector2Int point in line)
-			{
-				Tile.Data tile = dungeon.GetTileData(point.x, point.y);
-				if (null == tile)
-				{
-					break;
-				}
-				tile.visible = visible;
-
-				if (Message.DungeonTileType.Wall == tile.type)
-				{
-					break;
-				}
-
-				if (dungeon.width * dungeon.height > tile.index + 1)
-				{
-					dungeon.GetTileData(point.x + 1, point.y).visible = visible;
-				}
-
-				if (dungeon.width * dungeon.height > tile.index + dungeon.width)
-				{
-					dungeon.GetTileData(point.x, point.y + 1).visible = visible;
-				}
-
-				if (0 <= tile.index - 1)
-				{
-					dungeon.GetTileData(point.x - 1, point.y).visible = visible;
-				}
-
-				if (0 <= tile.index - dungeon.width)
-				{
-					dungeon.GetTileData(point.x, point.y - 1).visible = visible;
-				}
-			}
-		}
-		*/
-	}
-
+	
 	private GameObject RandomPartsSprite(Transform parent, string name, string spriteDirPath, int sortingOrder)
 	{
 		GameObject obj = new GameObject();

@@ -6,6 +6,7 @@
 #include <memory>
 #include "Rect.h"
 #include "Tile.h"
+#include "../../Util/MetaData.h"
 
 class Player;
 class Unit;
@@ -13,6 +14,40 @@ class Unit;
 namespace Component {
 class Dungeon
 {
+public :
+	struct Meta : public std::enable_shared_from_this<Meta>, public MetaData
+	{
+		struct Room : public MetaData
+		{
+			Room();
+			int count;
+			int min_width;
+			int max_width;
+			int min_height;
+			int max_height;
+			int min_distance;
+		};
+
+		struct Monster : public MetaData
+		{
+			Monster();
+			std::string id;
+			int level;
+			int count;
+		};
+
+		Meta();
+		std::string id;
+		int			index;
+		int			level;
+		Room		room;
+		std::vector<Monster> monsters;
+
+		std::shared_ptr<Dungeon> CreateInstance();
+
+		virtual void OnLoad() override;
+	};
+private :
 	struct Block
 	{
 		enum class Type
@@ -50,7 +85,7 @@ class Dungeon
 	};
 
 public :
-	Dungeon();
+	Dungeon(const Meta& meta);
 
 	void Init();
 	std::shared_ptr<Tile> GetTile(int x, int y) const;
@@ -71,12 +106,7 @@ private :
 	void BuildRoomInBlock(std::shared_ptr<Block> block);
 	void BuildCorridorInBlock(std::shared_ptr<Block> block);
 public :
-	int room_count;
-	int min_room_width;
-	int max_room_width;
-	int min_room_height;
-	int max_room_height;
-	int min_distance;
+	const Meta& meta;
 
 	RectInt rect;
 	std::vector<std::shared_ptr<Block>> blocks;
@@ -87,6 +117,18 @@ public :
 public :
 	std::shared_ptr<Unit> player;
 	std::map<uint64_t, std::shared_ptr<Unit>> monster;
+public :
+	class Manager
+	{
+	public :
+		void Init();
+
+		std::shared_ptr<Meta> FindMeta(const std::string& id);
+		std::shared_ptr<Meta> FindMeta(uint32_t index);
+	private :
+		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
+		std::map<std::string, std::shared_ptr<Meta>> id_metas;
+	};
 };
 
 }

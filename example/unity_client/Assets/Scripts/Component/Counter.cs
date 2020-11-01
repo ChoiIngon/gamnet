@@ -6,6 +6,10 @@ namespace Component
 {
 	public class Counter : IEnumerable
 	{
+		public class Event
+		{
+			public const string SetCounter = "Component.Counter.Event.SetCounter";
+		}
 		public Counter()
 		{
 			GameManager.Instance.LobbySession.RegisterHandler<Message.User.MsgSvrCli_Counter_Ntf>(Recv_Counter_Ntf);
@@ -29,7 +33,7 @@ namespace Component
 				counters[data.counter_type] = data;
 			}
 
-			Util.EventSystem.Publish(EventID.Event_OnUpdate_Counter_Gold);
+			Util.EventSystem.Publish(Event.SetCounter);
 			return data;
 		}
 
@@ -59,7 +63,9 @@ namespace Component
 			{
 				SetCounter(counter);
 			}
+			Util.EventSystem.Publish(Event.SetCounter);
 		}
+
 		private Dictionary<Message.CounterType, Message.CounterData> counters = new Dictionary<Message.CounterType, Message.CounterData>();
 	}
 }

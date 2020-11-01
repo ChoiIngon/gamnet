@@ -10,6 +10,7 @@ namespace UI
         public Lobby lobby;
         public Hud hud;
         public MailBox mailbox;
+        public Bag bag;
         //public Bag bag;
         public Alert alert;
         // Start is called before the first frame update

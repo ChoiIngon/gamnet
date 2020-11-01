@@ -65,12 +65,12 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Component\Bag.cs" />
     <Compile Include="Assets\Scripts\Component\Counter.cs" />
+    <Compile Include="Assets\Scripts\Component\Item.cs" />
     <Compile Include="Assets\Scripts\Component\MailBox.cs" />
     <Compile Include="Assets\Scripts\EventID.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_CreateDungeon.cs" />
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_PlayerMove.cs" />
-    <Compile Include="Assets\Scripts\Handler\Item\Handler_Item.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageCommon.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageDungeon.cs" />
     <Compile Include="Assets\Scripts\IDL\MessageItem.cs" />
@@ -85,14 +85,15 @@
     <Compile Include="Assets\Scripts\Scene\Dungeon\BresenhamCircle2D.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\BresenhamLine2D.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Dungeon.cs" />
-    <Compile Include="Assets\Scripts\Scene\Dungeon\Item.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Main.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Monster.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Player.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Tile.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Unit.cs" />
-    <Compile Include="Assets\Scripts\Scene\Lobby\Main.cs" />
+    <Compile Include="Assets\Scripts\Scene\Lobby\Lobby.cs" />
     <Compile Include="Assets\Scripts\UI\Alert.cs" />
+    <Compile Include="Assets\Scripts\UI\Bag.cs" />
+    <Compile Include="Assets\Scripts\UI\Bag\ItemSlot.cs" />
     <Compile Include="Assets\Scripts\UI\Hud.cs" />
     <Compile Include="Assets\Scripts\UI\Hud\Gold.cs" />
     <Compile Include="Assets\Scripts\UI\Lobby.cs" />
