@@ -29,7 +29,38 @@ public class Item : MonoBehaviour
 			Equip,
 			Package
 		}
+		public class Equip : MetaData
+		{
+			public enum PartType
+			{
+				Invalid,
+				Clock,
+				Hair,
+				Legs,
+				Body,
+				Boots,
+				Beard,
+				Head,
+				Gloves,
+				LeftHand,
+				RightHand,
+				TwoHands
+			}
+			public Equip()
+			{
+				CustomBind("part", OnPartType);
+			}
 
+			public PartType part;
+			public int attack;
+			public int defense;
+			public int speed;
+			public string sprite_path;
+			void OnPartType(ref object member, string value)
+			{
+				member = Enum.Parse(typeof(PartType), (value));
+			}
+		}
 		public class Price : MetaData
 		{
 			public Price()
@@ -125,6 +156,7 @@ public class Item : MonoBehaviour
 		public ItemType type;
 		public int grade;
 		public int max_stack;
+		public Equip equip;
 		public Price price;
 		public Expire expire;
 		public List<Package> packages;
@@ -134,12 +166,18 @@ public class Item : MonoBehaviour
 		public IEnumerator Init()
 		{
 			yield return AssetBundleManager.Instance.LoadAssetBundle("MetaData");
-			yield return AssetBundleManager.Instance.LoadAssetBundle("sprites/item");
+			yield return AssetBundleManager.Instance.LoadAssetBundle("Sprites");
 
-			TextAsset textAsset = AssetBundleManager.Instance.LoadAsset<TextAsset>("Assets/MetaData/Item");
+			InitMeta("Assets/MetaData/Item");
+			InitMeta("Assets/MetaData/EquipItem");
+		}
+
+		private void InitMeta(string itemMeta)
+		{
+			TextAsset textAsset = AssetBundleManager.Instance.LoadAsset<TextAsset>(itemMeta);
 			if (null == textAsset)
 			{
-				GameManager.Instance.ui.alert.Open("Failed to load meta file", "can not find 'Assets/MetaData/Item'");
+				GameManager.Instance.ui.alert.Open("Failed to load meta file", "can not find '" + itemMeta + "'");
 				throw new System.Exception();
 			}
 			CSVReader csvReader = new CSVReader();
@@ -162,7 +200,8 @@ public class Item : MonoBehaviour
 				index_metas.Add(meta.index, meta);
 			}
 		}
-		Item CreateInstance(string id, int count)
+
+		public Item CreateInstance(string id, int count)
 		{
 			Meta meta = FindMeta(id);
 			if (null == meta)

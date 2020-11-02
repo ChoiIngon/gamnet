@@ -172,17 +172,25 @@ public class MetaData
 			{
 				Row root = new Row();
 				root.row_num = rowNum++;
+				bool emptyRow = true;
 				for (int i = 0; i < reader.GetColumnNames().Count; i++)
 				{
+					if (false == string.IsNullOrEmpty(row.GetValue(i)))
+					{
+						emptyRow = false;
+					}
 					Cell cell = new Cell();
 					cell.header = headers[i];
 					cell.value = row.GetValue(i);
 					root.cells.Add(cell);
 				}
-				T meta = new T();
-				meta.Init(root);
-				meta.OnLoad();
-				meta_datas.Add(meta);
+				if (false == emptyRow)
+				{
+					T meta = new T();
+					meta.Init(root);
+					meta.OnLoad();
+					meta_datas.Add(meta);
+				}
 			}
 		}
 

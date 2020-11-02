@@ -110,10 +110,17 @@
     <Compile Include="Assets\Scripts\Util\TouchInput.cs" />
     <None Include="Assets\Resources\Tiles\LICENSE.txt" />
     <None Include="Assets\Resources\Tiles\Monster\animals\animals.txt" />
+    <None Include="Assets\Sprites\Tiles\utility\Filtered List.txt" />
+    <None Include="Assets\Sprites\Tiles\utility\Raw List.txt" />
+    <None Include="Assets\Sprites\Tiles\README.txt" />
     <None Include="Assets\Resources\Tiles\utility\README.txt" />
     <None Include="Assets\Resources\Tiles\utility\Raw List.txt" />
     <None Include="Assets\Resources\Tiles\utility\Deleted List.txt" />
     <None Include="Assets\Resources\Tiles\utility\Filtered List.txt" />
+    <None Include="Assets\Sprites\Tiles\utility\Deleted List.txt" />
+    <None Include="Assets\Sprites\Monster\animals\animals.txt" />
+    <None Include="Assets\Sprites\Tiles\LICENSE.txt" />
+    <None Include="Assets\Sprites\Tiles\utility\README.txt" />
     <None Include="Assets\Resources\Tiles\README.txt" />
     <Reference Include="UnityEngine">
       <HintPath>C:/Program Files/Unity/Hub/Editor/2018.3.14f1/Editor/2019.4.12f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>

@@ -8,26 +8,27 @@ namespace Component {
 		: index(0)
 		, mail_message("")
 		, mail_expire_day(0)
-		, item_index(0)
+		, item_id("")
 		, item_count(0)
 	{
 		META_MEMBER(index);
 		META_MEMBER(mail_message);
 		META_MEMBER(mail_expire_day);
-		META_MEMBER(item_index);
+		META_MEMBER(item_id);
 		META_MEMBER(item_count);
 	};
 
 	void EventMeta::OnLoad() 
 	{
-		if(nullptr == Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(item_index))
+		if(nullptr == Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(item_id))
 		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemIndex, "(event_index:", index, ", item_index:", item_index, ")");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemIndex, "(event_index:", index, ", item_index:", item_id, ")");
 		}
 	}
 
 	void Manager_Event::Init()
 	{
+		GAMNET_CALL_INIT_HANDLER(Item::Manager);
 		reader.Read("../MetaData/Event.csv");
 	}
 
@@ -63,6 +64,7 @@ namespace Component {
 
 		for (auto& meta : metas)
 		{
+			auto itemMeta = Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(meta->item_id);
 			auto itr = events.find(meta->index);
 			if (events.end() == itr)
 			{
@@ -76,7 +78,7 @@ namespace Component {
 
 				std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
 				mailData->expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->mail_expire_day * 86400);
-				mailData->item_index = meta->item_index;
+				mailData->item_index = itemMeta->index;
 				mailData->item_count = meta->item_count;
 				mailData->mail_message = meta->mail_message;
 				Mail::SendMail(session, mailData);
@@ -89,7 +91,7 @@ namespace Component {
 					session->queries->Execute("UPDATE user_event SET update_date=NOW() WHERE user_seq=", session->user_seq, " AND event_index=", eventData->index);
 					std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
 					mailData->expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->mail_expire_day * 86400);
-					mailData->item_index = meta->item_index;
+					mailData->item_index = itemMeta->index;
 					mailData->item_count = meta->item_count;
 					mailData->mail_message = meta->mail_message;
 					Mail::SendMail(session, mailData);

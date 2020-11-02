@@ -260,8 +260,14 @@ namespace Item {
 
 	void Manager::Init()
 	{
+		InitMeta("../MetaData/Item.csv");
+		InitMeta("../MetaData/EquipItem.csv");
+	}
+
+	void Manager::InitMeta(const std::string& path)
+	{
 		MetaReader<Meta> reader;
-		auto& rows = reader.Read("../MetaData/Item.csv");
+		auto& rows = reader.Read(path);
 		for (auto& row : rows)
 		{
 			if (false == id_metas.insert(std::make_pair(row->id, row)).second)
@@ -324,5 +330,5 @@ namespace Item {
 		return itr->second;
 	}
 
-	GAMNET_BIND_INIT_HANDLER(Manager, Init);	
+	GAMNET_BIND_INIT_HANDLER(Item::Manager, Init);	
 }

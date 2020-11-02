@@ -18,7 +18,7 @@ namespace Component {
 		uint32_t index;
 		std::string mail_message;
 		int mail_expire_day;
-		uint32_t item_index;
+		std::string item_id;
 		int item_count;
 	};
 

@@ -142,17 +142,28 @@ public :
 			Json::Value row;
 			row["file"] = filePath;
 			row["row_num"] = rowNum;
+
+			bool emptyRow = true;
 			for(int i=0; i< csv.GetColumnNames().size(); i++)
 			{
+				if ("" != itr.GetValue(i))
+				{
+					emptyRow = false;
+				}
+
 				Json::Value column;
 				column["header"] = headers[i];
 				column["value"] = itr.GetValue(i);
 				row["cells"].append(column);
 			}
-			std::shared_ptr<T> meta = std::make_shared<T>();
-			meta->Init(row);
-			meta->OnLoad();
-			meta_datas.push_back(meta);
+
+			if(false == emptyRow)
+			{
+				std::shared_ptr<T> meta = std::make_shared<T>();
+				meta->Init(row);
+				meta->OnLoad();
+				meta_datas.push_back(meta);
+			}
 			rowNum++;
 		}
 		return meta_datas;

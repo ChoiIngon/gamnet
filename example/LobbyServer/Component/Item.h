@@ -141,7 +141,11 @@ namespace Item
 			data.item_index = meta->index;
 			data.item_type = meta->type;
 			data.item_seq = seq;
-			data.item_count = 0;
+			data.item_count = 1;
+			if(nullptr != stack)
+			{
+				data.item_count = stack->count;
+			}
 			return data;
 		}
 	private :
@@ -159,6 +163,7 @@ namespace Item
 		std::shared_ptr<Meta> FindMeta(const std::string& id);
 		std::shared_ptr<Meta> FindMeta(uint32_t index);
 	private :
+		void InitMeta(const std::string& path);
 		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
 		std::map<std::string, std::shared_ptr<Meta>> id_metas;
 	};

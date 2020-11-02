@@ -9,8 +9,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 	private Network.LobbySession lobby_session = new Network.LobbySession();
 
 	public bool run_in_background = true;
-	public string asset_bundle_url = "";
-
+	
 	public Component.Lobby lobby = null;
 	public Component.Dungeon dungeon = null;
 
@@ -32,16 +31,9 @@ class GameManager : Util.MonoSingleton<GameManager>
 			Application.runInBackground = run_in_background;
 		}
 
-		AssetBundleManager.Instance.url = asset_bundle_url;
-
-		lobby		= transform.Find("Lobby").GetComponent<Component.Lobby>();
-		dungeon		= transform.Find("Dungeon").GetComponent<Component.Dungeon>();
-
 		counter		= new Component.Counter();
 		mailbox		= new Component.MailBox();
 		bag			= new Component.Bag();
-
-		ui = GetComponent<UI.UIMain>();
 	}
 
 	private IEnumerator Start()
