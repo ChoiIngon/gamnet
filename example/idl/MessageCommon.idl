@@ -94,7 +94,6 @@ struct ItemData
 {
 	uint64 item_seq;
 	uint32 item_index;
-	ItemType item_type;
 	int32 item_count;
 };
 

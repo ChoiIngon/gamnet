@@ -18,7 +18,12 @@ message MsgSvrCli_OpenPackage_Ans : 130000002
 	ItemData item_data;
 };
 
-message MsgSvrCli_Item_Ntf : 36
+message MsgSvrCli_AddItem_Ntf : 130000003
+{
+	list<ItemData> item_datas;
+};
+
+message MsgSvrCli_UpdateItem_Ntf : 130000004
 {
 	list<ItemData> item_datas;
 };

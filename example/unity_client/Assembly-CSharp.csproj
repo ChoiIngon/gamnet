@@ -80,7 +80,6 @@
     <Compile Include="Assets\Scripts\Network\Gamnet\Exception.cs" />
     <Compile Include="Assets\Scripts\Network\Gamnet\Session.cs" />
     <Compile Include="Assets\Scripts\Network\LobbySession.cs" />
-    <Compile Include="Assets\Scripts\Scene\AssetBundle\Main.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\AStarPathFinder.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\BresenhamCircle2D.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\BresenhamLine2D.cs" />

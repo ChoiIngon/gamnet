@@ -20,7 +20,7 @@ namespace Component {
 			") a WHERE expire_date > NOW() AND item_seq > ", last_item_seq
 		);
 
-		Message::Item::MsgSvrCli_Item_Ntf ntf;
+		Message::Item::MsgSvrCli_AddItem_Ntf ntf;
 		for (auto& row : rows)
 		{
 			std::shared_ptr<Item::Data> item = Gamnet::Singleton<Item::Manager>::GetInstance().CreateInstance(session, row->getUInt32("item_index"), row->getInt("item_count"));
@@ -42,9 +42,9 @@ namespace Component {
 	void Bag::Insert(const std::shared_ptr<Item::Data>& item)
 	{
 		const std::shared_ptr<Item::Meta>& meta = item->meta;
-		if(nullptr != item->stack)
+		if(1 < meta->max_stack)
 		{
-			int loop = item->GetCount() / meta->max_stack;
+			int loop = item->count / meta->max_stack;
 			for (int i = 0; i < loop; i++)
 			{
 				session->queries->Insert("user_item", {
@@ -53,30 +53,46 @@ namespace Component {
 					{ "expire_date", item->GetExpireDate().ToString() },
 					{ "user_seq", session->user_seq }
 				});
-				item->stack->count -= item->meta->max_stack;
+				item->count -= item->meta->max_stack;
 			}
 
-			if (0 < item->GetCount())
+			if (0 < item->count)
 			{
+				std::list<std::shared_ptr<Item::Data>> updatedItems;
 				for (auto& itr : item_datas)
 				{
 					std::shared_ptr<Item::Data>& other = itr.second;
-					if (nullptr == other->stack)
+					if(false == Merge(other, item))
 					{
 						continue;
 					}
 
-					other->stack->Merge(item);
-					if (0 == item->GetCount())
+					updatedItems.push_back(other);
+					session->queries->Update("user_item", Gamnet::Format("item_count=", other->count), {
+						{ "user_seq", session->user_seq },
+						{ "item_seq", other->seq }
+					});
+
+					if (0 == item->count)
 					{
 						break;
 					}
 				}
+
+				if(0 < updatedItems.size())
+				{
+					Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
+					for(auto item : updatedItems)
+					{
+						ntf.item_datas.push_back(*item);
+					}
+					Gamnet::Network::Tcp::SendMsg(session, ntf);
+				}
 			}
 
-			if (0 < item->GetCount())
+			if (0 < item->count)
 			{
-				int count = std::min(item->GetCount(), meta->max_stack);
+				int count = std::min(item->count, meta->max_stack);
 				session->queries->Insert("user_item", {
 					{ "item_index", item->meta->index },
 					{ "item_count", count },
@@ -114,17 +130,17 @@ namespace Component {
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
-		if(count > item->GetCount())
+		if(count > item->count)
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
 
-		if(nullptr != item->stack)
+		if(1 < item->meta->max_stack)
 		{
-			item->stack->count -= count;
-			if (0 < item->stack->count)
+			item->count -= count;
+			if (0 < item->count)
 			{
-				session->queries->Update("user_item", Gamnet::Format("item_count=", item->stack->count), {
+				session->queries->Update("user_item", Gamnet::Format("item_count=", item->count), {
 					{ "item_seq", item->seq }
 				});
 				return;

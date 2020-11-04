@@ -131,17 +131,17 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		return assetBundle.LoadAsset<T>(assetName);
 	}
 #if UNITY_EDITOR
-	[MenuItem("AssetBundle/Build/Windows", priority = 1)]
+	[MenuItem("Custom/AssetBundle/Build/Windows", priority = 1)]
 	static void BuildUnity()
 	{
 		Build(BuildTarget.StandaloneWindows, "Windows");
 	}
-	[MenuItem("AssetBundle/Build/Android", priority = 1)]
+	[MenuItem("Custom/AssetBundle/Build/Android", priority = 1)]
 	static void BuildAndroid()
 	{
 		Build(BuildTarget.Android, "Android");
 	}
-	[MenuItem("AssetBundle/Build/iOS", priority = 1)]
+	[MenuItem("Custom/AssetBundle/Build/iOS", priority = 1)]
 	static void BuildiOS()
 	{
 		Build(BuildTarget.iOS, "iOS");
@@ -159,7 +159,7 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		AssetDatabase.Refresh();
 	}
 
-	const string Menu_Local = "AssetBundle/Local";
+	const string Menu_Local = "Custom/AssetBundle/Local";
 	[MenuItem(Menu_Local)]
 	static void Local()
 	{

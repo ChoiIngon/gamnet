@@ -14,8 +14,6 @@ namespace UI
 		private void Awake()
 		{
 			contents = transform.Find("ScrollRect/Viewport/Content");
-			Util.EventSystem.Subscribe<Message.MailData>(Component.MailBox.Event.AddMail, OnAddMail);
-			Util.EventSystem.Subscribe<UInt64>(Component.MailBox.Event.RemoveMail, OnRemoveMail);
 
 			close_button.onClick.AddListener(() =>
 			{
@@ -31,11 +29,6 @@ namespace UI
 				mail.transform.SetParent(contents, false);
 				mail.gameObject.SetActive(false);
 			}
-		}
-		private void OnDestroy()
-		{
-			Util.EventSystem.Unsubscribe<Message.MailData>(Component.MailBox.Event.AddMail);
-			Util.EventSystem.Unsubscribe<UInt64>(Component.MailBox.Event.RemoveMail);
 		}
 		private void OnEnable()
 		{
@@ -58,10 +51,13 @@ namespace UI
 				Mail mail = contents.GetChild(childIndex).GetComponent<Mail>();
 				mail.gameObject.SetActive(false);
 			}
+			Util.EventSystem.Subscribe<Message.MailData>(Component.MailBox.Event.AddMail, OnAddMail);
+			Util.EventSystem.Subscribe<UInt64>(Component.MailBox.Event.RemoveMail, OnRemoveMail);
 		}
 		private void OnDisable()
 		{
-			
+			Util.EventSystem.Unsubscribe<Message.MailData>(Component.MailBox.Event.AddMail);
+			Util.EventSystem.Unsubscribe<UInt64>(Component.MailBox.Event.RemoveMail);
 		}
 		private void OnAddMail(Message.MailData data)
 		{

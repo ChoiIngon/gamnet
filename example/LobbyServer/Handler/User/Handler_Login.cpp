@@ -219,9 +219,9 @@ GAMNET_BIND_TEST_RECV_HANDLER(
 }}
 
 namespace Handler { namespace Item {
-void Test_Item_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+void Test_AddItem_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
-	Message::Item::MsgSvrCli_Item_Ntf ntf;
+	Message::Item::MsgSvrCli_AddItem_Ntf ntf;
 	try {
 		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
 		{
@@ -240,6 +240,6 @@ void Test_Item_Ntf(const std::shared_ptr<TestSession>& session, const std::share
 
 GAMNET_BIND_TEST_RECV_HANDLER(
 	TestSession, "",
-	Message::Item::MsgSvrCli_Item_Ntf, Test_Item_Ntf
+	Message::Item::MsgSvrCli_AddItem_Ntf, Test_AddItem_Ntf
 );
 }}

@@ -3,24 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Item : MonoBehaviour
+namespace Item
 {
-	[Serializable]
-	public class Equip
-	{
-	}
-	[Serializable]
-	public class Expire
-	{
-	}
-	[Serializable]
-	public class Package
-	{
-	}
-	[Serializable]
-	public class Stack
-	{
-	}
 	public class Meta : MetaData
 	{
 		public enum ItemType
@@ -137,12 +121,19 @@ public class Item : MonoBehaviour
 		public override void OnLoad()
 		{
 		}
-		public Item CreateInstance()
+		public Data CreateInstance()
 		{
-			GameObject obj = new GameObject();
-			obj.name = id;
-			Item item = obj.AddComponent<Item>();
-			return item;
+			Data data = new Data();
+			data.meta = this;
+			if (null != equip)
+			{
+				data.equip = new Data.Equip();
+			}
+			if (null != packages)
+			{
+				data.package = new Data.Package();
+			}
+			return data;
 		}
 		private void OnItemType(ref object member, string value)
 		{
@@ -161,6 +152,27 @@ public class Item : MonoBehaviour
 		public Expire expire;
 		public List<Package> packages;
 	}
+
+	[Serializable]
+	public class Data
+	{
+		[Serializable]
+		public class Equip
+		{
+			public bool equip;
+		}
+		[Serializable]
+		public class Package
+		{
+		}
+		public UInt64 seq;
+		public Meta meta;
+		public Equip equip;
+		public Package package;
+		public DateTime expire_date;
+		public int count;
+	}
+
 	public class Manager : Util.Singleton<Manager>
 	{
 		public IEnumerator Init()
@@ -200,38 +212,18 @@ public class Item : MonoBehaviour
 				index_metas.Add(meta.index, meta);
 			}
 		}
+		public Data CreateInstance(Message.ItemData data)
+		{
+			Meta meta = FindMeta(data.item_index);
+			if (null == meta)
+			{
+				throw new System.Exception("can not find item(index:" + data.item_index + ")");
+			}
 
-		public Item CreateInstance(string id, int count)
-		{
-			Meta meta = FindMeta(id);
-			if (null == meta)
-			{
-				throw new System.Exception("can not find item(id:" + id + ")");
-			}
-			Item data = meta.CreateInstance();
-			/*
-			if (null != data.stack)
-			{
-				data->stack->count = count;
-			}
-			*/
-			return data;
-		}
-		Item CreateInstance(UInt32 index, int count)
-		{
-			Meta meta = FindMeta(index);
-			if (null == meta)
-			{
-				throw new System.Exception("can not find item(index:" + index + ")");
-			}
-			Item data = meta.CreateInstance();
-			/*
-			if (null != data.stack)
-			{
-				data->stack->count = count;
-			}
-			*/
-			return data;
+			Data item = meta.CreateInstance();
+			item.seq = data.item_seq;
+			item.count = data.item_count;
+			return item;
 		}
 		public Meta FindMeta(string id)
 		{
@@ -254,12 +246,5 @@ public class Item : MonoBehaviour
 
 		private Dictionary<UInt32, Meta> index_metas = new Dictionary<UInt32, Meta>();
 		private Dictionary<string, Meta> id_metas = new Dictionary<string, Meta>();
-	}
-
-	public UInt64 seq;
-	public Meta meta;
-	public Equip equip;
-	public Expire expire;
-	public Package package;
-	public Stack stack;
+	}	
 }

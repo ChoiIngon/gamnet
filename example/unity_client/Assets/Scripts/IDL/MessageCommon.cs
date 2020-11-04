@@ -368,7 +368,6 @@ public struct CounterData_Serializer {
 public class ItemData {
 	public ulong	item_seq = 0;
 	public uint	item_index = 0;
-	public ItemType	item_type = new ItemType();
 	public int	item_count = 0;
 	public ItemData() {
 	}
@@ -377,7 +376,6 @@ public class ItemData {
 		try {
 			nSize += sizeof(ulong);
 			nSize += sizeof(uint);
-			nSize += ItemType_Serializer.Size(item_type);
 			nSize += sizeof(int);
 		} catch(System.Exception) {
 			return -1;
@@ -388,7 +386,6 @@ public class ItemData {
 		try {
 			_buf_.Write(BitConverter.GetBytes(item_seq), 0, sizeof(ulong));
 			_buf_.Write(BitConverter.GetBytes(item_index), 0, sizeof(uint));
-			if(false == ItemType_Serializer.Store(_buf_, item_type)) { return false; }
 			_buf_.Write(BitConverter.GetBytes(item_count), 0, sizeof(int));
 		} catch(System.Exception) {
 			return false;
@@ -403,7 +400,6 @@ public class ItemData {
 			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
 			item_index = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(uint);
-			if(false == ItemType_Serializer.Load(ref item_type, _buf_)) { return false; }
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
 			item_count = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(int);

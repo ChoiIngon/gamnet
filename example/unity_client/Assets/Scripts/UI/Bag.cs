@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace UI
@@ -18,21 +19,46 @@ namespace UI
         }
         private void OnEnable()
         {
-            foreach (Message.ItemData data in GameManager.Instance.bag)
+            foreach (Item.Data data in GameManager.Instance.bag)
             {
                 ItemSlot itemSlot = GameObject.Instantiate<ItemSlot>(itemslot_prefab);
                 itemSlot.transform.SetParent(itemslot_contents, false);
                 itemSlot.SetItemData(data);
             }
-        }
+			
+		}
+		private void OnDisable()
+		{
+			Util.EventSystem.Subscribe<Item.Data>(Component.Bag.Event.AddItem, OnAddItem);
+			Util.EventSystem.Subscribe<Item.Data>(Component.Bag.Event.UpdateItem, OnUpdateItem);
+			Util.EventSystem.Subscribe<UInt64>(Component.Bag.Event.RemoveItem, OnRemoveItem);
+		}
+		private void OnAddItem(Item.Data data)
+		{
+			ItemSlot itemSlot = GameObject.Instantiate<ItemSlot>(itemslot_prefab);
+			itemSlot.transform.SetParent(itemslot_contents, false);
+			itemSlot.SetItemData(data);
+		}
+		private void OnUpdateItem(Item.Data data)
+		{
+		}
+		private void OnRemoveItem(UInt64 itemSEQ)
+		{
+			foreach (Transform child in itemslot_contents.transform)
+			{
+				ItemSlot itemSlot = child.gameObject.GetComponent<ItemSlot>();
+				if (null != itemSlot)
+				{
+					if (itemSEQ == itemSlot.item.seq)
+					{
+						child.SetParent(null);
+						GameObject.Destroy(child.gameObject);
+						return;
+					}
+				}
+			}
+		}
 
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
-
-    }
+	}
 
 }

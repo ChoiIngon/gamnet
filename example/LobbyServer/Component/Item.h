@@ -18,10 +18,11 @@ namespace Item
 		{
 			Price();
 
-			void OnPriceType(Message::CounterType& member, const std::string& value);
-
 			Message::CounterType type;
 			int value;
+
+		private :
+			void OnPriceType(Message::CounterType& member, const std::string& value);
 		};
 
 		struct Expire : public MetaData
@@ -42,13 +43,14 @@ namespace Item
 
 			Expire();
 
-			void OnTriggerType(TriggerType& triggerType, const std::string& value);
-			void OnExpireType(ExpireType& expireType, const std::string& value);
-
 			TriggerType trigger_type;
 			ExpireType expire_type;
 			int64_t time;
 			Gamnet::Time::DateTime date;
+
+		private :
+			void OnTriggerType(TriggerType& triggerType, const std::string& value);
+			void OnExpireType(ExpireType& expireType, const std::string& value);
 		};
 
 		struct Package : public MetaData
@@ -62,7 +64,7 @@ namespace Item
 		Meta();
 
 		virtual void OnLoad() override;
-		void OnItemType(Message::ItemType& member, const std::string& value);
+		
 		std::shared_ptr<Data> CreateInstance(const std::shared_ptr<UserSession>& session);
 
 		std::string			id;
@@ -74,6 +76,8 @@ namespace Item
 		std::shared_ptr<Price> price;
 		std::shared_ptr<Expire> expire;
 		std::vector<std::shared_ptr<Package>> packages;
+	private :
+		void OnItemType(Message::ItemType& member, const std::string& value);
 	};
 			   
 	class Data
@@ -106,22 +110,8 @@ namespace Item
 			const std::weak_ptr<Data> item;
 		};
 		
-		class Stack
-		{
-		public :
-			Stack(const std::shared_ptr<Data>& item);
-			void Merge(const std::shared_ptr<Data>& other);
-
-		public :
-			int count;
-		private:
-			const std::weak_ptr<Data> item;
-		};
-
 		Data(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Meta>& meta);
 		
-		// Property Functions..
-		int GetCount() const;
 		const Gamnet::Time::DateTime& GetExpireDate() const;
 
 		// Event Functions..
@@ -133,19 +123,14 @@ namespace Item
 		std::shared_ptr<Equip>		equip;
 		std::shared_ptr<Expire>		expire;
 		std::shared_ptr<Package>	package;
-		std::shared_ptr<Stack>		stack;
+		int count;
 		
 		operator Message::ItemData() const
 		{
 			Message::ItemData data;
 			data.item_index = meta->index;
-			data.item_type = meta->type;
 			data.item_seq = seq;
-			data.item_count = 1;
-			if(nullptr != stack)
-			{
-				data.item_count = stack->count;
-			}
+			data.item_count = count;
 			return data;
 		}
 	private :
@@ -167,6 +152,8 @@ namespace Item
 		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
 		std::map<std::string, std::shared_ptr<Meta>> id_metas;
 	};
+
+	bool Merge(std::shared_ptr<Data> lhs, std::shared_ptr<Data> rhs);
 };
 
 #endif

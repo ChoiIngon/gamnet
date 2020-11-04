@@ -11,21 +11,24 @@ namespace Component
 		{
 			public const string AddItem = "Bag.Event.AddItem";
 			public const string RemoveItem = "Bag.Event.RemoveItem";
+			public const string UpdateItem = "Bag.Event.UpdateItem";
 		}
 
-		private Dictionary<UInt64, Message.ItemData> item_datas = new Dictionary<ulong, Message.ItemData>();
+		private Dictionary<UInt64, Item.Data> item_datas = new Dictionary<ulong, Item.Data>();
 
 		public Bag()
 		{
-			GameManager.Instance.LobbySession.RegisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(AddItem);
+			GameManager.Instance.LobbySession.RegisterHandler<Message.Item.MsgSvrCli_AddItem_Ntf>(AddItem);
+			GameManager.Instance.LobbySession.RegisterHandler<Message.Item.MsgSvrCli_UpdateItem_Ntf>(UpdateItem);
 		}
 
 		~Bag()
 		{
-			GameManager.Instance.LobbySession.UnregisterHandler<Message.Item.MsgSvrCli_Item_Ntf>(AddItem);
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.Item.MsgSvrCli_AddItem_Ntf>(AddItem);
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.Item.MsgSvrCli_UpdateItem_Ntf>(UpdateItem);
 		}
 
-		public void AddItem(Message.Item.MsgSvrCli_Item_Ntf ntf)
+		public void AddItem(Message.Item.MsgSvrCli_AddItem_Ntf ntf)
 		{
 			foreach (Message.ItemData item in ntf.item_datas)
 			{
@@ -36,19 +39,41 @@ namespace Component
 		public void AddItem(Message.ItemData data)
 		{
 			Debug.Log("item data:" + data.item_seq + ", item_count:" + data.item_count);
-			item_datas.Add(data.item_seq, data);
-			Util.EventSystem.Publish<Message.ItemData>(Event.AddItem, data);
+
+			Item.Data item = Item.Manager.Instance.CreateInstance(data);
+			item_datas.Add(item.seq, item);
+			Util.EventSystem.Publish<Item.Data>(Event.AddItem, item);
+		}
+		public void UpdateItem(Message.Item.MsgSvrCli_UpdateItem_Ntf ntf)
+		{
+			foreach (Message.ItemData item in ntf.item_datas)
+			{
+				AddItem(item);
+			}
+		}
+		public void UpdateItem(Message.ItemData data)
+		{
+			if (0 == data.item_count)
+			{
+				RemoveItem(data.item_seq);
+			}
+			else
+			{
+				Item.Data item = GetItem(data.item_seq);
+				item.count = data.item_count;
+				Util.EventSystem.Publish<Item.Data>(Event.UpdateItem, item);
+			}
 		}
 
-		public void RemoveItem(UInt64 itemSEQ)
+		private void RemoveItem(UInt64 itemSEQ)
 		{
 			item_datas.Remove(itemSEQ);
 			Util.EventSystem.Publish<UInt64>(Event.RemoveItem, itemSEQ);
 		}
 
-		public Message.ItemData GetItem(UInt64 itemSEQ)
+		public Item.Data GetItem(UInt64 itemSEQ)
 		{
-			Message.ItemData data = null;
+			Item.Data data = null;
 			if (false == item_datas.TryGetValue(itemSEQ, out data))
 			{
 				return null;
@@ -58,16 +83,40 @@ namespace Component
 
 		public void Clear()
 		{
-			item_datas = new Dictionary<ulong, Message.ItemData>();
+			item_datas = new Dictionary<ulong, Item.Data>();
 		}
 
 		public IEnumerator GetEnumerator()
 		{
 			foreach (var itr in item_datas)
 			{
-				Message.ItemData item = itr.Value;
+				Item.Data item = itr.Value;
 				yield return item;
 			}
+		}
+
+		public void Send_OpenPackage_Req(UInt64 itemSEQ)
+		{
+			GameManager.Instance.LobbySession.RegisterHandler<Message.Item.MsgSvrCli_OpenPackage_Ans>(Recv_OpenPackage_Ans);
+
+			Message.Item.MsgCliSvr_OpenPackage_Req req = new Message.Item.MsgCliSvr_OpenPackage_Req();
+			req.item_seq = itemSEQ;
+			GameManager.Instance.LobbySession.SendMsg(req, true);
+		}
+		private void Recv_OpenPackage_Ans(Message.Item.MsgSvrCli_OpenPackage_Ans ans)
+		{
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.Item.MsgSvrCli_OpenPackage_Ans>(Recv_OpenPackage_Ans);
+			if (0 == ans.item_data.item_count)
+			{
+				RemoveItem(ans.item_data.item_seq);
+			}
+			else
+			{
+				Item.Data item = GetItem(ans.item_data.item_seq);
+				item.count = ans.item_data.item_count;
+				Util.EventSystem.Publish<Item.Data>(Event.UpdateItem, item);
+			}
+
 		}
 	}
 }
