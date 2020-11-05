@@ -1,7 +1,5 @@
 ﻿Name,ID,Index,Type,Grade,Max_Stack,Price.Type,Price.Value,Expire.Trigger_Type,Expire.Expire_Type,Expire.Time,Expire.Date,Icon_Path,Packages[0].ID,Packages[0].Count,Packages[1].ID,Packages[1].Count,Packages[2].ID,Packages[2].Count,Packages[3].ID,Packages[3].Count,Packages[4].ID,Packages[4].Count,Packages[5].ID,Packages[5].Count,Packages[6].ID,Packages[6].Count
 Text,Text,Int,ItemType,Int,Int,CounterType,Int,TriggerType,ExpireType,seconds,DateTime,Text,Text,Int,Text,Int,Text,Int,,,,,,,,
-NonStackItem,ITEM_001,100001,Equip,1,1,Gold,100,OnCreate,DueDate,,2020-12-25 00:00:00,Assets/Sprites/Item/weapon/ankus,,,,,,,,,,,,,,
-StackItem,ITEM_002,100002,Equip,2,99,Gold,100,,,,,Assets/Sprites/Item/weapon/bardiche1,,,,,,,,,,,,,,
 PackageItem,Test_EquipItemPackage,100003,Package,3,1,Gold,100,OnEquip,Period,86400,,Assets/Sprites/Item/weapon/bardiche2,ITEM_EQUIP_CLOAK_0001,1,ITEM_EQUIP_BODY_0001,1,ITEM_EQUIP_BOOTS_0001,1,ITEM_EQUIP_HEAD_0001,1,ITEM_EQUIP_GLOVES_0001,1,ITEM_EQUIP_LEFAHAND_0001,1,ITEM_EQUIP_RIGHTHAND_0001,1
 ,,,,,,,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,,,,,

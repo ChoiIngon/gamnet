@@ -98,6 +98,179 @@ struct MsgSvrCli_OpenPackage_Ans_Serializer {
 	static bool Load(MsgSvrCli_OpenPackage_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static size_t Size(const MsgSvrCli_OpenPackage_Ans& obj) { return obj.Size(); }
 };
+struct MsgCliSvr_EquipItem_Req {
+	enum { MSG_ID = 130000003 }; 
+	uint64_t	item_seq;
+	MsgCliSvr_EquipItem_Req()	{
+		item_seq = 0;
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(uint64_t);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		std::memcpy(*_buf_, &item_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&item_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		return true;
+	}
+}; //MsgCliSvr_EquipItem_Req
+struct MsgCliSvr_EquipItem_Req_Serializer {
+	static bool Store(char** _buf_, const MsgCliSvr_EquipItem_Req& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgCliSvr_EquipItem_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgCliSvr_EquipItem_Req& obj) { return obj.Size(); }
+};
+struct MsgSvrCli_EquipItem_Ans {
+	enum { MSG_ID = 130000003 }; 
+	ErrorCode	error_code;
+	ItemData	item_data;
+	MsgSvrCli_EquipItem_Ans()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += ErrorCode_Serializer::Size(error_code);
+		nSize += ItemData_Serializer::Size(item_data);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		if(false == ItemData_Serializer::Store(_buf_, item_data)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		if(false == ItemData_Serializer::Load(item_data, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgSvrCli_EquipItem_Ans
+struct MsgSvrCli_EquipItem_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_EquipItem_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_EquipItem_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgSvrCli_EquipItem_Ans& obj) { return obj.Size(); }
+};
+struct MsgCliSvr_UnequipItem_Req {
+	enum { MSG_ID = 130000004 }; 
+	EquipItemPartType	part_type;
+	MsgCliSvr_UnequipItem_Req()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += EquipItemPartType_Serializer::Size(part_type);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == EquipItemPartType_Serializer::Store(_buf_, part_type)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == EquipItemPartType_Serializer::Load(part_type, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgCliSvr_UnequipItem_Req
+struct MsgCliSvr_UnequipItem_Req_Serializer {
+	static bool Store(char** _buf_, const MsgCliSvr_UnequipItem_Req& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgCliSvr_UnequipItem_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgCliSvr_UnequipItem_Req& obj) { return obj.Size(); }
+};
+struct MsgSvrCli_UnequipItem_Ans {
+	enum { MSG_ID = 130000004 }; 
+	ErrorCode	error_code;
+	ItemData	item_data;
+	MsgSvrCli_UnequipItem_Ans()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += ErrorCode_Serializer::Size(error_code);
+		nSize += ItemData_Serializer::Size(item_data);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		if(false == ItemData_Serializer::Store(_buf_, item_data)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		if(false == ItemData_Serializer::Load(item_data, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgSvrCli_UnequipItem_Ans
+struct MsgSvrCli_UnequipItem_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_UnequipItem_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_UnequipItem_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgSvrCli_UnequipItem_Ans& obj) { return obj.Size(); }
+};
 struct MsgSvrCli_AddItem_Ntf {
 	enum { MSG_ID = 130000003 }; 
 	std::list<ItemData >	item_datas;

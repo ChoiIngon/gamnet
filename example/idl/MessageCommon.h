@@ -254,6 +254,71 @@ struct ItemType_Serializer {
 	}
 	static size_t Size(const ItemType& obj) { return sizeof(ItemType); }
 };
+enum class EquipItemPartType {
+	Invalid,
+	Clock,
+	Hair,
+	Legs,
+	Body,
+	Boots,
+	Beard,
+	Head,
+	Gloves,
+	LeftHand,
+	RightHand,
+	TwoHands,
+}; // EquipItemPartType
+template <class T> const std::string& ToString(T);
+template <> inline const std::string& ToString<EquipItemPartType>(EquipItemPartType e) { 
+	static const std::map<EquipItemPartType, std::string> table = {
+		{ EquipItemPartType::Invalid, "Invalid"},
+		{ EquipItemPartType::Clock, "Clock"},
+		{ EquipItemPartType::Hair, "Hair"},
+		{ EquipItemPartType::Legs, "Legs"},
+		{ EquipItemPartType::Body, "Body"},
+		{ EquipItemPartType::Boots, "Boots"},
+		{ EquipItemPartType::Beard, "Beard"},
+		{ EquipItemPartType::Head, "Head"},
+		{ EquipItemPartType::Gloves, "Gloves"},
+		{ EquipItemPartType::LeftHand, "LeftHand"},
+		{ EquipItemPartType::RightHand, "RightHand"},
+		{ EquipItemPartType::TwoHands, "TwoHands"},
+	};
+	auto itr = table.find(e); 
+	if(table.end() == itr) { throw std::runtime_error("ToString<EquipItemPartType>()"); }
+	return itr->second;
+}
+template<class T> T Parse(const std::string&);
+template <> inline EquipItemPartType Parse<EquipItemPartType>(const std::string& s) {
+	static const std::map<std::string, EquipItemPartType> table = {
+		{ "Invalid", EquipItemPartType::Invalid},
+		{ "Clock", EquipItemPartType::Clock},
+		{ "Hair", EquipItemPartType::Hair},
+		{ "Legs", EquipItemPartType::Legs},
+		{ "Body", EquipItemPartType::Body},
+		{ "Boots", EquipItemPartType::Boots},
+		{ "Beard", EquipItemPartType::Beard},
+		{ "Head", EquipItemPartType::Head},
+		{ "Gloves", EquipItemPartType::Gloves},
+		{ "LeftHand", EquipItemPartType::LeftHand},
+		{ "RightHand", EquipItemPartType::RightHand},
+		{ "TwoHands", EquipItemPartType::TwoHands},
+	};
+	auto itr = table.find(s); 
+	if(table.end() == itr) { throw std::runtime_error("Parse<EquipItemPartType>()"); }
+	return itr->second;
+}
+struct EquipItemPartType_Serializer {
+	static bool Store(char** _buf_, const EquipItemPartType& obj) { 
+		(*(EquipItemPartType*)(*_buf_)) = obj;	(*_buf_) += sizeof(EquipItemPartType);
+		return true;
+	}
+	static bool Load(EquipItemPartType& obj, const char** _buf_, size_t& nSize) { 
+		if(sizeof(EquipItemPartType) > nSize) { return false; }		std::memcpy(&obj, *_buf_, sizeof(EquipItemPartType));		(*_buf_) += sizeof(EquipItemPartType); nSize -= sizeof(EquipItemPartType);
+		return true;
+	}
+	static size_t Size(const EquipItemPartType& obj) { return sizeof(EquipItemPartType); }
+};
 enum class DungeonTileType {
 	Invalid,
 	Floor,
@@ -300,56 +365,6 @@ struct DungeonTileType_Serializer {
 		return true;
 	}
 	static size_t Size(const DungeonTileType& obj) { return sizeof(DungeonTileType); }
-};
-struct UserData {
-	uint64_t	user_seq;
-	std::string	user_name;
-	UserData()	{
-		user_seq = 0;
-	}
-	size_t Size() const {
-		size_t nSize = 0;
-		nSize += sizeof(uint64_t);
-		nSize += sizeof(uint32_t); nSize += user_name.length();
-		return nSize;
-	}
-	bool Store(std::vector<char>& _buf_) const {
-		size_t nSize = Size();
- 		if(0 == nSize) { return true; }
-		if(nSize > _buf_.size()) { 
-			_buf_.resize(nSize);
-		}
-		char* pBuf = &(_buf_[0]);
-		if(false == Store(&pBuf)) return false;
-		return true;
-	}
-	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &user_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
-		size_t user_name_size = user_name.length();
-		std::memcpy(*_buf_, &user_name_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
-		std::memcpy(*_buf_, user_name.c_str(), user_name.length()); (*_buf_) += user_name.length();
-		return true;
-	}
-	bool Load(const std::vector<char>& _buf_) {
-		size_t nSize = _buf_.size();
- 		if(0 == nSize) { return true; }
-		const char* pBuf = &(_buf_[0]);
-		if(false == Load(&pBuf, nSize)) return false;
-		return true;
-	}
-	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&user_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
-		if(sizeof(int32_t) > nSize) { return false; }
-		uint32_t user_name_length = 0; std::memcpy(&user_name_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
-		if(nSize < user_name_length) { return false; }
-		user_name.assign((char*)*_buf_, user_name_length); (*_buf_) += user_name_length; nSize -= user_name_length;
-		return true;
-	}
-}; //UserData
-struct UserData_Serializer {
-	static bool Store(char** _buf_, const UserData& obj) { return obj.Store(_buf_); }
-	static bool Load(UserData& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
-	static size_t Size(const UserData& obj) { return obj.Size(); }
 };
 struct MailData {
 	uint64_t	mail_seq;
@@ -516,6 +531,101 @@ struct ItemData_Serializer {
 	static bool Store(char** _buf_, const ItemData& obj) { return obj.Store(_buf_); }
 	static bool Load(ItemData& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static size_t Size(const ItemData& obj) { return obj.Size(); }
+};
+struct EquipItemData : public ItemData {
+	EquipItemPartType	part_type;
+	EquipItemData() : ItemData()	{
+	}
+	EquipItemData(const ItemData& base) : ItemData(base)	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += ItemData::Size();
+		nSize += EquipItemPartType_Serializer::Size(part_type);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == ItemData::Store(_buf_)) return false;
+		if(false == EquipItemPartType_Serializer::Store(_buf_, part_type)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == ItemData::Load(_buf_, nSize)) return false;
+		if(false == EquipItemPartType_Serializer::Load(part_type, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //EquipItemData
+struct EquipItemData_Serializer {
+	static bool Store(char** _buf_, const EquipItemData& obj) { return obj.Store(_buf_); }
+	static bool Load(EquipItemData& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const EquipItemData& obj) { return obj.Size(); }
+};
+struct UserData {
+	uint64_t	user_seq;
+	std::string	user_name;
+	UserData()	{
+		user_seq = 0;
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(uint64_t);
+		nSize += sizeof(uint32_t); nSize += user_name.length();
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		std::memcpy(*_buf_, &user_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		size_t user_name_size = user_name.length();
+		std::memcpy(*_buf_, &user_name_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		std::memcpy(*_buf_, user_name.c_str(), user_name.length()); (*_buf_) += user_name.length();
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&user_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(int32_t) > nSize) { return false; }
+		uint32_t user_name_length = 0; std::memcpy(&user_name_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		if(nSize < user_name_length) { return false; }
+		user_name.assign((char*)*_buf_, user_name_length); (*_buf_) += user_name_length; nSize -= user_name_length;
+		return true;
+	}
+}; //UserData
+struct UserData_Serializer {
+	static bool Store(char** _buf_, const UserData& obj) { return obj.Store(_buf_); }
+	static bool Load(UserData& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const UserData& obj) { return obj.Size(); }
 };
 struct Vector2Int {
 	int32_t	x;

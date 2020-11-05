@@ -8,6 +8,23 @@
 
 namespace Item {
 
+	Meta::Equip::Equip()
+		: part(Message::EquipItemPartType::Invalid)
+		, attack(0)
+		, defense(0)
+		, speed(0)
+	{
+		META_CUSTOM(part, Equip::OnPartType);
+		META_MEMBER(attack);
+		META_MEMBER(defense);
+		META_MEMBER(speed);
+	}
+				 
+	void Meta::Equip::OnPartType(Message::EquipItemPartType& member, const std::string& value)
+	{
+		member = Message::Parse<Message::EquipItemPartType>(value);
+	}
+
 	Meta::Price::Price()
 		: type(Message::CounterType::Invalid)
 		, value(0)
@@ -91,6 +108,7 @@ namespace Item {
 		META_CUSTOM(type, Meta::OnItemType);
 		META_MEMBER(grade);
 		META_MEMBER(max_stack);
+		META_MEMBER(equip);
 		META_MEMBER(price);
 		META_MEMBER(expire);
 		META_MEMBER(packages);
@@ -98,6 +116,14 @@ namespace Item {
 
 	void Meta::OnLoad() 
 	{
+		if(Message::ItemType::Equip == type && nullptr == equip)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+		}
+		if(Message::ItemType::Package == type && 0 == packages.size())
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+		}
 		if(nullptr != expire)
 		{
 			if(Expire::TriggerType::None == expire->trigger_type || Expire::ExpireType::Infinite == expire->expire_type)
@@ -117,6 +143,11 @@ namespace Item {
 		if (nullptr != expire)
 		{
 			item->expire = std::make_shared<Data::Expire>(this->expire);
+		}
+
+		if(nullptr != equip)
+		{
+			item->equip = std::make_shared<Data::Equip>();
 		}
 
 		if (0 < packages.size())

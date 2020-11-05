@@ -13,17 +13,17 @@ CREATE TABLE IF NOT EXISTS `user_data` (
 DEFAULT CHARACTER SET=utf8mb4 COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB;
 
-CREATE TABLE `user_item` (
-	`item_seq` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'item unique identifier',
+CREATE TABLE IF NOT EXISTS `user_item` (
 	`user_seq` INT(11) NOT NULL COMMENT 'owner user seq',
-	`expire_date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
-	`delete_yn` VARCHAR(1) NOT NULL DEFAULT 'N' COLLATE 'utf8mb4_unicode_ci',
+	`item_seq` INT(11) NOT NULL COMMENT 'item unique identifier',
 	`item_index` INT(11) NOT NULL,
-	`item_count` INT(11) NOT NULL DEFAULT '1',
+	`item_count` INT(11) NOT NULL DEFAULT 1,
+	`equip_part` INT(11) NOT NULL DEFAULT 0,
+	`expire_date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 	`delete_date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
-	PRIMARY KEY (`item_seq`),
-	INDEX `index_1` (`user_seq`, `delete_yn`),
-	INDEX `index_2` (`expire_date`)
+	`delete_yn` VARCHAR(1) NOT NULL DEFAULT 'N' COLLATE 'utf8mb4_unicode_ci',
+	PRIMARY KEY (`user_seq`, `item_seq`),
+	INDEX `index_1` (`user_seq`, `expire_date`, `delete_yn`)
 )
 DEFAULT CHARACTER SET=utf8mb4 COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB;

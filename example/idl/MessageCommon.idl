@@ -58,6 +58,22 @@ enum ItemType
 	Package,
 };
 
+enum EquipItemPartType
+{
+	Invalid,
+	Clock,
+	Hair,
+	Legs,
+	Body,
+	Boots,
+	Beard,
+	Head,
+	Gloves,
+	LeftHand,
+	RightHand,
+	TwoHands
+};
+
 enum DungeonTileType
 {
 	Invalid,
@@ -66,12 +82,6 @@ enum DungeonTileType
 	Door,
 	StairDown,
 	StairUp
-};
-
-struct UserData
-{
-	uint64 user_seq;
-	string user_name;
 };
 
 struct MailData
@@ -95,6 +105,17 @@ struct ItemData
 	uint64 item_seq;
 	uint32 item_index;
 	int32 item_count;
+};
+
+struct EquipItemData(ItemData)
+{
+	EquipItemPartType part_type;
+};
+
+struct UserData
+{
+	uint64 user_seq;
+	string user_name;
 };
 
 struct Vector2Int

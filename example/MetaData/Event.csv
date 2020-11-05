@@ -1,6 +1,4 @@
 ﻿Index,Mail_Message,Mail_Expire_Day,Item_ID,Item_Count
 Int,Text,Int,Text,Int
-1,한글이름여덟글자,14,ITEM_001,10
-2,"Comma,Seperated,String",14,ITEM_002,100
 3,"""Event"",""한글"",""123"",""!@#""",365,Test_EquipItemPackage,1
 4,Jason\'s Spring Party,365,ITEM_EQUIP_RIGHTHAND_0001,1

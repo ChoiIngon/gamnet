@@ -14,6 +14,19 @@ namespace Item
 	class Data;
 	struct Meta : public std::enable_shared_from_this<Meta>, public MetaData
 	{
+		struct Equip : public MetaData
+		{
+			Equip();
+
+			Message::EquipItemPartType part;
+			int attack;
+			int defense;
+			int speed;
+
+		private :
+			void OnPartType(Message::EquipItemPartType& member, const std::string& value);
+		};
+
 		struct Price : public MetaData
 		{
 			Price();
@@ -73,6 +86,7 @@ namespace Item
 		int					grade;
 		int					max_stack;
 
+		std::shared_ptr<Equip> equip;
 		std::shared_ptr<Price> price;
 		std::shared_ptr<Expire> expire;
 		std::vector<std::shared_ptr<Package>> packages;
@@ -85,6 +99,8 @@ namespace Item
 	public :
 		class Equip
 		{
+		public :
+			Message::EquipItemPartType part_type;
 		}; 
 		
 		class Expire
