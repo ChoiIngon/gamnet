@@ -31,13 +31,11 @@ public:
 	{
 		return components.AddComponent<T>();
 	}
-
 	template <class T>
 	std::shared_ptr<T> AddComponent(const std::shared_ptr<T>& component)
 	{
 		return components.AddComponent<T>(component);
 	}
-
 	template <class T>
 	std::shared_ptr<T> AddComponent(const std::string& name)
 	{
@@ -48,7 +46,6 @@ public:
 	{
 		return components.GetComponent<T>();
 	}
-
 	template <class T>
 	void RemoveComponent()
 	{
@@ -59,7 +56,7 @@ public:
 	uint64_t user_seq;
 	std::shared_ptr<Gamnet::Database::MySQL::Transaction> queries;
 	std::shared_ptr<Gamnet::Database::MySQL::Transaction> logs;
-	std::map<std::string, std::function<void()>> on_commit;
+	std::list<std::function<void()>> on_commit;
 private :
 	Gamnet::Component components;
 };

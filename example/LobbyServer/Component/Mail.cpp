@@ -15,7 +15,7 @@ namespace Component {
 	void Mail::Load()
 	{
 		time_t now = time(nullptr);
-		if(time(nullptr) < last_update_time + 60)
+		if(now < last_update_time + 60)
 		{
 			return;
 		}
@@ -70,7 +70,8 @@ namespace Component {
 					mailSEQs += ",";
 				}
 				mailSEQs += std::to_string(mail->mail_seq);
-				bag->Insert(Gamnet::Singleton<Item::Manager>::GetInstance().CreateInstance(session, mail->item_index, mail->item_count));
+
+				bag->Insert(Item::Create(mail->item_index, mail->item_count));
 			}
 			session->queries->Execute(
 				"UPDATE user_mail SET delete_yn='Y', delete_date=NOW() WHERE mail_seq in (", mailSEQs, ")"
@@ -88,7 +89,7 @@ namespace Component {
 			session->queries->Execute(
 				"UPDATE user_mail SET delete_yn='Y', delete_date=NOW() WHERE mail_seq=", mailSEQ
 			);
-			bag->Insert(Gamnet::Singleton<Item::Manager>::GetInstance().CreateInstance(session, mail->item_index, mail->item_count));
+			bag->Insert(Item::Create(mail->item_index, mail->item_count));
 			mail_datas.erase(itr);
 		}
 	}
@@ -108,6 +109,6 @@ namespace Component {
 			{ "item_count", mailData->item_count }
 		});
 		mail->last_update_time = 0;
-		session->on_commit["Mail"] = std::bind(&Mail::Load, mail);
+		session->on_commit.push_back(std::bind(&Mail::Load, mail));
 	}
 };

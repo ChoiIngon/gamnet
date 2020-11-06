@@ -1,6 +1,6 @@
 ﻿Name,ID,Index,Type,Grade,Price.Type,Price.Value,Expire.Trigger_Type,Expire.Expire_Type,Expire.Time,Expire.Date,Icon_Path,Equip.Part,Equip.Attack,Equip.Defense,Equip.Speed,Equip.Sprite_Path
 Text,Text,Int,ItemType,Int,CounterType,Int,TriggerType,ExpireType,seconds,DateTime,Text,Item.Equip.PartType,Int,Int,Int,Text
-cloak leather,ITEM_EQUIP_CLOAK_0001,1010001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/cloak1,Clock,,,,Assets/Sprites/Suit/Clock/black
+cloak leather,ITEM_EQUIP_CLOAK_0001,1010001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/cloak1,Cloak,,,,Assets/Sprites/Suit/Clock/black
 armor blue gold,ITEM_EQUIP_BODY_0001,1040001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/chain_mail1,Body,,,,Assets/Sprites/Suit/Body/chainmail
 boots,ITEM_EQUIP_BOOTS_0001,1050001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/boots1,Boots,,,,Assets/Sprites/Suit/Boots/blue_gold
 head,ITEM_EQUIP_HEAD_0001,1070001,Equip,1,Gold,100,,,,,Assets/Sprites/Item/armour/headgear/elven_leather_helm,Head,,,,Assets/Sprites/Suit/Head/art_dragonhelm

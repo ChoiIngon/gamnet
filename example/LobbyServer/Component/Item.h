@@ -78,7 +78,7 @@ namespace Item
 
 		virtual void OnLoad() override;
 		
-		std::shared_ptr<Data> CreateInstance(const std::shared_ptr<UserSession>& session);
+		std::shared_ptr<Data> CreateInstance();
 
 		std::string			id;
 		uint32_t			index;
@@ -100,6 +100,10 @@ namespace Item
 		class Equip
 		{
 		public :
+			Equip(const std::shared_ptr<Data>& item);
+
+			void PutOn();
+			void TakeOff();
 			Message::EquipItemPartType part_type;
 		}; 
 		
@@ -121,46 +125,45 @@ namespace Item
 		{
 		public :
 			Package(const std::shared_ptr<Data>& item);
-			void Use();
+			void Open();
 		private:
 			const std::weak_ptr<Data> item;
 		};
 		
-		Data(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Meta>& meta);
+		struct Count
+		{
+			Count(const std::shared_ptr<Meta>& meta);
+			bool Stackable() const;
+
+			operator int() const;
+			int operator = (int count);
+			int operator += (int count);
+			int operator -= (int count);
+		private :
+			std::weak_ptr<Meta> meta;
+			int count;
+		};
+
+		Data(const std::shared_ptr<Meta>& meta);
 		
 		const Gamnet::Time::DateTime& GetExpireDate() const;
-
-		// Event Functions..
-		void OnBag();
-		void OnEquip();
-		
-		uint64_t					seq;
+	public :
 		const std::shared_ptr<Meta>	meta;
+		uint64_t					seq;
+		std::shared_ptr<UserSession>	session;
 		std::shared_ptr<Equip>		equip;
 		std::shared_ptr<Expire>		expire;
 		std::shared_ptr<Package>	package;
-		int count;
+		Count						count;
 		
-		operator Message::ItemData() const
-		{
-			Message::ItemData data;
-			data.item_index = meta->index;
-			data.item_seq = seq;
-			data.item_count = count;
-			return data;
-		}
-	private :
-		std::weak_ptr<UserSession> session;
+		operator Message::ItemData() const;
 	};
 
 	class Manager
 	{
 	public :
 		void Init();
-
-		std::shared_ptr<Data> CreateInstance(const std::shared_ptr<UserSession>& session, const std::string& id, int count);
-		std::shared_ptr<Data> CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t index, int count);
-
+		
 		std::shared_ptr<Meta> FindMeta(const std::string& id);
 		std::shared_ptr<Meta> FindMeta(uint32_t index);
 	private :
@@ -168,6 +171,9 @@ namespace Item
 		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
 		std::map<std::string, std::shared_ptr<Meta>> id_metas;
 	};
+
+	std::shared_ptr<Data> Create(const std::string& id, int count);
+	std::shared_ptr<Data> Create(uint32_t index, int count);
 
 	bool Merge(std::shared_ptr<Data> lhs, std::shared_ptr<Data> rhs);
 };

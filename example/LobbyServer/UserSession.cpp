@@ -63,9 +63,9 @@ void UserSession::Commit()
 {
 	queries->Commit();
 	logs->Commit();
-	for(auto& itr : on_commit)
+	for(auto& callback : on_commit)
 	{
-		itr.second();
+		callback();
 	}
 	on_commit.clear();
 }

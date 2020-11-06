@@ -14,16 +14,18 @@ namespace Component {
 
 	void Bag::Load()
 	{
+		last_item_seq = 0;
 		Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
 			"SELECT item_seq, item_index, item_count, equip_part, expire_date "
 			"FROM user_item "
-			"WHERE user_seq = ", session->user_seq, " AND ", last_item_seq, " < item_seq AND NOW() < expire_date"
+			"WHERE user_seq = ", session->user_seq, " AND NOW() < expire_date AND delete_yn='N'"
 		);
 
 		Message::Item::MsgSvrCli_AddItem_Ntf ntf;
 		for (auto& row : rows)
 		{
-			std::shared_ptr<Item::Data> item = Gamnet::Singleton<Item::Manager>::GetInstance().CreateInstance(session, row->getUInt32("item_index"), row->getInt("item_count"));
+			std::shared_ptr<Item::Data> item = Item::Create(row->getUInt32("item_index"), row->getInt("item_count"));
+			item->session = session;
 			item->seq = row->getInt64("item_seq");
 			if(nullptr != item->expire)
 			{
@@ -42,19 +44,28 @@ namespace Component {
 	void Bag::Insert(const std::shared_ptr<Item::Data>& item)
 	{
 		const std::shared_ptr<Item::Meta>& meta = item->meta;
-		if(1 < meta->max_stack)
+		uint64_t prev_item_seq = last_item_seq;
+		if(true == item->count.Stackable())
 		{
 			int loop = item->count / meta->max_stack;
 			for (int i = 0; i < loop; i++)
 			{
+				std::shared_ptr<Item::Data> portion = meta->CreateInstance();
+				portion->seq = ++last_item_seq;
+				portion->session = session;
+				portion->count = meta->max_stack;
+
 				session->queries->Insert("user_item", {
+					{ "item_seq", portion->seq },
 					{ "item_index", meta->index },
 					{ "item_count", meta->max_stack },
-					{ "expire_date", item->GetExpireDate().ToString() },
+					{ "expire_date", portion->GetExpireDate().ToString() },
 					{ "user_seq", session->user_seq }
 				});
-				item->count -= item->meta->max_stack;
+				item_datas.insert(std::make_pair(portion->seq, portion));
 			}
+
+			item->count -= item->meta->max_stack * loop;
 
 			if (0 < item->count)
 			{
@@ -81,36 +92,61 @@ namespace Component {
 
 				if(0 < updatedItems.size())
 				{
-					Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
-					for(auto item : updatedItems)
+					auto self = session;
+					session->on_commit.push_back([self, updatedItems]()
 					{
-						ntf.item_datas.push_back(*item);
-					}
-					Gamnet::Network::Tcp::SendMsg(session, ntf);
+						Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
+						for (auto item : updatedItems)
+						{
+							ntf.item_datas.push_back(*item);
+						}
+						Gamnet::Network::Tcp::SendMsg(self, ntf);
+					});
 				}
 			}
 
 			if (0 < item->count)
 			{
-				int count = std::min(item->count, meta->max_stack);
+				item->seq = ++last_item_seq;
+				item->session = session;
+
+				int count = std::min((int)item->count, meta->max_stack);
 				session->queries->Insert("user_item", {
+					{ "item_seq", item->seq },
 					{ "item_index", item->meta->index },
 					{ "item_count", count },
 					{ "expire_date", item->GetExpireDate().ToString() },
 					{ "user_seq", session->user_seq }
 				});
+				item_datas.insert(std::make_pair(item->seq, item));
 			}
 		}
 		else 
 		{
+			item->seq = ++last_item_seq;
+			item->session = session;
+
 			session->queries->Insert("user_item", {
+				{ "item_seq", item->seq },
 				{ "item_index", meta->index },
 				{ "item_count", 1 },
 				{ "expire_date", item->GetExpireDate().ToString() },
 				{ "user_seq", session->user_seq }
 			});
+			item_datas.insert(std::make_pair(item->seq, item));
 		}
-		session->on_commit["Bag"] = std::bind(&Bag::Load, this);
+		auto self = session;
+		uint64_t last_item_seq = this->last_item_seq;
+		session->on_commit.push_back([self, prev_item_seq, last_item_seq]() {
+			std::shared_ptr<Bag> bag = self->GetComponent<Component::Bag>();
+			Message::Item::MsgSvrCli_AddItem_Ntf ntf;
+			for(uint64_t i=prev_item_seq+1; i<=last_item_seq; i++)
+			{
+				std::shared_ptr<Item::Data> item = bag->Find(i);
+				ntf.item_datas.push_back(*item);
+			}
+			Gamnet::Network::Tcp::SendMsg(self, ntf, true);
+		});
 	}
 
 	std::shared_ptr<Item::Data> Bag::Find(uint64_t itemSEQ)

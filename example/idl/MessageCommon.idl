@@ -61,7 +61,7 @@ enum ItemType
 enum EquipItemPartType
 {
 	Invalid,
-	Clock,
+	Cloak,
 	Hair,
 	Legs,
 	Body,

@@ -36,7 +36,7 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
 		session->StartTransaction();
-		item->package->Use();
+		item->package->Open();
 		session->Commit();
 		ans.item_data = *item;
 	}

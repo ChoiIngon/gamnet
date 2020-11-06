@@ -137,9 +137,9 @@ namespace Item {
 		member = Message::Parse<Message::ItemType>(value);
 	}
 
-	std::shared_ptr<Data> Meta::CreateInstance(const std::shared_ptr<UserSession>& session)
+	std::shared_ptr<Data> Meta::CreateInstance()
 	{
-		std::shared_ptr<Data> item = std::make_shared<Data>(session, shared_from_this());
+		std::shared_ptr<Data> item = std::make_shared<Data>(shared_from_this());
 		if (nullptr != expire)
 		{
 			item->expire = std::make_shared<Data::Expire>(this->expire);
@@ -158,13 +158,14 @@ namespace Item {
 		return item;
 	}
 	
-	Data::Data(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Meta>& meta)
-		: seq(0)
-		, meta(meta)
+	Data::Data(const std::shared_ptr<Meta>& meta)
+		: meta(meta)
+		, seq(0)
+		, session(nullptr)
 		, equip(nullptr)
 		, expire(nullptr)
 		, package(nullptr)
-		, session(session)
+		, count(meta)
 	{
 	}
 
@@ -216,24 +217,105 @@ namespace Item {
 	{
 	}
 
-	void Data::Package::Use()
+	void Data::Package::Open()
 	{
 		auto self = item.lock();
-		if(0 >= self->count)
+		if(1 > self->count)
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
-		auto session = self->session.lock();
+		auto session = self->session;
 		auto bag = session->GetComponent<Component::Bag>();
 
 		std::shared_ptr<Meta> meta = item.lock()->meta;
 		for(auto& package : meta->packages)
 		{
-			std::shared_ptr<Data> item = Gamnet::Singleton<Manager>::GetInstance().CreateInstance(session, package->id, package->count);
-			bag->Insert(item);
+			bag->Insert(Item::Create(package->id, package->count));
 		}
+
+		self->count -= 1;
+
+		if(0 < self->count)
+		{
+			session->queries->Update("user_item",
+				Gamnet::Format("item_count=", (int)self->count),
+				{
+					{ "user_seq", session->user_seq },
+					{ "item_seq", self->seq }
+				}
+			);
+		}
+		else
+		{
+			session->queries->Update("user_item",
+				Gamnet::Format("item_count=", (int)self->count, ",delete_date=NOW(),delete_yn='Y'"),
+				{
+					{ "user_seq", session->user_seq },
+					{ "item_seq", self->seq }
+				}
+			);
+		}	
+		session->on_commit.push_back([session, self]() {
+			Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
+			ntf.item_datas.push_back(*self);
+			Gamnet::Network::Tcp::SendMsg(session, ntf);
+		});
 	}
 
+	Data::Count::Count(const std::shared_ptr<Meta>& meta)
+		: meta(meta)
+		, count(1)
+	{
+	}
+
+	bool Data::Count::Stackable() const
+	{
+		return 1 < meta.lock()->max_stack;
+	}
+
+	Data::Count::operator int() const
+	{
+		return count;
+	}
+
+	int Data::Count::operator = (int count)
+	{
+		if(1 < count && false == Stackable())
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+		}
+		this->count = count;
+		return this->count;
+	}
+
+	int Data::Count::operator += (int count)
+	{
+		if (false == Stackable())
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+		}
+		this->count += count;
+		return this->count;
+	}
+	
+	int Data::Count::operator -= (int count)
+	{
+		if(this->count < count)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+		}
+		this->count -= count;
+		return this->count;
+	}
+
+	Data::operator Message::ItemData() const
+	{
+		Message::ItemData data;
+		data.item_index = meta->index;
+		data.item_seq = seq;
+		data.item_count = count;
+		return data;
+	}
 	const Gamnet::Time::DateTime& Data::GetExpireDate() const
 	{
 		if(nullptr == expire)
@@ -267,29 +349,6 @@ namespace Item {
 		}
 	}
 	
-	std::shared_ptr<Item::Data> Manager::CreateInstance(const std::shared_ptr<UserSession>& session, const std::string& id, int count)
-	{
-		std::shared_ptr<Item::Meta> meta = FindMeta(id);
-		if(nullptr == meta)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemID);
-		}
-		std::shared_ptr<Item::Data> data = meta->CreateInstance(session);
-		data->count = count;
-		return data;
-	}
-
-	std::shared_ptr<Item::Data> Manager::CreateInstance(const std::shared_ptr<UserSession>& session, uint32_t index, int count)
-	{
-		std::shared_ptr<Item::Meta> meta = FindMeta(index);
-		if (nullptr == meta)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemIndex);
-		}
-		std::shared_ptr<Item::Data> data = meta->CreateInstance(session);
-		data->count = count;
-		return data;
-	}
 	std::shared_ptr<Meta> Manager::FindMeta(const std::string& id)
 	{
 		auto itr = id_metas.find(id);
@@ -311,6 +370,30 @@ namespace Item {
 	}
 
 	GAMNET_BIND_INIT_HANDLER(Item::Manager, Init);	
+
+	std::shared_ptr<Data> Create(const std::string& id, int count)
+	{
+		std::shared_ptr<Item::Meta> meta = Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(id);
+		if (nullptr == meta)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemID);
+		}
+		std::shared_ptr<Item::Data> data = meta->CreateInstance();
+		data->count = count;
+		return data;
+	}
+
+	std::shared_ptr<Data> Create(uint32_t index, int count)
+	{
+		std::shared_ptr<Item::Meta> meta = Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(index);
+		if (nullptr == meta)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidItemIndex);
+		}
+		std::shared_ptr<Item::Data> data = meta->CreateInstance();
+		data->count = count;
+		return data;
+	}
 
 	bool Merge(std::shared_ptr<Data> lhs, std::shared_ptr<Data> rhs)
 	{
@@ -336,7 +419,7 @@ namespace Item {
 			return false;
 		}
 
-		int count = std::min(meta->max_stack - lhs->count, rhs->count);
+		int count = std::min(meta->max_stack - lhs->count, (int)rhs->count);
 		lhs->count += count;
 		rhs->count -= count;
 
