@@ -91,6 +91,8 @@
       <Filter>Component\Dungeon\Unit</Filter>
     </ClCompile>
     <ClCompile Include="Util\CSVReader.cpp" />
+    <ClCompile Include="Handler\Item\Handler_EquipItem.cpp" />
+    <ClCompile Include="Component\Suit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="UserSession.h" />
@@ -185,6 +187,8 @@
       <Filter>Component\Dungeon\Unit</Filter>
     </ClInclude>
     <ClInclude Include="Util\CSVReader.h" />
+    <ClInclude Include="Handler\Item\Handler_EquipItem.h" />
+    <ClInclude Include="Component\Suit.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\idl\MessageUser.idl" />

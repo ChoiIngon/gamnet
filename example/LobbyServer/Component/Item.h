@@ -100,11 +100,9 @@ namespace Item
 		class Equip
 		{
 		public :
-			Equip(const std::shared_ptr<Data>& item);
+			Equip();
 
-			void PutOn();
-			void TakeOff();
-			Message::EquipItemPartType part_type;
+			Message::EquipItemPartType part;
 		}; 
 		
 		class Expire

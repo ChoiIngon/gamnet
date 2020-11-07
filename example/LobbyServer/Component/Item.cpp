@@ -158,6 +158,11 @@ namespace Item {
 		return item;
 	}
 	
+	Data::Equip::Equip()
+		: part(Message::EquipItemPartType::Invalid)
+	{
+	}
+
 	Data::Data(const std::shared_ptr<Meta>& meta)
 		: meta(meta)
 		, seq(0)
@@ -219,47 +224,22 @@ namespace Item {
 
 	void Data::Package::Open()
 	{
-		auto self = item.lock();
-		if(1 > self->count)
+		std::shared_ptr<Item::Data> item = this->item.lock();
+		std::shared_ptr<Item::Meta> meta = item->meta;
+		std::shared_ptr<UserSession> session = item->session;
+		auto bag = session->GetComponent<Component::Bag>();
+
+		if(1 > item->count)
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
-		auto session = self->session;
-		auto bag = session->GetComponent<Component::Bag>();
 
-		std::shared_ptr<Meta> meta = item.lock()->meta;
 		for(auto& package : meta->packages)
 		{
 			bag->Insert(Item::Create(package->id, package->count));
 		}
 
-		self->count -= 1;
-
-		if(0 < self->count)
-		{
-			session->queries->Update("user_item",
-				Gamnet::Format("item_count=", (int)self->count),
-				{
-					{ "user_seq", session->user_seq },
-					{ "item_seq", self->seq }
-				}
-			);
-		}
-		else
-		{
-			session->queries->Update("user_item",
-				Gamnet::Format("item_count=", (int)self->count, ",delete_date=NOW(),delete_yn='Y'"),
-				{
-					{ "user_seq", session->user_seq },
-					{ "item_seq", self->seq }
-				}
-			);
-		}	
-		session->on_commit.push_back([session, self]() {
-			Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
-			ntf.item_datas.push_back(*self);
-			Gamnet::Network::Tcp::SendMsg(session, ntf);
-		});
+		bag->Remove(item->seq, 1);
 	}
 
 	Data::Count::Count(const std::shared_ptr<Meta>& meta)
@@ -430,3 +410,4 @@ namespace Item {
 		return true;
 	}
 }
+

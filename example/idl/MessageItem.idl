@@ -7,49 +7,55 @@ namespace Message { namespace Item {
 namespace Message { namespace Item {
 %%
 
-message MsgCliSvr_OpenPackage_Req	: 130000001
+message MsgSvrCli_AddItem_Ntf		: 130000001
+{
+	list<ItemData> item_datas;
+};
+
+message MsgSvrCli_UpdateItem_Ntf	: 130000002
+{
+	list<ItemData> item_datas;
+};
+
+message MsgCliSvr_OpenPackage_Req	: 130000003
 {
 	uint64 item_seq;
 };
 
-message MsgSvrCli_OpenPackage_Ans	: 130000002
+message MsgSvrCli_OpenPackage_Ans	: 130000004
 {
 	ErrorCode error_code;
-	ItemData item_data;
 };
 
-message MsgCliSvr_EquipItem_Req		: 130000003
+message MsgCliSvr_EquipItem_Req		: 130000005
 {
 	uint64 item_seq;
 };
 
-message MsgSvrCli_EquipItem_Ans		: 130000003
+message MsgSvrCli_EquipItem_Ans		: 130000005
 {
 	ErrorCode error_code;
-	ItemData item_data;
 };
 
-message MsgCliSvr_UnequipItem_Req	: 130000004
+message MsgSvrCli_EquipItem_Ntf		: 130000006
+{
+	uint64 item_seq;
+};
+
+message MsgCliSvr_UnequipItem_Req	: 130000007
 {
 	EquipItemPartType part_type;
 };
 
-message MsgSvrCli_UnequipItem_Ans	: 130000004
+message MsgSvrCli_UnequipItem_Ans	: 130000007
 {
 	ErrorCode error_code;
-	ItemData item_data;
 };
 
-message MsgSvrCli_AddItem_Ntf		: 130000003
+message MsgSvrCli_UnequipItem_Ntf	: 130000008
 {
-	list<ItemData> item_datas;
+	uint64 item_seq;
 };
-
-message MsgSvrCli_UpdateItem_Ntf	: 130000004
-{
-	list<ItemData> item_datas;
-};
-
 
 .cpp %%
 }}

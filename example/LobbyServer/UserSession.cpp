@@ -5,6 +5,7 @@
 #include "Component/Event.h"
 #include "Component/Mail.h"
 #include "Component/Disconnect.h"
+#include "Component/Suit.h"
 
 UserSession::UserSession()
 	: shard_index(0)
@@ -25,6 +26,7 @@ void UserSession::OnCreate()
 	AddComponent<Component::Bag>(std::make_shared<Component::Bag>(self));
 	AddComponent<Component::Event>(std::make_shared<Component::Event>(self));
 	AddComponent<Component::Mail>(std::make_shared<Component::Mail>(self));
+	AddComponent<Component::Suit>(std::make_shared<Component::Suit>(self));
 }
 
 void UserSession::OnAccept()
@@ -55,7 +57,7 @@ void UserSession::OnDestroy()
 void UserSession::StartTransaction()
 {
 	queries->Rollback();
-	logs->Commit();
+	logs->Rollback();
 	on_commit.clear();
 }
 

@@ -38,7 +38,6 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 		session->StartTransaction();
 		item->package->Open();
 		session->Commit();
-		ans.item_data = *item;
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -87,6 +86,7 @@ void Test_OpenPackage_Ans(const std::shared_ptr<TestSession>& session, const std
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
+	/*
 	if(0 == ans.item_data.item_count)
 	{
 		session->items.erase(ans.item_data.item_seq);
@@ -95,6 +95,7 @@ void Test_OpenPackage_Ans(const std::shared_ptr<TestSession>& session, const std
 	{
 		session->items[ans.item_data.item_seq] = ans.item_data;
 	}
+	*/
 	session->Next();
 }
 

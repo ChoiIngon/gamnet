@@ -136,11 +136,13 @@
     <ClCompile Include="Component\Dungeon\Unit.cpp" />
     <ClCompile Include="Component\Event.cpp" />
     <ClCompile Include="Component\Mail.cpp" />
+    <ClCompile Include="Component\Suit.cpp" />
     <ClCompile Include="Component\UserData.cpp" />
     <ClCompile Include="Component\Dungeon\Dungeon.cpp" />
     <ClCompile Include="Component\Dungeon\Rect.cpp" />
     <ClCompile Include="Component\Dungeon\Tile.cpp" />
     <ClCompile Include="Component\Dungeon\Vector2.cpp" />
+    <ClCompile Include="Handler\Item\Handler_EquipItem.cpp" />
     <ClCompile Include="Util\CSVReader.cpp" />
     <ClCompile Include="Handler\Dungeon\Handler_PlayerMove.cpp" />
     <ClCompile Include="Handler\Http\Handler_ServerState.cpp" />
@@ -176,11 +178,13 @@
     <ClInclude Include="Component\Dungeon\Unit.h" />
     <ClInclude Include="Component\Event.h" />
     <ClInclude Include="Component\Mail.h" />
+    <ClInclude Include="Component\Suit.h" />
     <ClInclude Include="Component\UserData.h" />
     <ClInclude Include="Component\Dungeon\Dungeon.h" />
     <ClInclude Include="Component\Dungeon\Rect.h" />
     <ClInclude Include="Component\Dungeon\Tile.h" />
     <ClInclude Include="Component\Dungeon\Vector2.h" />
+    <ClInclude Include="Handler\Item\Handler_EquipItem.h" />
     <ClInclude Include="Util\CSVReader.h" />
     <ClInclude Include="Handler\Dungeon\Handler_PlayerMove.h" />
     <ClInclude Include="Handler\Http\Handler_ServerState.h" />

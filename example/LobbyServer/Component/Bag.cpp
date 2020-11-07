@@ -43,8 +43,10 @@ namespace Component {
 
 	void Bag::Insert(const std::shared_ptr<Item::Data>& item)
 	{
+		std::shared_ptr<UserSession> session = this->session;
 		const std::shared_ptr<Item::Meta>& meta = item->meta;
-		uint64_t prev_item_seq = last_item_seq;
+		std::list<std::shared_ptr<Item::Data>> addItems;
+		
 		if(true == item->count.Stackable())
 		{
 			int loop = item->count / meta->max_stack;
@@ -54,6 +56,10 @@ namespace Component {
 				portion->seq = ++last_item_seq;
 				portion->session = session;
 				portion->count = meta->max_stack;
+				if(nullptr != portion->expire)
+				{
+					portion->expire->TriggerExpire(Item::Meta::Expire::TriggerType::OnCreate);
+				}
 
 				session->queries->Insert("user_item", {
 					{ "item_seq", portion->seq },
@@ -62,7 +68,8 @@ namespace Component {
 					{ "expire_date", portion->GetExpireDate().ToString() },
 					{ "user_seq", session->user_seq }
 				});
-				item_datas.insert(std::make_pair(portion->seq, portion));
+
+				addItems.push_back(portion);
 			}
 
 			item->count -= item->meta->max_stack * loop;
@@ -78,11 +85,15 @@ namespace Component {
 						continue;
 					}
 
+					session->queries->Update("user_item", 
+						Gamnet::Format("item_count=", other->count), 
+						{
+							{ "user_seq", session->user_seq },
+							{ "item_seq", other->seq }
+						}
+					);
+
 					updatedItems.push_back(other);
-					session->queries->Update("user_item", Gamnet::Format("item_count=", other->count), {
-						{ "user_seq", session->user_seq },
-						{ "item_seq", other->seq }
-					});
 
 					if (0 == item->count)
 					{
@@ -93,7 +104,7 @@ namespace Component {
 				if(0 < updatedItems.size())
 				{
 					auto self = session;
-					session->on_commit.push_back([self, updatedItems]()
+					session->on_commit.push_back([=]()
 					{
 						Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
 						for (auto item : updatedItems)
@@ -109,22 +120,29 @@ namespace Component {
 			{
 				item->seq = ++last_item_seq;
 				item->session = session;
+				if (nullptr != item->expire)
+				{
+					item->expire->TriggerExpire(Item::Meta::Expire::TriggerType::OnCreate);
+				}
 
-				int count = std::min((int)item->count, meta->max_stack);
 				session->queries->Insert("user_item", {
 					{ "item_seq", item->seq },
 					{ "item_index", item->meta->index },
-					{ "item_count", count },
+					{ "item_count", (int)item->count },
 					{ "expire_date", item->GetExpireDate().ToString() },
 					{ "user_seq", session->user_seq }
 				});
-				item_datas.insert(std::make_pair(item->seq, item));
+				addItems.push_back(item);
 			}
 		}
 		else 
 		{
 			item->seq = ++last_item_seq;
 			item->session = session;
+			if (nullptr != item->expire)
+			{
+				item->expire->TriggerExpire(Item::Meta::Expire::TriggerType::OnCreate);
+			}
 
 			session->queries->Insert("user_item", {
 				{ "item_seq", item->seq },
@@ -133,19 +151,17 @@ namespace Component {
 				{ "expire_date", item->GetExpireDate().ToString() },
 				{ "user_seq", session->user_seq }
 			});
-			item_datas.insert(std::make_pair(item->seq, item));
+			addItems.push_back(item);
 		}
-		auto self = session;
-		uint64_t last_item_seq = this->last_item_seq;
-		session->on_commit.push_back([self, prev_item_seq, last_item_seq]() {
-			std::shared_ptr<Bag> bag = self->GetComponent<Component::Bag>();
+
+		session->on_commit.push_back([=]() {
 			Message::Item::MsgSvrCli_AddItem_Ntf ntf;
-			for(uint64_t i=prev_item_seq+1; i<=last_item_seq; i++)
+			for(std::shared_ptr<Item::Data> data : addItems)
 			{
-				std::shared_ptr<Item::Data> item = bag->Find(i);
-				ntf.item_datas.push_back(*item);
+				this->item_datas.insert(std::make_pair(data->seq, data));
+				ntf.item_datas.push_back(*data);
 			}
-			Gamnet::Network::Tcp::SendMsg(self, ntf, true);
+			Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 		});
 	}
 
@@ -166,26 +182,97 @@ namespace Component {
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
+
 		if(count > item->count)
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
 
-		if(1 < item->meta->max_stack)
+		if(true == item->count.Stackable())
 		{
-			item->count -= count;
-			if (0 < item->count)
+			if(count < item->count)
 			{
 				session->queries->Update("user_item", Gamnet::Format("item_count=", item->count), {
+					{ "user_seq", session->user_seq },
 					{ "item_seq", item->seq }
+				});
+				session->on_commit.push_back([=]() {
+					item->count -= count;
+					Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
+					ntf.item_datas.push_back(*item);
+					Gamnet::Network::Tcp::SendMsg(session, ntf);
 				});
 				return;
 			}
 		}
 		
-		session->queries->Update("user_item", "delete_date=NOW(),delete_yn='Y'", {
+		session->queries->Update("user_item", "item_count=0,delete_date=NOW(),delete_yn='Y'", {
+			{ "user_seq", session->user_seq },
 			{ "item_seq", item->seq }
 		});
-		item_datas.erase(itemSEQ);
+		session->on_commit.push_back([=]() {
+			this->item_datas.erase(itemSEQ);
+			item->count -= count;
+			Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
+			ntf.item_datas.push_back(*item);
+			Gamnet::Network::Tcp::SendMsg(session, ntf);
+		});
+
+
 	}
 }
+
+void Test_AddItem_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+{
+	Message::Item::MsgSvrCli_AddItem_Ntf ntf;
+	try {
+		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
+		}
+	}
+	catch (const Gamnet::Exception& e) {
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+	}
+
+	for (auto& item : ntf.item_datas)
+	{
+		session->items.insert(std::make_pair((int)item.item_seq, item));
+	}
+}
+
+GAMNET_BIND_TEST_RECV_HANDLER(
+	TestSession, "",
+	Message::Item::MsgSvrCli_AddItem_Ntf, Test_AddItem_Ntf
+);
+
+void Test_UpdateItem_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+{
+	Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
+	try {
+		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
+		}
+	}
+	catch (const Gamnet::Exception& e) {
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+	}
+
+	for (auto& item : ntf.item_datas)
+	{
+		if (0 == item.item_count)
+		{
+			session->items.erase(item.item_seq);
+		}
+		else
+		{
+			session->items[item.item_seq] = item;
+		}
+	}
+}
+
+GAMNET_BIND_TEST_RECV_HANDLER(
+	TestSession, "",
+	Message::Item::MsgSvrCli_UpdateItem_Ntf, Test_UpdateItem_Ntf
+);
