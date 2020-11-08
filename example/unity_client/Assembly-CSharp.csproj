@@ -99,6 +99,7 @@
     <Compile Include="Assets\Scripts\UI\Login.cs" />
     <Compile Include="Assets\Scripts\UI\MailBox\Mail.cs" />
     <Compile Include="Assets\Scripts\UI\MailBox\MailBox.cs" />
+    <Compile Include="Assets\Scripts\UI\Suit.cs" />
     <Compile Include="Assets\Scripts\UI\UIMain.cs" />
     <Compile Include="Assets\Scripts\Util\AssetBundleManager.cs" />
     <Compile Include="Assets\Scripts\Util\CSVReader.cs" />

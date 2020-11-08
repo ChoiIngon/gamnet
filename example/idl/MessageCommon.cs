@@ -158,6 +158,42 @@ public struct ItemType_Serializer {
 	}
 	public static System.Int32 Size(ItemType obj) { return sizeof(ItemType); }
 };
+public enum EquipItemPartType {
+	Invalid,
+	Cloak,
+	Hair,
+	Legs,
+	Body,
+	Boots,
+	Beard,
+	Head,
+	Gloves,
+	LeftHand,
+	RightHand,
+	Max,
+}; // EquipItemPartType
+public struct EquipItemPartType_Serializer {
+	public static bool Store(System.IO.MemoryStream _buf_, EquipItemPartType obj) { 
+		try {
+			_buf_.Write(System.BitConverter.GetBytes((int)obj), 0, sizeof(EquipItemPartType));
+		}
+		catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public static bool Load(ref EquipItemPartType obj, MemoryStream _buf_) { 
+		try {
+			obj = (EquipItemPartType)System.BitConverter.ToInt32(_buf_.ToArray(), (int)_buf_.Position);
+			_buf_.Position += sizeof(EquipItemPartType);
+		}
+		catch(System.Exception) { 
+			return false;
+		}
+		return true;
+	}
+	public static System.Int32 Size(EquipItemPartType obj) { return sizeof(EquipItemPartType); }
+};
 public enum DungeonTileType {
 	Invalid,
 	Floor,
@@ -187,62 +223,6 @@ public struct DungeonTileType_Serializer {
 		return true;
 	}
 	public static System.Int32 Size(DungeonTileType obj) { return sizeof(DungeonTileType); }
-};
-public class UserData {
-	public ulong	user_seq = 0;
-	public string	user_name = "";
-	public UserData() {
-	}
-	public virtual int Size() {
-		int nSize = 0;
-		try {
-			nSize += sizeof(ulong);
-			nSize += sizeof(int); 
-			if(null != user_name) { nSize += Encoding.UTF8.GetByteCount(user_name); }
-		} catch(System.Exception) {
-			return -1;
-		}
-		return nSize;
-	}
-	public virtual bool Store(MemoryStream _buf_) {
-		try {
-			_buf_.Write(BitConverter.GetBytes(user_seq), 0, sizeof(ulong));
-			if(null != user_name) {
-				int user_name_length = Encoding.UTF8.GetByteCount(user_name);
-				_buf_.Write(BitConverter.GetBytes(user_name_length), 0, sizeof(int));
-				_buf_.Write(Encoding.UTF8.GetBytes(user_name), 0, user_name_length);
-			}
-			else {
-				_buf_.Write(BitConverter.GetBytes(0), 0, sizeof(int));
-			}
-		} catch(System.Exception) {
-			return false;
-		}
-		return true;
-	}
-	public virtual bool Load(MemoryStream _buf_) {
-		try {
-			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
-			user_seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(ulong);
-			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
-			int user_name_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(int);
-			if(user_name_length > _buf_.Length - _buf_.Position) { return false; }
-			byte[] user_name_buf = new byte[user_name_length];
-			Array.Copy(_buf_.GetBuffer(), (int)_buf_.Position, user_name_buf, 0, user_name_length);
-			user_name = System.Text.Encoding.UTF8.GetString(user_name_buf);
-			_buf_.Position += user_name_length;
-		} catch(System.Exception) {
-			return false;
-		}
-		return true;
-	}
-};
-public struct UserData_Serializer {
-	public static bool Store(MemoryStream _buf_, UserData obj) { return obj.Store(_buf_); }
-	public static bool Load(ref UserData obj, MemoryStream _buf_) { return obj.Load(_buf_); }
-	public static int Size(UserData obj) { return obj.Size(); }
 };
 public class MailData {
 	public ulong	mail_seq = 0;
@@ -413,6 +393,100 @@ public struct ItemData_Serializer {
 	public static bool Store(MemoryStream _buf_, ItemData obj) { return obj.Store(_buf_); }
 	public static bool Load(ref ItemData obj, MemoryStream _buf_) { return obj.Load(_buf_); }
 	public static int Size(ItemData obj) { return obj.Size(); }
+};
+public class EquipItemData : ItemData {
+	public EquipItemPartType	part_type = new EquipItemPartType();
+	public EquipItemData() {
+	}
+	public override int Size() {
+		int nSize = 0;
+		try {
+			nSize = base.Size();
+			nSize += EquipItemPartType_Serializer.Size(part_type);
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public override bool Store(MemoryStream _buf_) {
+		try {
+			base.Store(_buf_);
+			if(false == EquipItemPartType_Serializer.Store(_buf_, part_type)) { return false; }
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public override bool Load(MemoryStream _buf_) {
+		try {
+			if(false == base.Load(_buf_)) return false;
+			if(false == EquipItemPartType_Serializer.Load(ref part_type, _buf_)) { return false; }
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct EquipItemData_Serializer {
+	public static bool Store(MemoryStream _buf_, EquipItemData obj) { return obj.Store(_buf_); }
+	public static bool Load(ref EquipItemData obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(EquipItemData obj) { return obj.Size(); }
+};
+public class UserData {
+	public ulong	user_seq = 0;
+	public string	user_name = "";
+	public UserData() {
+	}
+	public virtual int Size() {
+		int nSize = 0;
+		try {
+			nSize += sizeof(ulong);
+			nSize += sizeof(int); 
+			if(null != user_name) { nSize += Encoding.UTF8.GetByteCount(user_name); }
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public virtual bool Store(MemoryStream _buf_) {
+		try {
+			_buf_.Write(BitConverter.GetBytes(user_seq), 0, sizeof(ulong));
+			if(null != user_name) {
+				int user_name_length = Encoding.UTF8.GetByteCount(user_name);
+				_buf_.Write(BitConverter.GetBytes(user_name_length), 0, sizeof(int));
+				_buf_.Write(Encoding.UTF8.GetBytes(user_name), 0, user_name_length);
+			}
+			else {
+				_buf_.Write(BitConverter.GetBytes(0), 0, sizeof(int));
+			}
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public virtual bool Load(MemoryStream _buf_) {
+		try {
+			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
+			user_seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(ulong);
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			int user_name_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+			if(user_name_length > _buf_.Length - _buf_.Position) { return false; }
+			byte[] user_name_buf = new byte[user_name_length];
+			Array.Copy(_buf_.GetBuffer(), (int)_buf_.Position, user_name_buf, 0, user_name_length);
+			user_name = System.Text.Encoding.UTF8.GetString(user_name_buf);
+			_buf_.Position += user_name_length;
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct UserData_Serializer {
+	public static bool Store(MemoryStream _buf_, UserData obj) { return obj.Store(_buf_); }
+	public static bool Load(ref UserData obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(UserData obj) { return obj.Size(); }
 };
 public class Vector2Int {
 	public int	x = 0;

@@ -9,13 +9,6 @@ public class Monster : MonoBehaviour
     {
 		RandomMonsterSprite(transform, "Character", "Tiles/Monster", 1);
 	}
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
 	private GameObject RandomMonsterSprite(Transform parent, string name, string spriteDirPath, int sortingOrder)
 	{
 		GameObject obj = new GameObject();

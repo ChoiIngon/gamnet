@@ -266,7 +266,6 @@ enum class EquipItemPartType {
 	Gloves,
 	LeftHand,
 	RightHand,
-	TwoHands,
 	Max,
 }; // EquipItemPartType
 template <class T> const std::string& ToString(T);
@@ -283,7 +282,6 @@ template <> inline const std::string& ToString<EquipItemPartType>(EquipItemPartT
 		{ EquipItemPartType::Gloves, "Gloves"},
 		{ EquipItemPartType::LeftHand, "LeftHand"},
 		{ EquipItemPartType::RightHand, "RightHand"},
-		{ EquipItemPartType::TwoHands, "TwoHands"},
 		{ EquipItemPartType::Max, "Max"},
 	};
 	auto itr = table.find(e); 
@@ -304,7 +302,6 @@ template <> inline EquipItemPartType Parse<EquipItemPartType>(const std::string&
 		{ "Gloves", EquipItemPartType::Gloves},
 		{ "LeftHand", EquipItemPartType::LeftHand},
 		{ "RightHand", EquipItemPartType::RightHand},
-		{ "TwoHands", EquipItemPartType::TwoHands},
 		{ "Max", EquipItemPartType::Max},
 	};
 	auto itr = table.find(s); 

@@ -71,7 +71,6 @@ enum EquipItemPartType
 	Gloves,
 	LeftHand,
 	RightHand,
-	TwoHands,
 	Max
 };
 

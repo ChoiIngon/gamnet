@@ -22,11 +22,6 @@ namespace UI
 			Send_Join_Req();
         }
 		// Update is called once per frame
-		void Update()
-        {
-
-        }
-
 		public void Send_Join_Req()
 		{
 			GameManager.Instance.LobbySession.RegisterHandler<Message.Lobby.MsgSvrCli_Join_Ans>(Recv_Join_Ans);

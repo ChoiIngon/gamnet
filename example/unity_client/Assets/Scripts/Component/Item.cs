@@ -15,34 +15,19 @@ namespace Item
 		}
 		public class Equip : MetaData
 		{
-			public enum PartType
-			{
-				Invalid,
-				Clock,
-				Hair,
-				Legs,
-				Body,
-				Boots,
-				Beard,
-				Head,
-				Gloves,
-				LeftHand,
-				RightHand,
-				TwoHands
-			}
 			public Equip()
 			{
 				CustomBind("part", OnPartType);
 			}
 
-			public PartType part;
+			public Message.EquipItemPartType part;
 			public int attack;
 			public int defense;
 			public int speed;
 			public string sprite_path;
 			void OnPartType(ref object member, string value)
 			{
-				member = Enum.Parse(typeof(PartType), (value));
+				member = Enum.Parse(typeof(Message.EquipItemPartType), (value));
 			}
 		}
 		public class Price : MetaData
@@ -159,7 +144,7 @@ namespace Item
 		[Serializable]
 		public class Equip
 		{
-			public bool equip;
+			public Message.EquipItemPartType part;
 		}
 		[Serializable]
 		public class Package

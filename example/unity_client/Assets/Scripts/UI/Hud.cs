@@ -22,14 +22,5 @@ namespace UI
 				GameManager.Instance.ui.bag.gameObject.SetActive(true);
 			});
 		}
-
-		private void OnEnable()
-		{
-			
-		}
-		private void OnDestroy()
-		{
-			
-		}		
 	}
 }

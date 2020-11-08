@@ -24,11 +24,7 @@ namespace Scene { namespace Dungeon	{
 		}
 
 		// Update is called once per frame
-		void Update()
-		{
-
-		}
-
+		
 		private void OnDestroy()
 		{
 			dungeon = null;
