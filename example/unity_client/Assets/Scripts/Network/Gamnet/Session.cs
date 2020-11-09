@@ -843,7 +843,7 @@ namespace Gamnet
 		{
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = Packet.HEADER_SIZE;
-			packet.msg_seq = 0; // ++_send_seq;
+			packet.msg_seq = ++_send_seq;
 			packet.msg_id = MsgID_CliSvr_Connect_Req;
 			packet.reliable = false;
 			SendMsg(packet);
@@ -902,7 +902,7 @@ namespace Gamnet
 
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = (ushort)(Packet.HEADER_SIZE + data.Length);
-			packet.msg_seq = 0;// ++_send_seq;
+			packet.msg_seq = ++_send_seq;
 			packet.msg_id = MsgID_CliSvr_Reconnect_Req;
 			packet.reliable = false;
 			packet.Append(data);
@@ -974,7 +974,7 @@ namespace Gamnet
 			Reconnect();
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = Packet.HEADER_SIZE;
-			packet.msg_seq = 0; // ++_send_seq;
+			packet.msg_seq = ++_send_seq;
 			packet.msg_id = MsgID_CliSvr_HeartBeat_Req;
 			packet.reliable = false;
 			//Debug.Log("[Session.Send_HeartBeat_Req] send heartbeat req(msg_seq:" + packet.msg_seq + ")");
@@ -1022,7 +1022,7 @@ namespace Gamnet
 
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = (ushort)(Packet.HEADER_SIZE + data.Length);
-			packet.msg_seq = 0;// ++_send_seq;
+			packet.msg_seq = ++_send_seq;
 			packet.msg_id = MsgID_CliSvr_ReliableAck_Ntf;
 			packet.reliable = false;
 			packet.Append(data);
@@ -1059,7 +1059,7 @@ namespace Gamnet
 			}
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = Packet.HEADER_SIZE;
-			packet.msg_seq = 0; // ++_send_seq;
+			packet.msg_seq = ++_send_seq;
 			packet.msg_id = MsgID_CliSvr_Close_Req;
 			packet.reliable = false;
 			Debug.Log("[Session.Send_Close_Req]");
