@@ -257,7 +257,6 @@ struct ItemType_Serializer {
 enum class EquipItemPartType {
 	Invalid,
 	Cloak,
-	Hair,
 	Legs,
 	Body,
 	Boots,
@@ -273,7 +272,6 @@ template <> inline const std::string& ToString<EquipItemPartType>(EquipItemPartT
 	static const std::map<EquipItemPartType, std::string> table = {
 		{ EquipItemPartType::Invalid, "Invalid"},
 		{ EquipItemPartType::Cloak, "Cloak"},
-		{ EquipItemPartType::Hair, "Hair"},
 		{ EquipItemPartType::Legs, "Legs"},
 		{ EquipItemPartType::Body, "Body"},
 		{ EquipItemPartType::Boots, "Boots"},
@@ -293,7 +291,6 @@ template <> inline EquipItemPartType Parse<EquipItemPartType>(const std::string&
 	static const std::map<std::string, EquipItemPartType> table = {
 		{ "Invalid", EquipItemPartType::Invalid},
 		{ "Cloak", EquipItemPartType::Cloak},
-		{ "Hair", EquipItemPartType::Hair},
 		{ "Legs", EquipItemPartType::Legs},
 		{ "Body", EquipItemPartType::Body},
 		{ "Boots", EquipItemPartType::Boots},

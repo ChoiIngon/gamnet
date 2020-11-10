@@ -161,7 +161,6 @@ public struct ItemType_Serializer {
 public enum EquipItemPartType {
 	Invalid,
 	Cloak,
-	Hair,
 	Legs,
 	Body,
 	Boots,

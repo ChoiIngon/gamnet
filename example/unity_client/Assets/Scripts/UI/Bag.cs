@@ -26,7 +26,7 @@ namespace UI
 				
 				if (childIndex < itemslot_contents.childCount)
 				{
-					Transform child = itemslot_contents.GetChild(childIndex++);
+					Transform child = itemslot_contents.GetChild(childIndex);
 					itemSlot = child.GetComponent<ItemSlot>();
 				}
 				else
@@ -34,8 +34,8 @@ namespace UI
 					itemSlot = GameObject.Instantiate<ItemSlot>(itemslot_prefab);
 					itemSlot.transform.SetParent(itemslot_contents, false);
 				}
-                
                 itemSlot.SetItemData(data);
+				childIndex++;
             }
 
 			while (childIndex < itemslot_contents.childCount)

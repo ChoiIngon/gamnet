@@ -5,15 +5,24 @@ using UnityEngine.UI;
 
 public class Suit : MonoBehaviour
 {
-    public Image[] items = new Image[(int)Message.EquipItemPartType.Max];
+    public Image[] item_images = new Image[(int)Message.EquipItemPartType.Max];
 
 	private void OnEnable()
 	{
 		Util.EventSystem.Subscribe<Item.Data>(Component.Suit.Event.EquipItem, OnEquip);
 		Util.EventSystem.Subscribe<Message.EquipItemPartType>(Component.Suit.Event.UnequipItem, OnUnequip);
 
-		foreach (Item.Data item in GameManager.Instance.suit)
+		for (Message.EquipItemPartType part = Message.EquipItemPartType.Invalid; part < Message.EquipItemPartType.Max; part++)
 		{
+			Item.Data item = GameManager.Instance.suit.GetItem(part);
+			if (null == item)
+			{
+				OnUnequip(part);
+			}
+			else
+			{
+				OnEquip(item);
+			}
 		}
 	}
 
@@ -25,11 +34,17 @@ public class Suit : MonoBehaviour
 
 	public void OnEquip(Item.Data item)
     {
-        items[(int)item.meta.equip.part].sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(item.meta.equip.sprite_path);
+		Image image = item_images[(int)item.meta.equip.part];
+		image.color = Color.white;
+		image.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(item.meta.equip.sprite_path);
     }
 
     public void OnUnequip(Message.EquipItemPartType part)
     {
-        items[(int)part].sprite = null;
+		if (Message.EquipItemPartType.Invalid == part)
+		{
+			return;
+		}
+		item_images[(int)part].color = new Color32(0, 0, 0, 0);
     }
 }

@@ -93,6 +93,7 @@
     <ClCompile Include="Util\CSVReader.cpp" />
     <ClCompile Include="Handler\Item\Handler_EquipItem.cpp" />
     <ClCompile Include="Component\Suit.cpp" />
+    <ClCompile Include="Handler\Item\Handler_UnequipItem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="UserSession.h" />
@@ -189,6 +190,7 @@
     <ClInclude Include="Util\CSVReader.h" />
     <ClInclude Include="Handler\Item\Handler_EquipItem.h" />
     <ClInclude Include="Component\Suit.h" />
+    <ClInclude Include="Handler\Item\Handler_UnequipItem.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\idl\MessageUser.idl" />

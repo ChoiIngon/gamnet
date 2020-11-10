@@ -42,6 +42,10 @@ namespace Component
 			Util.EventSystem.Publish<Message.EquipItemPartType>(Event.UnequipItem, item.meta.equip.part);
 		}
 
+		public Item.Data GetItem(Message.EquipItemPartType part)
+		{
+			return item_datas[(int)part];
+		}
 		public IEnumerator GetEnumerator()
 		{
 			foreach (var itr in item_datas)
