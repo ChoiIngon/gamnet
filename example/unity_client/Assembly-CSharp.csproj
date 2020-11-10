@@ -67,6 +67,7 @@
     <Compile Include="Assets\Scripts\Component\Counter.cs" />
     <Compile Include="Assets\Scripts\Component\Item.cs" />
     <Compile Include="Assets\Scripts\Component\MailBox.cs" />
+    <Compile Include="Assets\Scripts\Component\Suit.cs" />
     <Compile Include="Assets\Scripts\EventID.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\Handler\Dungeon\Handler_CreateDungeon.cs" />
