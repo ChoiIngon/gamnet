@@ -16,6 +16,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 	public Component.Counter counter = null;
 	public Component.MailBox mailbox = null;
 	public Component.Bag bag = null;
+    public Component.Suit suit = null;
 
 	public UI.UIMain ui = null;
 	public Network.LobbySession LobbySession
@@ -31,9 +32,10 @@ class GameManager : Util.MonoSingleton<GameManager>
 			Application.runInBackground = run_in_background;
 		}
 
-		counter		= new Component.Counter();
-		mailbox		= new Component.MailBox();
-		bag			= new Component.Bag();
+		counter	= new Component.Counter();
+		mailbox	= new Component.MailBox();
+		bag		= new Component.Bag();
+		suit	= new Component.Suit();
 	}
 
 	private IEnumerator Start()

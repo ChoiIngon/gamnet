@@ -9,14 +9,18 @@ public class Suit : MonoBehaviour
 
 	private void OnEnable()
 	{
-		Util.EventSystem.Subscribe<Item.Data>(Component.Bag.Event.EquipItem, OnEquip);
-		Util.EventSystem.Subscribe<Message.EquipItemPartType>(Component.Bag.Event.UnequipItem, OnUnequip);
+		Util.EventSystem.Subscribe<Item.Data>(Component.Suit.Event.EquipItem, OnEquip);
+		Util.EventSystem.Subscribe<Message.EquipItemPartType>(Component.Suit.Event.UnequipItem, OnUnequip);
+
+		foreach (Item.Data item in GameManager.Instance.suit)
+		{
+		}
 	}
 
 	private void OnDisable()
 	{
-		Util.EventSystem.Unsubscribe<Item.Data>(Component.Bag.Event.EquipItem, OnEquip);
-		Util.EventSystem.Unsubscribe<Message.EquipItemPartType>(Component.Bag.Event.UnequipItem, OnUnequip);
+		Util.EventSystem.Unsubscribe<Item.Data>(Component.Suit.Event.EquipItem, OnEquip);
+		Util.EventSystem.Unsubscribe<Message.EquipItemPartType>(Component.Suit.Event.UnequipItem, OnUnequip);
 	}
 
 	public void OnEquip(Item.Data item)

@@ -12,8 +12,6 @@ namespace Component
 			public const string AddItem = "Bag.Event.AddItem";
 			public const string RemoveItem = "Bag.Event.RemoveItem";
 			public const string UpdateItem = "Bag.Event.UpdateItem";
-			public const string EquipItem = "Bag.Event.EquipItem";
-			public const string UnequipItem = "Bag.Event.UnequipItem";
 		}
 
 		private Dictionary<UInt64, Item.Data> item_datas = new Dictionary<ulong, Item.Data>();
@@ -22,16 +20,12 @@ namespace Component
 		{
 			GameManager.Instance.LobbySession.RegisterHandler<Message.Item.MsgSvrCli_AddItem_Ntf>(OnAddItem);
 			GameManager.Instance.LobbySession.RegisterHandler<Message.Item.MsgSvrCli_UpdateItem_Ntf>(OnUpdateItem);
-			GameManager.Instance.LobbySession.RegisterHandler<Message.Item.MsgSvrCli_EquipItem_Ntf>(OnEquipItem);
-			GameManager.Instance.LobbySession.RegisterHandler<Message.Item.MsgSvrCli_UnequipItem_Ntf>(OnUnequipItem);
 		}
 
 		~Bag()
 		{
 			GameManager.Instance.LobbySession.UnregisterHandler<Message.Item.MsgSvrCli_AddItem_Ntf>(OnAddItem);
 			GameManager.Instance.LobbySession.UnregisterHandler<Message.Item.MsgSvrCli_UpdateItem_Ntf>(OnUpdateItem);
-			GameManager.Instance.LobbySession.UnregisterHandler<Message.Item.MsgSvrCli_EquipItem_Ntf>(OnEquipItem);
-			GameManager.Instance.LobbySession.UnregisterHandler<Message.Item.MsgSvrCli_UnequipItem_Ntf>(OnUnequipItem);
 		}
 
 		public void OnAddItem(Message.Item.MsgSvrCli_AddItem_Ntf ntf)
@@ -75,19 +69,6 @@ namespace Component
 			item_datas.Remove(itemSEQ);
 			Util.EventSystem.Publish<UInt64>(Event.RemoveItem, itemSEQ);
 		}
-		public void OnEquipItem(Message.Item.MsgSvrCli_EquipItem_Ntf ntf)
-		{
-			Item.Data item = GetItem(ntf.item_seq);
-			Util.EventSystem.Publish<Item.Data>(Event.EquipItem, item);
-		}
-
-		public void OnUnequipItem(Message.Item.MsgSvrCli_UnequipItem_Ntf ntf)
-		{
-			Item.Data item = GetItem(ntf.item_seq);
-			Util.EventSystem.Publish<Message.EquipItemPartType>(Event.UnequipItem, item.meta.equip.part);
-		}
-		
-
 		public Item.Data GetItem(UInt64 itemSEQ)
 		{
 			Item.Data data = null;
