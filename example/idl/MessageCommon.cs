@@ -299,16 +299,16 @@ public struct MailData_Serializer {
 };
 public class CounterData {
 	public CounterType	counter_type = new CounterType();
+	public int	counter_value = 0;
 	public ulong	update_date = 0;
-	public int	count = 0;
 	public CounterData() {
 	}
 	public virtual int Size() {
 		int nSize = 0;
 		try {
 			nSize += CounterType_Serializer.Size(counter_type);
-			nSize += sizeof(ulong);
 			nSize += sizeof(int);
+			nSize += sizeof(ulong);
 		} catch(System.Exception) {
 			return -1;
 		}
@@ -317,8 +317,8 @@ public class CounterData {
 	public virtual bool Store(MemoryStream _buf_) {
 		try {
 			if(false == CounterType_Serializer.Store(_buf_, counter_type)) { return false; }
+			_buf_.Write(BitConverter.GetBytes(counter_value), 0, sizeof(int));
 			_buf_.Write(BitConverter.GetBytes(update_date), 0, sizeof(ulong));
-			_buf_.Write(BitConverter.GetBytes(count), 0, sizeof(int));
 		} catch(System.Exception) {
 			return false;
 		}
@@ -327,12 +327,12 @@ public class CounterData {
 	public virtual bool Load(MemoryStream _buf_) {
 		try {
 			if(false == CounterType_Serializer.Load(ref counter_type, _buf_)) { return false; }
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			counter_value = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
 			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
 			update_date = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(ulong);
-			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
-			count = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(int);
 		} catch(System.Exception) {
 			return false;
 		}

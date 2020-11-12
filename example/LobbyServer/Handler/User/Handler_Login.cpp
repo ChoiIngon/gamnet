@@ -4,6 +4,7 @@
 #include "../../Component/UserData.h"
 #include "../../Component/Item.h"
 #include "../../Component/Bag.h"
+#include "../../Component/Suit.h"
 #include "../../../idl/MessageItem.h"
 
 namespace Handler { namespace User {
@@ -142,9 +143,8 @@ void Handler_Login::ReadUserCounter(const std::shared_ptr<UserSession>& session)
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
 	std::shared_ptr<Component::Counter> counter = session->GetComponent<Component::Counter>();
-	session->StartTransaction();
+	assert(nullptr != counter);
 	counter->Load();
-	session->Commit();
 }
 
 void Handler_Login::ReadUserItem(const std::shared_ptr<UserSession>& session)

@@ -4,6 +4,7 @@
 #include <idl/MessageItem.h>
 #include "../UserSession.h"
 #include "Item.h"
+#include "Suit.h"
 
 namespace Component {
 	Bag::Bag(const std::shared_ptr<UserSession>& session)
@@ -22,6 +23,7 @@ namespace Component {
 		);
 
 		Message::Item::MsgSvrCli_AddItem_Ntf ntf;
+		std::list<std::shared_ptr<Item::Data>> equippedItems;
 		for (auto& row : rows)
 		{
 			std::shared_ptr<Item::Data> item = Item::Create(row->getUInt32("item_index"), row->getInt("item_count"));
@@ -31,6 +33,11 @@ namespace Component {
 			{
 				item->expire->SetDate(row->getString("expire_date"));
 			}
+			if(nullptr != item->equip)
+			{
+				item->equip->part = (Message::EquipItemPartType)row->getInt32("equip_part");
+				equippedItems.push_back(item);
+			}
 			last_item_seq = std::max(last_item_seq, item->seq);
 			item_datas.insert(std::make_pair(item->seq, item));
 			ntf.item_datas.push_back(*item);
@@ -38,6 +45,16 @@ namespace Component {
 		if(0 < ntf.item_datas.size())
 		{
 			Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+		}
+		
+		if(0 < equippedItems.size())
+		{
+			std::shared_ptr<Component::Suit> suit = session->GetComponent<Component::Suit>();
+			assert(nullptr != suit);
+			for(std::shared_ptr<Item::Data>& item : equippedItems)
+			{
+				suit->EquipWithoutDB(item);
+			}
 		}
 	}
 

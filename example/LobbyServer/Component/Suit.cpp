@@ -11,6 +11,19 @@ namespace Component {
 	{
 	}
 
+	void Suit::EquipWithoutDB(const std::shared_ptr<Item::Data>& item)
+	{
+		if(Message::EquipItemPartType::Invalid >= item->equip->part || Message::EquipItemPartType::Max <= item->equip->part)
+		{
+			return;
+		}
+		item_datas[(int)item->equip->part] = item;
+
+		Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
+		ntf.item_seq = item->seq;
+		Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+	}
+
 	void Suit::Equip(const std::shared_ptr<Item::Data>& item)
 	{
 		const std::shared_ptr<Item::Meta>& meta = item->meta;
@@ -20,6 +33,9 @@ namespace Component {
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
+
+		assert(Message::EquipItemPartType::Invalid < meta->equip->part && Message::EquipItemPartType::Max > meta->equip->part);
+		
 
 		Unequip(meta->equip->part);
 
