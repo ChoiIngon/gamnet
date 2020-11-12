@@ -1,6 +1,6 @@
-﻿Name,ID,Index,Type,Grade,Max_Stack,Price.Type,Price.Value,Expire.Trigger_Type,Expire.Expire_Type,Expire.Time,Expire.Date,Icon_Path,Packages[0].ID,Packages[0].Count,Packages[1].ID,Packages[1].Count,Packages[2].ID,Packages[2].Count,Packages[3].ID,Packages[3].Count,Packages[4].ID,Packages[4].Count,Packages[5].ID,Packages[5].Count,Packages[6].ID,Packages[6].Count
-Text,Text,Int,ItemType,Int,Int,CounterType,Int,TriggerType,ExpireType,seconds,DateTime,Text,Text,Int,Text,Int,Text,Int,,,,,,,,
-PackageItem,Test_EquipItemPackage,100003,Package,3,99,Gold,100,OnCreate,Period,86400,,Assets/Sprites/Item/weapon/bardiche2,ITEM_EQUIP_CLOAK_0001,1,ITEM_EQUIP_BODY_0001,1,ITEM_EQUIP_BOOTS_0001,1,ITEM_EQUIP_HEAD_0001,1,ITEM_EQUIP_GLOVES_0001,1,ITEM_EQUIP_LEFAHAND_0001,1,ITEM_EQUIP_RIGHTHAND_0001,1
-,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,
+﻿Name,ID,Index,Type,Grade,Max_Stack,Price.Type,Price.Value,Expire.Trigger_Type,Expire.Expire_Type,Expire.Time,Expire.Date,Icon_Path,Packages[0].Item_ID,Packages[0].Count,Packages[1].Item_ID,Packages[1].Count,Packages[2].Item_ID,Packages[2].Count,Packages[3].Item_ID,Packages[3].Count,Packages[4].Item_ID,Packages[4].Count,Packages[5].Item_ID,Packages[5].Count,Packages[6].Item_ID,Packages[6].Count,Packages[7].Counter_Type,Packages[7].Count
+Text,Text,Int,ItemType,Int,Int,CounterType,Int,TriggerType,ExpireType,seconds,DateTime,Text,Text,Int,Text,Int,Text,Int,,,,,,,,,CounterType,
+PackageItem,Test_EquipItemPackage,100003,Package,3,99,Gold,100,OnCreate,Period,86400,,Assets/Sprites/Item/weapon/bardiche2,ITEM_EQUIP_CLOAK_0001,1,ITEM_EQUIP_BODY_0001,1,ITEM_EQUIP_BOOTS_0001,1,ITEM_EQUIP_HEAD_0001,1,ITEM_EQUIP_GLOVES_0001,1,ITEM_EQUIP_LEFAHAND_0001,1,ITEM_EQUIP_RIGHTHAND_0001,1,Gold,9999
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,

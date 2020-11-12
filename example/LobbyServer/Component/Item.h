@@ -70,8 +70,12 @@ namespace Item
 		{
 			Package();
 
-			std::string id;
+			std::string item_id;
+			Message::CounterType counter_type;
 			int		 count;
+
+		private :
+			void OnCounterType(Message::CounterType& member, const std::string& value);
 		};
 
 		Meta();

@@ -86,7 +86,7 @@ int Counter::ChangeCount(Message::CounterType type, int amount)
 	auto itr = counters.find(type);
 	if (counters.end() == itr)
 	{
-		session->queries->Execute("INSERT INTO user_counter(user_seq, counter_type, counter_value) VALUES(", session->user_seq, ",", (int)type, ",", amount, ")");
+		session->queries->Execute("INSERT INTO user_counter(user_seq, counter_type, counter_value, update_date) VALUES(", session->user_seq, ",", (int)type, ",", amount, ", NOW())");
 		std::shared_ptr<Counter::Data> counter(std::make_shared<Counter::Data>(
 			session,
 			(Message::CounterType)type,

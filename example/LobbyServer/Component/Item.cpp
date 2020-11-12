@@ -5,6 +5,7 @@
 #include <IDL/MessageItem.h>
 #include "../UserSession.h"
 #include "Bag.h"
+#include "Counter.h"
 
 namespace Item {
 
@@ -90,12 +91,19 @@ namespace Item {
 	}
 
 	Meta::Package::Package()
-		: count(0)
+		: counter_type(Message::CounterType::Invalid)
+		, count(0)
 	{
-		META_MEMBER(id);
+		META_MEMBER(item_id);
+		META_CUSTOM(counter_type, Package::OnCounterType);
 		META_MEMBER(count);
 	}
 	
+	void Meta::Package::OnCounterType(Message::CounterType& member, const std::string& value)
+	{
+		member = Message::Parse<Message::CounterType>(value);
+	}
+
 	Meta::Meta()
 		: id("")
 		, index(0)
@@ -228,7 +236,7 @@ namespace Item {
 		std::shared_ptr<Item::Meta> meta = item->meta;
 		std::shared_ptr<UserSession> session = item->session;
 		auto bag = session->GetComponent<Component::Bag>();
-
+		auto counter = session->GetComponent<Component::Counter>();
 		if(1 > item->count)
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
@@ -236,7 +244,14 @@ namespace Item {
 
 		for(auto& package : meta->packages)
 		{
-			bag->Insert(Item::Create(package->id, package->count));
+			if("" != package->item_id)
+			{
+				bag->Insert(Item::Create(package->item_id, package->count));
+			}
+			if(Message::CounterType::Invalid != package->counter_type)
+			{
+				counter->ChangeCount(package->counter_type, package->count);
+			}
 		}
 
 		bag->Remove(item->seq, 1);
