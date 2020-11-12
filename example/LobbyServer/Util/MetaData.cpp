@@ -191,3 +191,16 @@ void MetaData::Allocation(Gamnet::Time::DateTime& member, const Json::Value& cel
 	member = value;
 }
 
+void MetaData::Allocation(MetaData& member, const Json::Value& cell)
+{
+	Json::Value row;
+	row["file"] = cell["file"];
+	row["row_num"] = cell["row_num"];
+
+	Json::Value column;
+	column["header"] = cell["header"]["children"];
+	column["value"] = cell["value"];
+	row["cells"].append(column);
+
+	member.Init(row);
+}

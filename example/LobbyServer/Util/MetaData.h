@@ -81,20 +81,7 @@ private :
 	void Allocation(double& member, const Json::Value& cell);
 	void Allocation(std::string& member, const Json::Value& cell);
 	void Allocation(Gamnet::Time::DateTime& member, const Json::Value& cell);
-	template <class T>
-	void Allocation(T& member, const Json::Value& cell)
-	{
-		Json::Value row;
-		row["file"] = cell["file"];
-		row["row_num"] = cell["row_num"];
-
-		Json::Value column;
-		column["header"] = cell["header"]["children"];
-		column["value"] = cell["value"];
-		row["cells"].append(column);
-
-		member.Init(row);
-	}
+	void Allocation(MetaData& member, const Json::Value& cell);
 	template <class T>
 	void Allocation(std::shared_ptr<T>& member, const Json::Value& cell)
 	{
@@ -111,6 +98,7 @@ private :
 		{
 			member = std::make_shared<T>();
 		}
+		assert(nullptr != member);
 		member->Init(row);
 	}
 private:
