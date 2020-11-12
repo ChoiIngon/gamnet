@@ -19,7 +19,7 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 	ans.error_code = Message::ErrorCode::Success;
 	
 	try {
-		LOG(DEV, "Message::Lobby::MsgCliSvr_OpenPackage_Req()");
+		LOG(DEV, "Message::Item::MsgCliSvr_OpenPackage_Req()");
 		if(nullptr == session->GetComponent<Component::UserData>())
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);

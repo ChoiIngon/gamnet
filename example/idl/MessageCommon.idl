@@ -95,8 +95,8 @@ struct MailData
 struct CounterData
 {
 	CounterType counter_type;
+	int32 counter_value;
 	uint64 update_date;
-	int32 count;
 };
 
 struct ItemData

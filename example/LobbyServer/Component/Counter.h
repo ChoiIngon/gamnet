@@ -11,28 +11,29 @@ namespace Component {
 
 class Counter
 {
-public :
 	class Data
 	{
 	public:
-		const uint64_t seq;
-		const Message::CounterType type;
-		Gamnet::Time::DateTime update_date;
-	public:
-		Data(const std::shared_ptr<UserSession>& session, uint64_t counter_seq, Message::CounterType counter_type, int count, const Gamnet::Time::DateTime& updateDate);
-		virtual int Increase(int amount);
-		virtual int Count();
+		Data(const std::shared_ptr<UserSession>& session, Message::CounterType counter_type, int count, const Gamnet::Time::DateTime& updateDate);
+		virtual int Change(int amount);
+		virtual int Count() const;
 	private:
 		std::shared_ptr<UserSession> session;
-		int count;
+	public:
+		const Message::CounterType type;
+	private:
+		int value;
+	public:
+		Gamnet::Time::DateTime update_date;
 	};
 
 public :
 	Counter(const std::shared_ptr<UserSession>& session);
 	void Load();
-	std::shared_ptr<Data> AddCounter(const std::shared_ptr<Data>& counter);
-	std::shared_ptr<Data> GetCounter(Message::CounterType type);
+	int GetCount(Message::CounterType type);
+	int ChangeCount(Message::CounterType type, int amount);
 private :
+	std::shared_ptr<Data> AddCounter(const std::shared_ptr<Data>& counter);
 	std::shared_ptr<UserSession> session;
 	std::map<Message::CounterType, std::shared_ptr<Data>> counters;
 };

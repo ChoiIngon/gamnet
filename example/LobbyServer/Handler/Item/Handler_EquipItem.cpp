@@ -20,7 +20,7 @@ namespace Handler {	namespace Item {
 		ans.error_code = Message::ErrorCode::Success;
 
 		try {
-			LOG(DEV, "Message::Lobby::MsgCliSvr_EquipItem_Req()");
+			LOG(DEV, "Message::Item::MsgCliSvr_EquipItem_Req()");
 			if (nullptr == session->GetComponent<Component::UserData>())
 			{
 				throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);

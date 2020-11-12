@@ -35,10 +35,9 @@ namespace Component
 
 		void OnUnequipItem(Message.Item.MsgSvrCli_UnequipItem_Ntf ntf)
 		{
-			Item.Data item = GameManager.Instance.bag.GetItem(ntf.item_seq);
-			item_datas[(int)item.meta.equip.part] = null;
+			Item.Data item = item_datas[(int)ntf.part_type];
 			item.equip.part = Message.EquipItemPartType.Invalid;
-
+			item_datas[(int)ntf.part_type] = null;
 			Util.EventSystem.Publish<Message.EquipItemPartType>(Event.UnequipItem, item.meta.equip.part);
 		}
 

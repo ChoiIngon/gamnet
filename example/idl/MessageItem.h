@@ -415,13 +415,12 @@ struct MsgSvrCli_UnequipItem_Ans_Serializer {
 };
 struct MsgSvrCli_UnequipItem_Ntf {
 	enum { MSG_ID = 130000008 }; 
-	uint64_t	item_seq;
+	EquipItemPartType	part_type;
 	MsgSvrCli_UnequipItem_Ntf()	{
-		item_seq = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += sizeof(uint64_t);
+		nSize += EquipItemPartType_Serializer::Size(part_type);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -435,7 +434,7 @@ struct MsgSvrCli_UnequipItem_Ntf {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &item_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		if(false == EquipItemPartType_Serializer::Store(_buf_, part_type)) { return false; }
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -446,7 +445,7 @@ struct MsgSvrCli_UnequipItem_Ntf {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&item_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(false == EquipItemPartType_Serializer::Load(part_type, _buf_, nSize)) { return false; }
 		return true;
 	}
 }; //MsgSvrCli_UnequipItem_Ntf

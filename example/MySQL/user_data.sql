@@ -29,13 +29,11 @@ DEFAULT CHARACTER SET=utf8mb4 COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `user_counter` (
-	`counter_seq` INT NOT NULL AUTO_INCREMENT COMMENT 'counter unique identifier',
-	`counter_type` INT NOT NULL,
 	`user_seq`  INT NOT NULL,
-	`counter` INT NOT NULL DEFAULT 0,
+	`counter_type` INT NOT NULL,
+	`counter_value` INT NOT NULL DEFAULT 0,
 	`update_date` timestamp not null default '0000-00-00 00:00:00',
-	PRIMARY KEY(`counter_seq`),
-	INDEX `index_1` (`user_seq`)
+	PRIMARY KEY(`user_seq`, `counter_type`)
 )
 DEFAULT CHARACTER SET=utf8mb4 COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB;

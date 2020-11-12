@@ -67,9 +67,8 @@ namespace Component {
 		{
 			item_datas[(int)part] = nullptr;
 			item->equip->part = Message::EquipItemPartType::Invalid;
-
 			Message::Item::MsgSvrCli_UnequipItem_Ntf ntf;
-			ntf.item_seq = item->seq;
+			ntf.part_type = part;
 			Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 		});
 	}

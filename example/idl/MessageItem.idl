@@ -54,7 +54,7 @@ message MsgSvrCli_UnequipItem_Ans	: 130000007
 
 message MsgSvrCli_UnequipItem_Ntf	: 130000008
 {
-	uint64 item_seq;
+	EquipItemPartType part_type;
 };
 
 .cpp %%

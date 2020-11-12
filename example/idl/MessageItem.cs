@@ -367,13 +367,13 @@ public struct MsgSvrCli_UnequipItem_Ans_Serializer {
 };
 public class MsgSvrCli_UnequipItem_Ntf {
 	public const int MSG_ID = 130000008;
-	public ulong	item_seq = 0;
+	public EquipItemPartType	part_type = new EquipItemPartType();
 	public MsgSvrCli_UnequipItem_Ntf() {
 	}
 	public virtual int Size() {
 		int nSize = 0;
 		try {
-			nSize += sizeof(ulong);
+			nSize += EquipItemPartType_Serializer.Size(part_type);
 		} catch(System.Exception) {
 			return -1;
 		}
@@ -381,7 +381,7 @@ public class MsgSvrCli_UnequipItem_Ntf {
 	}
 	public virtual bool Store(MemoryStream _buf_) {
 		try {
-			_buf_.Write(BitConverter.GetBytes(item_seq), 0, sizeof(ulong));
+			if(false == EquipItemPartType_Serializer.Store(_buf_, part_type)) { return false; }
 		} catch(System.Exception) {
 			return false;
 		}
@@ -389,9 +389,7 @@ public class MsgSvrCli_UnequipItem_Ntf {
 	}
 	public virtual bool Load(MemoryStream _buf_) {
 		try {
-			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
-			item_seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(ulong);
+			if(false == EquipItemPartType_Serializer.Load(ref part_type, _buf_)) { return false; }
 		} catch(System.Exception) {
 			return false;
 		}
