@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `user_item` (
 	`delete_date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 	`delete_yn` VARCHAR(1) NOT NULL DEFAULT 'N' COLLATE 'utf8mb4_unicode_ci',
 	PRIMARY KEY (`user_seq`, `item_seq`),
-	INDEX `index_1` (`user_seq`, `expire_date`, `delete_yn`)
+	INDEX `user_item_index_1` (`user_seq`, `expire_date`, `delete_yn`)
 )
 DEFAULT CHARACTER SET=utf8mb4 COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB;
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `user_mail` (
 	`item_count` INT NOT NULL DEFAULT 0,
 	`delete_date` timestamp not null default '0000-00-00 00:00:00',
 	PRIMARY KEY(`mail_seq`),
-	INDEX `index_1` (`user_seq`, `expire_date`, `delete_yn`)
+	INDEX `user_mail_index_1` (`user_seq`, `expire_date`, `delete_yn`)
 )
 DEFAULT CHARACTER SET=utf8mb4 COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB;
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `user_event` (
 	`event_index` INT NOT NULL,
 	`update_date` timestamp not null default '0000-00-00 00:00:00',
 	PRIMARY KEY(`event_seq`),
-	UNIQUE INDEX `unique_index_1` (`user_seq`, `event_index`)
+	UNIQUE INDEX `user_event_unique_index_1` (`user_seq`, `event_index`)
 )
 DEFAULT CHARACTER SET=utf8mb4 COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB;

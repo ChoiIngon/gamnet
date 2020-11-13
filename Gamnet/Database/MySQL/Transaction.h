@@ -3,31 +3,65 @@
 
 #include "Connection.h"
 #include <list>
+#include <set>
 #include "../../Library/String.h"
 #include "../../Library/Exception.h"
 
 namespace Gamnet { namespace Database { namespace MySQL {
 class Transaction 
 {
-	struct UpdateQuery 
+public :
+	struct Query
 	{
+		enum class Type
+		{
+			Plain,
+			Update,
+			Insert
+		};
+
+		virtual Type GetType() const = 0;
+		virtual std::string MakeQuery() = 0;
+		virtual void Clear() = 0;
+	};
+private :
+	struct PlainQuery : public Query
+	{
+		virtual Type GetType() const override;
+		virtual std::string MakeQuery() override;
+		virtual void Clear() override;
+
+		std::string query;
+	};
+
+	struct UpdateQuery : public Query
+	{
+		virtual Type GetType() const override;
+		virtual std::string MakeQuery() override;
+		virtual void Clear() override;
+
+		bool CompareKey(const std::string& tableName, const std::map<std::string, Gamnet::Variant>& whereClause);
 		std::string table_name;
 		std::string set_clause;
 		std::map<std::string, Gamnet::Variant> where_clause;
 	};
 
-	struct InsertQuery 
+	struct InsertQuery : public Query
 	{
+		virtual Type GetType() const override;
+		virtual std::string MakeQuery() override;
+		virtual void Clear() override;
+
+		bool CompareKey(const std::string& tableName, const std::map<std::string, Gamnet::Variant>& columns);
+		void AddColumns(const std::map<std::string, Gamnet::Variant>& columns);
+		void AddValues(const std::map<std::string, Gamnet::Variant>& columns);
 		std::string table_name;
-		std::map<std::string, Gamnet::Variant> columns;
+		std::set<std::string> columns;
+		std::list<std::string> values;
 	};
 
 	int db_type;
-	int query_count;
-
-	std::list<UpdateQuery> update_queries;
-	std::list<InsertQuery> insert_queries;
-	std::list<std::string> plain_queries;
+	std::list<std::shared_ptr<Query>> queries;
 public:
 	Transaction(int db_type);
 	virtual ~Transaction();
@@ -37,8 +71,13 @@ public:
 	template <class... ARGS>
 	void Execute(ARGS... args)
 	{
+		/*
 		plain_queries.push_back(Format(args...));
 		query_count++;
+		*/
+		std::shared_ptr<PlainQuery> plain = std::make_shared<PlainQuery>();
+		plain->query = Format(args...);
+		queries.push_back(plain);
 	}
 	
 	ResultSet Commit();
