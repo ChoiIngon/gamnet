@@ -454,6 +454,94 @@ struct MsgSvrCli_UnequipItem_Ntf_Serializer {
 	static bool Load(MsgSvrCli_UnequipItem_Ntf& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static size_t Size(const MsgSvrCli_UnequipItem_Ntf& obj) { return obj.Size(); }
 };
+struct MsgCliSvr_SellItem_Req {
+	enum { MSG_ID = 130000009 }; 
+	uint64_t	item_seq;
+	int32_t	item_count;
+	MsgCliSvr_SellItem_Req()	{
+		item_seq = 0;
+		item_count = 0;
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(uint64_t);
+		nSize += sizeof(int32_t);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		std::memcpy(*_buf_, &item_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &item_count, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&item_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&item_count, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
+		return true;
+	}
+}; //MsgCliSvr_SellItem_Req
+struct MsgCliSvr_SellItem_Req_Serializer {
+	static bool Store(char** _buf_, const MsgCliSvr_SellItem_Req& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgCliSvr_SellItem_Req& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgCliSvr_SellItem_Req& obj) { return obj.Size(); }
+};
+struct MsgSvrCli_SellItem_Ans {
+	enum { MSG_ID = 130000009 }; 
+	ErrorCode	error_code;
+	MsgSvrCli_SellItem_Ans()	{
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += ErrorCode_Serializer::Size(error_code);
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		if(false == ErrorCode_Serializer::Store(_buf_, error_code)) { return false; }
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(false == ErrorCode_Serializer::Load(error_code, _buf_, nSize)) { return false; }
+		return true;
+	}
+}; //MsgSvrCli_SellItem_Ans
+struct MsgSvrCli_SellItem_Ans_Serializer {
+	static bool Store(char** _buf_, const MsgSvrCli_SellItem_Ans& obj) { return obj.Store(_buf_); }
+	static bool Load(MsgSvrCli_SellItem_Ans& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const MsgSvrCli_SellItem_Ans& obj) { return obj.Size(); }
+};
 
 }}
 

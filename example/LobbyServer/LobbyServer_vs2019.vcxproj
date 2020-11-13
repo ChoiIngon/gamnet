@@ -145,6 +145,7 @@
     <ClCompile Include="Component\Dungeon\Vector2.cpp" />
     <ClCompile Include="Handler\Item\Handler_EquipItem.cpp" />
     <ClCompile Include="Handler\Item\Handler_UnequipItem.cpp" />
+    <ClCompile Include="Handler\Item\Handler_SellItem.cpp" />
     <ClCompile Include="Util\CSVReader.cpp" />
     <ClCompile Include="Handler\Dungeon\Handler_PlayerMove.cpp" />
     <ClCompile Include="Handler\Http\Handler_ServerState.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="Component\Dungeon\Vector2.h" />
     <ClInclude Include="Handler\Item\Handler_EquipItem.h" />
     <ClInclude Include="Handler\Item\Handler_UnequipItem.h" />
+    <ClInclude Include="Handler\Item\Handler_SellItem.h" />
     <ClInclude Include="Util\CSVReader.h" />
     <ClInclude Include="Handler\Dungeon\Handler_PlayerMove.h" />
     <ClInclude Include="Handler\Http\Handler_ServerState.h" />

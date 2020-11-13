@@ -38,7 +38,7 @@ namespace Component
 			Item.Data item = item_datas[(int)ntf.part_type];
 			item.equip.part = Message.EquipItemPartType.Invalid;
 			item_datas[(int)ntf.part_type] = null;
-			Util.EventSystem.Publish<Message.EquipItemPartType>(Event.UnequipItem, item.meta.equip.part);
+			Util.EventSystem.Publish<Item.Data>(Event.UnequipItem, item);
 		}
 
 		public Item.Data GetItem(Message.EquipItemPartType part)

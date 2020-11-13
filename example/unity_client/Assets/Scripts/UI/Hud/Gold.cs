@@ -18,13 +18,11 @@ namespace UI
 		}
 		private void OnEnable()
 		{
-			Message.CounterData counter = GameManager.Instance.counter.GetCounter(Message.CounterType.Gold);
-			gold_amount.text = counter.counter_value.ToString();
+			gold_amount.text = GameManager.Instance.counter.GetCount(Message.CounterType.Gold).ToString();
 		}
 		private void OnUpdate()
 		{
-			Message.CounterData counter = GameManager.Instance.counter.GetCounter(Message.CounterType.Gold);
-			gold_amount.text = counter.counter_value.ToString();
+			gold_amount.text = GameManager.Instance.counter.GetCount(Message.CounterType.Gold).ToString();
 		}
 	}
 }

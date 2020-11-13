@@ -148,5 +148,26 @@ namespace Component
 				return;
 			}
 		}
+
+		public void Send_SellItem_Req(Item.Data item)
+		{
+			GameManager.Instance.LobbySession.RegisterHandler<Message.Item.MsgSvrCli_SellItem_Ans>(Recv_SellItem_Ans);
+
+			Message.Item.MsgCliSvr_SellItem_Req req = new Message.Item.MsgCliSvr_SellItem_Req();
+			req.item_seq = item.seq;
+			req.item_count = item.count;
+			GameManager.Instance.LobbySession.SendMsg(req, true);
+		}
+
+		public void Recv_SellItem_Ans(Message.Item.MsgSvrCli_SellItem_Ans ans)
+		{
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.Item.MsgSvrCli_SellItem_Ans>(Recv_SellItem_Ans);
+			if (Message.ErrorCode.Success != ans.error_code)
+			{
+				GameManager.Instance.ui.alert.Open("MsgSvrCli_UnequipItem_Ans", ans.error_code.ToString() + "(" + ans.error_code.ToString() + ")");
+				return;
+			}
+		}
+
 	}
 }

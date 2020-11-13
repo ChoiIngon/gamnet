@@ -47,6 +47,16 @@ namespace Component
 			return data;
 		}
 
+		public int GetCount(Message.CounterType type)
+		{
+			Message.CounterData data = null;
+			if (false == counters.TryGetValue(type, out data))
+			{
+				return 0;
+			}
+			return data.counter_value;
+		}
+
 		public IEnumerator GetEnumerator()
 		{
 			foreach (var itr in counters)

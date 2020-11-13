@@ -401,6 +401,86 @@ public struct MsgSvrCli_UnequipItem_Ntf_Serializer {
 	public static bool Load(ref MsgSvrCli_UnequipItem_Ntf obj, MemoryStream _buf_) { return obj.Load(_buf_); }
 	public static int Size(MsgSvrCli_UnequipItem_Ntf obj) { return obj.Size(); }
 };
+public class MsgCliSvr_SellItem_Req {
+	public const int MSG_ID = 130000009;
+	public ulong	item_seq = 0;
+	public int	item_count = 0;
+	public MsgCliSvr_SellItem_Req() {
+	}
+	public virtual int Size() {
+		int nSize = 0;
+		try {
+			nSize += sizeof(ulong);
+			nSize += sizeof(int);
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public virtual bool Store(MemoryStream _buf_) {
+		try {
+			_buf_.Write(BitConverter.GetBytes(item_seq), 0, sizeof(ulong));
+			_buf_.Write(BitConverter.GetBytes(item_count), 0, sizeof(int));
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public virtual bool Load(MemoryStream _buf_) {
+		try {
+			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
+			item_seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(ulong);
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			item_count = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct MsgCliSvr_SellItem_Req_Serializer {
+	public static bool Store(MemoryStream _buf_, MsgCliSvr_SellItem_Req obj) { return obj.Store(_buf_); }
+	public static bool Load(ref MsgCliSvr_SellItem_Req obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(MsgCliSvr_SellItem_Req obj) { return obj.Size(); }
+};
+public class MsgSvrCli_SellItem_Ans {
+	public const int MSG_ID = 130000009;
+	public ErrorCode	error_code = new ErrorCode();
+	public MsgSvrCli_SellItem_Ans() {
+	}
+	public virtual int Size() {
+		int nSize = 0;
+		try {
+			nSize += ErrorCode_Serializer.Size(error_code);
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public virtual bool Store(MemoryStream _buf_) {
+		try {
+			if(false == ErrorCode_Serializer.Store(_buf_, error_code)) { return false; }
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public virtual bool Load(MemoryStream _buf_) {
+		try {
+			if(false == ErrorCode_Serializer.Load(ref error_code, _buf_)) { return false; }
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct MsgSvrCli_SellItem_Ans_Serializer {
+	public static bool Store(MemoryStream _buf_, MsgSvrCli_SellItem_Ans obj) { return obj.Store(_buf_); }
+	public static bool Load(ref MsgSvrCli_SellItem_Ans obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(MsgSvrCli_SellItem_Ans obj) { return obj.Size(); }
+};
 
 }}
 
