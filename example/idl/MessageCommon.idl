@@ -62,6 +62,8 @@ enum EquipItemPartType
 {
 	Invalid,
 	Cloak,
+	Base,
+	Hair,
 	Legs,
 	Body,
 	Boots,

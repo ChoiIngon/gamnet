@@ -17,13 +17,15 @@ public class Suit : MonoBehaviour
 			Item.Data item = GameManager.Instance.suit.GetItem(part);
 			if (null == item)
 			{
-				item_images[(int)part].gameObject.SetActive(false);
+				OnUnequip(part);
 			}
 			else
 			{
 				OnEquip(item);
 			}
 		}
+
+		OnEquip(Message.EquipItemPartType.Base, AssetBundleManager.Instance.LoadAsset<Sprite>("Assets/Sprites/Player/Base/human_m.png"));
 	}
 
 	private void OnDisable()
@@ -34,13 +36,23 @@ public class Suit : MonoBehaviour
 
 	public void OnEquip(Item.Data item)
     {
-		Image image = item_images[(int)item.meta.equip.part];
-		image.sprite = item.meta.equip.item_sprite; //AssetBundleManager.Instance.LoadAsset<Sprite>(item.meta.equip.sprite_path);
-		image.gameObject.SetActive(true);
+		OnEquip(item.meta.equip.part, item.meta.equip.item_sprite);
     }
 
-    public void OnUnequip(Item.Data item)
+	public void OnEquip(Message.EquipItemPartType part, Sprite sprite)
+	{
+		Image image = item_images[(int)part];
+		image.sprite = sprite; //AssetBundleManager.Instance.LoadAsset<Sprite>(item.meta.equip.sprite_path);
+		image.gameObject.SetActive(true);
+	}
+
+	public void OnUnequip(Item.Data item)
     {
-		item_images[(int)item.meta.equip.part].gameObject.SetActive(false);
+		OnUnequip(item.meta.equip.part);
     }
+
+	public void OnUnequip(Message.EquipItemPartType part)
+	{
+		item_images[(int)part].gameObject.SetActive(false);
+	}
 }

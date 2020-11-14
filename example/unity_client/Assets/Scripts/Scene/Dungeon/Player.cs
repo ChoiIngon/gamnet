@@ -40,18 +40,18 @@ public class Player : Unit
 		}
 	}
 	private void Start()
-    {
-		suit.cloak = RandomPartsSprite(transform, "Clock", "Player/Cloak", 0);
-		body.body = RandomPartsSprite(transform, "Body", "Player/Base", 1);
-		body.hair = RandomPartsSprite(transform, "Hair", "Player/Hair", 2);
-		suit.shirt = RandomPartsSprite(transform, "Shirt", "Player/Body", 2);
-		suit.legs = RandomPartsSprite(transform, "Legs", "Player/Legs", 2);
-		suit.boots = RandomPartsSprite(transform, "Boots", "Player/Boots", 2);
-		body.beard = RandomPartsSprite(transform, "Beard", "Player/Beard", 3);
-		suit.head = RandomPartsSprite(transform, "Head", "Player/Head", 3);
-		suit.gloves = RandomPartsSprite(transform, "Gloves", "Player/Gloves", 3);
-		suit.hand_1 = RandomPartsSprite(transform, "Hand1", "Player/Hand1", 4);
-		suit.hand_2 = RandomPartsSprite(transform, "Hand2", "Player/Hand2", 4);
+	{
+		suit.cloak = SetEquipItemSprite(Message.EquipItemPartType.Cloak);
+		//body.body = RandomPartsSprite(transform, "Base", "Player/Base", 1);
+		//body.hair = RandomPartsSprite(transform, "Hair", "Player/Hair", 2);
+		suit.shirt = SetEquipItemSprite(Message.EquipItemPartType.Body);
+		suit.legs = SetEquipItemSprite(Message.EquipItemPartType.Legs);
+		suit.boots = SetEquipItemSprite(Message.EquipItemPartType.Boots);
+		body.beard = SetEquipItemSprite(Message.EquipItemPartType.Beard);
+		suit.head = SetEquipItemSprite(Message.EquipItemPartType.Head);
+		suit.gloves = SetEquipItemSprite(Message.EquipItemPartType.Gloves);
+		suit.hand_1 = SetEquipItemSprite(Message.EquipItemPartType.LeftHand);
+		suit.hand_2 = SetEquipItemSprite(Message.EquipItemPartType.RightHand);
 
 		Util.EventSystem.Subscribe<Vector2Int>(EventID.Event_OnTouch, OnMove);
 	}
@@ -75,8 +75,8 @@ public class Player : Unit
 		*/
 		Handler.Dungeon.Handler_PlayerMove.SendMsg(to);
 	}
-	
-	
+
+
 	private GameObject RandomPartsSprite(Transform parent, string name, string spriteDirPath, int sortingOrder)
 	{
 		GameObject obj = new GameObject();
@@ -87,6 +87,24 @@ public class Player : Unit
 		spriteRenderer.sprite = sprites[Random.Range(0, sprites.Length)];
 		spriteRenderer.sortingLayerName = "Unit";
 		spriteRenderer.sortingOrder = sortingOrder;
+		return obj;
+	}
+
+	private GameObject SetEquipItemSprite(Message.EquipItemPartType part)
+	{
+		Item.Data item = GameManager.Instance.suit.GetItem(part);
+		if (null == item)
+		{
+			return null;
+		}
+		GameObject obj = new GameObject();
+		obj.name = part.ToString();
+		obj.transform.SetParent(transform, false);
+		SpriteRenderer spriteRenderer = obj.AddComponent<SpriteRenderer>();
+
+		spriteRenderer.sprite = item.meta.equip.item_sprite;
+		spriteRenderer.sortingLayerName = "Unit";
+		spriteRenderer.sortingOrder = (int)part;
 		return obj;
 	}
 }
