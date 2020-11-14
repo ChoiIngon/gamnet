@@ -18,16 +18,22 @@ namespace Item
 			public Equip()
 			{
 				CustomBind("part", OnPartType);
+				CustomBind("item_sprite", OnItemSprite);
 			}
 
 			public Message.EquipItemPartType part;
 			public int attack;
 			public int defense;
 			public int speed;
-			public string sprite_path;
+			public Sprite item_sprite;
 			void OnPartType(ref object member, string value)
 			{
 				member = Enum.Parse(typeof(Message.EquipItemPartType), (value));
+			}
+
+			void OnItemSprite(ref object member, string value)
+			{
+				member = AssetBundleManager.Instance.LoadAsset<Sprite>(value);
 			}
 		}
 		public class Price : MetaData
@@ -102,6 +108,7 @@ namespace Item
 		public Meta()
 		{
 			CustomBind("type", OnItemType);
+			CustomBind("icon_sprite", OnIconSprite);
 		}
 		public override void OnLoad()
 		{
@@ -124,11 +131,15 @@ namespace Item
 		{
 			member = (ItemType)Enum.Parse(typeof(ItemType), value);
 		}
+		private void OnIconSprite(ref object member, string value)
+		{
+			member = AssetBundleManager.Instance.LoadAsset<Sprite>(value);
+		}
 
 		public string id;
 		public UInt32 index;
 		public string name;
-		public string icon_path;
+		public Sprite icon_sprite;
 		public ItemType type;
 		public int grade;
 		public int max_stack;
@@ -160,13 +171,10 @@ namespace Item
 
 	public class Manager : Util.Singleton<Manager>
 	{
-		public IEnumerator Init()
+		public void Init()
 		{
-			yield return AssetBundleManager.Instance.LoadAssetBundle("MetaData");
-			yield return AssetBundleManager.Instance.LoadAssetBundle("Sprites");
-
-			InitMeta("Assets/MetaData/Item");
-			InitMeta("Assets/MetaData/EquipItem");
+			InitMeta("Assets/MetaData/Item.csv");
+			InitMeta("Assets/MetaData/EquipItem.csv");
 		}
 
 		private void InitMeta(string itemMeta)

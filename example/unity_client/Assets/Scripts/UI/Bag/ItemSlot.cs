@@ -121,7 +121,7 @@ namespace UI
         {
             this.item = item;
             item_name.text = item.meta.name + " x " + item.count.ToString();
-            icon.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(item.meta.icon_path);
+            icon.sprite = item.meta.icon_sprite;
 
             switch (item.meta.type)
             {

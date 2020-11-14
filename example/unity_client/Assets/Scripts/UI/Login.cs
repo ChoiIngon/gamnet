@@ -54,6 +54,10 @@ namespace UI
 		}
 		private void OnDestroy()
 		{
+			if (null == GameManager.Instance)
+			{
+				return;
+			}
 			GameManager.Instance.LobbySession.onConnect -= OnConnect;
 			GameManager.Instance.LobbySession.onError -= OnError;
 

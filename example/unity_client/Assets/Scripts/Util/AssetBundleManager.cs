@@ -10,7 +10,8 @@ using UnityEditor;
 public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 {
 	private Dictionary<string, AssetBundle> asset_bundles = new Dictionary<string, AssetBundle>();
-	private Dictionary<string, AssetBundle> asset_name_to_bundle = new Dictionary<string, AssetBundle>();
+	private Dictionary<string, AssetBundle> name_to_bundle = new Dictionary<string, AssetBundle>();
+	private Dictionary<string, Object> loaded_assets = new Dictionary<string, Object>();
 	private AssetBundleManifest manifest;
 	public string url;
 	private void Awake()
@@ -28,12 +29,29 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		string[] dependencies = manifest.GetAllDependencies(assetBundleName);
 		foreach (string dependency in dependencies)
 		{
-			Debug.Log(dependency);
+			Debug.Log(assetBundleName + " asset bundle has dependency:" + dependency);
 			yield return LoadAssetBundle(dependency);
 		}
 		yield return _LoadAssetBundle(assetBundleName);
 	}
+	public void UnloadAssetBundle(string assetBundleName)
+	{
+		assetBundleName = assetBundleName.ToLower();
+		AssetBundle assetBundle = null;
+		if (false == asset_bundles.TryGetValue(assetBundleName, out assetBundle))
+		{
+			return;
+		}
 
+		string[] assetNames = assetBundle.GetAllAssetNames();
+		foreach (string assetName in assetNames)
+		{
+			name_to_bundle.Remove(assetName);
+			loaded_assets.Remove(assetName);
+		}
+		assetBundle.Unload(true);
+		asset_bundles.Remove(assetBundleName);
+	}
 	private IEnumerator LoadManifest()
 	{
 		Debug.Log("start to load AssetBundle manifest");
@@ -86,13 +104,11 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 		{
 			throw new System.Exception("Failed to request(url:" + url + ")");
 		}
-		
+
 		string [] assetNames = assetBundle.GetAllAssetNames();
-		foreach (string fullAssetName in assetNames)
+		foreach (string assetName in assetNames)
 		{
-			string assetName = Path.ChangeExtension(fullAssetName.ToLower(), null);
-			Debug.Log("asset name:" + assetName);
-			asset_name_to_bundle.Add(assetName, assetBundle);
+			name_to_bundle.Add(assetName, assetBundle);
 		}
 		asset_bundles.Add(assetBundleName, assetBundle);
 	}
@@ -120,15 +136,26 @@ public class AssetBundleManager : Util.MonoSingleton<AssetBundleManager>
 	public T LoadAsset<T>(string assetName) where T : Object
 	{
 		assetName = assetName.ToLower();
-		if (false == asset_name_to_bundle.ContainsKey(assetName))
+
+		Object asset = null;
+		if (false == loaded_assets.TryGetValue(assetName, out asset))
 		{
-			return null;
-		}
+			AssetBundle assetBundle = null;
+			if (false == name_to_bundle.TryGetValue(assetName, out assetBundle))
+			{
+				return null;
+			}
 
-		AssetBundle assetBundle = asset_name_to_bundle[assetName];
+			asset = assetBundle.LoadAsset<T>(assetName);
+			if (null == asset)
+			{
+				return null;
+			}
 
-		assetName = Path.GetFileName(assetName);
-		return assetBundle.LoadAsset<T>(assetName);
+			loaded_assets.Add(assetName, asset);
+			name_to_bundle.Remove(assetName);
+		}	
+		return asset as T;
 	}
 #if UNITY_EDITOR
 	[MenuItem("Custom/AssetBundle/Build/Windows", priority = 1)]

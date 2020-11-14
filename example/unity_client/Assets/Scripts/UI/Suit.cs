@@ -17,7 +17,7 @@ public class Suit : MonoBehaviour
 			Item.Data item = GameManager.Instance.suit.GetItem(part);
 			if (null == item)
 			{
-				item_images[(int)part].color = new Color32(0, 0, 0, 0);
+				item_images[(int)part].gameObject.SetActive(false);
 			}
 			else
 			{
@@ -35,12 +35,12 @@ public class Suit : MonoBehaviour
 	public void OnEquip(Item.Data item)
     {
 		Image image = item_images[(int)item.meta.equip.part];
-		image.color = Color.white;
-		image.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(item.meta.equip.sprite_path);
+		image.sprite = item.meta.equip.item_sprite; //AssetBundleManager.Instance.LoadAsset<Sprite>(item.meta.equip.sprite_path);
+		image.gameObject.SetActive(true);
     }
 
     public void OnUnequip(Item.Data item)
     {
-		item_images[(int)item.meta.equip.part].color = new Color32(0, 0, 0, 0);
+		item_images[(int)item.meta.equip.part].gameObject.SetActive(false);
     }
 }

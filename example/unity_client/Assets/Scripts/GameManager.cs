@@ -40,11 +40,20 @@ class GameManager : Util.MonoSingleton<GameManager>
 
 	private IEnumerator Start()
 	{
-		yield return Item.Manager.Instance.Init();
+		yield return AssetBundleManager.Instance.LoadAssetBundle("MetaData");
+		yield return AssetBundleManager.Instance.LoadAssetBundle("Sprites");
+
+		Item.Manager.Instance.Init();
 		lobby.gameObject.SetActive(true);
 		ui.login.gameObject.SetActive(true);
+
+		AssetBundleManager.Instance.UnloadAssetBundle("MetaData");
 	}
 
+	private void OnDestroy()
+	{
+		AssetBundleManager.Instance.UnloadAssetBundle("Sprites");
+	}
 	private void Update()
 	{
 		if (null != lobby_session)

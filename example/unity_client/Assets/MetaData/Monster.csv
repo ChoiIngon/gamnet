@@ -1,3 +1,0 @@
-﻿NAME,ID,INDEX,BEHAVIOUR
-TEXT,TEXT,INT,BehaviourTree
-Monster,Monster1,1,BehaviourTree.xml

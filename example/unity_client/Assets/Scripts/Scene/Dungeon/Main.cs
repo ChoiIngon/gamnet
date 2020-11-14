@@ -31,9 +31,9 @@ namespace Scene { namespace Dungeon	{
 			player = null;
 			monsters = null;
 		}
-			public static string GetName()
-			{
-				return "SceneDungeon";
-			}
+		public static string GetName()
+		{
+			return "SceneDungeon";
 		}
+	}
 }}

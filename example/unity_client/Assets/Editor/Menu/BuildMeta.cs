@@ -21,10 +21,8 @@ namespace Ediotr.Menu
 
 			List<string> files = new List<string>()
 			{
-				"Dungeon",
 				"EquipItem",
 				"Item",
-				"Monster"
 			};
 
 			foreach (string file in files)
