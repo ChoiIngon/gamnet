@@ -22,7 +22,7 @@ Meta::Meta()
 
 bool Meta::IsVisible(std::shared_ptr<Unit>& self, const Vector2Int& target)
 {
-	auto dungeon = self->attributes->GetComponent<Component::Dungeon>();
+	auto dungeon = self->dungeon;
 	if(nullptr == dungeon)
 	{
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);

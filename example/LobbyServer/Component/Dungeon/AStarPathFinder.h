@@ -25,9 +25,9 @@ class AStarPathFinder
 	};
 
 public :
-	AStarPathFinder(std::shared_ptr<Component::Dungeon>& dungeon, const Vector2Int& from, const Vector2Int& to);
+	AStarPathFinder(std::shared_ptr<Component::Dungeon::Data>& dungeon, const Vector2Int& from, const Vector2Int& to);
 	
-	std::shared_ptr<Component::Dungeon> dungeon;
+	std::shared_ptr<Component::Dungeon::Data> dungeon;
 	std::map<int, std::shared_ptr<Node>> open_nodes;
 	std::map<int, std::shared_ptr<Node>> close_nodes;
 	Vector2Int destination;

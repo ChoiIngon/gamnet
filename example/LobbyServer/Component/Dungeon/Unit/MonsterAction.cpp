@@ -56,7 +56,7 @@ namespace Component { namespace Monster { namespace Action {
 			return true;
 		}
 
-		std::shared_ptr<Component::Dungeon> dungeon = self->dungeon;
+		std::shared_ptr<Component::Dungeon::Data> dungeon = self->dungeon;
 		AStarPathFinder pathFinder(dungeon, self->position, target->position);
 		monster->path = pathFinder.path;
 		

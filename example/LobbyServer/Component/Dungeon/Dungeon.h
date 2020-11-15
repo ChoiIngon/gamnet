@@ -11,10 +11,8 @@
 class Player;
 class Unit;
 
-namespace Component {
-class Dungeon
-{
-public :
+namespace Component { namespace Dungeon {
+	class Data;
 	struct Meta : public std::enable_shared_from_this<Meta>, public MetaData
 	{
 		struct Room : public MetaData
@@ -43,11 +41,11 @@ public :
 		Room		room;
 		std::vector<Monster> monsters;
 
-		std::shared_ptr<Dungeon> CreateInstance();
+		std::shared_ptr<Data> CreateInstance();
 
 		virtual void OnLoad() override;
 	};
-private :
+
 	struct Block
 	{
 		enum class Type
@@ -84,40 +82,43 @@ private :
 		int tile_index;
 	};
 
-public :
-	Dungeon(const Meta& meta);
+	class Data
+	{
+	public:
+		Data(const Meta& meta);
 
-	void Init();
-	std::shared_ptr<Tile> GetTile(int x, int y) const;
-	std::shared_ptr<Tile> GetTile(const Vector2Int& coordinate) const;
-private :
-	void InitBlocks();
-	void InitTiles();
-	void BuildPath();
-	void BuildWall();
-	void MoveToEmptySpace(std::shared_ptr<Block> block);
-	bool OverlapWithExistBlocks(std::shared_ptr<Block> block);
-	std::list<std::shared_ptr<Block>> FindNeighborBlocks(int blockID);
-	std::shared_ptr<Block> FindBlock(int blockID);
-	std::vector<int> GetIntersectArea(const RectInt& lhs, const RectInt& rhs);
-	std::list<std::shared_ptr<Block>> FindPath(std::shared_ptr<Block> from, std::shared_ptr<Block> to);
-	std::shared_ptr<std::list<std::shared_ptr<Dungeon::Block>>> FindPath(std::shared_ptr<Block> from, std::shared_ptr<Block> to, std::set<int>& visit);
-	void FindDoor(std::shared_ptr<Block> block, std::shared_ptr<Block> neighbor);
-	void BuildRoomInBlock(std::shared_ptr<Block> block);
-	void BuildCorridorInBlock(std::shared_ptr<Block> block);
-public :
-	const Meta& meta;
+		void Init();
+		std::shared_ptr<Tile> GetTile(int x, int y) const;
+		std::shared_ptr<Tile> GetTile(const Vector2Int& coordinate) const;
+	private:
+		void InitBlocks();
+		void InitTiles();
+		void BuildPath();
+		void BuildWall();
+		void MoveToEmptySpace(std::shared_ptr<Block> block);
+		bool OverlapWithExistBlocks(std::shared_ptr<Block> block);
+		std::list<std::shared_ptr<Block>> FindNeighborBlocks(int blockID);
+		std::shared_ptr<Block> FindBlock(int blockID);
+		std::vector<int> GetIntersectArea(const RectInt& lhs, const RectInt& rhs);
+		std::list<std::shared_ptr<Block>> FindPath(std::shared_ptr<Block> from, std::shared_ptr<Block> to);
+		std::shared_ptr<std::list<std::shared_ptr<Block>>> FindPath(std::shared_ptr<Block> from, std::shared_ptr<Block> to, std::set<int>& visit);
+		void FindDoor(std::shared_ptr<Block> block, std::shared_ptr<Block> neighbor);
+		void BuildRoomInBlock(std::shared_ptr<Block> block);
+		void BuildCorridorInBlock(std::shared_ptr<Block> block);
+	public:
+		const Meta& meta;
 
-	RectInt rect;
-	std::vector<std::shared_ptr<Block>> blocks;
-	std::vector<std::shared_ptr<Tile>> tiles;
-	std::shared_ptr<Block> start;
-	std::shared_ptr<Block> end;
+		RectInt rect;
+		std::vector<std::shared_ptr<Block>> blocks;
+		std::vector<std::shared_ptr<Tile>> tiles;
+		std::shared_ptr<Block> start;
+		std::shared_ptr<Block> end;
 
-public :
-	std::shared_ptr<Unit> player;
-	std::map<uint64_t, std::shared_ptr<Unit>> monster;
-public :
+	public:
+		std::shared_ptr<Unit> player;
+		std::map<uint64_t, std::shared_ptr<Unit>> monster;
+	};
+
 	class Manager
 	{
 	public :

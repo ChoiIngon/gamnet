@@ -119,7 +119,7 @@ int AStarPathFinder::Node::GetCost() const
 }
 
 
-AStarPathFinder::AStarPathFinder(std::shared_ptr<Component::Dungeon>& dungeon, const Vector2Int& from, const Vector2Int& to)
+AStarPathFinder::AStarPathFinder(std::shared_ptr<Component::Dungeon::Data>& dungeon, const Vector2Int& from, const Vector2Int& to)
 	: dungeon(dungeon)
 	, destination(to)
 {

@@ -37,16 +37,17 @@ public class Tile : MonoBehaviour
 		this.data = data;
 
 		gameObject.name = "Tile_" + data.index.ToString() + "_" + data.type.ToString();
-		touchInput = gameObject.AddComponent<TouchInput>();
+		if (Message.DungeonTileType.Floor == data.type)
+		{
+			touchInput = gameObject.AddComponent<TouchInput>();
+			touchInput.on_touch_up = (Vector3 position) =>
+			{
+				Util.EventSystem.Publish<Vector2Int>(EventID.Event_OnTouch, data.position);
+			};
+		}
 		spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 
-		touchInput.on_touch_up = (Vector3 position) => {
-			Util.EventSystem.Publish<Vector2Int>(EventID.Event_OnTouch, data.position);
-		};
-
-		touchInput.on_touch_drag = (Vector3 position) =>
-		{
-		};
+		
 
 		data.OnVisible = OnVisible;
 	}

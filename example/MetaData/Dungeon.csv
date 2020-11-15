@@ -1,3 +1,3 @@
 ﻿Name,ID,Index,Level,Room.Count,Room.Min_Width,Room.Max_Width,Room.Min_Height,Room.Max_Height,Room.Min_Distance,Monsters[0].ID,Monsters[0].Level,Monsters[0].Count,Monsters[1].ID,Monsters[1].Level,Monsters[1].Count,Monsters[2].ID,Monsters[2].Level,Monsters[2].Count
 Text,Text,Int,Int,Int,Int,Int,Int,Int,Int,Text,Int,Int,Text,Int,Int,Text,Int,Int
-Level 1,DUNGEON_1,1,1,6,5,10,5,10,5,Monster1,1,3,,,,,,
+Level 1,DUNGEON_1,1,1,5,10,12,10,12,15,Monster1,1,3,,,,,,

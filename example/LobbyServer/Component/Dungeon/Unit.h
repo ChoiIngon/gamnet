@@ -5,9 +5,9 @@
 #include "Unit/BehaviourTree.h"
 #include "Vector2.h"
 
-namespace Component { 
-	class Dungeon;
-}
+namespace Component { namespace Dungeon {
+	class Data;
+}}
 
 class Unit : public std::enable_shared_from_this<Unit>
 {
@@ -30,7 +30,7 @@ public :
 
 	std::shared_ptr<Attribute>	attributes;
 
-	std::shared_ptr<Component::Dungeon> dungeon;
+	std::shared_ptr<Component::Dungeon::Data> dungeon;
 
 	void SetPosition(const Vector2Int& position);
 };
