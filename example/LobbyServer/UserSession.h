@@ -6,11 +6,12 @@
 #include <Gamnet/Library/Time/DateTime.h>
 #include <idl/MessageCommon.h>
 
-enum class DatabaseType
+class DatabaseType
 {
-	Invalid = 0,
-	Account = 1,
-	User = 100,
+public :
+	static constexpr int Invalid = 0;
+	static constexpr int Account = 1;
+	static constexpr int User = 100;
 };
 
 class UserSession : public Gamnet::Network::Tcp::Session

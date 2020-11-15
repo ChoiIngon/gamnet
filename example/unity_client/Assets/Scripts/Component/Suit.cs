@@ -6,6 +6,9 @@ namespace Component
 {
     public class Suit : IEnumerable
 	{
+		public const string DEFAULT_BASE_IMAGE = "Assets/Sprites/Suit/Base/human_m.png";
+		public const string DEFAULT_HAIR_IMAGE = "Assets/Sprites/Suit/Hair/short_black.png";
+
         public class Event
         {
             public const string EquipItem = "Suit.Event.EquipItem";

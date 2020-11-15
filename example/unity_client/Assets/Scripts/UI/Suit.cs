@@ -5,8 +5,10 @@ using UnityEngine.UI;
 
 public class Suit : MonoBehaviour
 {
-    public Image[] item_images = new Image[(int)Message.EquipItemPartType.Max];
-
+	public Image trunk_image;
+	public Image hair_image;
+	public Image[] suit_images = new Image[(int)Message.EquipItemPartType.Max];
+	
 	private void OnEnable()
 	{
 		Util.EventSystem.Subscribe<Item.Data>(Component.Suit.Event.EquipItem, OnEquip);
@@ -25,7 +27,8 @@ public class Suit : MonoBehaviour
 			}
 		}
 
-		OnEquip(Message.EquipItemPartType.Base, AssetBundleManager.Instance.LoadAsset<Sprite>("Assets/Sprites/Player/Base/human_m.png"));
+		trunk_image.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(Component.Suit.DEFAULT_BASE_IMAGE);
+		hair_image.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(Component.Suit.DEFAULT_HAIR_IMAGE);
 	}
 
 	private void OnDisable()
@@ -41,7 +44,7 @@ public class Suit : MonoBehaviour
 
 	public void OnEquip(Message.EquipItemPartType part, Sprite sprite)
 	{
-		Image image = item_images[(int)part];
+		Image image = suit_images[(int)part];
 		image.sprite = sprite; //AssetBundleManager.Instance.LoadAsset<Sprite>(item.meta.equip.sprite_path);
 		image.gameObject.SetActive(true);
 	}
@@ -53,6 +56,6 @@ public class Suit : MonoBehaviour
 
 	public void OnUnequip(Message.EquipItemPartType part)
 	{
-		item_images[(int)part].gameObject.SetActive(false);
+		suit_images[(int)part].gameObject.SetActive(false);
 	}
 }
