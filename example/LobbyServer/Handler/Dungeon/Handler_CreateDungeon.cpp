@@ -47,7 +47,8 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		*/
 		ans.width = dungeon->rect.width;
 		ans.height = dungeon->rect.height;
-		ans.start = dungeon->player->position;
+		ans.start.x = dungeon->player->position.x;
+		ans.start.y = dungeon->player->position.y;
 		for(auto tile : dungeon->tiles)
 		{
 			ans.tiles.push_back(tile->type);
@@ -58,7 +59,8 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 			std::shared_ptr<Unit> monster = itr.second;
 			Message::Monster msgMonster;
 			msgMonster.seq = monster->seq;
-			msgMonster.position = monster->position;
+			msgMonster.position.x = monster->position.x;
+			msgMonster.position.y = monster->position.y;
 			ans.monsters.push_back(msgMonster);
 		}
 	}

@@ -131,6 +131,7 @@
     <ClCompile Include="Component\Dungeon\AStarPathFinder.cpp" />
     <ClCompile Include="Component\Dungeon\BresenhamCircle2D.cpp" />
     <ClCompile Include="Component\Dungeon\BresenhamLine2D.cpp" />
+    <ClCompile Include="Component\Dungeon\TileMap.cpp" />
     <ClCompile Include="Component\Dungeon\Unit\Monster.cpp" />
     <ClCompile Include="Component\Dungeon\Unit\MonsterAction.cpp" />
     <ClCompile Include="Component\Dungeon\Unit\Player.cpp" />
@@ -140,9 +141,7 @@
     <ClCompile Include="Component\Suit.cpp" />
     <ClCompile Include="Component\UserData.cpp" />
     <ClCompile Include="Component\Dungeon\Dungeon.cpp" />
-    <ClCompile Include="Component\Dungeon\Rect.cpp" />
     <ClCompile Include="Component\Dungeon\Tile.cpp" />
-    <ClCompile Include="Component\Dungeon\Vector2.cpp" />
     <ClCompile Include="Handler\Item\Handler_EquipItem.cpp" />
     <ClCompile Include="Handler\Item\Handler_UnequipItem.cpp" />
     <ClCompile Include="Handler\Item\Handler_SellItem.cpp" />
@@ -174,6 +173,7 @@
     <ClInclude Include="Component\Dungeon\AStarPathFinder.h" />
     <ClInclude Include="Component\Dungeon\BresenhamCircle2D.h" />
     <ClInclude Include="Component\Dungeon\BresenhamLine2D.h" />
+    <ClInclude Include="Component\Dungeon\TileMap.h" />
     <ClInclude Include="Component\Dungeon\Unit\BehaviourTree.h" />
     <ClInclude Include="Component\Dungeon\Unit\Monster.h" />
     <ClInclude Include="Component\Dungeon\Unit\MonsterAction.h" />

@@ -787,4 +787,147 @@ namespace Component { namespace Dungeon {
 		}
 		return itr->second;
 	}
+
+	Data2::Data2(const Meta& meta) : Data(meta)
+	{
+	}
+
+	void Data2::Init()
+	{
+		
+		for(int i=0; i<10; i++)
+		{
+			std::shared_ptr<Block> block = std::make_shared<Block>(i);
+			block->rect.x = 0; //rect.Center().x;
+			block->rect.y = 0; //rect.Center().y;
+			block->rect.width = Gamnet::Random::Range(meta.room.min_width, meta.room.max_width);
+			block->rect.height = Gamnet::Random::Range(meta.room.min_height, meta.room.max_height);
+			MoveToEmptySpace(block);
+
+			int xMax = rect.xMax;
+			int yMax = rect.yMax;
+			rect.x = std::min(rect.x, block->rect.x);
+			rect.y = std::min(rect.y, block->rect.y);
+			rect.xMax = std::max(xMax, (int)block->rect.xMax);
+			rect.yMax = std::max(yMax, (int)block->rect.yMax);
+			blocks.push_back(block);
+		}
+
+		for (auto block : blocks)
+		{
+			block->rect.x -= rect.x;
+			block->rect.y -= rect.y;
+		}
+
+		
+		
+		/*
+		rect.xMax = meta.room.max_width * 5;
+		rect.yMax = meta.room.max_height * 5;
+		id = 1;
+		Split(rect, SplitDirection::Vertical);
+		*/
+		std::vector<int> blockTiles(rect.width * rect.height);
+		for(int& tile : blockTiles)
+		{
+			tile = 0;
+		}
+		for(const std::shared_ptr<Block>& block : blocks)
+		{
+			for (int y = block->rect.y; y < block->rect.yMax; y++)
+			{
+				for(int x = block->rect.x; x < block->rect.xMax; x++)
+				{
+					blockTiles[y * rect.width + x] = block->id;
+				}
+			}
+		}
+		
+		for (int y = rect.y; y < rect.yMax; y++)
+		{
+			for (int x = rect.x; x < rect.xMax; x++)
+			{
+				if(0 == blockTiles[y * rect.width + x])
+				{
+					std::cout << " ";
+				}
+				else
+				{
+					std::cout << std::setfill('0') << std::setw(1) << std::hex << blockTiles[y * rect.width + x];
+				}
+				std::cout << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+
+	void Data2::MoveToEmptySpace(std::shared_ptr<Block> block)
+	{
+		float angle = Gamnet::Random::Range(0.0f, 360.0f);
+		float dx = cos(angle * 3.1415926535897f / 180.0f);
+		float dy = sin(angle * 3.1415926535897f / 180.0f);
+
+		while (true)
+		{
+			if (false == OverlapWithExistBlocks(block))
+			{
+				return;
+			}
+
+			block->rect.y += dx / dy * block->rect.y;
+			block->rect.x += dy / dx * block->rect.x;
+		}
+	}
+
+	void Data2::Split(const RectInt& rect, SplitDirection direction)
+	{
+		float splitRate = Gamnet::Random::Range(0.4f, 0.6f);
+		if(SplitDirection::Vertical == direction)
+		{
+			RectInt left(rect);
+			RectInt right(rect);
+			left.width = (int)(rect.width * splitRate);
+			right.x = left.xMax;
+			right.xMax = (int)rect.xMax;
+
+			if (meta.room.max_width > left.width || meta.room.min_width > right.width)
+			{
+				std::shared_ptr<Block> block = std::make_shared<Block>(id++);
+				block->rect.width = Gamnet::Random::Range(meta.room.min_width, meta.room.max_width);
+				block->rect.height = Gamnet::Random::Range(meta.room.min_height, meta.room.max_height);
+				block->rect.x = Gamnet::Random::Range(rect.x, rect.x + rect.width - block->rect.width);
+				block->rect.y = Gamnet::Random::Range(rect.y, rect.y + rect.height - block->rect.height);
+
+				blocks.push_back(block);
+
+				return;
+			}
+
+			Split(left, SplitDirection::Horizon);
+			Split(right, SplitDirection::Horizon);
+		}
+		else
+		{
+			RectInt top(rect);
+			RectInt bottom(rect);
+			top.height = (int)(rect.height * splitRate);
+			bottom.y = top.yMax;
+			bottom.yMax = (int)rect.yMax;
+			if (meta.room.max_height > top.height || meta.room.min_height > bottom.height)
+			{
+				std::shared_ptr<Block> block = std::make_shared<Block>(id++);
+				block->rect.width = Gamnet::Random::Range(meta.room.min_width, meta.room.max_width);
+				block->rect.height = Gamnet::Random::Range(meta.room.min_height, meta.room.max_height);
+				block->rect.x = Gamnet::Random::Range(rect.x, rect.x + rect.width - block->rect.width);
+				block->rect.y = Gamnet::Random::Range(rect.y, rect.y + rect.height - block->rect.height);
+				
+				blocks.push_back(block);
+
+				return;
+			}
+
+			Split(top, SplitDirection::Vertical);
+			Split(bottom, SplitDirection::Vertical);
+		}
+	}
 }}

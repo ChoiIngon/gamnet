@@ -78,13 +78,7 @@
     <ClCompile Include="Component\UserData.cpp">
       <Filter>Component</Filter>
     </ClCompile>
-    <ClCompile Include="Component\Dungeon\Rect.cpp">
-      <Filter>Component\Dungeon</Filter>
-    </ClCompile>
     <ClCompile Include="Component\Dungeon\Tile.cpp">
-      <Filter>Component\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="Component\Dungeon\Vector2.cpp">
       <Filter>Component\Dungeon</Filter>
     </ClCompile>
     <ClCompile Include="Component\Dungeon\Unit.cpp">
@@ -95,6 +89,7 @@
     <ClCompile Include="Component\Suit.cpp" />
     <ClCompile Include="Handler\Item\Handler_UnequipItem.cpp" />
     <ClCompile Include="Handler\Item\Handler_SellItem.cpp" />
+    <ClCompile Include="Component\Dungeon\TileMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="UserSession.h" />
@@ -193,6 +188,7 @@
     <ClInclude Include="Component\Suit.h" />
     <ClInclude Include="Handler\Item\Handler_UnequipItem.h" />
     <ClInclude Include="Handler\Item\Handler_SellItem.h" />
+    <ClInclude Include="Component\Dungeon\TileMap.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\idl\MessageUser.idl" />

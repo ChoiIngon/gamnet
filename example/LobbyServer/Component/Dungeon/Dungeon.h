@@ -90,7 +90,7 @@ namespace Component { namespace Dungeon {
 		void Init();
 		std::shared_ptr<Tile> GetTile(int x, int y) const;
 		std::shared_ptr<Tile> GetTile(const Vector2Int& coordinate) const;
-	private:
+	protected :
 		void InitBlocks();
 		void InitTiles();
 		void BuildPath();
@@ -117,6 +117,24 @@ namespace Component { namespace Dungeon {
 	public:
 		std::shared_ptr<Unit> player;
 		std::map<uint64_t, std::shared_ptr<Unit>> monster;
+	};
+
+	class Data2 : public Data
+	{
+	public :
+		Data2(const Meta& meta);
+		void Init();
+
+		enum SplitDirection
+		{
+			Vertical,
+			Horizon
+		};
+
+		void Split(const RectInt& rect, SplitDirection direction);
+		int id;
+
+		void MoveToEmptySpace(std::shared_ptr<Block> block);
 	};
 
 	class Manager

@@ -49,9 +49,15 @@ void Handler_PlayerMove::Recv_Req(const std::shared_ptr<UserSession>& session, c
 				auto data = monster->attributes->GetComponent<Component::Monster::Data>();
 
 				data->meta->Update(monster);
-				ans.monster_moves[monster->seq].push_back(monster->position);
+				Message::Vector2Int position;
+				position.x = monster->position.x;
+				position.y = monster->position.y;
+				ans.monster_moves[monster->seq].push_back(position);
 			}
-			ans.path.push_back(player->position);
+			Message::Vector2Int position;
+			position.x = player->position.x;
+			position.y = player->position.y;
+			ans.path.push_back(position);
 		}
 	}
 	catch (const Gamnet::Exception& e)
