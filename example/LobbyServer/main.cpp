@@ -1,8 +1,23 @@
 #include "UserSession.h"
 #include <boost/program_options.hpp>
+#include "Component/Dungeon/Dungeon.h"
 
 int main(int argc, char** argv) 
 {
+	Component::Dungeon::Meta meta;
+	meta.room.count = 10;
+	meta.room.max_height = 10;
+	meta.room.min_height = 3;
+	meta.room.max_width = 10;
+	meta.room.min_width = 3;
+	meta.room.min_distance = 5;
+
+	Component::Dungeon::Data2 data(meta);
+	data.Init();
+	data.Init();
+	data.Init();
+	data.Init();
+
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
 		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")

@@ -794,12 +794,16 @@ namespace Component { namespace Dungeon {
 
 	void Data2::Init()
 	{
-		
-		for(int i=0; i<10; i++)
+		blocks.clear();
+		rect.x = 0;
+		rect.y = 0;
+		rect.width = 0;
+		rect.height = 0;
+		for(int i=0; i<meta.room.count * 3; i++)
 		{
-			std::shared_ptr<Block> block = std::make_shared<Block>(i);
-			block->rect.x = 0; //rect.Center().x;
-			block->rect.y = 0; //rect.Center().y;
+			std::shared_ptr<Block> block = std::make_shared<Block>(i+1);
+			block->rect.x = 0;//(int)rect.Center().x;
+			block->rect.y = 0;//(int)rect.Center().y;
 			block->rect.width = Gamnet::Random::Range(meta.room.min_width, meta.room.max_width);
 			block->rect.height = Gamnet::Random::Range(meta.room.min_height, meta.room.max_height);
 			MoveToEmptySpace(block);
@@ -813,13 +817,27 @@ namespace Component { namespace Dungeon {
 			blocks.push_back(block);
 		}
 
+		std::random_device rd;
+		std::mt19937 g(rd());
+		std::shuffle(blocks.begin(), blocks.end(), g);
+/*
+		while(true)
+		{
+			blocks.pop_back();
+			if(blocks.size() <= meta.room.count)
+			{
+				break;
+			}
+		}
+*/
 		for (auto block : blocks)
 		{
 			block->rect.x -= rect.x;
 			block->rect.y -= rect.y;
 		}
 
-		
+		rect.x = 0;
+		rect.y = 0;
 		
 		/*
 		rect.xMax = meta.room.max_width * 5;
@@ -827,6 +845,7 @@ namespace Component { namespace Dungeon {
 		id = 1;
 		Split(rect, SplitDirection::Vertical);
 		*/
+		
 		std::vector<int> blockTiles(rect.width * rect.height);
 		for(int& tile : blockTiles)
 		{
@@ -853,12 +872,14 @@ namespace Component { namespace Dungeon {
 				}
 				else
 				{
-					std::cout << std::setfill('0') << std::setw(1) << std::hex << blockTiles[y * rect.width + x];
+					std::cout << std::setfill('0') << std::setw(1) << std::hex << blockTiles[y * rect.width + x] % 0xF;
 				}
 				std::cout << " ";
 			}
 			std::cout << std::endl;
 		}
+
+		std::cout << "=====================" << std::endl;
 	}
 
 	void Data2::MoveToEmptySpace(std::shared_ptr<Block> block)
@@ -866,16 +887,36 @@ namespace Component { namespace Dungeon {
 		float angle = Gamnet::Random::Range(0.0f, 360.0f);
 		float dx = cos(angle * 3.1415926535897f / 180.0f);
 		float dy = sin(angle * 3.1415926535897f / 180.0f);
+		float m = dy / dx;
+		int increase = 0 == Gamnet::Random::Range(0, 1) ? 1 : -1;
 
-		while (true)
+		if (fabs(dy) > fabs(dx))
 		{
-			if (false == OverlapWithExistBlocks(block))
+			while (true)
 			{
-				return;
-			}
+				if (false == OverlapWithExistBlocks(block))
+				{
+					return;
+				}
 
-			block->rect.y += dx / dy * block->rect.y;
-			block->rect.x += dy / dx * block->rect.x;
+
+				block->rect.y += increase;
+				block->rect.x = (int)(block->rect.y / m);
+			}
+		}
+		else
+		{
+			while (true)
+			{
+				if (false == OverlapWithExistBlocks(block))
+				{
+					return;
+				}
+
+			
+				block->rect.x += increase;
+				block->rect.y = (int)(block->rect.x * m);
+			}
 		}
 	}
 
