@@ -26,7 +26,7 @@ void Handler_PlayerMove::Recv_Req(const std::shared_ptr<UserSession>& session, c
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
-
+		/*
 		std::shared_ptr<Component::Dungeon::Data> dungeon = session->GetComponent<Component::Dungeon::Data>();
 		if(nullptr == dungeon)
 		{
@@ -59,6 +59,7 @@ void Handler_PlayerMove::Recv_Req(const std::shared_ptr<UserSession>& session, c
 			position.y = player->position.y;
 			ans.path.push_back(position);
 		}
+		*/
 	}
 	catch (const Gamnet::Exception& e)
 	{

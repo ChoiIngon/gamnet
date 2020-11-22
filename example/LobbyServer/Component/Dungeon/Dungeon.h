@@ -3,9 +3,11 @@
 
 #include <vector>
 #include <set>
+#include <map>
 #include <memory>
 #include "Rect.h"
 #include "Tile.h"
+#include "TileMap.h"
 #include "../../Util/MetaData.h"
 
 class Player;
@@ -67,23 +69,23 @@ namespace Component { namespace Dungeon {
 		std::vector<int> doors;
 	};
 
-	struct Edge
-	{
-		int id;
-		int parent;
-		int distance;
-		bool visit;
-	};
-
-	struct Path
-	{
-		Path(int prev, int tileIndex);
-		int prev;
-		int tile_index;
-	};
-
 	class Data
 	{
+		struct Edge
+		{
+			int id;
+			int parent;
+			int distance;
+			bool visit;
+		};
+
+		struct Path
+		{
+			Path(int prev, int tileIndex);
+			int prev;
+			int tile_index;
+		};
+
 	public:
 		Data(const Meta& meta);
 
@@ -119,22 +121,26 @@ namespace Component { namespace Dungeon {
 		std::map<uint64_t, std::shared_ptr<Unit>> monster;
 	};
 
-	class Data2 : public Data
+	class Data2 : public TileMap
 	{
+		struct Edge
+		{
+			std::shared_ptr<Block> block;
+			std::shared_ptr<Edge> parent;
+			int distance;
+			bool visit;
+		};
 	public :
 		Data2(const Meta& meta);
 		void Init();
 
-		enum SplitDirection
-		{
-			Vertical,
-			Horizon
-		};
-
-		void Split(const RectInt& rect, SplitDirection direction);
-		int id;
-
+		const Meta& meta;
+	private :
+		std::list<std::shared_ptr<Block>> Data2::FindNeighborBlocks(std::shared_ptr<Block> block);
 		void MoveToEmptySpace(std::shared_ptr<Block> block);
+		bool OverlapWithExistBlocks(std::shared_ptr<Block> block);
+		
+		std::map<int, std::shared_ptr<Block>> blocks;
 	};
 
 	class Manager

@@ -19,14 +19,16 @@ std::shared_ptr<TileMap::Tile> TileMap::GetTile(const Vector2Int& coordinate) co
 	return GetTile(coordinate.x, coordinate.y);
 }
 
-const RectInt& TileMap::SetRect(const RectInt& rect)
+const RectInt& TileMap::SetSize(int width, int height)
 {
-	this->rect = rect;
+	rect = RectInt(0, 0, width, height);
 	tiles.clear();
-	tiles.resize(size_t(rect.width * rect.height));
+	tiles.resize((size_t)(width * height));
 	for(int i=0; i<rect.width*rect.height; i++)
 	{
-		tiles[i] = std::make_shared<Tile>(Vector2Int(i % rect.width, i / rect.width));
+		std::shared_ptr<Tile> tile = std::make_shared<Tile>(Vector2Int(i % rect.width, i / rect.width));
+		tile->type = Message::DungeonTileType::Invalid;
+		tiles[i] = tile;
 	}
 	return rect;
 }

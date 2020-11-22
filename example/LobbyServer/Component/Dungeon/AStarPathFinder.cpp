@@ -1,5 +1,4 @@
 #include "AStarPathFinder.h"
-#include "Dungeon.h"
 #include <algorithm>
 
 const Vector2Int AStarPathFinder::Node::LOOKUP_OFFSETS[4] =
@@ -18,7 +17,7 @@ AStarPathFinder::Node::Node(AStarPathFinder* pathFinder, std::shared_ptr<Node> p
 	, expect_cost(0)
 	, index(0)
 {
-	index = from.y * path_finder->dungeon->rect.width + from.x;
+	index = from.y * path_finder->map.GetRect().width + from.x;
 	expect_cost += std::abs(path_finder->destination.x - from.x);
 	expect_cost += std::abs(path_finder->destination.y - from.y);
 }
@@ -58,13 +57,13 @@ void AStarPathFinder::Node::FindPath()
 	for (const Vector2Int& offset : LOOKUP_OFFSETS)
 	{
 		Vector2Int childPosition(position.x + offset.x, position.y + offset.y);
-		std::shared_ptr<Tile> tile = path_finder->dungeon->GetTile(childPosition.x, childPosition.y);
+		std::shared_ptr<TileMap::Tile> tile = path_finder->map.GetTile(childPosition.x, childPosition.y);
 		if(nullptr == tile)
 		{
 			continue;
 		}
 		
-		if (Tile::Type::Wall == tile->type)
+		if (Message::DungeonTileType::Wall == tile->type)
 		{
 			continue;
 		}
@@ -119,8 +118,8 @@ int AStarPathFinder::Node::GetCost() const
 }
 
 
-AStarPathFinder::AStarPathFinder(std::shared_ptr<Component::Dungeon::Data>& dungeon, const Vector2Int& from, const Vector2Int& to)
-	: dungeon(dungeon)
+AStarPathFinder::AStarPathFinder(const TileMap& map, const Vector2Int& from, const Vector2Int& to)
+	: map(map)
 	, destination(to)
 {
 	std::shared_ptr<Node> node = std::make_shared<Node>(this, nullptr, from, 0);

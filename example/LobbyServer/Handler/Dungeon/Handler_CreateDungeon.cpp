@@ -32,10 +32,10 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		session->AddComponent<Component::Dungeon::Data>(dungeon);
 		dungeon->Init();
 
-		Vector2 start = dungeon->start->rect.Center();
+		Vector2Int start = dungeon->start->rect.Center();
 		std::shared_ptr<Unit> player = std::make_shared<Unit>();
 		player->dungeon = dungeon;
-		player->SetPosition(Vector2Int((int)start.x, (int)start.y));
+		player->SetPosition(start);
 		dungeon->player = player;
 
 		/*

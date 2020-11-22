@@ -25,7 +25,9 @@ public:
 
 	bool Contains(const TVector2<T>& point) const;
 	bool Overlaps(const TRect<T>& other) const;
-	Vector2 Center() const;
+	bool Empyt() const;
+	TVector2<T> Center() const;
+	TRect	Intersect(const TRect<T>& other) const;
 
 	int x;
 	int y;
@@ -86,9 +88,9 @@ bool TRect<T>::Overlaps(const TRect<T>& other) const
 }
 
 template <class T>
-Vector2 TRect<T>::Center() const
+TVector2<T> TRect<T>::Center() const
 {
-	return Vector2((float)x + ((float)width / 2), (float)y + ((float)height / 2));
+	return TVector2<T>(x + (width / 2), y + (height / 2));
 }
 
 template <class T>
@@ -119,6 +121,29 @@ TRect<T>& TRect<T>::operator = (const TRect<T>& other)
 	width = other.width;
 	height = other.height;
 	return *this;
+}
+
+template <class T>
+TRect<T> TRect<T>::Intersect(const TRect<T>& other) const
+{
+	TRect<T> intersection(0, 0, 0, 0);
+	if (false == Overlaps(other))
+	{
+		return intersection;
+	}
+
+	intersection.x = std::max(x, other.x);
+	intersection.y = std::max(y, other.y);
+	intersection.xMax = std::min((int)xMax, (int)other.xMax);
+	intersection.yMax = std::min((int)yMax, (int)other.yMax);
+	
+	return intersection;
+}
+
+template <class T>
+bool TRect<T>::Empyt() const
+{
+	return 0 == width && 0 == height;
 }
 
 typedef TRect<float> Rect;

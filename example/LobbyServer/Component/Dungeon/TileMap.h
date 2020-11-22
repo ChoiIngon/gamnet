@@ -1,10 +1,11 @@
 #ifndef _TILE_MAP_H_
 #define	_TILE_MAP_H_
 
+#include <map>
 #include "Tile.h"
 #include "Rect.h"
 
-class TileMap
+class TileMap : public std::enable_shared_from_this<TileMap>
 {
 public :
 	class Tile
@@ -19,7 +20,7 @@ public :
 	};
 
 public :
-	const RectInt& SetRect(const RectInt& rect);
+	const RectInt& SetSize(int width, int height);
 	const RectInt& GetRect() const;
 
 	std::shared_ptr<Tile> GetTile(int x, int y) const;

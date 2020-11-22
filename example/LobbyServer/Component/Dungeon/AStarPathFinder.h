@@ -4,7 +4,7 @@
 #include "Vector2.h"
 #include "Rect.h"
 #include <memory>
-#include "Dungeon.h"
+#include "TileMap.h"
 
 class AStarPathFinder
 {
@@ -25,9 +25,9 @@ class AStarPathFinder
 	};
 
 public :
-	AStarPathFinder(std::shared_ptr<Component::Dungeon::Data>& dungeon, const Vector2Int& from, const Vector2Int& to);
+	AStarPathFinder(const TileMap& map, const Vector2Int& from, const Vector2Int& to);
 	
-	std::shared_ptr<Component::Dungeon::Data> dungeon;
+	const TileMap& map;
 	std::map<int, std::shared_ptr<Node>> open_nodes;
 	std::map<int, std::shared_ptr<Node>> close_nodes;
 	Vector2Int destination;
