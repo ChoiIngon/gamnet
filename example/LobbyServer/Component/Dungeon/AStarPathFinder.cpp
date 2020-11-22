@@ -57,7 +57,7 @@ void AStarPathFinder::Node::FindPath()
 	for (const Vector2Int& offset : LOOKUP_OFFSETS)
 	{
 		Vector2Int childPosition(position.x + offset.x, position.y + offset.y);
-		std::shared_ptr<TileMap::Tile> tile = path_finder->map.GetTile(childPosition.x, childPosition.y);
+		std::shared_ptr<Tile> tile = path_finder->map.GetTile(childPosition.x, childPosition.y);
 		if(nullptr == tile)
 		{
 			continue;

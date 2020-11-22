@@ -6,7 +6,6 @@
 #include <map>
 #include <memory>
 #include "Rect.h"
-#include "Tile.h"
 #include "TileMap.h"
 #include "../../Util/MetaData.h"
 
@@ -58,70 +57,15 @@ namespace Component { namespace Dungeon {
 		};
 	
 		Block(int id);
-		void AddNeighbor(std::shared_ptr<Block> block);
 
 		const int id;
 		Type type;
 
 		size_t distance;
 		RectInt rect;
-		std::vector<std::shared_ptr<Block>> neighbors;
-		std::vector<int> doors;
 	};
 
-	class Data
-	{
-		struct Edge
-		{
-			int id;
-			int parent;
-			int distance;
-			bool visit;
-		};
-
-		struct Path
-		{
-			Path(int prev, int tileIndex);
-			int prev;
-			int tile_index;
-		};
-
-	public:
-		Data(const Meta& meta);
-
-		void Init();
-		std::shared_ptr<Tile> GetTile(int x, int y) const;
-		std::shared_ptr<Tile> GetTile(const Vector2Int& coordinate) const;
-	protected :
-		void InitBlocks();
-		void InitTiles();
-		void BuildPath();
-		void BuildWall();
-		void MoveToEmptySpace(std::shared_ptr<Block> block);
-		bool OverlapWithExistBlocks(std::shared_ptr<Block> block);
-		std::list<std::shared_ptr<Block>> FindNeighborBlocks(int blockID);
-		std::shared_ptr<Block> FindBlock(int blockID);
-		std::vector<int> GetIntersectArea(const RectInt& lhs, const RectInt& rhs);
-		std::list<std::shared_ptr<Block>> FindPath(std::shared_ptr<Block> from, std::shared_ptr<Block> to);
-		std::shared_ptr<std::list<std::shared_ptr<Block>>> FindPath(std::shared_ptr<Block> from, std::shared_ptr<Block> to, std::set<int>& visit);
-		void FindDoor(std::shared_ptr<Block> block, std::shared_ptr<Block> neighbor);
-		void BuildRoomInBlock(std::shared_ptr<Block> block);
-		void BuildCorridorInBlock(std::shared_ptr<Block> block);
-	public:
-		const Meta& meta;
-
-		RectInt rect;
-		std::vector<std::shared_ptr<Block>> blocks;
-		std::vector<std::shared_ptr<Tile>> tiles;
-		std::shared_ptr<Block> start;
-		std::shared_ptr<Block> end;
-
-	public:
-		std::shared_ptr<Unit> player;
-		std::map<uint64_t, std::shared_ptr<Unit>> monster;
-	};
-
-	class Data2 : public TileMap
+	class Data : public TileMap
 	{
 		struct Edge
 		{
@@ -131,16 +75,27 @@ namespace Component { namespace Dungeon {
 			bool visit;
 		};
 	public :
-		Data2(const Meta& meta);
+		Data(const Meta& meta);
 		void Init();
 
 		const Meta& meta;
+		std::shared_ptr<Block> start;
+		std::shared_ptr<Block> end;
+		std::shared_ptr<Unit> player;
+		std::map<uint64_t, std::shared_ptr<Unit>> monster;
 	private :
-		std::list<std::shared_ptr<Block>> Data2::FindNeighborBlocks(std::shared_ptr<Block> block);
+		static constexpr int ROOM_COUNT_MULTIPLE = 3;
+		std::list<std::shared_ptr<Block>> FindNeighborBlocks(std::shared_ptr<Block> block);
+		std::list<Vector2Int> BuildPath();
+
 		void MoveToEmptySpace(std::shared_ptr<Block> block);
 		bool OverlapWithExistBlocks(std::shared_ptr<Block> block);
-		
+		void ShuffleBlocks();
+	private :
+		static const Vector2Int FOUR_DIRECTION[4];
+		static const Vector2Int EIGHT_DIRECTION[8];
 		std::map<int, std::shared_ptr<Block>> blocks;
+		std::vector<std::shared_ptr<Block>> random_order_blocks;
 	};
 
 	class Manager

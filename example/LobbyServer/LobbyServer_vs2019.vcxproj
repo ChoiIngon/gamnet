@@ -141,7 +141,6 @@
     <ClCompile Include="Component\Suit.cpp" />
     <ClCompile Include="Component\UserData.cpp" />
     <ClCompile Include="Component\Dungeon\Dungeon.cpp" />
-    <ClCompile Include="Component\Dungeon\Tile.cpp" />
     <ClCompile Include="Handler\Item\Handler_EquipItem.cpp" />
     <ClCompile Include="Handler\Item\Handler_UnequipItem.cpp" />
     <ClCompile Include="Handler\Item\Handler_SellItem.cpp" />
@@ -185,7 +184,6 @@
     <ClInclude Include="Component\UserData.h" />
     <ClInclude Include="Component\Dungeon\Dungeon.h" />
     <ClInclude Include="Component\Dungeon\Rect.h" />
-    <ClInclude Include="Component\Dungeon\Tile.h" />
     <ClInclude Include="Component\Dungeon\Vector2.h" />
     <ClInclude Include="Handler\Item\Handler_EquipItem.h" />
     <ClInclude Include="Handler\Item\Handler_UnequipItem.h" />

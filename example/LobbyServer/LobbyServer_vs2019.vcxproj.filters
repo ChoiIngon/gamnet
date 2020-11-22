@@ -78,9 +78,6 @@
     <ClCompile Include="Component\UserData.cpp">
       <Filter>Component</Filter>
     </ClCompile>
-    <ClCompile Include="Component\Dungeon\Tile.cpp">
-      <Filter>Component\Dungeon</Filter>
-    </ClCompile>
     <ClCompile Include="Component\Dungeon\Unit.cpp">
       <Filter>Component\Dungeon\Unit</Filter>
     </ClCompile>
@@ -170,9 +167,6 @@
     </ClInclude>
     <ClInclude Include="Component\UserData.h">
       <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Component\Dungeon\Tile.h">
-      <Filter>Component\Dungeon</Filter>
     </ClInclude>
     <ClInclude Include="Component\Dungeon\Rect.h">
       <Filter>Component\Dungeon</Filter>

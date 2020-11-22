@@ -7,12 +7,12 @@ int main(int argc, char** argv)
 	Component::Dungeon::Meta meta;
 	meta.room.count = 10;
 	meta.room.max_height = 10;
-	meta.room.min_height = 8;
+	meta.room.min_height = 5;
 	meta.room.max_width = 10;
-	meta.room.min_width = 8;
+	meta.room.min_width = 5;
 	meta.room.min_distance = 5;
 
-	Component::Dungeon::Data2 data(meta);
+	Component::Dungeon::Data data(meta);
 	//while(true)
 	{
 		data.Init();

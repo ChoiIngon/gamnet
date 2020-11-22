@@ -45,14 +45,16 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		monster->SetPosition(Vector2Int((int)end.x, (int)end.y));
 		dungeon->monster.insert(std::make_pair(monster->seq, monster));
 		*/
-		ans.width = dungeon->rect.width;
-		ans.height = dungeon->rect.height;
+		ans.width = dungeon->GetRect().width;
+		ans.height = dungeon->GetRect().height;
 		ans.start.x = dungeon->player->position.x;
 		ans.start.y = dungeon->player->position.y;
+		/*
 		for(auto tile : dungeon->tiles)
 		{
 			ans.tiles.push_back(tile->type);
 		}
+		*/
 
 		for(auto itr : dungeon->monster)
 		{

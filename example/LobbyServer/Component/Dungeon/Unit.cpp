@@ -24,8 +24,8 @@ void Unit::SetPosition(const Vector2Int& position)
 	{
 		return;
 	}
-
-	std::shared_ptr<Tile> nextTile = dungeon->GetTile(position);
+/*
+	std::shared_ptr<TileMap::Tile> nextTile = dungeon->GetTile(position);
 	if (nullptr == nextTile)
 	{
 		return;
@@ -44,4 +44,5 @@ void Unit::SetPosition(const Vector2Int& position)
 
 	this->position = position;
 	nextTile->unit = shared_from_this();
+	*/
 }
