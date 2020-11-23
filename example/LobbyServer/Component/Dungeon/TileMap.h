@@ -25,6 +25,7 @@ public :
 	const RectInt& SetMapSize(int width, int height);
 	const RectInt& GetRect() const;
 
+	const std::vector<std::shared_ptr<Tile>>& GetAllTiles() const;
 	std::shared_ptr<Tile> GetTile(int x, int y) const;
 	std::shared_ptr<Tile> GetTile(const Vector2Int& coordinate) const;
 private :

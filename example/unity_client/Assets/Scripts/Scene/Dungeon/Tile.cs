@@ -47,8 +47,6 @@ public class Tile : MonoBehaviour
 		}
 		spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 
-		
-
 		data.OnVisible = OnVisible;
 	}
 
@@ -56,12 +54,12 @@ public class Tile : MonoBehaviour
     {
 		if (Message.DungeonTileType.Floor == data.type)
 		{
-			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Floor/floor_vines0"); ;
+			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Floor/rect_gray" + Random.Range(0, 4).ToString());
 		}
 
 		if (Message.DungeonTileType.Wall == data.type)
 		{
-			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Wall/crystal_wall00");
+			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Wall/brick_brown" + Random.Range(0, 8).ToString());
 		}
 
 		if (Message.DungeonTileType.Door == data.type)

@@ -9,14 +9,15 @@ namespace Component { namespace Dungeon {
 	class Data;
 }}
 
-class Unit : public std::enable_shared_from_this<Unit>
+class Unit : public std::enable_shared_from_this<Unit>, public Gamnet::Component
 {
 public :
-	typedef Gamnet::Component Attribute;
 
-	Unit();
+
+	Unit(const std::shared_ptr<::Component::Dungeon::Data>& dungeon);
 
 public :
+	std::shared_ptr<::Component::Dungeon::Data> dungeon;
 	const uint64_t seq;
 	int max_health;
 	int cur_health;
@@ -28,10 +29,7 @@ public :
 	float critical_rate;
 	Vector2Int	position;
 
-	std::shared_ptr<Attribute>	attributes;
-
-	std::shared_ptr<Component::Dungeon::Data> dungeon;
-
+	int team_index;
 	void SetPosition(const Vector2Int& position);
 };
 

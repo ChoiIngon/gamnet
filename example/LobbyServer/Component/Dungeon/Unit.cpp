@@ -4,8 +4,9 @@
 
 static std::atomic<uint64_t> UNIT_SEQ;
 
-Unit::Unit()
-	: seq(++UNIT_SEQ)
+Unit::Unit(const std::shared_ptr<::Component::Dungeon::Data>& dungeon)
+	: dungeon(dungeon)
+	, seq(++UNIT_SEQ)
 	, max_health(0)
 	, cur_health(0)
 	, attack(0)
@@ -14,18 +15,12 @@ Unit::Unit()
 	, sight(10)
 	, critical_chance(0.0f)
 	, critical_rate(0.0f)
-	, attributes(std::make_shared<Attribute>())
 {
 }
 
 void Unit::SetPosition(const Vector2Int& position)
 {
-	if(nullptr == dungeon)
-	{
-		return;
-	}
-/*
-	std::shared_ptr<TileMap::Tile> nextTile = dungeon->GetTile(position);
+	std::shared_ptr<Tile> nextTile = dungeon->GetTile(position);
 	if (nullptr == nextTile)
 	{
 		return;
@@ -44,5 +39,4 @@ void Unit::SetPosition(const Vector2Int& position)
 
 	this->position = position;
 	nextTile->unit = shared_from_this();
-	*/
 }

@@ -13,14 +13,12 @@ namespace Component { namespace Dungeon {
 		, max_width(0)
 		, min_height(0)
 		, max_height(0)
-		, min_distance(0)
 	{
 		META_MEMBER(count);
 		META_MEMBER(min_width);
 		META_MEMBER(max_width);
 		META_MEMBER(min_height);
 		META_MEMBER(max_height);
-		META_MEMBER(min_distance);
 	}
 
 	Meta::Monster::Monster()
@@ -73,7 +71,9 @@ namespace Component { namespace Dungeon {
 
 	std::shared_ptr<Data> Meta::CreateInstance()
 	{
-		return std::make_shared<Data>(*this);
+		std::shared_ptr<Data> data = std::make_shared<Data>(*this);
+		data->Init();
+		return data;
 	}
 
 	void Meta::OnLoad()
@@ -83,7 +83,6 @@ namespace Component { namespace Dungeon {
 		room.max_width = std::max(room.max_width, 3);
 		room.min_height = std::max(room.min_height, 3);
 		room.max_height = std::max(room.min_height, 3);
-		room.min_distance = std::max(room.min_distance, 1);
 	}
 
 	std::shared_ptr<Meta> Manager::FindMeta(const std::string& id)
@@ -106,14 +105,7 @@ namespace Component { namespace Dungeon {
 		return itr->second;
 	}
 
-	const Vector2Int Data::FOUR_DIRECTION[4] = {
-		Vector2Int( 1,  0),
-		Vector2Int( 0, -1),
-		Vector2Int(-1,  0),
-		Vector2Int( 0,  1)
-	};
-
-	const Vector2Int Data::EIGHT_DIRECTION[8] = {
+	const Vector2Int Data::EIGHT_DIRECTION_OFFSET[8] = {
 		Vector2Int( 1, 0),
 		Vector2Int( 1,-1),
 		Vector2Int( 0,-1),
@@ -132,7 +124,6 @@ namespace Component { namespace Dungeon {
 	void Data::Init()
 	{
 		blocks.clear();
-		random_order_blocks.clear();
 
 		RectInt rect;
 		rect.x = 0;
@@ -146,9 +137,19 @@ namespace Component { namespace Dungeon {
 			std::shared_ptr<Block> block = std::make_shared<Block>(i+1);
 			block->rect.x = 0;
 			block->rect.y = 0;
-			block->rect.width = Gamnet::Random::Range(meta.room.min_width, meta.room.max_width);
-			block->rect.height = Gamnet::Random::Range(meta.room.min_height, meta.room.max_height);
-			
+
+			if (0 == i % Data::ROOM_COUNT_MULTIPLE)
+			{
+				block->type = Block::Type::Room;
+				block->rect.width = Gamnet::Random::Range(meta.room.min_width, meta.room.max_width);
+				block->rect.height = Gamnet::Random::Range(meta.room.min_height, meta.room.max_height);
+			}
+			else
+			{
+				block->type = Block::Type::Corridor;
+				block->rect.width = Gamnet::Random::Range(meta.room.min_width/2, meta.room.max_width/2);
+				block->rect.height = Gamnet::Random::Range(meta.room.min_height/2, meta.room.max_height/2);
+			}
 			MoveToEmptySpace(block);
 
 			int xMax = rect.xMax;
@@ -158,7 +159,6 @@ namespace Component { namespace Dungeon {
 			rect.xMax = std::max(xMax, (int)block->rect.xMax);
 			rect.yMax = std::max(yMax, (int)block->rect.yMax);
 			blocks.insert(std::make_pair(block->id, block));
-			random_order_blocks.push_back(block);
 		}
 
 		// 뿌려진 블록들을 모두 포함하는 Rect 생성
@@ -172,10 +172,13 @@ namespace Component { namespace Dungeon {
 		rect.x = 0;
 		rect.y = 0;
 		
+		// TileMap을 최대 rect size로 맞춤
 		SetMapSize(rect.width, rect.height);
-		ShuffleBlocks();
+		
+		// 각 방을 연결하는 패스 설정
 		std::list<Vector2Int> paths = BuildPath();
 		
+		// 패스에 마루 깔기
 		for (const Vector2Int& path : paths)
 		{
 			std::shared_ptr<Tile> tile = GetTile(path.x, path.y);
@@ -189,83 +192,62 @@ namespace Component { namespace Dungeon {
 			{
 				continue;
 			}
-			// 좌측 한쪽 벽에 문두개 연속으로 뚫는 부분 땜빵
-			for (int y = block->rect.y; y < block->rect.yMax - 1; y++)
-			{
-				std::shared_ptr<Tile> tile1 = GetTile(block->rect.x, y);
-				std::shared_ptr<Tile> tile2 = GetTile(block->rect.x, y + 1);
-				if(Message::DungeonTileType::Floor == tile1->type && Message::DungeonTileType::Floor == tile2->type)
-				{
-					if(Message::DungeonTileType::Floor == GetTile(block->rect.x + 1, y)->type)
-					{
-						GetTile(block->rect.x, y)->type = Message::DungeonTileType::Invalid;
-						
-					}
-					else //(Message::DungeonTileType::Floor == GetTile(block->rect.x + 1, y + 1)->type)
-					{
-						GetTile(block->rect.x, y + 1)->type = Message::DungeonTileType::Invalid;
-					}
-				}
-			}
-			// 우측 한쪽 벽에 문두개 연속으로 뚫는 부분 땜빵
-			for (int y = block->rect.y; y < block->rect.yMax - 1; y++)
-			{
-				std::shared_ptr<Tile> tile1 = GetTile(block->rect.xMax - 1, y);
-				std::shared_ptr<Tile> tile2 = GetTile(block->rect.xMax - 1, y + 1);
-				if (Message::DungeonTileType::Floor == tile1->type && Message::DungeonTileType::Floor == tile2->type)
-				{
-					if (Message::DungeonTileType::Floor == GetTile(block->rect.xMax - 1 - 1, y)->type)
-					{
-						GetTile(block->rect.xMax -1, y)->type = Message::DungeonTileType::Invalid;
-					}
-
-					else //(Message::DungeonTileType::Floor == GetTile(block->rect.xMax -1 - 1, y + 1)->type)
-					{
-						GetTile(block->rect.xMax - 1, y + 1)->type = Message::DungeonTileType::Invalid;
-					}
-				}
-			}
-
-			// 상단 한쪽 벽에 문두개 연속으로 뚫는 부분 땜빵
-			for (int x = block->rect.x; x < block->rect.xMax - 1; x++)
-			{
-				std::shared_ptr<Tile> tile1 = GetTile(x, block->rect.y);
-				std::shared_ptr<Tile> tile2 = GetTile(x + 1, block->rect.y);
-				if (Message::DungeonTileType::Floor == tile1->type && Message::DungeonTileType::Floor == tile2->type)
-				{
-					if (Message::DungeonTileType::Floor == GetTile(x, block->rect.y + 1)->type)
-					{
-						GetTile(x, block->rect.y)->type = Message::DungeonTileType::Invalid;
-					}
-
-					else // (Message::DungeonTileType::Floor == GetTile(x + 1, block->rect.y + 1)->type)
-					{
-						GetTile(x + 1, block->rect.y)->type = Message::DungeonTileType::Invalid;
-					}
-				}
-			}
-
-			// 하단 한쪽 벽에 문두개 연속으로 뚫는 부분 땜빵
-			for (int x = block->rect.x; x < block->rect.xMax - 1; x++)
-			{
-				std::shared_ptr<Tile> tile1 = GetTile(x, block->rect.yMax - 1);
-				std::shared_ptr<Tile> tile2 = GetTile(x + 1, block->rect.yMax - 1);
-				if (Message::DungeonTileType::Floor == tile1->type && Message::DungeonTileType::Floor == tile2->type)
-				{
-					if (Message::DungeonTileType::Floor == GetTile(x, block->rect.yMax - 1 - 1)->type)
-					{
-						GetTile(x, block->rect.yMax - 1)->type = Message::DungeonTileType::Invalid;
-					}
 			
-					else // (Message::DungeonTileType::Floor == GetTile(block->rect.xMax - 1 - 1, y + 1)->type)
+			for (int y = block->rect.y; y < block->rect.yMax - 1; y++)
+			{
+				{
+					// 좌측 한쪽 벽에 문두개 연속으로 뚫는 부분 땜빵
+					std::shared_ptr<Tile> tile = GetTile(block->rect.x, y);
+					if (Message::DungeonTileType::Floor == tile->type)
 					{
-						GetTile(x + 1, block->rect.yMax - 1)->type = Message::DungeonTileType::Invalid;
+						if (Message::DungeonTileType::Floor != GetTile(block->rect.x - 1, y)->type)
+						{
+							GetTile(block->rect.x, y)->type = Message::DungeonTileType::Invalid;
+
+						}
+					}
+				}
+				{
+					// 우측 한쪽 벽에 문두개 연속으로 뚫는 부분 땜빵
+					std::shared_ptr<Tile> tile = GetTile(block->rect.xMax - 1, y);
+					if (Message::DungeonTileType::Floor == tile->type)
+					{
+						if (Message::DungeonTileType::Floor != GetTile(block->rect.xMax, y)->type)
+						{
+							GetTile(block->rect.xMax - 1, y)->type = Message::DungeonTileType::Invalid;
+						}
+					}
+				}
+			}
+			
+			for (int x = block->rect.x; x < block->rect.xMax - 1; x++)
+			{
+				{
+					// 하단 한쪽 벽에 문두개 연속으로 뚫는 부분 땜빵
+					std::shared_ptr<Tile> tile = GetTile(x, block->rect.y);
+					if (Message::DungeonTileType::Floor == tile->type)
+					{
+						if (Message::DungeonTileType::Floor != GetTile(x, block->rect.y - 1)->type)
+						{
+							GetTile(x, block->rect.y)->type = Message::DungeonTileType::Invalid;
+						}
+					}
+				}
+				{
+					// 상단 한쪽 벽에 문두개 연속으로 뚫는 부분 땜빵
+					std::shared_ptr<Tile> tile = GetTile(x, block->rect.yMax - 1);
+					if (Message::DungeonTileType::Floor == tile->type)
+					{
+						if (Message::DungeonTileType::Floor != GetTile(x, block->rect.yMax)->type)
+						{
+							GetTile(x, block->rect.yMax - 1)->type = Message::DungeonTileType::Invalid;
+						}
 					}
 				}
 			}
 		}
 		
-		// 블럭 벽 세우고 바닥 채우기
+		// 방에 벽 세우고 바닥 채우기
 		for (const auto& itr : blocks)
 		{
 			std::shared_ptr<Block> block = itr.second;
@@ -281,18 +263,13 @@ namespace Component { namespace Dungeon {
 					tile->type = Message::DungeonTileType::Floor;
 				}
 			}
-			for(int y=block->rect.y; y<block->rect.yMax; y++)
+
+			for (int y=block->rect.y; y<block->rect.yMax; y++)
 			{
+				for(int x = block->rect.x; x < block->rect.xMax; x += block->rect.width - 1)
 				{
-					std::shared_ptr<Tile> tile = GetTile(block->rect.x, y);
+					std::shared_ptr<Tile> tile = GetTile(x, y);
 					if(Message::DungeonTileType::Invalid == tile->type)
-					{
-						tile->type = Message::DungeonTileType::Wall;
-					}
-				}
-				{
-					std::shared_ptr<Tile> tile = GetTile(block->rect.xMax-1, y);
-					if (Message::DungeonTileType::Invalid == tile->type)
 					{
 						tile->type = Message::DungeonTileType::Wall;
 					}
@@ -301,15 +278,9 @@ namespace Component { namespace Dungeon {
 
 			for (int x = block->rect.x; x < block->rect.xMax; x++)
 			{
+				for (int y = block->rect.y; y < block->rect.yMax; y += block->rect.height - 1)
 				{
-					std::shared_ptr<Tile> tile = GetTile(x, block->rect.y);
-					if (Message::DungeonTileType::Invalid == tile->type)
-					{
-						tile->type = Message::DungeonTileType::Wall;
-					}
-				}
-				{
-					std::shared_ptr<Tile> tile = GetTile(x, block->rect.yMax - 1);
+					std::shared_ptr<Tile> tile = GetTile(x, y);
 					if (Message::DungeonTileType::Invalid == tile->type)
 					{
 						tile->type = Message::DungeonTileType::Wall;
@@ -329,7 +300,7 @@ namespace Component { namespace Dungeon {
 				}
 			}
 			
-			for(const Vector2Int offset : EIGHT_DIRECTION)
+			for(const Vector2Int offset : EIGHT_DIRECTION_OFFSET)
 			{
 				std::shared_ptr<Tile> tile = GetTile(path.x + offset.x, path.y + offset.y);
 				if(nullptr != tile && Message::DungeonTileType::Invalid == tile->type)
@@ -338,34 +309,6 @@ namespace Component { namespace Dungeon {
 				}
 			}
 		}
-
-		for (int y = rect.y; y < rect.yMax; y++)
-		{
-			for (int x = rect.x; x < rect.xMax; x++)
-			{
-				std::shared_ptr<Tile> tile = GetTile(x, y);
-				if(Message::DungeonTileType::Invalid == tile->type)
-				{
-					std::cout << " ";
-				}
-				else if(Message::DungeonTileType::Floor == tile->type)
-				{
-					std::cout << ".";
-				}
-				else if (Message::DungeonTileType::Wall == tile->type)
-				{
-					std::cout << "#";
-				}
-				else
-				{
-					std::cout << "+";;
-				}
-				std::cout << " ";
-			}
-			std::cout << std::endl;
-		}
-		
-		std::cout << "=====================" << std::endl;
 	}
 	void Data::MoveToEmptySpace(std::shared_ptr<Block> block)
 	{
@@ -437,31 +380,20 @@ namespace Component { namespace Dungeon {
 		}
 		return neighbors;
 	}
-	void Data::ShuffleBlocks()
-	{
-		std::random_device rd;
-		std::mt19937 g(rd());
-		
-		std::shuffle(random_order_blocks.begin(), random_order_blocks.end(), g);
-
-		for (int i = 0; i < random_order_blocks.size(); i++)
-		{
-			std::shared_ptr<Block> block = random_order_blocks[i];
-			if (0 == i % 3)
-			{
-				block->type = Block::Type::Room;
-			}
-			else
-			{
-				block->type = Block::Type::Corridor;;
-			}
-		}
-	}
 	std::list<Vector2Int> Data::BuildPath()
 	{
+		std::vector<std::shared_ptr<Block>> shuffledBlocks;
+		for(const auto& itr : blocks)
+		{
+			std::shared_ptr<Block> block = itr.second;
+			shuffledBlocks.push_back(block);
+		}
+		std::random_device rd;
+		std::mt19937 g(rd());
+		std::shuffle(shuffledBlocks.begin(), shuffledBlocks.end(), g);
 		////////////////////////다익스트라 패스//////////////////////////////////
 		std::vector<std::shared_ptr<Edge>> edges;
-		for (auto block : random_order_blocks)
+		for (auto block : shuffledBlocks)
 		{
 			std::shared_ptr<Edge> edge = std::make_shared<Edge>();
 			edge->block = block;
@@ -521,6 +453,22 @@ namespace Component { namespace Dungeon {
 			}
 		}
 
+		for(int i=0; i<edges.size(); i++)
+		{
+			if(Block::Type::Room == edges[i]->block->type)
+			{
+				this->start = edges[i]->block;
+				break;
+			}
+		}
+		for (int i = edges.size()-1; i >= 0; i--)
+		{
+			if (Block::Type::Room == edges[i]->block->type)
+			{
+				this->end = edges[i]->block;
+				break;
+			}
+		}
 		//////////////////// AStarPath finding //////////////////////////////////////
 
 		for (const auto& itr : blocks)	// 벽 침범을 방지하기 위해 방으로 설정된 블록 각 기둥에 벽을 미리 박음. 그러면 패스 파인딩에서 피해감

@@ -40,3 +40,8 @@ const RectInt& TileMap::GetRect() const
 {
 	return rect;
 }
+
+const std::vector<std::shared_ptr<Tile>>& TileMap::GetAllTiles() const
+{
+	return tiles;
+}

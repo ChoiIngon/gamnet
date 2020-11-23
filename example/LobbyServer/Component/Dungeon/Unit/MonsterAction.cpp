@@ -7,7 +7,7 @@ namespace Component { namespace Monster { namespace Action {
 
 	bool SearchTarget::Run(std::shared_ptr<Unit> self)
 	{
-		std::shared_ptr<Data> monster = self->attributes->GetComponent<Data>();
+		std::shared_ptr<Monster::Data> monster = self->GetComponent<Monster::Data>();
 		if(nullptr != monster->target)
 		{
 			std::shared_ptr<Unit> target = monster->target;
@@ -44,7 +44,7 @@ namespace Component { namespace Monster { namespace Action {
 	
 	bool FindPathToTarget::Run(std::shared_ptr<Unit> self)
 	{
-		std::shared_ptr<Data> monster = self->attributes->GetComponent<Data>();
+		std::shared_ptr<Monster::Data> monster = self->GetComponent<Monster::Data>();
 		std::shared_ptr<Unit> target = monster->target;
 		if (nullptr == target)
 		{
@@ -65,7 +65,7 @@ namespace Component { namespace Monster { namespace Action {
 	
 	bool MoveToTarget::Run(std::shared_ptr<Unit> self)
 	{
-		std::shared_ptr<Data> monster = self->attributes->GetComponent<Data>();
+		std::shared_ptr<Monster::Data> monster = self->GetComponent<Monster::Data>();
 		if(0 == monster->path.size())
 		{
 			return false;

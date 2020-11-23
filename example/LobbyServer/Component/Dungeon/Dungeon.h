@@ -24,7 +24,6 @@ namespace Component { namespace Dungeon {
 			int max_width;
 			int min_height;
 			int max_height;
-			int min_distance;
 		};
 
 		struct Monster : public MetaData
@@ -84,18 +83,14 @@ namespace Component { namespace Dungeon {
 		std::shared_ptr<Unit> player;
 		std::map<uint64_t, std::shared_ptr<Unit>> monster;
 	private :
-		static constexpr int ROOM_COUNT_MULTIPLE = 3;
 		std::list<std::shared_ptr<Block>> FindNeighborBlocks(std::shared_ptr<Block> block);
 		std::list<Vector2Int> BuildPath();
-
 		void MoveToEmptySpace(std::shared_ptr<Block> block);
 		bool OverlapWithExistBlocks(std::shared_ptr<Block> block);
-		void ShuffleBlocks();
 	private :
-		static const Vector2Int FOUR_DIRECTION[4];
-		static const Vector2Int EIGHT_DIRECTION[8];
+		static constexpr int ROOM_COUNT_MULTIPLE = 5;
+		static const Vector2Int EIGHT_DIRECTION_OFFSET[8];
 		std::map<int, std::shared_ptr<Block>> blocks;
-		std::vector<std::shared_ptr<Block>> random_order_blocks;
 	};
 
 	class Manager

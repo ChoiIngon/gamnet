@@ -6,7 +6,6 @@
 class Player
 {
 public :
-	Vector2Int position;
 };
 
 #endif

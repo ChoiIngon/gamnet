@@ -7,6 +7,11 @@
 #include "MonsterAction.h"
 
 class Unit;
+
+namespace Component { namespace Dungeon {
+	class Data;
+}}
+
 namespace Component { namespace Monster {
 	class Meta : public MetaData
 	{
@@ -27,23 +32,24 @@ namespace Component { namespace Monster {
 	class Data
 	{
 	public :
-		Data();
+		Data(std::shared_ptr<Meta> meta);
 		virtual ~Data();
 
-		std::shared_ptr<Meta> meta;
+		const std::shared_ptr<Meta> meta;
 		std::shared_ptr<Unit> target;
 		std::list<Vector2Int> path;
 	};
+
 	class Manager
 	{
 	public :
 		void Init();
 		std::shared_ptr<Meta> FindMeta(const std::string& id);
 		std::shared_ptr<Meta> FindMeta(uint32_t index);
-		std::shared_ptr<Unit> CreateInstance(const std::string& id);
-		std::shared_ptr<Unit> CreateInstance(uint32_t index);
+		std::shared_ptr<Unit> CreateInstance(const std::string& id, std::shared_ptr<Component::Dungeon::Data> dungeon);
+		std::shared_ptr<Unit> CreateInstance(uint32_t index, std::shared_ptr<Component::Dungeon::Data> dungeon);
 	private :
-		std::shared_ptr<Unit> CreateInstance(const std::shared_ptr<Meta>& meta);
+		std::shared_ptr<Unit> CreateInstance(const std::shared_ptr<Meta>& meta, std::shared_ptr<Component::Dungeon::Data> dungeon);
 		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
 		std::map<std::string, std::shared_ptr<Meta>> id_metas;
 	};

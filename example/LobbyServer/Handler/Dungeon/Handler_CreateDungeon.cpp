@@ -30,16 +30,14 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		std::shared_ptr<Component::Dungeon::Meta> meta = Gamnet::Singleton<Component::Dungeon::Manager>::GetInstance().FindMeta(1);
 		std::shared_ptr<Component::Dungeon::Data> dungeon = meta->CreateInstance();
 		session->AddComponent<Component::Dungeon::Data>(dungeon);
-		dungeon->Init();
 
 		Vector2Int start = dungeon->start->rect.Center();
-		std::shared_ptr<Unit> player = std::make_shared<Unit>();
-		player->dungeon = dungeon;
+		Vector2Int end = dungeon->end->rect.Center();
+		std::shared_ptr<Unit> player = std::make_shared<Unit>(dungeon);
+		player->AddComponent<Player>();
 		player->SetPosition(start);
 		dungeon->player = player;
-
 		/*
-		Vector2 end = dungeon->end->rect.Center();
 		std::shared_ptr<Unit> monster = Gamnet::Singleton<Component::Monster::Manager>::GetInstance().CreateInstance(1);
 		monster->dungeon = dungeon;
 		monster->SetPosition(Vector2Int((int)end.x, (int)end.y));
@@ -49,12 +47,11 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		ans.height = dungeon->GetRect().height;
 		ans.start.x = dungeon->player->position.x;
 		ans.start.y = dungeon->player->position.y;
-		/*
-		for(auto tile : dungeon->tiles)
+		
+		for(auto tile : dungeon->GetAllTiles())
 		{
 			ans.tiles.push_back(tile->type);
 		}
-		*/
 
 		for(auto itr : dungeon->monster)
 		{
@@ -109,13 +106,16 @@ void Test_CreateDungeon_Ans(const std::shared_ptr<TestSession>& session, const s
 			switch(ans.tiles[y * ans.width + x])
 			{
 			case Tile::Type::Door :
-				std::cout << "D";
+				std::cout << "+";
 				break;
 			case Tile::Type::StairDown :
 				std::cout << "G";
 				break;
 			case Tile::Type::Wall :
-				std::cout << "W";
+				std::cout << "#";
+				break;
+			case Tile::Type::Floor:
+				std::cout << ".";
 				break;
 			default :
 				std::cout << " ";

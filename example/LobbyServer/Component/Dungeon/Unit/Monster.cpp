@@ -60,8 +60,8 @@ void Meta::OnBehaviourPath(std::shared_ptr<BehaviourTree<std::shared_ptr<Unit>>>
 	behaviour->root = meta.ReadXml("../MetaData/" + value);
 }
 
-Data::Data()
-	: meta(nullptr)
+Data::Data(std::shared_ptr<Meta> meta)
+	: meta(meta)
 	, target(nullptr)
 {
 }
@@ -107,7 +107,7 @@ std::shared_ptr<Meta> Manager::FindMeta(uint32_t index)
 	return itr->second;
 }
 
-std::shared_ptr<Unit> Manager::CreateInstance(const std::string& id)
+std::shared_ptr<Unit> Manager::CreateInstance(const std::string& id, std::shared_ptr<Component::Dungeon::Data> dungeon)
 {
 	std::shared_ptr<Meta> meta = FindMeta(id);
 	if(nullptr == meta)
@@ -115,10 +115,10 @@ std::shared_ptr<Unit> Manager::CreateInstance(const std::string& id)
 		return nullptr;
 	}
 
-	return CreateInstance(meta);
+	return CreateInstance(meta, dungeon);
 }
 
-std::shared_ptr<Unit> Manager::CreateInstance(uint32_t index)
+std::shared_ptr<Unit> Manager::CreateInstance(uint32_t index, std::shared_ptr<Component::Dungeon::Data> dungeon)
 {
 	std::shared_ptr<Meta> meta = FindMeta(index);
 	if (nullptr == meta)
@@ -126,16 +126,14 @@ std::shared_ptr<Unit> Manager::CreateInstance(uint32_t index)
 		return nullptr;
 	}
 
-	return CreateInstance(meta);
+	return CreateInstance(meta, dungeon);
 }
 
-std::shared_ptr<Unit> Manager::CreateInstance(const std::shared_ptr<Meta>& meta)
+std::shared_ptr<Unit> Manager::CreateInstance(const std::shared_ptr<Meta>& meta, std::shared_ptr<Component::Dungeon::Data> dungeon)
 {
-	std::shared_ptr<Data> data = std::make_shared<Data>();
-	data->meta = meta;
-
-	std::shared_ptr<Unit> unit = std::make_shared<Unit>();
-	unit->attributes->AddComponent<Data>(data);
+	std::shared_ptr<Unit> unit = std::make_shared<Unit>(dungeon);
+	std::shared_ptr<Data> data = std::make_shared<Data>(meta);
+	unit->AddComponent<Data>(data);
 	return unit;
 }
 
