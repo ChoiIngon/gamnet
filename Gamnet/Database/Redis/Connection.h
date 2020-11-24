@@ -1,7 +1,6 @@
 #ifndef _GAMNET_DATABASE_REDIS_CONNECTION_H_
 #define _GAMNET_DATABASE_REDIS_CONNECTION_H_
 
-#include <boost/asio.hpp>
 #include <list>
 #include "ResultSet.h"
 #include "../../Library/Json/json.h"

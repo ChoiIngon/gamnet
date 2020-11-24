@@ -41,6 +41,7 @@ Thumbs.db
 *CMakeCache.txt
 *Debug
 *cmake_install.cmake
+*Makefile
 
 # =============== #
 # Unity generated #
@@ -54,3 +55,6 @@ example/unity_client/[Ll]ogs/
 example/unity_client/Assets/AssetStoreTools*
 example/unity_client/xcode/
 AssetBundles
+
+
+/example/unity_client/Assets/AssetBundles.meta

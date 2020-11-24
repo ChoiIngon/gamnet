@@ -1,7 +1,6 @@
 #ifndef _GAMNET_DATABASE_REDIS_SUBSCRIBER_H_
 #define _GAMNET_DATABASE_REDIS_SUBSCRIBER_H_
 
-#include <boost/asio.hpp>
 #include "../../Network/Session.h"
 #include "../../Network/Tcp/Connector.h"
 #include "../../Library/Delegate.h"

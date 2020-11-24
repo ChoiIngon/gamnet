@@ -30,7 +30,8 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		std::shared_ptr<Component::Dungeon::Meta> meta = Gamnet::Singleton<Component::Dungeon::Manager>::GetInstance().FindMeta(1);
 		std::shared_ptr<Component::Dungeon::Data> dungeon = meta->CreateInstance();
 		session->AddComponent<Component::Dungeon::Data>(dungeon);
-
+		session->strand = dungeon->strand;
+		
 		Vector2Int start = dungeon->start->rect.Center();
 		Vector2Int end = dungeon->end->rect.Center();
 		std::shared_ptr<Unit> player = std::make_shared<Unit>(dungeon);

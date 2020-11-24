@@ -1,9 +1,6 @@
 #ifndef _ITEM_H_
 #define _ITEM_H_
 
-#define _WIN32_WINNT 0x0501
-#define WIN32_LEAN_AND_MEAN
-
 #include <Gamnet/Library/Time/Time.h>
 #include <idl/MessageCommon.h>
 #include "../Util/MetaData.h"

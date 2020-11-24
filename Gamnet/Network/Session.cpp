@@ -10,11 +10,16 @@ namespace Gamnet { namespace Network {
 static std::atomic<uint32_t> SESSION_KEY;
 static boost::asio::io_context& io_context = Singleton<boost::asio::io_context>::GetInstance();
 
+std::shared_ptr<Session::Strand> Session::CreateStrand()
+{
+	return std::make_shared<Session::Strand>(io_context.get_executor());
+}
+
 Session::Session() 
 	: session_key(0)
 	, session_manager(nullptr)
 	, socket(nullptr)
-	, strand(io_context.get_executor())
+	, strand(nullptr)
 	, read_buffer(nullptr)
 {
 }
@@ -26,6 +31,7 @@ Session::~Session()
 bool Session::Init()
 {
 	session_key = ++SESSION_KEY;
+	strand = CreateStrand();
 	read_buffer = Buffer::Create();
 	return true;
 }

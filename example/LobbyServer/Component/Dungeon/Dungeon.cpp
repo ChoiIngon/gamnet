@@ -118,6 +118,9 @@ namespace Component { namespace Dungeon {
 
 	Data::Data(const Meta& meta) 
 		: meta(meta)
+		, strand(Gamnet::Network::Session::CreateStrand())
+		, start(nullptr)
+		, end(nullptr)
 	{
 	}
 

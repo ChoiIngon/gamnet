@@ -1,9 +1,6 @@
 #ifndef _COMPONENT_SUIT_H_
 #define _COMPONENT_SUIT_H_
 
-#define _WIN32_WINNT 0x0501
-#define WIN32_LEAN_AND_MEAN
-
 #include <memory>
 #include <idl/MessageCommon.h>
 

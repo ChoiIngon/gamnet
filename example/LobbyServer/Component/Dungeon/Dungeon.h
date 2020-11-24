@@ -1,6 +1,7 @@
 #ifndef _DUNGEON_H
 #define	_DUNGEON_H
 
+#include <Gamnet/Network/Network.h>
 #include <vector>
 #include <set>
 #include <map>
@@ -78,6 +79,7 @@ namespace Component { namespace Dungeon {
 		void Init();
 
 		const Meta& meta;
+		std::shared_ptr<Gamnet::Network::Session::Strand> strand;
 		std::shared_ptr<Block> start;
 		std::shared_ptr<Block> end;
 		std::shared_ptr<Unit> player;

@@ -42,35 +42,38 @@ namespace Gamnet { namespace Network {
 		uint32_t			session_key;
 		SessionManager*		session_manager;
 
-		std::shared_ptr<boost::asio::ip::tcp::socket>		socket;
-		typedef boost::asio::strand<boost::asio::io_context::executor_type> strand_t;
-		strand_t											strand;
-		std::shared_ptr<Buffer> 							read_buffer;
-		std::deque<std::shared_ptr<Buffer>>					send_buffers;
+		typedef boost::asio::strand<boost::asio::io_context::executor_type> Strand;
+
+		std::shared_ptr<boost::asio::ip::tcp::socket>	socket;
+		std::shared_ptr<Strand>							strand;
+		std::shared_ptr<Buffer> 						read_buffer;
+		std::deque<std::shared_ptr<Buffer>>				send_buffers;
 
 		template <class Executor>
 		void Dispatch(Executor& executor)
 		{
-			boost::asio::dispatch(strand, executor);
+			boost::asio::dispatch(*strand, executor);
 		}
 
 		template <class Executor>
 		void Dispatch(Executor&& executor)
 		{
-			boost::asio::dispatch(strand, executor);
+			boost::asio::dispatch(*strand, executor);
 		}
 
 		template <class Executor>
-		boost::asio::executor_binder<typename boost::asio::decay<Executor>::type, strand_t> Bind(Executor& executor)
+		boost::asio::executor_binder<typename boost::asio::decay<Executor>::type, Strand> Bind(Executor& executor)
 		{
-			return boost::asio::bind_executor(strand, executor);
+			return boost::asio::bind_executor(*strand, executor);
 		}
 
 		template <class Executor>
-		boost::asio::executor_binder<typename boost::asio::decay<Executor>::type, strand_t> Bind(Executor&& executor)
+		boost::asio::executor_binder<typename boost::asio::decay<Executor>::type, Strand> Bind(Executor&& executor)
 		{
-			return boost::asio::bind_executor(strand, executor);
+			return boost::asio::bind_executor(*strand, executor);
 		}
+
+		static std::shared_ptr<Strand> CreateStrand();
 	public :
 		virtual bool Init();
 		virtual void Clear();
