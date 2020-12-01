@@ -2,29 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : Unit
+public class Player : MonoBehaviour
 {
 	public SpriteRenderer trunk;
 	public SpriteRenderer hair;
 	public SpriteRenderer beard;
 	public SpriteRenderer [] suit = new SpriteRenderer[(int)Message.EquipItemPartType.Max];
-	
+	public Unit unit;	
 	// Start is called before the first frame update
-	public override Vector2Int position
-	{
-		get
-		{
-			return new Vector2Int((int)transform.position.x, (int)transform.position.y);
-		}
-		set
-		{
-			dungeon.SetFieldOfView(this, false);
-			transform.position = new Vector3(value.x, value.y, 0.0f);
-			dungeon.SetFieldOfView(this, true);
-		}
-	}
 	private void Start()
 	{
+		unit = GetComponent<Unit>();
 		Util.EventSystem.Subscribe<Vector2Int>(EventID.Event_OnTouch, OnMove);
 		Util.EventSystem.Subscribe<Item.Data>(Component.Suit.Event.EquipItem, OnEquip);
 		Util.EventSystem.Subscribe<Item.Data>(Component.Suit.Event.UnequipItem, OnUnequip);
@@ -55,17 +43,10 @@ public class Player : Unit
 
 	private void OnMove(Vector2Int to)
 	{
-		/*
-		AStarPathFinder pathFinder = new AStarPathFinder(GameManager.Instance.scenes.dungeon_main.dungeon, position, to);
-		if (0 == pathFinder.path.Count)
-		{
-			return;
-		}
-
-		pathFinder.path.RemoveAt(0);
-		path = pathFinder.path;
-		*/
-		Handler.Dungeon.Handler_PlayerMove.SendMsg(to);
+		Message.Dungeon.MsgCliSvr_PlayerMove_Ntf ntf = new Message.Dungeon.MsgCliSvr_PlayerMove_Ntf();
+		ntf.destination.x = to.x;
+		ntf.destination.y = to.y;
+		GameManager.Instance.LobbySession.SendMsg(ntf, true);
 	}
 
 	public void OnEquip(Item.Data item)

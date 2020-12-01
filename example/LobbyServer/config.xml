@@ -19,8 +19,6 @@
 		<message name="Test_Lobby_OpenMail"/>
 		<message name="Test_Item_OpenPackage"/>
 		<message name="Test_Item_EquipItem"/>
-		<!--
 		<message name="Test_Dungeon_CreateDungeon"/>
-		-->
 	</test>
 </server>

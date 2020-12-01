@@ -20,7 +20,7 @@ Meta::Meta()
 	META_CUSTOM(behaviour, Meta::OnBehaviourPath);
 }
 
-bool Meta::IsVisible(std::shared_ptr<Unit>& self, const Vector2Int& target)
+bool Meta::IsVisible(std::shared_ptr<Unit::Data>& self, const Vector2Int& target)
 {
 	auto dungeon = self->dungeon;
 	if(nullptr == dungeon)
@@ -45,15 +45,15 @@ bool Meta::IsVisible(std::shared_ptr<Unit>& self, const Vector2Int& target)
 	return true;
 }
 
-void Meta::Update(std::shared_ptr<Unit> data)
+void Meta::Update(std::shared_ptr<Unit::Data> data)
 {
 	behaviour->Run(data);
 }
 
-void Meta::OnBehaviourPath(std::shared_ptr<BehaviourTree<std::shared_ptr<Unit>>>& behaviour, const std::string& value)
+void Meta::OnBehaviourPath(std::shared_ptr<BehaviourTree<std::shared_ptr<Unit::Data>>>& behaviour, const std::string& value)
 {
-	behaviour = std::make_shared<BehaviourTree<std::shared_ptr<Unit>>>();
-	BehaviourTree<std::shared_ptr<Unit>>::Meta meta;
+	behaviour = std::make_shared<BehaviourTree<std::shared_ptr<Unit::Data>>>();
+	BehaviourTree<std::shared_ptr<Unit::Data>>::Meta meta;
 	meta.BindAction<Action::SearchTarget>("SearchTarget");
 	meta.BindAction<Action::FindPathToTarget>("FindPathToTarget");
 	meta.BindAction<Action::MoveToTarget>("MoveToTarget");
@@ -69,73 +69,4 @@ Data::Data(std::shared_ptr<Meta> meta)
 Data::~Data()
 {
 }
-
-void Manager::Init()
-{
-	MetaReader<Meta> reader;
-	auto& rows = reader.Read("../MetaData/Monster.csv");
-	for (auto& row : rows)
-	{
-		if(false == index_metas.insert(std::make_pair(row->index, row)).second)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate monster index(", row->index, ")");
-		}
-		if(false == id_metas.insert(std::make_pair(row->id, row)).second)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate monster id(", row->id, ")");
-		}
-	}
-}
-
-std::shared_ptr<Meta> Manager::FindMeta(const std::string& id)
-{
-	auto itr = id_metas.find(id);
-	if(id_metas.end() == itr)
-	{
-		return nullptr;
-	}
-	return itr->second;
-}
-
-std::shared_ptr<Meta> Manager::FindMeta(uint32_t index)
-{
-	auto itr = index_metas.find(index);
-	if (index_metas.end() == itr)
-	{
-		return nullptr;
-	}
-	return itr->second;
-}
-
-std::shared_ptr<Unit> Manager::CreateInstance(const std::string& id, std::shared_ptr<Component::Dungeon::Data> dungeon)
-{
-	std::shared_ptr<Meta> meta = FindMeta(id);
-	if(nullptr == meta)
-	{
-		return nullptr;
-	}
-
-	return CreateInstance(meta, dungeon);
-}
-
-std::shared_ptr<Unit> Manager::CreateInstance(uint32_t index, std::shared_ptr<Component::Dungeon::Data> dungeon)
-{
-	std::shared_ptr<Meta> meta = FindMeta(index);
-	if (nullptr == meta)
-	{
-		return nullptr;
-	}
-
-	return CreateInstance(meta, dungeon);
-}
-
-std::shared_ptr<Unit> Manager::CreateInstance(const std::shared_ptr<Meta>& meta, std::shared_ptr<Component::Dungeon::Data> dungeon)
-{
-	std::shared_ptr<Unit> unit = std::make_shared<Unit>(dungeon);
-	std::shared_ptr<Data> data = std::make_shared<Data>(meta);
-	unit->AddComponent<Data>(data);
-	return unit;
-}
-
 }}
-GAMNET_BIND_INIT_HANDLER(Component::Monster::Manager, Init);

@@ -3,6 +3,7 @@
 #include "../../Component/Dungeon/Dungeon.h"
 #include "../../Component/Dungeon/Unit.h"
 #include "../../Component/Dungeon/Unit/Monster.h"
+#include "../../Component/Dungeon/Unit/Player.h"
 #include <Gamnet/Library/Random.h>
 
 namespace Handler { namespace Dungeon {
@@ -31,32 +32,35 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		std::shared_ptr<Component::Dungeon::Data> dungeon = meta->CreateInstance();
 		session->AddComponent<Component::Dungeon::Data>(dungeon);
 		session->strand = dungeon->strand;
-		
+
+		ans.width = dungeon->GetRect().width;
+		ans.height = dungeon->GetRect().height;
+		for (auto tile : dungeon->GetAllTiles())
+		{
+			ans.tiles.push_back(tile->type);
+		}
 		Vector2Int start = dungeon->start->rect.Center();
 		Vector2Int end = dungeon->end->rect.Center();
-		std::shared_ptr<Unit> player = std::make_shared<Unit>(dungeon);
+
+		std::shared_ptr<Component::Unit::Data> player = std::make_shared<Component::Unit::Data>(dungeon);
 		player->AddComponent<Player>();
 		player->SetPosition(start);
 		dungeon->player = player;
+		ans.player_unit_seq = player->seq;
+		ans.start.x = dungeon->player->position.x;
+		ans.start.y = dungeon->player->position.y;
+
 		/*
 		std::shared_ptr<Unit> monster = Gamnet::Singleton<Component::Monster::Manager>::GetInstance().CreateInstance(1);
 		monster->dungeon = dungeon;
 		monster->SetPosition(Vector2Int((int)end.x, (int)end.y));
 		dungeon->monster.insert(std::make_pair(monster->seq, monster));
 		*/
-		ans.width = dungeon->GetRect().width;
-		ans.height = dungeon->GetRect().height;
-		ans.start.x = dungeon->player->position.x;
-		ans.start.y = dungeon->player->position.y;
 		
-		for(auto tile : dungeon->GetAllTiles())
-		{
-			ans.tiles.push_back(tile->type);
-		}
-
+		
 		for(auto itr : dungeon->monster)
 		{
-			std::shared_ptr<Unit> monster = itr.second;
+			std::shared_ptr<Component::Unit::Data> monster = itr.second;
 			Message::Monster msgMonster;
 			msgMonster.seq = monster->seq;
 			msgMonster.position.x = monster->position.x;

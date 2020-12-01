@@ -1,12 +1,13 @@
 #ifndef _MONSTER_H_
 #define _MONSTER_H_
 
-
 #include "../../../Util/MetaData.h"
 #include "../Vector2.h"
 #include "MonsterAction.h"
 
-class Unit;
+namespace Component { namespace Unit {
+	class Data;
+}}
 
 namespace Component { namespace Dungeon {
 	class Data;
@@ -21,12 +22,12 @@ namespace Component { namespace Monster {
 		std::string id;
 		uint32_t	index;
 		std::string name;
-		std::shared_ptr<BehaviourTree<std::shared_ptr<Unit>>> behaviour;
+		std::shared_ptr<BehaviourTree<std::shared_ptr<Unit::Data>>> behaviour;
 
-		bool IsVisible(std::shared_ptr<Unit>& self, const Vector2Int& target);
-		void Update(std::shared_ptr<Unit> data);
+		bool IsVisible(std::shared_ptr<Unit::Data>& self, const Vector2Int& target);
+		void Update(std::shared_ptr<Unit::Data> data);
 	private :
-		void OnBehaviourPath(std::shared_ptr<BehaviourTree<std::shared_ptr<Unit>>>& behaviour, const std::string& value);
+		void OnBehaviourPath(std::shared_ptr<BehaviourTree<std::shared_ptr<Unit::Data>>>& behaviour, const std::string& value);
 	};
 
 	class Data
@@ -36,22 +37,8 @@ namespace Component { namespace Monster {
 		virtual ~Data();
 
 		const std::shared_ptr<Meta> meta;
-		std::shared_ptr<Unit> target;
+		std::shared_ptr<Unit::Data> target;
 		std::list<Vector2Int> path;
-	};
-
-	class Manager
-	{
-	public :
-		void Init();
-		std::shared_ptr<Meta> FindMeta(const std::string& id);
-		std::shared_ptr<Meta> FindMeta(uint32_t index);
-		std::shared_ptr<Unit> CreateInstance(const std::string& id, std::shared_ptr<Component::Dungeon::Data> dungeon);
-		std::shared_ptr<Unit> CreateInstance(uint32_t index, std::shared_ptr<Component::Dungeon::Data> dungeon);
-	private :
-		std::shared_ptr<Unit> CreateInstance(const std::shared_ptr<Meta>& meta, std::shared_ptr<Component::Dungeon::Data> dungeon);
-		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
-		std::map<std::string, std::shared_ptr<Meta>> id_metas;
 	};
 }}
 #endif

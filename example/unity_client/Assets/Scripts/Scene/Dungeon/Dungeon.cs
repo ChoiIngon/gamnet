@@ -1,16 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Component
 {
 	public class Dungeon : MonoBehaviour
 	{
-		public Player player;
 		public Transform tile_root;
 		public List<Tile> tiles = new List<Tile>();
 		public int width = 0;
 		public int height = 0;
-		
+		public Unit player;
+		public Dictionary<UInt64, Unit> units = new Dictionary<UInt64, Unit>();
+		private void Start()
+		{
+			GameManager.Instance.LobbySession.RegisterHandler<Message.Dungeon.MsgSvrCli_UnitPosition_Ntf>(Recv_UnitPosition_Ntf);
+		}
+		private void OnDestroy()
+		{
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.Dungeon.MsgSvrCli_UnitPosition_Ntf>(Recv_UnitPosition_Ntf);
+		}
 		public void EnableTouch(bool flag)
 		{
 			foreach (Tile tile in tiles)
@@ -67,8 +76,62 @@ namespace Component
 			{
 			});
 		}
+		
+		public void SetFieldOfView(Vector2Int position, int sight, bool visible)
+		{
+			BresenhamCircle2D circle = new BresenhamCircle2D(position, sight);
 
-		public void Recv_CreateDungeon_Ans(Message.Dungeon.MsgSvrCli_CreateDungeon_Ans ans)
+			foreach (Vector2Int circumference in circle)
+			{
+				BresenhamLine2D line = new BresenhamLine2D(position, circumference);
+				foreach (Vector2Int point in line)
+				{
+					Tile.Data tile = GetTileData(point.x, point.y);
+					if (null == tile)
+					{
+						break;
+					}
+					tile.visible = visible;
+
+					if (Message.DungeonTileType.Wall == tile.type)
+					{
+						break;
+					}
+
+					if (width * height > tile.index + 1)
+					{
+						GetTileData(point.x + 1, point.y).visible = visible;
+					}
+
+					if (width * height > tile.index + width)
+					{
+						GetTileData(point.x, point.y + 1).visible = visible;
+					}
+
+					if (0 <= tile.index - 1)
+					{
+						GetTileData(point.x - 1, point.y).visible = visible;
+					}
+
+					if (0 <= tile.index - width)
+					{
+						GetTileData(point.x, point.y - 1).visible = visible;
+					}
+				}
+			}
+		}
+
+		private void Recv_UnitPosition_Ntf(Message.Dungeon.MsgSvrCli_UnitPosition_Ntf ntf)
+		{
+			Unit unit = null; ;
+			if (false == units.TryGetValue(ntf.unit_seq, out unit))
+			{
+				return;
+			}
+
+			unit.position = new Vector2Int(ntf.position.x, ntf.position.y);
+		}
+		private void Recv_CreateDungeon_Ans(Message.Dungeon.MsgSvrCli_CreateDungeon_Ans ans)
 		{
 			GameManager.Instance.LobbySession.UnregisterHandler<Message.Dungeon.MsgSvrCli_CreateDungeon_Ans>(Recv_CreateDungeon_Ans);
 			if (Message.ErrorCode.Success != ans.error_code)
@@ -106,11 +169,10 @@ namespace Component
 				}
 			}
 
-
-			
-			
+			player.seq = ans.player_unit_seq;
 			player.position = new Vector2Int(ans.start.x, ans.start.y);
-			
+			units.Add(player.seq, player);
+
 			/*
 			foreach (var monster in ans.monsters)
 			{
@@ -128,49 +190,6 @@ namespace Component
 			gameObject.SetActive(true);
 		}
 
-		public void SetFieldOfView(Unit unit, bool visible)
-		{
-			BresenhamCircle2D circle = new BresenhamCircle2D(unit.position, unit.sight - 1);
-
-			foreach (Vector2Int circumference in circle)
-			{
-				BresenhamLine2D line = new BresenhamLine2D(unit.position, circumference);
-				foreach (Vector2Int point in line)
-				{
-					Tile.Data tile = GetTileData(point.x, point.y);
-					if (null == tile)
-					{
-						break;
-					}
-					tile.visible = visible;
-
-					if (Message.DungeonTileType.Wall == tile.type)
-					{
-						break;
-					}
-
-					if (width * height > tile.index + 1)
-					{
-						GetTileData(point.x + 1, point.y).visible = visible;
-					}
-
-					if (width * height > tile.index + width)
-					{
-						GetTileData(point.x, point.y + 1).visible = visible;
-					}
-
-					if (0 <= tile.index - 1)
-					{
-						GetTileData(point.x - 1, point.y).visible = visible;
-					}
-
-					if (0 <= tile.index - width)
-					{
-						GetTileData(point.x, point.y - 1).visible = visible;
-					}
-				}
-			}
-		}
 	}
 
 }

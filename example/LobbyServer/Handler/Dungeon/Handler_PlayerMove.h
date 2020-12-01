@@ -12,7 +12,7 @@ namespace Handler {	namespace Dungeon {
 		Handler_PlayerMove();
 		virtual ~Handler_PlayerMove();
 
-		void Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Dungeon::MsgCliSvr_PlayerMove_Req& req);
+		void Recv_Ntf(const std::shared_ptr<UserSession>& session, const Message::Dungeon::MsgCliSvr_PlayerMove_Ntf& ntf);
 	};
 }}
 #endif /* HANDLER_LOGIN_H_ */

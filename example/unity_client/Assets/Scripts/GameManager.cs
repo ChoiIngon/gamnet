@@ -6,6 +6,8 @@ using System.Collections;
 
 class GameManager : Util.MonoSingleton<GameManager>
 {
+	public const float TickTime = 0.1f;
+
 	private Network.LobbySession lobby_session = new Network.LobbySession();
 
 	public bool run_in_background = true;
@@ -44,6 +46,7 @@ class GameManager : Util.MonoSingleton<GameManager>
 		yield return AssetBundleManager.Instance.LoadAssetBundle("Sprites");
 
 		Item.Manager.Instance.Init();
+		Unit.Manager.Instance.Init();
 		lobby.gameObject.SetActive(true);
 		ui.login.gameObject.SetActive(true);
 

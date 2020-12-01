@@ -6,7 +6,10 @@
 #include <idl/MessageCommon.h>
 #include "Rect.h"
 
-class Unit;
+namespace Component { namespace Unit {
+	class Data;
+}}
+
 class Tile
 {
 public:
@@ -16,7 +19,7 @@ public:
 public:
 	Type type;
 	bool visible;
-	std::shared_ptr<Unit> unit;
+	std::shared_ptr<Component::Unit::Data> unit;
 };
 
 class TileMap

@@ -2,6 +2,7 @@
 #define	_DUNGEON_H
 
 #include <Gamnet/Network/Network.h>
+#include <Gamnet/Library/Pool.h>
 #include <vector>
 #include <set>
 #include <map>
@@ -9,9 +10,9 @@
 #include "Rect.h"
 #include "TileMap.h"
 #include "../../Util/MetaData.h"
+#include <idl/MessageCommon.h>
 
 class Player;
-class Unit;
 
 namespace Component { namespace Dungeon {
 	class Data;
@@ -82,8 +83,8 @@ namespace Component { namespace Dungeon {
 		std::shared_ptr<Gamnet::Network::Session::Strand> strand;
 		std::shared_ptr<Block> start;
 		std::shared_ptr<Block> end;
-		std::shared_ptr<Unit> player;
-		std::map<uint64_t, std::shared_ptr<Unit>> monster;
+		std::shared_ptr<Unit::Data> player;
+		std::map<uint64_t, std::shared_ptr<Unit::Data>> monster;
 	private :
 		std::list<std::shared_ptr<Block>> FindNeighborBlocks(std::shared_ptr<Block> block);
 		std::list<Vector2Int> BuildPath();
@@ -93,6 +94,8 @@ namespace Component { namespace Dungeon {
 		static constexpr int ROOM_COUNT_MULTIPLE = 5;
 		static const Vector2Int EIGHT_DIRECTION_OFFSET[8];
 		std::map<int, std::shared_ptr<Block>> blocks;
+
+		Gamnet::Pool<Gamnet::Time::Timer> timer_pool;
 	};
 
 	class Manager
@@ -109,4 +112,5 @@ namespace Component { namespace Dungeon {
 };
 
 }
+
 #endif

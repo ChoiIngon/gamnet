@@ -15,11 +15,8 @@ Handler_PlayerMove::~Handler_PlayerMove()
 {
 }
 
-void Handler_PlayerMove::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Dungeon::MsgCliSvr_PlayerMove_Req& req)
+void Handler_PlayerMove::Recv_Ntf(const std::shared_ptr<UserSession>& session, const Message::Dungeon::MsgCliSvr_PlayerMove_Ntf& ntf)
 {
-	Message::Dungeon::MsgSvrCli_PlayerMove_Ans ans;
-	ans.error_code = Message::ErrorCode::Success;
-	
 	try {
 		LOG(DEV, "Message::Dungeon::MsgCliSvr_PlayerMove_Req()");
 		if(nullptr == session->GetComponent<Component::UserData>())
@@ -33,76 +30,39 @@ void Handler_PlayerMove::Recv_Req(const std::shared_ptr<UserSession>& session, c
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
 
-		std::shared_ptr<Unit> player = dungeon->player;
-		AStarPathFinder pathFinder(*dungeon, player->position, Vector2Int(req.destination.x, req.destination.y));
-		for(const auto& point : pathFinder.path)
-		{
-			player->SetPosition(point);
+		std::shared_ptr<Component::Unit::Data> player = dungeon->player;
+		player->path_finder = std::make_shared<AStarPathFinder>(*dungeon, player->position, Vector2Int(ntf.destination.x, ntf.destination.y));
+		player->timer->Cancel();
+		player->timer->AutoReset(true);
+		player->timer->SetTimer(100, [dungeon, player, session](){
+			std::shared_ptr<AStarPathFinder> pathFinder = player->path_finder;
+			const Vector2Int position = pathFinder->path.front();
+			pathFinder->path.pop_front();
+			player->SetPosition(position);
 
-			if(point != player->position)
-			{
-				break;
-			}
-			for(auto& itr : dungeon->monster)
-			{
-				std::shared_ptr<Unit> monster = itr.second;
-				auto data = monster->GetComponent<Component::Monster::Data>();
+			Message::Dungeon::MsgSvrCli_UnitPosition_Ntf ntf;
+			ntf.unit_seq = player->seq;
+			ntf.position.x = position.x;
+			ntf.position.y = position.y;
+			Gamnet::Network::Tcp::SendMsg(session, ntf);
 
-				data->meta->Update(monster);
-				Message::Vector2Int position;
-				position.x = monster->position.x;
-				position.y = monster->position.y;
-				ans.monster_moves[monster->seq].push_back(position);
+			if(0 == pathFinder->path.size())
+			{
+				player->timer->Cancel();
 			}
-			Message::Vector2Int position;
-			position.x = player->position.x;
-			position.y = player->position.y;
-			ans.path.push_back(position);
-		}
+		});
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		ans.error_code = (Message::ErrorCode)e.error_code();
 	}
-	LOG(DEV, "Message::Dungeon::MsgSvrCli_PlayerMove_Ans(error_code:", (int)ans.error_code, ")");
-	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
 GAMNET_BIND_TCP_HANDLER(
 	UserSession,
-	Message::Dungeon::MsgCliSvr_PlayerMove_Req,
-	Handler_PlayerMove, Recv_Req,
+	Message::Dungeon::MsgCliSvr_PlayerMove_Ntf,
+	Handler_PlayerMove, Recv_Ntf,
 	HandlerStatic
-);
-
-void Test_PlayerMove_Req(const std::shared_ptr<TestSession>& session)
-{
-	Message::Dungeon::MsgCliSvr_PlayerMove_Req req;
-	Gamnet::Test::SendMsg(session, req);
-}
-
-void Test_PlayerMove_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
-{
-	Message::Dungeon::MsgSvrCli_PlayerMove_Ans ans;
-	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
-		}
-		//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUser_PlayerMoveLobby_Ans");
-	}
-	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-	}
-
-	session->Next();
-}
-
-GAMNET_BIND_TEST_HANDLER(
-	TestSession, "Test_Dungeon_PlayerMove",
-	Message::Dungeon::MsgCliSvr_PlayerMove_Req, Test_PlayerMove_Req,
-	Message::Dungeon::MsgSvrCli_PlayerMove_Ans, Test_PlayerMove_Ans
 );
 
 }}

@@ -1,16 +1,17 @@
 #include "MonsterAction.h"
-
+#include "../Unit.h"
 #include "../BresenhamLine2D.h"
 #include "Monster.h"
+#include "Player.h"
 
 namespace Component { namespace Monster { namespace Action {
 
-	bool SearchTarget::Run(std::shared_ptr<Unit> self)
+	bool SearchTarget::Run(std::shared_ptr<Unit::Data> self)
 	{
 		std::shared_ptr<Monster::Data> monster = self->GetComponent<Monster::Data>();
 		if(nullptr != monster->target)
 		{
-			std::shared_ptr<Unit> target = monster->target;
+			std::shared_ptr<Unit::Data> target = monster->target;
 			float distance = Vector2Int::Distance(self->position, target->position);
 			if(distance > 2 * self->sight)
 			{
@@ -20,7 +21,7 @@ namespace Component { namespace Monster { namespace Action {
 			return true;
 		}
 
-		std::shared_ptr<Unit> player = self->dungeon->player;
+		std::shared_ptr<Unit::Data> player = self->dungeon->player;
 		float distance = Vector2Int::Distance(self->position, player->position);
 	
 		if(distance > self->sight)
@@ -42,10 +43,10 @@ namespace Component { namespace Monster { namespace Action {
 		return true;
 	}
 	
-	bool FindPathToTarget::Run(std::shared_ptr<Unit> self)
+	bool FindPathToTarget::Run(std::shared_ptr<Unit::Data> self)
 	{
 		std::shared_ptr<Monster::Data> monster = self->GetComponent<Monster::Data>();
-		std::shared_ptr<Unit> target = monster->target;
+		std::shared_ptr<Unit::Data> target = monster->target;
 		if (nullptr == target)
 		{
 			return false;
@@ -63,7 +64,7 @@ namespace Component { namespace Monster { namespace Action {
 		return true;
 	}
 	
-	bool MoveToTarget::Run(std::shared_ptr<Unit> self)
+	bool MoveToTarget::Run(std::shared_ptr<Unit::Data> self)
 	{
 		std::shared_ptr<Monster::Data> monster = self->GetComponent<Monster::Data>();
 		if(0 == monster->path.size())

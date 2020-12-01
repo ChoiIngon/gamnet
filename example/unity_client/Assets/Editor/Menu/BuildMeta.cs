@@ -23,6 +23,7 @@ namespace Ediotr.Menu
 			{
 				"EquipItem",
 				"Item",
+				"Unit_Monster"
 			};
 
 			foreach (string file in files)

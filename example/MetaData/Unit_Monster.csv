@@ -1,0 +1,3 @@
+﻿NAME,ID,INDEX,Monster.BEHAVIOUR
+TEXT,TEXT,INT,BehaviourTree
+Monster,Monster2,2,BehaviourTree.xml
