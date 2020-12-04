@@ -3,9 +3,11 @@
 
 #include "../Vector2.h"
 
+namespace Component { namespace Unit { 
 class Player
 {
 public :
-};
 
+};
+}}
 #endif

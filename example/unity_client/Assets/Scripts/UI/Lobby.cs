@@ -12,7 +12,6 @@ namespace UI
 				GameManager.Instance.dungeon.Send_CreateDungeon_Req();
 				GameManager.Instance.lobby.gameObject.SetActive(false);
 				GameManager.Instance.ui.lobby.gameObject.SetActive(false);
-				Camera.main.enabled = false;
 			});
 		}
 

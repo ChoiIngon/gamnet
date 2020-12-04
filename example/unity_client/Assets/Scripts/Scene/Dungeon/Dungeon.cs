@@ -6,19 +6,25 @@ namespace Component
 {
 	public class Dungeon : MonoBehaviour
 	{
+		public Transform unit_root;
 		public Transform tile_root;
 		public List<Tile> tiles = new List<Tile>();
 		public int width = 0;
 		public int height = 0;
-		public Unit player;
+		public Unit player_prefab;
 		public Dictionary<UInt64, Unit> units = new Dictionary<UInt64, Unit>();
-		private void Start()
+
+		private void Awake()
 		{
 			GameManager.Instance.LobbySession.RegisterHandler<Message.Dungeon.MsgSvrCli_UnitPosition_Ntf>(Recv_UnitPosition_Ntf);
+			GameManager.Instance.LobbySession.RegisterHandler<Message.Dungeon.MsgSvrCli_CreatePlayer_Ntf>(Recv_CreatePlayer_Ntf);
+			GameManager.Instance.LobbySession.RegisterHandler<Message.Dungeon.MsgSvrCli_DestroyUnit_Ntf>(Recv_DestroyUnit_ntf);
 		}
 		private void OnDestroy()
 		{
 			GameManager.Instance.LobbySession.UnregisterHandler<Message.Dungeon.MsgSvrCli_UnitPosition_Ntf>(Recv_UnitPosition_Ntf);
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.Dungeon.MsgSvrCli_CreatePlayer_Ntf>(Recv_CreatePlayer_Ntf);
+			GameManager.Instance.LobbySession.UnregisterHandler<Message.Dungeon.MsgSvrCli_DestroyUnit_Ntf>(Recv_DestroyUnit_ntf);
 		}
 		public void EnableTouch(bool flag)
 		{
@@ -139,6 +145,10 @@ namespace Component
 				GameManager.Instance.ui.alert.Open("MsgSvrCli_CreateDungeon_Ans", ans.error_code.ToString() + "(" + ans.error_code.ToString() + ")");
 				return;
 			}
+						
+			gameObject.SetActive(true);
+
+			Camera.main.enabled = false;
 
 			this.width = ans.width;
 			this.height = ans.height;
@@ -169,10 +179,27 @@ namespace Component
 				}
 			}
 
-			player.seq = ans.player_unit_seq;
-			player.position = new Vector2Int(ans.start.x, ans.start.y);
+			Unit player = GameObject.Instantiate<Unit>(player_prefab);
+			player.seq = ans.unit_seq;
+			player.position = new Vector2Int(ans.position.x, ans.position.y);
+			player.transform.SetParent(unit_root, false);
+			player.GetComponent<PlayerController>().enabled = true;
 			units.Add(player.seq, player);
 
+			foreach (var comrade in ans.comrades)
+			{
+				Unit unit = GameObject.Instantiate<Unit>(player_prefab);
+				unit.seq = comrade.unit_seq;
+				unit.position = new Vector2Int(comrade.position.x, comrade.position.y);
+				unit.transform.SetParent(unit_root, false);
+				foreach (UInt32 itemIndex in comrade.equip_items)
+				{
+					Item.Meta meta = Item.Manager.Instance.FindMeta(itemIndex);
+					unit.GetComponent<Player>().OnEquip(meta.equip.part, meta.equip.item_sprite);
+				}
+				unit.GetComponent<PlayerController>().enabled = false;
+				units.Add(unit.seq, unit);
+			}
 			/*
 			foreach (var monster in ans.monsters)
 			{
@@ -186,10 +213,35 @@ namespace Component
 				//GameManager.Instance.scenes.dungeon.monsters[unit.seq] = unit;
 			}
 			*/
-
-			gameObject.SetActive(true);
+			
 		}
+		private void Recv_CreatePlayer_Ntf(Message.Dungeon.MsgSvrCli_CreatePlayer_Ntf ntf)
+		{
+			Unit unit = GameObject.Instantiate<Unit>(player_prefab);
+			unit.seq = ntf.unit_seq;
+			unit.position = new Vector2Int(ntf.position.x, ntf.position.y);
+			unit.transform.SetParent(unit_root, false);
 
+			foreach (UInt32 itemIndex in ntf.equip_items)
+			{
+				Item.Meta meta = Item.Manager.Instance.FindMeta(itemIndex);
+				unit.GetComponent<Player>().OnEquip(meta.equip.part, meta.equip.item_sprite);
+			}
+			unit.GetComponent<PlayerController>().enabled = false;
+			units.Add(unit.seq, unit);
+		}
+		private void Recv_DestroyUnit_ntf(Message.Dungeon.MsgSvrCli_DestroyUnit_Ntf ntf)
+		{
+			Unit unit = null;
+			if (false == units.TryGetValue(ntf.unit_seq, out unit))
+			{
+				return;
+			}
+
+			unit.transform.SetParent(null);
+			GameObject.Destroy(unit.gameObject);
+			units.Remove(ntf.unit_seq);
+		}
 	}
 
 }

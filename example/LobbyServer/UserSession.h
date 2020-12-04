@@ -58,6 +58,17 @@ public:
 	std::shared_ptr<Gamnet::Database::MySQL::Transaction> queries;
 	std::shared_ptr<Gamnet::Database::MySQL::Transaction> logs;
 	std::list<std::function<void()>> on_commit;
+
+	class Manager
+	{
+	public :
+		void Init();
+		std::shared_ptr<UserSession> AddSession(std::shared_ptr<UserSession> session);
+		void RemoveSession(std::shared_ptr<UserSession> session);
+	private :
+		std::mutex lock;
+		std::map<uint64_t, std::shared_ptr<UserSession>> sessions;
+	};
 private :
 	Gamnet::Component components;
 };

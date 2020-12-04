@@ -13,9 +13,8 @@ public class Player : MonoBehaviour
 	private void Start()
 	{
 		unit = GetComponent<Unit>();
-		Util.EventSystem.Subscribe<Vector2Int>(EventID.Event_OnTouch, OnMove);
-		Util.EventSystem.Subscribe<Item.Data>(Component.Suit.Event.EquipItem, OnEquip);
-		Util.EventSystem.Subscribe<Item.Data>(Component.Suit.Event.UnequipItem, OnUnequip);
+		trunk.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(Component.Suit.DEFAULT_BASE_IMAGE);
+		hair.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(Component.Suit.DEFAULT_HAIR_IMAGE);
 
 		for (Message.EquipItemPartType part = Message.EquipItemPartType.Invalid + 1; part < Message.EquipItemPartType.Max; part++)
 		{
@@ -26,32 +25,9 @@ public class Player : MonoBehaviour
 			}
 			else
 			{
-				OnEquip(item);
+				OnEquip(item.meta.equip.part, item.meta.equip.item_sprite);
 			}
 		}
-
-		trunk.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(Component.Suit.DEFAULT_BASE_IMAGE);
-		hair.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(Component.Suit.DEFAULT_HAIR_IMAGE);
-	}
-
-	private void OnDestroy()
-	{
-		Util.EventSystem.Unsubscribe<Vector2Int>(EventID.Event_OnTouch);
-		Util.EventSystem.Unsubscribe<Item.Data>(Component.Suit.Event.EquipItem, OnEquip);
-		Util.EventSystem.Unsubscribe<Item.Data>(Component.Suit.Event.UnequipItem, OnUnequip);
-	}
-
-	private void OnMove(Vector2Int to)
-	{
-		Message.Dungeon.MsgCliSvr_PlayerMove_Ntf ntf = new Message.Dungeon.MsgCliSvr_PlayerMove_Ntf();
-		ntf.destination.x = to.x;
-		ntf.destination.y = to.y;
-		GameManager.Instance.LobbySession.SendMsg(ntf, true);
-	}
-
-	public void OnEquip(Item.Data item)
-	{
-		OnEquip(item.meta.equip.part, item.meta.equip.item_sprite);
 	}
 
 	public void OnEquip(Message.EquipItemPartType part, Sprite sprite)
@@ -59,11 +35,6 @@ public class Player : MonoBehaviour
 		SpriteRenderer spriteRenderer = suit[(int)part];
 		spriteRenderer.sprite = sprite; 
 		spriteRenderer.gameObject.SetActive(true);
-	}
-
-	public void OnUnequip(Item.Data item)
-	{
-		OnUnequip(item.meta.equip.part);
 	}
 
 	public void OnUnequip(Message.EquipItemPartType part)

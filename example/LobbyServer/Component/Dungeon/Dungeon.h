@@ -11,8 +11,10 @@
 #include "TileMap.h"
 #include "../../Util/MetaData.h"
 #include <idl/MessageCommon.h>
+#include <idl/MessageDungeon.h>
 
 class Player;
+class UserSession;
 
 namespace Component { namespace Dungeon {
 	class Data;
@@ -48,26 +50,24 @@ namespace Component { namespace Dungeon {
 		virtual void OnLoad() override;
 	};
 
-	struct Block
-	{
-		enum class Type
-		{
-			Invalid,
-			Corridor,
-			Room
-		};
-	
-		Block(int id);
-
-		const int id;
-		Type type;
-
-		size_t distance;
-		RectInt rect;
-	};
-
 	class Data : public TileMap
 	{
+		struct Block
+		{
+			enum class Type
+			{
+				Invalid,
+				Corridor,
+				Room
+			};
+
+			Block(int id);
+
+			const int id;
+			Type type;
+			RectInt rect;
+		};
+
 		struct Edge
 		{
 			std::shared_ptr<Block> block;
@@ -80,11 +80,32 @@ namespace Component { namespace Dungeon {
 		void Init();
 
 		const Meta& meta;
+		uint64_t seq;
 		std::shared_ptr<Gamnet::Network::Session::Strand> strand;
 		std::shared_ptr<Block> start;
 		std::shared_ptr<Block> end;
-		std::shared_ptr<Unit::Data> player;
+		std::map<uint64_t, std::shared_ptr<UserSession>> sessions;
+		std::map<uint64_t, std::shared_ptr<Unit::Data>> players;
 		std::map<uint64_t, std::shared_ptr<Unit::Data>> monster;
+		size_t GetPlayerCount() const;
+
+		size_t Enter(std::shared_ptr<UserSession> session);
+		void Leave(std::shared_ptr<UserSession> session);
+		
+		template <class MSG>
+		void SendMsg(const MSG& msg, std::shared_ptr<UserSession> except = nullptr)
+		{
+			for (auto itr : sessions)
+			{
+				std::shared_ptr<UserSession> session = itr.second;
+				if(except == session)
+				{
+					continue;
+				}
+
+				Gamnet::Network::Tcp::SendMsg(session, msg, true);
+			}
+		}
 	private :
 		std::list<std::shared_ptr<Block>> FindNeighborBlocks(std::shared_ptr<Block> block);
 		std::list<Vector2Int> BuildPath();
@@ -96,19 +117,36 @@ namespace Component { namespace Dungeon {
 		std::map<int, std::shared_ptr<Block>> blocks;
 
 		Gamnet::Pool<Gamnet::Time::Timer> timer_pool;
+
 	};
 
 	class Manager
 	{
+		class WaitQueue
+		{
+		public :
+			static constexpr size_t MAX_PLAER = 2;
+		private :
+			std::array<std::list<std::shared_ptr<Data>>, MAX_PLAER + 1> queue_by_player_count;
+
+			std::mutex lock;
+		public :
+			std::shared_ptr<Data> Pop();
+			void Push(std::shared_ptr<Data> data);
+		};
 	public :
 		void Init();
 
 		std::shared_ptr<Meta> FindMeta(const std::string& id);
 		std::shared_ptr<Meta> FindMeta(uint32_t index);
+		std::shared_ptr<Data> Enter(uint32_t index, std::shared_ptr<UserSession> session);
 	private :
 		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
 		std::map<std::string, std::shared_ptr<Meta>> id_metas;
+		std::map<uint32_t, std::shared_ptr<WaitQueue>> wait_queues;
 	};
+
+	std::shared_ptr<Data> Enter(std::shared_ptr<UserSession> session, uint32_t index);
 };
 
 }

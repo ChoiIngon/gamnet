@@ -8,6 +8,7 @@ namespace Component { namespace Monster { namespace Action {
 
 	bool SearchTarget::Run(std::shared_ptr<Unit::Data> self)
 	{
+		/*
 		std::shared_ptr<Monster::Data> monster = self->GetComponent<Monster::Data>();
 		if(nullptr != monster->target)
 		{
@@ -40,6 +41,7 @@ namespace Component { namespace Monster { namespace Action {
 		}
 
 		monster->target = player;
+		*/
 		return true;
 	}
 	

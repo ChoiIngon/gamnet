@@ -11,7 +11,7 @@
 	<sqlite name="gamnet_sqlite"	id="1"  db="gamnet.sqlite"/>
 	<redis  name="gamnet_redis" id="1"  host="localhost" port="6379"/>
 	<http port="8081"/>
-	<tcp port="40000" max_count="8000" accept_queue="4000" keep_alive="3000" thread_count="20"/>
+	<tcp port="40000" max_count="8000" accept_queue="4000" keep_alive="10" thread_count="20"/>
 	
 	<test host="127.0.0.1" port="40000" session_count="1" loop_count="1">
 		<message name="Test_User_Login"/>

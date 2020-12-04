@@ -9,6 +9,10 @@ namespace Component {
 	Suit::Suit(const std::shared_ptr<UserSession>& session)
 		: session(session)
 	{
+		for(int i=0; i< (int)Message::EquipItemPartType::Max; i++)
+		{
+			item_datas[i] = nullptr;
+		}
 	}
 
 	void Suit::EquipWithoutDB(const std::shared_ptr<Item::Data>& item)

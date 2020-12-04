@@ -107,7 +107,7 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
 
-	uint32_t serverID = Gamnet::Network::Tcp::GetLocalAddress().to_v4().to_uint();
+	uint32_t localServerID = Gamnet::Network::Tcp::GetLocalAddress().to_v4().to_uint();
 	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
 		"SELECT user_name, server_id, create_date, offline_date FROM user_data WHERE user_seq=", session->user_seq
 	);
@@ -115,7 +115,7 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 	if (1 != rows.GetRowCount())
 	{
 		Gamnet::Database::MySQL::Execute(session->shard_index,
-			"INSERT INTO user_data(user_seq, user_name, server_id) VALUES (", session->user_seq, ",'", account->user_name, "',", serverID, ")"
+			"INSERT INTO user_data(user_seq, user_name, server_id) VALUES (", session->user_seq, ",'", account->user_name, "',", localServerID, ")"
 		);
 		rows = Gamnet::Database::MySQL::Execute(session->shard_index,
 			"SELECT user_name, server_id, create_date, offline_date FROM user_data WHERE user_seq=", session->user_seq
@@ -127,13 +127,19 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", account->account_id, ", account_type:", (int)account->account_type);
 	}
 
+	std::shared_ptr<UserSession> prev = Gamnet::Singleton<UserSession::Manager>::GetInstance().AddSession(session);
+	if(nullptr != prev)
+	{
+		prev->handover_safe = false;
+		prev->Close(0);
+	}
 	auto row = rows[0];
+	if (localServerID == row->getUInt("server_id"))
+	{
+		
+	}
 
 	std::shared_ptr<Component::UserData> userData = session->AddComponent<Component::UserData>(std::make_shared<Component::UserData>(session->user_seq, account->user_name));
-	if(serverID != row->getUInt("server_id"))
-	{
-		// duplicate login
-	}
 }
 
 void Handler_Login::ReadUserCounter(const std::shared_ptr<UserSession>& session)

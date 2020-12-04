@@ -622,6 +622,12 @@ struct UserData_Serializer {
 	static size_t Size(const UserData& obj) { return obj.Size(); }
 };
 struct Vector2Int {
+
+	Vector2Int(int x, int y)
+		: x(x), y(y)
+	{
+	}	
+
 	int32_t	x;
 	int32_t	y;
 	Vector2Int()	{
@@ -711,6 +717,69 @@ struct Monster_Serializer {
 	static bool Store(char** _buf_, const Monster& obj) { return obj.Store(_buf_); }
 	static bool Load(Monster& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
 	static size_t Size(const Monster& obj) { return obj.Size(); }
+};
+struct Player {
+	uint64_t	unit_seq;
+	Vector2Int	position;
+	std::list<uint32_t >	equip_items;
+	Player()	{
+		unit_seq = 0;
+	}
+	size_t Size() const {
+		size_t nSize = 0;
+		nSize += sizeof(uint64_t);
+		nSize += Vector2Int_Serializer::Size(position);
+		nSize += sizeof(int32_t);
+		for(std::list<uint32_t >::const_iterator equip_items_itr = equip_items.begin(); equip_items_itr != equip_items.end(); equip_items_itr++)	{
+			nSize += sizeof(uint32_t);
+		}
+		return nSize;
+	}
+	bool Store(std::vector<char>& _buf_) const {
+		size_t nSize = Size();
+ 		if(0 == nSize) { return true; }
+		if(nSize > _buf_.size()) { 
+			_buf_.resize(nSize);
+		}
+		char* pBuf = &(_buf_[0]);
+		if(false == Store(&pBuf)) return false;
+		return true;
+	}
+	bool Store(char** _buf_) const {
+		std::memcpy(*_buf_, &unit_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		if(false == Vector2Int_Serializer::Store(_buf_, position)) { return false; }
+		size_t equip_items_size = equip_items.size();
+		std::memcpy(*_buf_, &equip_items_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		for(std::list<uint32_t >::const_iterator equip_items_itr = equip_items.begin(); equip_items_itr != equip_items.end(); equip_items_itr++)	{
+			const uint32_t& equip_items_elmt = *equip_items_itr;
+			std::memcpy(*_buf_, &equip_items_elmt, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t);
+		}
+		return true;
+	}
+	bool Load(const std::vector<char>& _buf_) {
+		size_t nSize = _buf_.size();
+ 		if(0 == nSize) { return true; }
+		const char* pBuf = &(_buf_[0]);
+		if(false == Load(&pBuf, nSize)) return false;
+		return true;
+	}
+	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&unit_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(false == Vector2Int_Serializer::Load(position, _buf_, nSize)) { return false; }
+		if(sizeof(int32_t) > nSize) { return false; }
+		uint32_t equip_items_length = 0; std::memcpy(&equip_items_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		for(uint32_t i=0; i<equip_items_length; i++) {
+			uint32_t equip_items_val;
+			if(sizeof(uint32_t) > nSize) { return false; }	std::memcpy(&equip_items_val, *_buf_, sizeof(uint32_t));	(*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+			equip_items.push_back(equip_items_val);
+		}
+		return true;
+	}
+}; //Player
+struct Player_Serializer {
+	static bool Store(char** _buf_, const Player& obj) { return obj.Store(_buf_); }
+	static bool Load(Player& obj, const char** _buf_, size_t& nSize) { return obj.Load(_buf_, nSize); }
+	static size_t Size(const Player& obj) { return obj.Size(); }
 };
 
 }

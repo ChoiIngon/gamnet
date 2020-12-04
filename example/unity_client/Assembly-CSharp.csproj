@@ -86,6 +86,7 @@
     <Compile Include="Assets\Scripts\Scene\Dungeon\Main.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Monster.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Player.cs" />
+    <Compile Include="Assets\Scripts\Scene\Dungeon\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Tile.cs" />
     <Compile Include="Assets\Scripts\Scene\Dungeon\Unit.cs" />
     <Compile Include="Assets\Scripts\Scene\Lobby\Lobby.cs" />

@@ -206,6 +206,11 @@ namespace Gamnet
 		private uint _send_seq = 0;
 		private uint _recv_seq = 0;
 
+		public uint session_key
+		{
+			private set { _session_key = value; }
+			get { return _session_key; }
+		}
 		public Action onConnect;
 		public Action onReconnect;
 		public Action onResume;

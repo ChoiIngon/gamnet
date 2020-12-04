@@ -36,6 +36,7 @@ namespace UI
 
 				PlayerPrefs.SetString("host", input_host.text);
 				PlayerPrefs.SetInt("port", int.Parse(input_port.text));
+				GameManager.Instance.LobbySession.heartbeat_time = 1000;
 				GameManager.Instance.LobbySession.Connect(input_host.text, int.Parse(input_port.text));
 			});
 

@@ -36,10 +36,10 @@ namespace Component { namespace Unit {
 	class Data : public std::enable_shared_from_this<Data>, public Gamnet::Component
 	{
 	public :
-		Data(const std::shared_ptr<::Component::Dungeon::Data>& dungeon);
+		Data();
 
 	public :
-		std::shared_ptr<::Component::Dungeon::Data> dungeon;
+		::Component::Dungeon::Data* dungeon;
 		std::shared_ptr<Meta> meta;
 
 		const uint64_t seq;
@@ -59,7 +59,6 @@ namespace Component { namespace Unit {
 
 		std::shared_ptr<AStarPathFinder> path_finder;
 		std::shared_ptr<Gamnet::Time::Timer> timer;
-
 	};
 
 	class Manager
@@ -68,12 +67,16 @@ namespace Component { namespace Unit {
 		void Init();
 		std::shared_ptr<Meta> FindMeta(const std::string& id);
 		std::shared_ptr<Meta> FindMeta(uint32_t index);
-		std::shared_ptr<Unit::Data> CreateInstance(const std::string& id, std::shared_ptr<Component::Dungeon::Data> dungeon);
-		std::shared_ptr<Unit::Data> CreateInstance(uint32_t index, std::shared_ptr<Component::Dungeon::Data> dungeon);
+		std::shared_ptr<Unit::Data> CreateInstance(const std::string& id);
+		std::shared_ptr<Unit::Data> CreateInstance(uint32_t index);
 	private:
-		std::shared_ptr<Unit::Data> CreateInstance(const std::shared_ptr<Meta>& meta, std::shared_ptr<Component::Dungeon::Data> dungeon);
+		void InitMeta(const std::string& path);
+	private :
+		std::shared_ptr<Unit::Data> CreateInstance(const std::shared_ptr<Meta>& meta);
 		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
 		std::map<std::string, std::shared_ptr<Meta>> id_metas;
 	};
+
+	std::shared_ptr<Unit::Data> CreatePlayer(std::shared_ptr<UserSession> seesion, const std::string& id);
 }}
 #endif

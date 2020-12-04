@@ -118,6 +118,12 @@ struct UserData
 
 struct Vector2Int
 {
+.cpp %%
+	Vector2Int(int x, int y)
+		: x(x), y(y)
+	{
+	}	
+%%
 	int32 x;
 	int32 y;
 };
@@ -128,6 +134,12 @@ struct Monster
 	Vector2Int position;
 };
 
+struct Player
+{
+	uint64 unit_seq;
+	Vector2Int position;
+	list<uint32> equip_items; // equip item index
+};
 .cpp %%
 }
 %%

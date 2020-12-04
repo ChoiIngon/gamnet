@@ -42,10 +42,11 @@ public class MsgSvrCli_CreateDungeon_Ans {
 	public ErrorCode	error_code = new ErrorCode();
 	public int	width = 0;
 	public int	height = 0;
-	public ulong	player_unit_seq = 0;
-	public Vector2Int	start = new Vector2Int();
 	public List<DungeonTileType >	tiles = new List<DungeonTileType >();
-	public List<Monster >	monsters = new List<Monster >();
+	public ulong	unit_seq = 0;
+	public Vector2Int	position = new Vector2Int();
+	public List<Player >	comrades = new List<Player >();
+	public List<Monster >	enemies = new List<Monster >();
 	public MsgSvrCli_CreateDungeon_Ans() {
 	}
 	public virtual int Size() {
@@ -54,17 +55,22 @@ public class MsgSvrCli_CreateDungeon_Ans {
 			nSize += ErrorCode_Serializer.Size(error_code);
 			nSize += sizeof(int);
 			nSize += sizeof(int);
-			nSize += sizeof(ulong);
-			nSize += Vector2Int_Serializer.Size(start);
 			nSize += sizeof(int);
 			foreach(var tiles_itr in tiles) { 
 				DungeonTileType tiles_elmt = tiles_itr;
 				nSize += DungeonTileType_Serializer.Size(tiles_elmt);
 			}
+			nSize += sizeof(ulong);
+			nSize += Vector2Int_Serializer.Size(position);
 			nSize += sizeof(int);
-			foreach(var monsters_itr in monsters) { 
-				Monster monsters_elmt = monsters_itr;
-				nSize += Monster_Serializer.Size(monsters_elmt);
+			foreach(var comrades_itr in comrades) { 
+				Player comrades_elmt = comrades_itr;
+				nSize += Player_Serializer.Size(comrades_elmt);
+			}
+			nSize += sizeof(int);
+			foreach(var enemies_itr in enemies) { 
+				Monster enemies_elmt = enemies_itr;
+				nSize += Monster_Serializer.Size(enemies_elmt);
 			}
 		} catch(System.Exception) {
 			return -1;
@@ -76,17 +82,22 @@ public class MsgSvrCli_CreateDungeon_Ans {
 			if(false == ErrorCode_Serializer.Store(_buf_, error_code)) { return false; }
 			_buf_.Write(BitConverter.GetBytes(width), 0, sizeof(int));
 			_buf_.Write(BitConverter.GetBytes(height), 0, sizeof(int));
-			_buf_.Write(BitConverter.GetBytes(player_unit_seq), 0, sizeof(ulong));
-			if(false == Vector2Int_Serializer.Store(_buf_, start)) { return false; }
 			_buf_.Write(BitConverter.GetBytes(tiles.Count), 0, sizeof(int));
 			foreach(var tiles_itr in tiles) { 
 				DungeonTileType tiles_elmt = tiles_itr;
 				if(false == DungeonTileType_Serializer.Store(_buf_, tiles_elmt)) { return false; }
 			}
-			_buf_.Write(BitConverter.GetBytes(monsters.Count), 0, sizeof(int));
-			foreach(var monsters_itr in monsters) { 
-				Monster monsters_elmt = monsters_itr;
-				if(false == Monster_Serializer.Store(_buf_, monsters_elmt)) { return false; }
+			_buf_.Write(BitConverter.GetBytes(unit_seq), 0, sizeof(ulong));
+			if(false == Vector2Int_Serializer.Store(_buf_, position)) { return false; }
+			_buf_.Write(BitConverter.GetBytes(comrades.Count), 0, sizeof(int));
+			foreach(var comrades_itr in comrades) { 
+				Player comrades_elmt = comrades_itr;
+				if(false == Player_Serializer.Store(_buf_, comrades_elmt)) { return false; }
+			}
+			_buf_.Write(BitConverter.GetBytes(enemies.Count), 0, sizeof(int));
+			foreach(var enemies_itr in enemies) { 
+				Monster enemies_elmt = enemies_itr;
+				if(false == Monster_Serializer.Store(_buf_, enemies_elmt)) { return false; }
 			}
 		} catch(System.Exception) {
 			return false;
@@ -102,10 +113,6 @@ public class MsgSvrCli_CreateDungeon_Ans {
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
 			height = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(int);
-			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
-			player_unit_seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(ulong);
-			if(false == Vector2Int_Serializer.Load(ref start, _buf_)) { return false; }
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
 			int tiles_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(int);
@@ -114,13 +121,25 @@ public class MsgSvrCli_CreateDungeon_Ans {
 				if(false == DungeonTileType_Serializer.Load(ref tiles_val, _buf_)) { return false; }
 				tiles.Add(tiles_val);
 			}
+			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
+			unit_seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(ulong);
+			if(false == Vector2Int_Serializer.Load(ref position, _buf_)) { return false; }
 			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
-			int monsters_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			int comrades_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(int);
-			for(int monsters_itr=0; monsters_itr<monsters_length; monsters_itr++) {
-				Monster monsters_val = new Monster();
-				if(false == Monster_Serializer.Load(ref monsters_val, _buf_)) { return false; }
-				monsters.Add(monsters_val);
+			for(int comrades_itr=0; comrades_itr<comrades_length; comrades_itr++) {
+				Player comrades_val = new Player();
+				if(false == Player_Serializer.Load(ref comrades_val, _buf_)) { return false; }
+				comrades.Add(comrades_val);
+			}
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			int enemies_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+			for(int enemies_itr=0; enemies_itr<enemies_length; enemies_itr++) {
+				Monster enemies_val = new Monster();
+				if(false == Monster_Serializer.Load(ref enemies_val, _buf_)) { return false; }
+				enemies.Add(enemies_val);
 			}
 		} catch(System.Exception) {
 			return false;
@@ -211,17 +230,50 @@ public struct MsgSvrCli_UnitPosition_Ntf_Serializer {
 	public static bool Load(ref MsgSvrCli_UnitPosition_Ntf obj, MemoryStream _buf_) { return obj.Load(_buf_); }
 	public static int Size(MsgSvrCli_UnitPosition_Ntf obj) { return obj.Size(); }
 };
-public class MsgSvrCli_UnitCreate_Ntf {
-	public const int MSG_ID = 40000004;
+public class MsgSvrCli_CreatePlayer_Ntf : Player {
+	public new const int MSG_ID = 40000004;
+	public MsgSvrCli_CreatePlayer_Ntf() {
+	}
+	public override int Size() {
+		int nSize = 0;
+		try {
+			nSize = base.Size();
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public override bool Store(MemoryStream _buf_) {
+		try {
+			base.Store(_buf_);
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public override bool Load(MemoryStream _buf_) {
+		try {
+			if(false == base.Load(_buf_)) return false;
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct MsgSvrCli_CreatePlayer_Ntf_Serializer {
+	public static bool Store(MemoryStream _buf_, MsgSvrCli_CreatePlayer_Ntf obj) { return obj.Store(_buf_); }
+	public static bool Load(ref MsgSvrCli_CreatePlayer_Ntf obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(MsgSvrCli_CreatePlayer_Ntf obj) { return obj.Size(); }
+};
+public class MsgSvrCli_DestroyUnit_Ntf {
+	public const int MSG_ID = 40000005;
 	public ulong	unit_seq = 0;
-	public uint	unit_index = 0;
-	public MsgSvrCli_UnitCreate_Ntf() {
+	public MsgSvrCli_DestroyUnit_Ntf() {
 	}
 	public virtual int Size() {
 		int nSize = 0;
 		try {
 			nSize += sizeof(ulong);
-			nSize += sizeof(uint);
 		} catch(System.Exception) {
 			return -1;
 		}
@@ -230,7 +282,6 @@ public class MsgSvrCli_UnitCreate_Ntf {
 	public virtual bool Store(MemoryStream _buf_) {
 		try {
 			_buf_.Write(BitConverter.GetBytes(unit_seq), 0, sizeof(ulong));
-			_buf_.Write(BitConverter.GetBytes(unit_index), 0, sizeof(uint));
 		} catch(System.Exception) {
 			return false;
 		}
@@ -241,19 +292,16 @@ public class MsgSvrCli_UnitCreate_Ntf {
 			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
 			unit_seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
 			_buf_.Position += sizeof(ulong);
-			if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
-			unit_index = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
-			_buf_.Position += sizeof(uint);
 		} catch(System.Exception) {
 			return false;
 		}
 		return true;
 	}
 };
-public struct MsgSvrCli_UnitCreate_Ntf_Serializer {
-	public static bool Store(MemoryStream _buf_, MsgSvrCli_UnitCreate_Ntf obj) { return obj.Store(_buf_); }
-	public static bool Load(ref MsgSvrCli_UnitCreate_Ntf obj, MemoryStream _buf_) { return obj.Load(_buf_); }
-	public static int Size(MsgSvrCli_UnitCreate_Ntf obj) { return obj.Size(); }
+public struct MsgSvrCli_DestroyUnit_Ntf_Serializer {
+	public static bool Store(MemoryStream _buf_, MsgSvrCli_DestroyUnit_Ntf obj) { return obj.Store(_buf_); }
+	public static bool Load(ref MsgSvrCli_DestroyUnit_Ntf obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(MsgSvrCli_DestroyUnit_Ntf obj) { return obj.Size(); }
 };
 
 }}

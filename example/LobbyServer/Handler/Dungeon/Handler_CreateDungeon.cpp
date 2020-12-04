@@ -4,6 +4,8 @@
 #include "../../Component/Dungeon/Unit.h"
 #include "../../Component/Dungeon/Unit/Monster.h"
 #include "../../Component/Dungeon/Unit/Player.h"
+#include "../../Component/Suit.h"
+#include "../../Component/Item.h"
 #include <Gamnet/Library/Random.h>
 
 namespace Handler { namespace Dungeon {
@@ -28,10 +30,11 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
 
-		std::shared_ptr<Component::Dungeon::Meta> meta = Gamnet::Singleton<Component::Dungeon::Manager>::GetInstance().FindMeta(1);
-		std::shared_ptr<Component::Dungeon::Data> dungeon = meta->CreateInstance();
-		session->AddComponent<Component::Dungeon::Data>(dungeon);
-		session->strand = dungeon->strand;
+		std::shared_ptr<Component::Unit::Data> player = Component::Unit::CreatePlayer(session, "Player1");
+		std::shared_ptr<Component::Dungeon::Data> dungeon = Component::Dungeon::Enter(session, 1);
+
+		Vector2Int start = dungeon->start->rect.Center();
+		Vector2Int end = dungeon->end->rect.Center();
 
 		ans.width = dungeon->GetRect().width;
 		ans.height = dungeon->GetRect().height;
@@ -39,17 +42,35 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		{
 			ans.tiles.push_back(tile->type);
 		}
-		Vector2Int start = dungeon->start->rect.Center();
-		Vector2Int end = dungeon->end->rect.Center();
+		
+		ans.unit_seq = player->seq;
+		ans.position = Message::Vector2Int(player->position.x, player->position.y);
 
-		std::shared_ptr<Component::Unit::Data> player = std::make_shared<Component::Unit::Data>(dungeon);
-		player->AddComponent<Player>();
-		player->SetPosition(start);
-		dungeon->player = player;
-		ans.player_unit_seq = player->seq;
-		ans.start.x = dungeon->player->position.x;
-		ans.start.y = dungeon->player->position.y;
+		for(auto itr : dungeon->sessions)
+		{
+			std::shared_ptr<UserSession> user = itr.second;
+			if(user == session)
+			{
+				continue;
+			}
 
+			std::shared_ptr<Component::Unit::Data> unit = user->GetComponent<Component::Unit::Data>();
+			Message::Player comrade;
+			comrade.unit_seq = unit->seq;
+			comrade.position = Message::Vector2Int(unit->position.x, unit->position.y);
+			std::shared_ptr<Component::Suit> suit = user->GetComponent<Component::Suit>();
+			for (int part = (int)Message::EquipItemPartType::Invalid + 1; part < (int)Message::EquipItemPartType::Max; part++)
+			{
+				std::shared_ptr<Item::Data> item = suit->Find((Message::EquipItemPartType)part);
+				if (nullptr == item)
+				{
+					continue;
+				}
+
+				comrade.equip_items.push_back(item->meta->index);
+			}
+			ans.comrades.push_back(comrade);
+		}
 		/*
 		std::shared_ptr<Unit> monster = Gamnet::Singleton<Component::Monster::Manager>::GetInstance().CreateInstance(1);
 		monster->dungeon = dungeon;
@@ -57,15 +78,14 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		dungeon->monster.insert(std::make_pair(monster->seq, monster));
 		*/
 		
-		
 		for(auto itr : dungeon->monster)
 		{
-			std::shared_ptr<Component::Unit::Data> monster = itr.second;
-			Message::Monster msgMonster;
-			msgMonster.seq = monster->seq;
-			msgMonster.position.x = monster->position.x;
-			msgMonster.position.y = monster->position.y;
-			ans.monsters.push_back(msgMonster);
+			std::shared_ptr<Component::Unit::Data> unit = itr.second;
+			Message::Monster enemy;
+			enemy.seq = unit->seq;
+			enemy.position.x = unit->position.x;
+			enemy.position.y = unit->position.y;
+			ans.enemies.push_back(enemy);
 		}
 	}
 	catch (const Gamnet::Exception& e)

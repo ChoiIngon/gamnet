@@ -570,6 +570,68 @@ public struct Monster_Serializer {
 	public static bool Load(ref Monster obj, MemoryStream _buf_) { return obj.Load(_buf_); }
 	public static int Size(Monster obj) { return obj.Size(); }
 };
+public class Player {
+	public ulong	unit_seq = 0;
+	public Vector2Int	position = new Vector2Int();
+	public List<uint >	equip_items = new List<uint >();
+	public Player() {
+	}
+	public virtual int Size() {
+		int nSize = 0;
+		try {
+			nSize += sizeof(ulong);
+			nSize += Vector2Int_Serializer.Size(position);
+			nSize += sizeof(int);
+			foreach(var equip_items_itr in equip_items) { 
+				uint equip_items_elmt = equip_items_itr;
+				nSize += sizeof(uint);
+			}
+		} catch(System.Exception) {
+			return -1;
+		}
+		return nSize;
+	}
+	public virtual bool Store(MemoryStream _buf_) {
+		try {
+			_buf_.Write(BitConverter.GetBytes(unit_seq), 0, sizeof(ulong));
+			if(false == Vector2Int_Serializer.Store(_buf_, position)) { return false; }
+			_buf_.Write(BitConverter.GetBytes(equip_items.Count), 0, sizeof(int));
+			foreach(var equip_items_itr in equip_items) { 
+				uint equip_items_elmt = equip_items_itr;
+				_buf_.Write(BitConverter.GetBytes(equip_items_elmt), 0, sizeof(uint));
+			}
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+	public virtual bool Load(MemoryStream _buf_) {
+		try {
+			if(sizeof(ulong) > _buf_.Length - _buf_.Position) { return false; }
+			unit_seq = BitConverter.ToUInt64(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(ulong);
+			if(false == Vector2Int_Serializer.Load(ref position, _buf_)) { return false; }
+			if(sizeof(int) > _buf_.Length - _buf_.Position) { return false; }
+			int equip_items_length = BitConverter.ToInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+			_buf_.Position += sizeof(int);
+			for(int equip_items_itr=0; equip_items_itr<equip_items_length; equip_items_itr++) {
+				uint equip_items_val = 0;
+				if(sizeof(uint) > _buf_.Length - _buf_.Position) { return false; }
+				equip_items_val = BitConverter.ToUInt32(_buf_.GetBuffer(), (int)_buf_.Position);
+				_buf_.Position += sizeof(uint);
+				equip_items.Add(equip_items_val);
+			}
+		} catch(System.Exception) {
+			return false;
+		}
+		return true;
+	}
+};
+public struct Player_Serializer {
+	public static bool Store(MemoryStream _buf_, Player obj) { return obj.Store(_buf_); }
+	public static bool Load(ref Player obj, MemoryStream _buf_) { return obj.Load(_buf_); }
+	public static int Size(Player obj) { return obj.Size(); }
+};
 
 }
 

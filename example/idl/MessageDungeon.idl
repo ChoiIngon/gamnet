@@ -13,12 +13,16 @@ message MsgCliSvr_CreateDungeon_Req : 040000001
 message MsgSvrCli_CreateDungeon_Ans : 040000001
 {
 	ErrorCode error_code;
+
 	int32 width;
 	int32 height;
-	uint64 player_unit_seq;
-	Vector2Int start;
 	array<DungeonTileType> tiles;
-	array<Monster> monsters;
+
+	uint64 unit_seq;
+	Vector2Int position;
+
+	list<Player> comrades;
+	list<Monster> enemies;
 };
 
 message MsgCliSvr_PlayerMove_Ntf : 040000002
@@ -32,10 +36,13 @@ message MsgSvrCli_UnitPosition_Ntf : 040000003
 	Vector2Int position;
 };
 
-message MsgSvrCli_UnitCreate_Ntf : 040000004
+message MsgSvrCli_CreatePlayer_Ntf(Player) : 040000004
+{
+};
+
+message MsgSvrCli_DestroyUnit_Ntf : 040000005
 {
 	uint64 unit_seq;
-	uint32 unit_index;
 };
 
 .cpp %%

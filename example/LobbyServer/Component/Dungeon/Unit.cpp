@@ -2,6 +2,9 @@
 #include <atomic>
 #include "Dungeon.h"
 #include <idl/MessageDungeon.h>
+#include "../../UserSession.h"
+#include "Unit/Player.h"
+#include "Unit/Monster.h"
 
 namespace Component { namespace Unit {
 static std::atomic<uint64_t> UNIT_SEQ;
@@ -22,8 +25,8 @@ Meta::Meta()
 	META_MEMBER(monster);
 }
 
-Data::Data(const std::shared_ptr<::Component::Dungeon::Data>& dungeon)
-	: dungeon(dungeon)
+Data::Data()
+	: dungeon(nullptr)
 	, seq(++UNIT_SEQ)
 	, max_health(0)
 	, cur_health(0)
@@ -62,30 +65,26 @@ void Data::SetPosition(const Vector2Int& position)
 
 void Manager::Init()
 {
+	InitMeta("../MetaData/Unit_Player.csv");
+	InitMeta("../MetaData/Unit_Monster.csv");
+}
+
+void Manager::InitMeta(const std::string& path)
+{
 	MetaReader<Meta> reader;
+	auto& rows = reader.Read(path);
+	for (auto& row : rows)
 	{
-		std::shared_ptr<Meta> player = std::make_shared<Meta>();
-		player->id = "Player";
-		player->index = 1;
-		index_metas.insert(std::make_pair(player->index, player));
-		id_metas.insert(std::make_pair(player->id, player));
-	}
-	{
-		auto& rows = reader.Read("../MetaData/Unit_Monster.csv");
-		for (auto& row : rows)
+		if (false == id_metas.insert(std::make_pair(row->id, row)).second)
 		{
-			if (false == index_metas.insert(std::make_pair(row->index, row)).second)
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate monster index(", row->index, ")");
-			}
-			if (false == id_metas.insert(std::make_pair(row->id, row)).second)
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate monster id(", row->id, ")");
-			}
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item id(", row->id, ")");
+		}
+		if (false == index_metas.insert(std::make_pair(row->index, row)).second)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item index(", row->index, ")");
 		}
 	}
 }
-
 std::shared_ptr<Meta> Manager::FindMeta(const std::string& id)
 {
 	auto itr = id_metas.find(id);
@@ -106,7 +105,7 @@ std::shared_ptr<Meta> Manager::FindMeta(uint32_t index)
 	return itr->second;
 }
 
-std::shared_ptr<Unit::Data> Manager::CreateInstance(const std::string& id, std::shared_ptr<Component::Dungeon::Data> dungeon)
+std::shared_ptr<Unit::Data> Manager::CreateInstance(const std::string& id)
 {
 	std::shared_ptr<Meta> meta = FindMeta(id);
 	if (nullptr == meta)
@@ -114,10 +113,10 @@ std::shared_ptr<Unit::Data> Manager::CreateInstance(const std::string& id, std::
 		return nullptr;
 	}
 
-	return CreateInstance(meta, dungeon);
+	return CreateInstance(meta);
 }
 
-std::shared_ptr<Unit::Data> Manager::CreateInstance(uint32_t index, std::shared_ptr<Component::Dungeon::Data> dungeon)
+std::shared_ptr<Unit::Data> Manager::CreateInstance(uint32_t index)
 {
 	std::shared_ptr<Meta> meta = FindMeta(index);
 	if (nullptr == meta)
@@ -125,12 +124,12 @@ std::shared_ptr<Unit::Data> Manager::CreateInstance(uint32_t index, std::shared_
 		return nullptr;
 	}
 
-	return CreateInstance(meta, dungeon);
+	return CreateInstance(meta);
 }
 
-std::shared_ptr<Unit::Data> Manager::CreateInstance(const std::shared_ptr<Meta>& meta, std::shared_ptr<Component::Dungeon::Data> dungeon)
+std::shared_ptr<Unit::Data> Manager::CreateInstance(const std::shared_ptr<Meta>& meta)
 {
-	std::shared_ptr<Unit::Data> unit = std::make_shared<Unit::Data>(dungeon);
+	std::shared_ptr<Unit::Data> unit = std::make_shared<Unit::Data>();
 	unit->meta = meta;
 	if(nullptr != unit->meta->monster)
 	{
@@ -139,6 +138,17 @@ std::shared_ptr<Unit::Data> Manager::CreateInstance(const std::shared_ptr<Meta>&
 	return unit;
 }
 
+std::shared_ptr<Unit::Data> CreatePlayer(std::shared_ptr<UserSession> session, const std::string& id)
+{
+	if(nullptr != session->GetComponent<Unit::Data>())
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+	}
+	std::shared_ptr<Unit::Data> data = Gamnet::Singleton<Manager>::GetInstance().CreateInstance(id);
+	data->AddComponent<Player>();
+	session->AddComponent<Unit::Data>(data);
+	return data;
+}
 }}
 
 GAMNET_BIND_INIT_HANDLER(Component::Unit::Manager, Init);
