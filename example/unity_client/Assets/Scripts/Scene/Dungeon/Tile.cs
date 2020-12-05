@@ -1,78 +1,70 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-	public class Data
+	public int index;
+	public Message.DungeonTileType type;
+	public Vector2Int position;
+	public Unit unit;
+	private bool _visible = false;
+
+	public bool visible
 	{
-		public Message.DungeonTileType type;
-		public int index;
-		public Vector2Int position;
-		bool _visible;
-
-		public Data()
+		get { return _visible; }
+		set
 		{
-			_visible = false;
+			_visible = value;
+			OnVisible(value);
 		}
-
-		public bool visible
-		{
-			get { return _visible; }
-			set
-			{
-				_visible = value;
-				OnVisible?.Invoke(_visible);
-			}
-		}
-		public System.Action<bool> OnVisible;
 	}
 
-	public Data data;
 	public SpriteRenderer spriteRenderer;
 	public TouchInput touchInput;
 
-	public void Init(Data data)
+	public void Init(int index, Message.DungeonTileType type, Vector2Int position)
 	{
-		this.data = data;
+		this.index = index;
+		this.type = type;
+		this.position = position;
 
-		gameObject.name = "Tile_" + data.index.ToString() + "_" + data.type.ToString();
-		if (Message.DungeonTileType.Floor == data.type)
+		gameObject.name = "Tile_" + index.ToString() + "_" + type.ToString();
+		
+		if (Message.DungeonTileType.Floor == type)
 		{
 			touchInput = gameObject.AddComponent<TouchInput>();
-			touchInput.on_touch_up = (Vector3 position) =>
+			touchInput.on_touch_up = (Vector3 pos) =>
 			{
-				Util.EventSystem.Publish<Vector2Int>(EventID.Event_OnTouch, data.position);
+				Util.EventSystem.Publish<Vector2Int>(EventID.Event_OnTouch, this.position);
 			};
 		}
 		spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-
-		data.OnVisible = OnVisible;
 	}
 
 	void Start()
     {
-		if (Message.DungeonTileType.Floor == data.type)
+		if (Message.DungeonTileType.Floor == type)
 		{
-			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Floor/rect_gray" + Random.Range(0, 4).ToString());
+			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Floor/rect_gray" + UnityEngine.Random.Range(0, 4).ToString());
 		}
 
-		if (Message.DungeonTileType.Wall == data.type)
+		if (Message.DungeonTileType.Wall == type)
 		{
-			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Wall/brick_brown" + Random.Range(0, 8).ToString());
+			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Wall/brick_brown" + UnityEngine.Random.Range(0, 8).ToString());
 		}
 
-		if (Message.DungeonTileType.Door == data.type)
+		if (Message.DungeonTileType.Door == type)
 		{
 			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/dngn_open_door"); ;
 		}
 
-		if (Message.DungeonTileType.StairUp == data.type)
+		if (Message.DungeonTileType.StairUp == type)
 		{
 			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Gateways/stone_stairs_up"); ;
 		}
 
-		if (Message.DungeonTileType.StairDown == data.type)
+		if (Message.DungeonTileType.StairDown == type)
 		{
 			spriteRenderer.sprite = ResourceManager.Instance.Load<Sprite>("Tiles/Dungeon/Gateways/stone_stairs_down"); ;
 		}
@@ -88,6 +80,23 @@ public class Tile : MonoBehaviour
 		else
 		{
 			spriteRenderer.color = new Color(0.5f, 0.5f, 0.5f);
+		}
+		if (null != unit)
+		{
+			unit.gameObject.SetActive(flag);
+		}
+	}
+
+	public void Enter(Unit unit)
+	{
+		this.unit = unit;
+		unit.gameObject.SetActive(visible);
+	}
+	public void Leave(Unit unit)
+	{
+		if (this.unit == unit)
+		{
+			this.unit = null;
 		}
 	}
 }

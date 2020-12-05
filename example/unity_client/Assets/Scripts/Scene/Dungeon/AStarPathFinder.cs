@@ -52,7 +52,7 @@ public class AStarPathFinder : IEnumerable
 					continue;
 				}
 
-				Tile.Data tile = path_finder.dungeon.GetTileData(childPosition.x, childPosition.y);
+				Tile tile = path_finder.dungeon.GetTileData(childPosition.x, childPosition.y);
 				if (Message.DungeonTileType.Wall == tile.type)
 				{
 					//Debug.Log("not tile(child position:x" + childPosition.x + ", y:" + childPosition.y +")");

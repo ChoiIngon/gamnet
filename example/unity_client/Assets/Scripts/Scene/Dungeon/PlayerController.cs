@@ -8,19 +8,30 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
 	public Camera camera;
-	private Player player;
-	
+	public Unit unit;
+	private void Awake()
+	{
+		unit = GetComponent<Unit>();
+	}
 	private void Start()
 	{
-		player = GetComponent<Player>();
-		if (null == player)
-		{
-			throw new System.Exception("can not find 'Player' component");
-		}
-
 		Util.EventSystem.Subscribe<Vector2Int>(EventID.Event_OnTouch, OnMove);
 		Util.EventSystem.Subscribe<Item.Data>(Component.Suit.Event.EquipItem, OnEquip);
 		Util.EventSystem.Subscribe<Item.Data>(Component.Suit.Event.UnequipItem, OnUnequip);
+
+		Player player = GetComponent<Player>();
+		for (Message.EquipItemPartType part = Message.EquipItemPartType.Invalid + 1; part < Message.EquipItemPartType.Max; part++)
+		{
+			Item.Data item = GameManager.Instance.suit.GetItem(part);
+			if (null == item)
+			{
+				player.OnUnequip(part);
+			}
+			else
+			{
+				player.OnEquip(item.meta.equip.part, item.meta.equip.item_sprite);
+			}
+		}
 	}
 
 	private void OnEnable()
@@ -47,11 +58,13 @@ public class PlayerController : MonoBehaviour
 
 	public void OnEquip(Item.Data item)
 	{
+		Player player = GetComponent<Player>();
 		player.OnEquip(item.meta.equip.part, item.meta.equip.item_sprite);
 	}
 
 	public void OnUnequip(Item.Data item)
 	{
+		Player player = GetComponent<Player>();
 		player.OnUnequip(item.meta.equip.part);
 	}
 }

@@ -41,7 +41,7 @@ namespace Component
 			}
 		}
 
-		public Tile.Data GetTileData(int tileIndex)
+		public Tile GetTileData(int tileIndex)
 		{
 			if (0 > tileIndex || width * height <= tileIndex)
 			{
@@ -52,10 +52,10 @@ namespace Component
 			{
 				return null;
 			}
-			return tiles[tileIndex].data;
+			return tiles[tileIndex];
 		}
 
-		public Tile.Data GetTileData(int x, int y)
+		public Tile GetTileData(int x, int y)
 		{
 			return GetTileData(y * width + x);
 		}
@@ -83,50 +83,6 @@ namespace Component
 			});
 		}
 		
-		public void SetFieldOfView(Vector2Int position, int sight, bool visible)
-		{
-			BresenhamCircle2D circle = new BresenhamCircle2D(position, sight);
-
-			foreach (Vector2Int circumference in circle)
-			{
-				BresenhamLine2D line = new BresenhamLine2D(position, circumference);
-				foreach (Vector2Int point in line)
-				{
-					Tile.Data tile = GetTileData(point.x, point.y);
-					if (null == tile)
-					{
-						break;
-					}
-					tile.visible = visible;
-
-					if (Message.DungeonTileType.Wall == tile.type)
-					{
-						break;
-					}
-
-					if (width * height > tile.index + 1)
-					{
-						GetTileData(point.x + 1, point.y).visible = visible;
-					}
-
-					if (width * height > tile.index + width)
-					{
-						GetTileData(point.x, point.y + 1).visible = visible;
-					}
-
-					if (0 <= tile.index - 1)
-					{
-						GetTileData(point.x - 1, point.y).visible = visible;
-					}
-
-					if (0 <= tile.index - width)
-					{
-						GetTileData(point.x, point.y - 1).visible = visible;
-					}
-				}
-			}
-		}
-
 		private void Recv_UnitPosition_Ntf(Message.Dungeon.MsgSvrCli_UnitPosition_Ntf ntf)
 		{
 			Unit unit = null; ;
@@ -163,41 +119,41 @@ namespace Component
 						continue;
 					}
 
-					Tile.Data tileData = new Tile.Data();
-					tileData.index = y * width + x;
-					tileData.type = ans.tiles[tileData.index];
-					tileData.position = new Vector2Int(x, y);
-
 					GameObject obj = new GameObject();
 					obj.transform.SetParent(tile_root, false);
 					obj.transform.localPosition = new Vector3(x, y, 0.0f);
 					obj.SetActive(false);
 
 					Tile tile = obj.AddComponent<Tile>();
-					tile.Init(tileData);
+					int index = y * width + x; 
+					Message.DungeonTileType tileType = ans.tiles[index];
+					Vector2Int position = new Vector2Int(x, y);
+					tile.Init(index, tileType, position);
 					tiles[y * width + x] = tile;
 				}
 			}
 
 			Unit player = GameObject.Instantiate<Unit>(player_prefab);
 			player.seq = ans.unit_seq;
-			player.position = new Vector2Int(ans.position.x, ans.position.y);
-			player.transform.SetParent(unit_root, false);
 			player.GetComponent<PlayerController>().enabled = true;
+			player.transform.SetParent(unit_root, false);
+
+			player.position = new Vector2Int(ans.position.x, ans.position.y);
 			units.Add(player.seq, player);
 
 			foreach (var comrade in ans.comrades)
 			{
 				Unit unit = GameObject.Instantiate<Unit>(player_prefab);
 				unit.seq = comrade.unit_seq;
-				unit.position = new Vector2Int(comrade.position.x, comrade.position.y);
+				unit.GetComponent<PlayerController>().enabled = false;
 				unit.transform.SetParent(unit_root, false);
 				foreach (UInt32 itemIndex in comrade.equip_items)
 				{
 					Item.Meta meta = Item.Manager.Instance.FindMeta(itemIndex);
 					unit.GetComponent<Player>().OnEquip(meta.equip.part, meta.equip.item_sprite);
 				}
-				unit.GetComponent<PlayerController>().enabled = false;
+				
+				unit.position = new Vector2Int(comrade.position.x, comrade.position.y);
 				units.Add(unit.seq, unit);
 			}
 			/*
@@ -219,6 +175,7 @@ namespace Component
 		{
 			Unit unit = GameObject.Instantiate<Unit>(player_prefab);
 			unit.seq = ntf.unit_seq;
+			unit.GetComponent<PlayerController>().enabled = false;
 			unit.position = new Vector2Int(ntf.position.x, ntf.position.y);
 			unit.transform.SetParent(unit_root, false);
 
@@ -227,7 +184,7 @@ namespace Component
 				Item.Meta meta = Item.Manager.Instance.FindMeta(itemIndex);
 				unit.GetComponent<Player>().OnEquip(meta.equip.part, meta.equip.item_sprite);
 			}
-			unit.GetComponent<PlayerController>().enabled = false;
+			
 			units.Add(unit.seq, unit);
 		}
 		private void Recv_DestroyUnit_ntf(Message.Dungeon.MsgSvrCli_DestroyUnit_Ntf ntf)
@@ -242,6 +199,52 @@ namespace Component
 			GameObject.Destroy(unit.gameObject);
 			units.Remove(ntf.unit_seq);
 		}
-	}
+		public void SetFieldOfView(Vector2Int position, int sight, bool visible)
+		{
+			BresenhamCircle2D circle = new BresenhamCircle2D(position, sight);
 
+			foreach (Vector2Int circumference in circle)
+			{
+				BresenhamLine2D line = new BresenhamLine2D(position, circumference);
+				foreach (Vector2Int point in line)
+				{
+					{
+						Tile tile = GetTileData(point.x, point.y);
+						if (null == tile)
+						{
+							break;
+						}
+						tile.visible = visible;
+
+						if (Message.DungeonTileType.Wall == tile.type)
+						{
+							break;
+						}
+					}
+
+					Vector2Int[] offsets = new Vector2Int[]
+					{
+						new Vector2Int( 1, 0),
+						new Vector2Int(-1, 0),
+						new Vector2Int( 0, 1),
+						new Vector2Int( 0,-1)
+					};
+					for (int i = 0; i < offsets.Length; i++)
+					{
+						Vector2Int offset = offsets[i];
+						Tile tile = GetTileData(point.x + offset.x, point.y + offset.y);
+						if (null == tile)
+						{
+							continue;
+						}
+						tile.visible = visible;
+						if (Message.DungeonTileType.Wall == tile.type)
+						{
+							continue;
+						}
+					}
+				}
+			}
+		}
+	}
 }

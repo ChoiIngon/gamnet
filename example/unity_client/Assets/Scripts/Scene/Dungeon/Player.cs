@@ -15,19 +15,6 @@ public class Player : MonoBehaviour
 		unit = GetComponent<Unit>();
 		trunk.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(Component.Suit.DEFAULT_BASE_IMAGE);
 		hair.sprite = AssetBundleManager.Instance.LoadAsset<Sprite>(Component.Suit.DEFAULT_HAIR_IMAGE);
-
-		for (Message.EquipItemPartType part = Message.EquipItemPartType.Invalid + 1; part < Message.EquipItemPartType.Max; part++)
-		{
-			Item.Data item = GameManager.Instance.suit.GetItem(part);
-			if (null == item)
-			{
-				OnUnequip(part);
-			}
-			else
-			{
-				OnEquip(item.meta.equip.part, item.meta.equip.item_sprite);
-			}
-		}
 	}
 
 	public void OnEquip(Message.EquipItemPartType part, Sprite sprite)

@@ -23,12 +23,25 @@ public class Unit : MonoBehaviour
 		}
 		set
 		{
-			if (null != GetComponent<Player>())
+			if (true == GetComponent<PlayerController>().enabled)
 			{
 				GameManager.Instance.dungeon.SetFieldOfView(position, sight, false);
 				GameManager.Instance.dungeon.SetFieldOfView(value, sight, true);
 			}
-
+			else
+			{
+				Tile tile = null;
+				tile = GameManager.Instance.dungeon.GetTileData(position.x, position.y);
+				if (null != tile)
+				{
+					tile.Leave(this);
+				}
+				tile = GameManager.Instance.dungeon.GetTileData(value.x, value.y);
+				if (null != tile)
+				{
+					tile.Enter(this);
+				}
+			}
 			transform.position = new Vector3(value.x, value.y, 0.0f);
 		}
 	}
