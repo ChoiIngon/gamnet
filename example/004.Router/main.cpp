@@ -16,6 +16,7 @@ int main(int argc, char** argv)
 {
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
+		("id", boost::program_options::value<int>(), "server id")
 		("config", boost::program_options::value<std::string>()->default_value("config.xml"), "config file path")
 		("thread", boost::program_options::value<int>()->default_value(std::thread::hardware_concurrency()), "working thread count")
 		("help", "");

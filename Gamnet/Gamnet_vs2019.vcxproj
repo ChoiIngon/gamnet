@@ -228,7 +228,6 @@
     <ClInclude Include="library\Pool.h" />
     <ClInclude Include="Library\Random.h" />
     <ClInclude Include="library\Singleton.h" />
-    <ClInclude Include="Library\StateMachine.h" />
     <ClInclude Include="library\String.h" />
     <ClInclude Include="library\ThreadPool.h" />
     <ClInclude Include="Library\Time\DateTime.h" />

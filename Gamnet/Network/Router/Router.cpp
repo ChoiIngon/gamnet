@@ -18,6 +18,12 @@ const Address& GetRouterAddress()
 
 void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler, const std::function<void(const Address& addr)>& closeHandler)
 {
+	Address localRouterAddress(ROUTER_CAST_TYPE::UNI_CAST, serviceName, Network::Tcp::GetLocalAddress().to_v4().to_ulong());
+	Listen(localRouterAddress, port, acceptHandler, closeHandler);
+}
+
+void Listen(const Address& localRouterAddress, int port, const std::function<void(const Address& addr)>& acceptHandler, const std::function<void(const Address& addr)>& closeHandler)
+{
 	IHandlerFactory* handlerFactory = new Network::HandlerStatic<RouterHandler>();
 	Tcp::BindHandler<Session, MsgRouter_Connect_Req>("MsgRouter_Connect_Req", &RouterHandler::Recv_Connect_Req, handlerFactory);
 	Tcp::BindHandler<Session, MsgRouter_Connect_Ans>("MsgRouter_Connect_Ans", &RouterHandler::Recv_Connect_Ans, handlerFactory);
@@ -27,13 +33,14 @@ void Listen(const std::string& serviceName, int port, const std::function<void(c
 	Tcp::BindHandler<Session, MsgRouter_SendMsg_Ntf>("MsgRouter_SendMsg_Ntf", &RouterHandler::Recv_SendMsg_Ntf, handlerFactory);
 	Tcp::BindHandler<Session, MsgRouter_HeartBeat_Ntf>("MsgRouter_HeartBeat_Ntf", &RouterHandler::Recv_HeartBeat_Ntf, handlerFactory);
 
-	Singleton<SessionManager>::GetInstance().Listen(serviceName, port, acceptHandler, closeHandler);
+	Singleton<SessionManager>::GetInstance().Listen(localRouterAddress, port, acceptHandler, closeHandler);
 	LOG(INF, "[Gamnet::Router] listener start(port:", port, ", router_address:",
-				Singleton<SessionManager>::GetInstance().local_address.service_name, ":",
-				(int)Singleton<SessionManager>::GetInstance().local_address.cast_type, ":",
-				Singleton<SessionManager>::GetInstance().local_address.id, ", ",
-			"ip:", Network::Tcp::GetLocalAddress().to_string(), ")");
+		Singleton<SessionManager>::GetInstance().local_address.service_name, ":",
+		(int)Singleton<SessionManager>::GetInstance().local_address.cast_type, ":",
+		Singleton<SessionManager>::GetInstance().local_address.id, ", ",
+		"ip:", Network::Tcp::GetLocalAddress().to_string(), ")");
 }
+
 
 void Connect(const std::string& host, int port, int timeout)
 {
@@ -55,9 +62,11 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 	try {
 		auto router = ptree_.get_child("server.router");
 		std::string service_name = router.get<std::string>("<xmlattr>.name");
+		int id = router.get<int>("<xmlattr>.id");
 		int port = router.get<int>("<xmlattr>.port");
 
-		Listen(service_name.c_str(), port, connectHandler, closeHandler);
+		Address localRouterAddress(ROUTER_CAST_TYPE::UNI_CAST, service_name, id);
+		Listen(localRouterAddress, port, connectHandler, closeHandler);
 		for (const auto& remote : router)
 		{
 			if ("remote" != remote.first)

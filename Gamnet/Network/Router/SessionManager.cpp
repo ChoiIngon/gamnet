@@ -29,12 +29,13 @@ namespace Gamnet { namespace Network { namespace Router {
 	{
 	}
 	
-	void SessionManager::Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose, int accept_queue_size)
+	void SessionManager::Listen(const Address& localRouterAddress, int port, const std::function<void(const Address& addr)>& onConnect, const std::function<void(const Address& addr)>& onClose, int accept_queue_size)
 	{
 		on_connect = onConnect;
 		on_close = onClose;
 
-		local_address = Address(ROUTER_CAST_TYPE::UNI_CAST, serviceName, Network::Tcp::GetLocalAddress().to_v4().to_ulong());
+		//local_address = Address(ROUTER_CAST_TYPE::UNI_CAST, serviceName, Network::Tcp::GetLocalAddress().to_v4().to_ulong());
+		local_address = Address(ROUTER_CAST_TYPE::UNI_CAST, localRouterAddress.service_name, localRouterAddress.id);
 		if (0 == local_address.id)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "unique router id is not set");

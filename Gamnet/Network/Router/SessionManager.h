@@ -40,7 +40,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		SessionManager();
 		virtual ~SessionManager();
 
-		void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose, int accept_queue_size = 5);
+		void Listen(const Address& localRouterAddress, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose, int accept_queue_size = 5);
 		void Connect(const std::string& host , int port, int timeout = 5);
 
 		virtual void Add(const std::shared_ptr<Network::Session>& session) override;

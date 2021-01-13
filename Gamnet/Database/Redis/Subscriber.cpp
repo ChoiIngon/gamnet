@@ -5,6 +5,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 	Subscriber::Subscriber() 
 	{
 		connector.connect_handler = std::bind(&Subscriber::OnConnect, this, std::placeholders::_1);
+		connector.error_handler = std::bind(&Subscriber::OnError, this, std::placeholders::_1);
 		handlers.insert(std::make_pair("subscribe", std::bind(&Subscriber::OnRecv_SubscribeAns, this, std::placeholders::_1)));
 		handlers.insert(std::make_pair("message", std::bind(&Subscriber::OnRecv_PublishReq, this, std::placeholders::_1)));
 	}
@@ -32,6 +33,17 @@ namespace Gamnet { namespace Database { namespace Redis {
 
 	void Subscriber::Connect(const std::string& host, int port)
 	{
+		this->host = host;
+		this->port = port;
+		connector.AsyncConnect(host, port, 5);
+	}
+
+	void Subscriber::Reconnect()
+	{
+		if(nullptr != this->socket)
+		{
+			return;
+		}
 		connector.AsyncConnect(host, port, 5);
 	}
 
@@ -39,7 +51,37 @@ namespace Gamnet { namespace Database { namespace Redis {
 	{
 		this->socket = socket;
 		OnCreate();
+
+		{
+			std::lock_guard<std::mutex> lo(lock);
+			for(const auto& itr : callback_functions)
+			{
+				AsyncSend(Format("SUBSCRIBE ", itr.first));
+			}
+		}
+
 		AsyncRead();
+	}
+
+	void Subscriber::OnError(int error)
+	{
+		reconnect_timer.SetTimer(1000, std::bind(&Subscriber::Reconnect, this));
+	}
+
+	void Subscriber::Close(int reason)
+	{
+		auto self = shared_from_this();
+		Dispatch([this, self, reason]() {
+			if (nullptr == socket)
+			{
+				return;
+			}
+			OnClose(reason);
+			OnDestroy();
+			socket = nullptr;
+			
+			reconnect_timer.SetTimer(1000, std::bind(&Subscriber::Reconnect, this));
+		});
 	}
 
 	void Subscriber::AsyncSend(const std::string& query)

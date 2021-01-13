@@ -30,6 +30,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		Connector();
 
 		std::function<void(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)> connect_handler;
+		std::function<void(int error)> error_handler;
+
 		void AsyncConnect(const std::string& host, int port, int timeout);
 		bool SyncConnect(const std::string& host , int port, int timeout);
 	private:

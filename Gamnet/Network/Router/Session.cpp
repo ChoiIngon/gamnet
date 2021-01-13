@@ -41,6 +41,7 @@ bool Session::Init()
 		return false;
 	}
 	type = TYPE::INVALID;
+	session_state = Tcp::Session::Session::State::AfterAccept;
 	msg_seq = 0;
 
 	async_pool_index = 0;

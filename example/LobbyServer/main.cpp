@@ -17,6 +17,7 @@ int main(int argc, char** argv)
 		std::cout << desc << std::endl;
 		return 1;
 	}
+
 	const char* config_path = vm["config"].as<std::string>().c_str();
 
 	Gamnet::InitCrashDump();
@@ -27,7 +28,8 @@ int main(int argc, char** argv)
 		LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 
 		Gamnet::Database::MySQL::ReadXml(config_path);
-		//Gamnet::Database::Redis::ReadXml(config_path);
+		Gamnet::Database::Redis::ReadXml(config_path);
+		Gamnet::Network::Router::ReadXml(config_path, [](const Gamnet::Network::Router::Address& address) {}, [](const Gamnet::Network::Router::Address& address) {});
 		//Gamnet::Database::SQLite::ReadXml(config_path);
 
 		Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);

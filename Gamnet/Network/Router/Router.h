@@ -12,6 +12,7 @@ namespace Gamnet { namespace Network { namespace Router
 
 	const Address& GetRouterAddress();
 	void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler = [](const Address&){}, const std::function<void(const Address& addr)>& closeHandler = [](const Address&) {});
+	void Listen(const Address& routerAddress, int port, const std::function<void(const Address& addr)>& acceptHandler = [](const Address&) {}, const std::function<void(const Address& addr)>& closeHandler = [](const Address&) {});
 	void Connect(const std::string& host, int port, int timeout);
 
 	template <class MsgType, class FunctionType, class FactoryType>

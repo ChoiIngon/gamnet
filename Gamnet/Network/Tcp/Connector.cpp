@@ -127,10 +127,18 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		catch (const Exception& e)
 		{
 			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
+			if (nullptr != error_handler)
+			{
+				error_handler(e.error_code());
+			}
 		}
 		catch (const boost::system::system_error& e)
 		{
 			LOG(ERR, "connect fail(dest:", endpoint.address().to_v4().to_string(), ", errno:", e.code().value(), ", errstr:", e.what(), ")");
+			if (nullptr != error_handler)
+			{
+				error_handler(e.code().value());
+			}
 		}
 	}
 
@@ -141,6 +149,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return;
 		}
 		timer->Cancel();
+		if(nullptr != error_handler)
+		{
+			error_handler(ErrorCode::ConnectTimeoutError);
+		}
 	}
 
 }}}
