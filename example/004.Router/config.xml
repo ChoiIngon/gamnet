@@ -10,12 +10,12 @@
   <tcp port="40000" max_count="8000" accept_queue="100" keep_alive="30" thread_count="20"/>
   <http port="40001"/>
   <farm host="127.0.0.1" port="6379"/>
-  <router name="ROUTER_1" port="40002">
+  <router name="ROUTER_1" id="1" port="40002">
 	  <remote name="ROUTER_1" host="127.0.0.1" port="40002"/>
     <remote name="ROUTER_2" host="127.0.0.1" port="40022"/>
   </router>
   
   <test host="127.0.0.1" port="40000" session_count="1" loop_count="1">
-    <!--<message name="Test_SendMessage_WithResponse"/>-->
+    <message name="Test_SendMessage_WithResponse"/>
   </test>
 </server>

@@ -28,8 +28,8 @@ public :
 
 	time_t	 last_recv_time;
 
-	std::shared_ptr<Packet>								recv_packet;
-	std::deque<std::shared_ptr<Packet>>					send_packets;
+
+	std::deque<std::shared_ptr<Packet>>		send_packets;
 
 	std::string	session_token;
 	State		session_state;
@@ -41,6 +41,8 @@ public :
 
 	virtual void AsyncSend(const std::shared_ptr<Packet>& packet);
 	static std::string GenerateSessionToken(uint32_t session_key);
+private :
+	Packet::Protocol						protocol;
 };
 
 }}}

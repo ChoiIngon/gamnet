@@ -156,6 +156,7 @@ public :
 
 	virtual void Close(int reason) override;
 private :
+
 	const std::shared_ptr<IResponseHandler> FindResponseHandler(uint32_t seq);
 	
 	Tcp::Connector connector;
@@ -166,6 +167,7 @@ private :
 	Time::Timer expire_timer;
 	
 	//Pool<ResponseHandler, Policy::nolock, ResponseHandler::Init, ResponseHandler::Release> response_handler_pool;
+	Tcp::Packet::Protocol protocol;
 	std::map<uint32_t, std::shared_ptr<IResponseHandler>> response_handlers;
 };
 

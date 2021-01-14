@@ -5,6 +5,7 @@
 #include <cstring>
 #include "../../Library/Buffer.h"
 #include "../../Log/Log.h"
+#include <list>
 
 namespace Gamnet { namespace Network { namespace Tcp {
 
@@ -96,7 +97,20 @@ public :
 	bool Write(uint32_t msgID, const char* buf, size_t bytes);
 	bool WriteHeader();
 	bool ReadHeader();
+
+public :
+	class Protocol
+	{
+	public :
+		Protocol();
+		void Parse(const std::shared_ptr<Buffer>& buffer);
+		std::shared_ptr<Packet> Pop();
+	private:
+		std::shared_ptr<Packet> recv_packet;
+		std::list<std::shared_ptr<Packet>> recv_packet_queue;
+	};
 };
+
 
 }}}
 #endif /* NETWORK_PACKET_H_ */

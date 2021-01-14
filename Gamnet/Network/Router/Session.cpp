@@ -352,71 +352,37 @@ const std::shared_ptr<IResponseHandler> AsyncSession::FindResponseHandler(uint32
 
 void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
 {
-	while (0 < buffer->Size())
+	protocol.Parse(buffer);
+	std::shared_ptr<Tcp::Packet> routerPacket = nullptr;
+	while (routerPacket = protocol.Pop())
 	{
-		size_t readSize = std::min(buffer->Size(), recv_packet->Available());
-		recv_packet->Append(buffer->ReadPtr(), readSize);
-		buffer->Remove(readSize);
-
-		while (Tcp::Packet::HEADER_SIZE <= (int)recv_packet->Size())
+		MsgRouter_SendMsg_Ntf ntf;
+		if (false == Network::Tcp::Packet::Load(ntf, routerPacket))
 		{
-			recv_packet->ReadHeader();
-			if (Tcp::Packet::HEADER_SIZE > recv_packet->length)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::BufferUnderflowError, "buffer underflow(read size:", recv_packet->length, ")");
-			}
-
-			if (recv_packet->length >= (uint16_t)recv_packet->Capacity())
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", recv_packet->length, ")");
-			}
-
-			if (recv_packet->length > (uint16_t)recv_packet->Size())
-			{
-				break;
-			}
-
-			std::shared_ptr<Tcp::Packet> packet = recv_packet;
-			auto self = shared_from_this();
-
-			//////////////////////////////////////////////////////////////////////////
-			MsgRouter_SendMsg_Ntf ntf;
-			if (false == Network::Tcp::Packet::Load(ntf, packet))
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
-			}
-
-			std::shared_ptr<Network::Tcp::Packet> buffer = Network::Tcp::Packet::Create();
-			if (nullptr == buffer)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
-			}
-
-			buffer->Append(ntf.buffer.data(), ntf.buffer.size());
-			buffer->ReadHeader();
-			buffer->msg_seq = packet->msg_seq;
-
-			if (0 == buffer->msg_seq)
-			{
-				return;
-			}
-
-			const std::shared_ptr<IResponseHandler> responseHandler = FindResponseHandler(packet->msg_seq);
-			if (nullptr == responseHandler)
-			{
-				return;
-			}
-			responseHandler->OnReceive(buffer);
-
-			recv_packet = Tcp::Packet::Create();
-			if (nullptr == recv_packet)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
-			}
-			packet->Remove(packet->length);
-			recv_packet->Append(packet->ReadPtr(), packet->Size());
-
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
 		}
+
+		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
+		if (nullptr == packet)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
+		}
+
+		packet->Append(ntf.buffer.data(), ntf.buffer.size());
+		packet->ReadHeader();
+		packet->msg_seq = routerPacket->msg_seq;
+
+		if (0 == packet->msg_seq)
+		{
+			return;
+		}
+
+		const std::shared_ptr<IResponseHandler> responseHandler = FindResponseHandler(packet->msg_seq);
+		if (nullptr == responseHandler)
+		{
+			return;
+		}
+		responseHandler->OnReceive(packet);
 	}
 }
 
