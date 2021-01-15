@@ -62,7 +62,7 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 	try {
 		auto router = ptree_.get_child("server.router");
 		std::string service_name = router.get<std::string>("<xmlattr>.name");
-		int id = router.get<int>("<xmlattr>.id");
+		uint32_t id = router.get<uint32_t>("<xmlattr>.id", Network::Tcp::GetLocalAddress().to_v4().to_ulong());
 		int port = router.get<int>("<xmlattr>.port");
 
 		Address localRouterAddress(ROUTER_CAST_TYPE::UNI_CAST, service_name, id);
