@@ -39,7 +39,7 @@ namespace Gamnet { namespace Database { namespace MySQL {
 
 		for(auto& itr : this->where_clause)
 		{
-			auto& tmp = whereClause.find(itr.first);
+			auto tmp = whereClause.find(itr.first);
 			if(whereClause.end() == tmp)
 			{
 				return false;
