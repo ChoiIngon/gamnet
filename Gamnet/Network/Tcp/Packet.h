@@ -103,6 +103,8 @@ public :
 	{
 	public :
 		Protocol();
+		void Init();
+		void Clear();
 		void Parse(const std::shared_ptr<Buffer>& buffer);
 		std::shared_ptr<Packet> Pop();
 	private:

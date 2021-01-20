@@ -254,6 +254,7 @@ AsyncSession::AsyncSession()
 
 bool AsyncSession::Init()
 {
+	protocol.Init();
 	return true;
 }
 
@@ -403,6 +404,7 @@ void AsyncSession::Close(int reason)
 
 		response_handlers.clear();
 		expire_timer.Cancel();
+		protocol.Clear();
 		socket = nullptr;
 	});
 }

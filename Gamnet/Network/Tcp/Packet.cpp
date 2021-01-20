@@ -114,8 +114,19 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	Packet::Protocol::Protocol()
-		: recv_packet(Packet::Create())
+		: recv_packet(nullptr)
 	{
+	}
+
+	void Packet::Protocol::Init()
+	{
+		recv_packet = Packet::Create();
+	}
+
+	void Packet::Protocol::Clear()
+	{
+		recv_packet = nullptr;
+		recv_packet_queue.clear();
 	}
 
 	void Packet::Protocol::Parse(const std::shared_ptr<Buffer>& buffer)

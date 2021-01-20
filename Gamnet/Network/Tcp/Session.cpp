@@ -32,6 +32,7 @@ bool Session::Init()
 		return false;
 	}
 
+	protocol.Init();
 	session_token = Session::GenerateSessionToken(session_key);
 
 	recv_seq = 0;
@@ -106,6 +107,7 @@ void Session::Close(int reason)
 			OnDestroy();
 			session_state = State::Invalid;
 			session_manager->Remove(self);
+			protocol.Clear();
 		}
 	});
 }
