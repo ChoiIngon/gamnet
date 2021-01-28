@@ -18,8 +18,11 @@ struct IAsyncResponse
 	virtual void Clear();
 	virtual void OnReceive(const std::shared_ptr<Packet>&) = 0;
 	virtual void OnException(const Gamnet::Exception&) = 0;
-
+	virtual void OnExpire(std::function<void()> expire) = 0;
+	
 	uint32_t seq;
+	int timeout;
+	std::shared_ptr<IHandler> handler;
 };
 
 template <class MsgType>
@@ -85,8 +88,20 @@ struct AsyncResponse : IAsyncResponse
 		}
 	}
 
+	virtual void OnExpire(std::function<void()> expire) override
+	{
+		timer.AutoReset(false);
+		timer.SetTimer(timeout, [this, expire]() {
+			if (nullptr != on_exception)
+			{
+				on_exception(handler, GAMNET_EXCEPTION(ErrorCode::ResponseTimeoutError));
+			}
+			expire();
+		});
+	}
+
 	Time::Timer timer;
-	std::shared_ptr<IHandler> handler;
+	
 	std::function<void(const std::shared_ptr<IHandler>&, const MsgType&)> on_receive;
 	std::function<void(const std::shared_ptr<IHandler>&, const Gamnet::Exception& e)> on_exception;
 

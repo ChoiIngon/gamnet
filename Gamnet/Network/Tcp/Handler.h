@@ -27,15 +27,10 @@ struct Handler : public IHandler
 	{
 		std::shared_ptr<AsyncResponse<MsgType>> response = AsyncResponse<MsgType>::Create();
 		response->handler = shared_from_this();
+		response->timeout = timeout * 1000;
 		response->on_receive = static_cast<AsyncResponse<MsgType>::OnReceiveFuncType>(onReceive);
 		response->on_exception = static_cast<AsyncResponse<MsgType>::OnExceptionFuncType>(onException);
-		response->timer.AutoReset(false);
-		response->timer.SetTimer(timeout, [response]() {
-			if (nullptr != response->on_exception)
-			{
-				response->on_exception(response->handler, GAMNET_EXCEPTION(ErrorCode::ResponseTimeoutError));
-			}
-		});
+		
 		return response;
 	}
 };

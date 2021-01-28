@@ -104,7 +104,8 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 	{
 		if (false == session->Connect(remote_endpoint))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
+			LOG(ERR, "connect fail");
+			return;
 		}
 		session->AsyncRead();
 	}
@@ -119,7 +120,8 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::s
 	{
 		if (false == session->Connect(remote_endpoint))
 		{
-			throw GAMNET_EXCEPTION(ErrorCode::ConnectFailError);
+			LOG(ERR, "connect fail");
+			return;
 		}
 		session->AsyncRead();
 	}
@@ -247,6 +249,7 @@ AsyncSession::AsyncSession()
 
 bool AsyncSession::Init()
 {
+	Network::Session::Init();
 	protocol.Init();
 	return true;
 }
@@ -278,6 +281,12 @@ void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<Tcp::IAsyncResponse>& response)
 {
 	auto self = shared_from_this();
+	uint32_t seq = response->seq;
+	response->OnExpire([this, self, seq]() {
+		Dispatch([this, self, seq]() {
+			this->async_responses.erase(seq);
+		});
+	});
 	Dispatch([this, self, response]() {
 		this->async_responses[response->seq] = response;
 	});

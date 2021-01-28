@@ -6,6 +6,8 @@ std::atomic_uint32_t response_seq;
 
 IAsyncResponse::IAsyncResponse()
 	: seq(0)
+	, timeout(0)
+	, handler(nullptr)
 {
 }
 
@@ -21,6 +23,7 @@ void IAsyncResponse::Init()
 void IAsyncResponse::Clear()
 {
 	seq = 0;
+	handler = nullptr;
 }
 
 }}}
