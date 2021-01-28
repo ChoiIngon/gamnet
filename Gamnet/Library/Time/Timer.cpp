@@ -65,13 +65,17 @@ void Timer::OnExpire(const boost::system::error_code& ec)
 
 bool Timer::Resume()
 {
+	std::lock_guard<std::mutex> lo(lock);
+	if (0 == interval)
 	{
-		std::lock_guard<std::mutex> lo(lock);
-		if (nullptr == entry)
-		{
-			return false;
-		}
+		return false;
 	}
+
+	if (nullptr == entry)
+	{
+		return false;
+	}
+
 	deadline_timer.expires_at(deadline_timer.expires_at() + boost::posix_time::milliseconds(interval));
 	deadline_timer.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
 	return true;

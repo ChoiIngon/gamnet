@@ -171,7 +171,7 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 
 	buffer->Append(ntf.buffer.data(), ntf.buffer.size());
 	buffer->ReadHeader();
-	buffer->msg_seq = ntf.msg_seq;
+
 	Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
 }
 

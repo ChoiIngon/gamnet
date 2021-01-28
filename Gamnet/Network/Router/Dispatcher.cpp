@@ -22,10 +22,10 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 
 		std::shared_ptr<IHandlerFunctor> handlerFunctor = itr->second;
-		session->send_seq = packet->msg_seq;
-
+		
 		Address addr = session->router_address;
 		addr.session = session;
+		addr.msg_seq = packet->msg_seq;
 
 		try {
 			handlerFunctor->OnReceive(addr, packet);

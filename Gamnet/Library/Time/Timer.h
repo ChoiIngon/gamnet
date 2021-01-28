@@ -5,6 +5,7 @@
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/bind.hpp>
 #include <mutex>
+#include "DateTime.h"
 
 namespace Gamnet { namespace Time {
 
@@ -62,12 +63,21 @@ public :
 	template <class FUNCTOR>
 	void SetTimer(int interval, FUNCTOR functor)
 	{
+		std::lock_guard<std::mutex> lo(lock);
 		this->interval = interval;
-		{
-			std::lock_guard<std::mutex> lo(lock);
-			entry = std::make_shared<TimerEntryT<FUNCTOR>>(functor);
-		}
-		deadline_timer.expires_from_now(boost::posix_time::milliseconds(this->interval));
+		this->entry = std::make_shared<TimerEntryT<FUNCTOR>>(functor);
+		this->deadline_timer.expires_from_now(boost::posix_time::milliseconds(this->interval));
+		this->deadline_timer.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
+	}
+
+	template <class FUNCTOR>
+	void SetTimer(const DateTime& datetime, FUNCTOR functor)
+	{
+		std::lock_guard<std::mutex> lo(lock);
+		this->interval = 0;
+		this->auto_reset = false;
+		this->entry = std::make_shared<TimerEntryT<FUNCTOR>>(functor);
+		deadline_timer.expires_at((boost::posix_time::ptime&)datetime.UTC());
 		deadline_timer.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
 	}
 

@@ -1,6 +1,7 @@
 #include "DateTime.h"
 #include "../Exception.h"
 #include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/locale.hpp>
 
 namespace Gamnet { namespace Time {
 
@@ -97,6 +98,12 @@ DateTime& DateTime::operator = (const boost::posix_time::ptime& ptime)
 	this->ptime = ptime;
 	return *this;
 }
+
+DateTime::operator boost::posix_time::ptime& ()
+{
+	return this->ptime;
+}
+
 boost::posix_time::ptime DateTime::operator + (const boost::posix_time::time_duration& duration)
 {
 	return this->ptime + duration;
@@ -154,6 +161,21 @@ int DateTime::TimestampDiff(const DateTime& rhs) const
 	boost::posix_time::time_duration duration = this->ptime - rhs.ptime;
 	return duration.total_seconds();
 }
+
+DateTime DateTime::UTC() const
+{
+	DateTime datetime(ptime - Seconds(DateTime::second_diff));
+	return datetime;
+}
+
+static int TimeDiffBetweenUtcAndLocal()
+{
+	time_t utc = boost::posix_time::to_time_t(boost::posix_time::second_clock::universal_time());
+	time_t local = boost::posix_time::to_time_t(boost::posix_time::second_clock::local_time());
+	return local - utc;
+}
+
+int DateTime::second_diff = TimeDiffBetweenUtcAndLocal();
 
 }}
 

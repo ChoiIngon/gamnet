@@ -18,7 +18,7 @@ struct Address
 {
 	.cpp %%
 	Address(ROUTER_CAST_TYPE _cast_type, const std::string& _service_name, uint32_t _id)
-		: service_name(_service_name), cast_type(_cast_type), id(_id)
+		: service_name(_service_name), cast_type(_cast_type), id(_id), msg_seq(0)
 	{
 	}
 	std::string ToString() const
@@ -27,7 +27,8 @@ struct Address
 		ss << "{\"service_name\":\"" << service_name << "\", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
 		return ss.str();
 	}
-	std::weak_ptr<Session> session;
+	std::shared_ptr<Session> session;
+	uint32_t msg_seq;
 	%%
 	string service_name;
 	ROUTER_CAST_TYPE cast_type;
@@ -137,8 +138,8 @@ message MsgRouter_RegisterAddress_Ntf		: 005
 
 message MsgRouter_SendMsg_Ntf				: 006
 {
+	uint32 response_seq;
 	string buffer;
-	uint32 msg_seq;
 };
 
 message MsgRouter_HeartBeat_Ntf				: 007

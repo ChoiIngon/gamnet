@@ -185,6 +185,7 @@
     <ClCompile Include="Network\Router\SessionManager.cpp" />
     <ClCompile Include="Network\SessionManager.cpp" />
     <ClCompile Include="Network\Tcp\Acceptor.cpp" />
+    <ClCompile Include="Network\Tcp\AsyncResponse.cpp" />
     <ClCompile Include="Network\Tcp\Connector.cpp" />
     <ClCompile Include="network\Session.cpp" />
     <ClCompile Include="Network\Tcp\CastGroup.cpp" />
@@ -252,12 +253,14 @@
     <ClInclude Include="Network\Router\Session.h" />
     <ClInclude Include="Network\Router\SessionManager.h" />
     <ClInclude Include="Network\Tcp\Acceptor.h" />
+    <ClInclude Include="Network\Tcp\AsyncResponse.h" />
     <ClInclude Include="Network\Tcp\Connector.h" />
     <ClInclude Include="Network\Handler.h" />
     <ClInclude Include="Network\HandlerFactory.h" />
     <ClInclude Include="network\Session.h" />
     <ClInclude Include="Network\Tcp\CastGroup.h" />
     <ClInclude Include="Network\Tcp\Dispatcher.h" />
+    <ClInclude Include="Network\Tcp\Handler.h" />
     <ClInclude Include="Network\Tcp\Packet.h" />
     <ClInclude Include="Network\Tcp\Session.h" />
     <ClInclude Include="Network\Tcp\SessionManager.h" />

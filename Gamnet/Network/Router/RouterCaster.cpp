@@ -229,18 +229,19 @@ bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session>
 bool RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& buffer)
 {
 	MsgRouter_SendMsg_Ntf ntf;
+	ntf.response_seq = addr.msg_seq;
 	std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
 	
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 	if(nullptr == packet)
 	{
-		LOG(ERR, "fail to create packet instance(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");
+		LOG(ERR, "fail to create packet instance(msg:MsgRouter_SendMsg_Ntf)");
 		return false;
 	}
 
 	if(false == packet->Write(ntf))
 	{
-		LOG(ERR, "fail to serialize message(msg_id:", MsgRouter_SendMsg_Ntf::MSG_ID, ")");
+		LOG(ERR, "fail to serialize message(MsgRouter_SendMsg_Ntf)");
 		return false;
 	}
 

@@ -7,6 +7,7 @@ namespace Gamnet { namespace Time {
 
 	namespace UTC {
 		time_t Now();
+		DateTime ToUTC(const DateTime& datetime);
 	}
 
 	namespace Local {
