@@ -17,7 +17,7 @@ public:
 	void Recv_SvrSvr_Ntf(const Gamnet::Network::Router::Address& address, const MsgSvrSvr_SendMessage_Ntf& ntfSvrSvr);
 
 private :
-	std::shared_ptr<UserSession> session;
+	std::weak_ptr<UserSession> session;
 };
 
 #endif /* HANDLER_LOGIN_H_ */

@@ -35,7 +35,6 @@ bool Session::Init()
 	}
 	type = TYPE::INVALID;
 	session_state = Tcp::Session::Session::State::AfterAccept;
-	msg_seq = 0;
 
 	async_pool_index = 0;
 	for(int i=0; i<ASYNC_POOL_SIZE; i++)

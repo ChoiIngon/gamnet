@@ -11,23 +11,19 @@ UserSession::~UserSession()
 
 void UserSession::OnCreate()
 {
-	LOG(INF, "[session_key:", session_key, "] OnCreate");
 	Gamnet::Singleton<Manager_Session>::GetInstance().Add(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
 }
 
 void UserSession::OnAccept()
 {
-	LOG(INF, "[session_key:", session_key, "] OnAccept");
 }
 
 void UserSession::OnClose(int reason)
 {
-	LOG(INF, "[session_key:", session_key, "] OnClose");
 }
 
 void UserSession::OnDestroy()
 {
-	LOG(INF, "[session_key:", session_key, "] OnDestroy");
 	Gamnet::Singleton<Manager_Session>::GetInstance().Remove(std::static_pointer_cast<Gamnet::Network::Tcp::Session>(shared_from_this()));
 }
 

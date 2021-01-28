@@ -28,9 +28,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		Tcp::Connector connector;
 
 		Pool<Session, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> session_pool;
-		std::shared_ptr<Time::Timer> heartbeat_timer;
 	public:
-		std::shared_ptr<Tcp::CastGroup> heartbeat_group;
 		Address local_address;
 		int port;
 
@@ -43,8 +41,8 @@ namespace Gamnet { namespace Network { namespace Router {
 		void Listen(const Address& localRouterAddress, int port, const std::function<void(const Address& addr)>& onAccept, const std::function<void(const Address& addr)>& onClose, int accept_queue_size = 5);
 		void Connect(const std::string& host , int port, int timeout = 5);
 
-		virtual void Add(const std::shared_ptr<Network::Session>& session) override;
-		virtual void Remove(const std::shared_ptr<Network::Session>& session) override;
+		//virtual void Add(const std::shared_ptr<Network::Session>& session) override;
+		//virtual void Remove(const std::shared_ptr<Network::Session>& session) override;
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override;
 
 		Json::Value State();

@@ -8,6 +8,7 @@
 #include <mutex>
 #include <atomic>
 #include "Session.h"
+#include "../../Library/Time/Timer.h"
 
 namespace Gamnet { namespace Network {namespace Router {
 
@@ -26,7 +27,10 @@ private :
 	std::mutex lock_;
 	std::map<Address, std::shared_ptr<Session>> route_table_;
 
+	static constexpr int HEARTBEAT_INTERVAL = 60 * 1000; //ms
+	Time::Timer heartbeat_timer;
 public :
+	RouterCasterImpl_Uni();
 	virtual bool RegisterAddress(const Address& addr, const std::shared_ptr<Session>& router_session) override;
 	virtual bool SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet) override;
 	virtual bool UnregisterAddress(const Address& addr) override;
@@ -64,7 +68,6 @@ public :
 struct RouterCaster
 {
 private :
-	std::atomic<uint64_t> msg_seq;
 	std::shared_ptr<RouterCasterImpl> arrCasterImpl_[(int)ROUTER_CAST_TYPE::MAX];
 
 public :

@@ -17,8 +17,6 @@ namespace Gamnet { namespace Network { namespace Router {
 
 	SessionManager::SessionManager()
 		: session_pool(65535, SessionFactory(this))
-		, heartbeat_timer(Time::Timer::Create())
-		, heartbeat_group(Tcp::CastGroup::Create())
 		, port(0)
 	{
 		acceptor.accept_handler = std::bind(&SessionManager::OnAcceptHandler, this, std::placeholders::_1);
@@ -42,13 +40,6 @@ namespace Gamnet { namespace Network { namespace Router {
 		}
 		this->port = port;
 
-		heartbeat_timer->AutoReset(true);
-		heartbeat_timer->SetTimer(60000, [this]() {
-			MsgRouter_HeartBeat_Ntf ntf;
-			Tcp::CastGroup::LockGuard lockedCastGroup(heartbeat_group);
-			LOG(GAMNET_INF, "[Router] send heartbeat message(connected server count:", lockedCastGroup->Size(), ")");
-			lockedCastGroup->SendMsg(ntf);
-		});
 		acceptor.Listen(port, 1024);
 		
 		std::shared_ptr<Session> session = std::make_shared<Session>();
@@ -71,6 +62,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		connector.AsyncConnect(host, port, timeout);
 	}
 
+	/*
 	void SessionManager::Add(const std::shared_ptr<Network::Session>& session)
 	{
 		Tcp::CastGroup::LockGuard lo(heartbeat_group);
@@ -82,7 +74,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		Tcp::CastGroup::LockGuard lo(heartbeat_group);
 		heartbeat_group->Remove(std::static_pointer_cast<Session>(session));
 	}
-
+	*/
 	void SessionManager::OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer)
 	{
 		Singleton<Tcp::Dispatcher<Session>>::GetInstance().OnReceive(std::static_pointer_cast<Session>(session), std::static_pointer_cast<Tcp::Packet>(buffer));

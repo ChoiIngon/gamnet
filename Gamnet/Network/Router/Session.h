@@ -33,7 +33,6 @@ public :
 	Address							router_address;
 	boost::asio::ip::tcp::endpoint	remote_endpoint;
 	TYPE							type;
-	std::atomic_uint32_t			msg_seq;
 
 public :		
 	virtual bool Init() override;
@@ -82,7 +81,7 @@ private:
 	void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);
 };
 
-class AsyncSession : public Network::Tcp::Session
+class AsyncSession : public Network::Session
 {
 public :
 	AsyncSession();

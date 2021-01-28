@@ -72,7 +72,8 @@ GAMNET_BIND_ROUTER_HANDLER(
 
 void Handler_SendMessage::Recv_SvrSvr_Ans(const MsgSvrSvr_SendMessage_Ans& ansSvrSvr)
 {
-	session->Dispatch([this, ansSvrSvr]() {
+	std::shared_ptr<UserSession> session = this->session.lock();
+	session->Dispatch([this, session, ansSvrSvr]() {
 		MsgSvrCli_SendMessage_Ans ansSvrCli;
 		ansSvrCli.error_code = ErrorCode::Success;
 		try {

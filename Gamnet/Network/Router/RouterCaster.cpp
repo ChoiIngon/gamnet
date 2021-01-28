@@ -10,6 +10,29 @@
 
 namespace Gamnet { namespace Network { namespace Router {
 
+RouterCasterImpl_Uni::RouterCasterImpl_Uni()
+{
+	heartbeat_timer.AutoReset(true);
+	heartbeat_timer.SetTimer(HEARTBEAT_INTERVAL, [this]() {
+		std::lock_guard<std::mutex> lo(lock_);
+		MsgRouter_HeartBeat_Ntf ntf;
+		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
+		if (nullptr == packet)
+		{
+			return;
+		}
+		if (false == packet->Write(ntf))
+		{
+			return;
+		}
+		for (auto itr : route_table_)
+		{
+			std::shared_ptr<Session> session = itr.second;
+			session->AsyncSend(packet);
+		}
+		LOG(GAMNET_INF, "[Gamnet::Router] send heartbeat message(connected server count:", route_table_.size(), ")");
+	});
+}
 bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, const std::shared_ptr<Session>& router_session)
 {
 	std::lock_guard<std::mutex> lo(lock_);
@@ -206,7 +229,6 @@ std::shared_ptr<Session> RouterCasterImpl_Any::FindSession(const Address& addr)
 
 RouterCaster::RouterCaster() 
 {
-	msg_seq = 0;
 	arrCasterImpl_[(int)ROUTER_CAST_TYPE::UNI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
 	arrCasterImpl_[(int)ROUTER_CAST_TYPE::MULTI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
 	arrCasterImpl_[(int)ROUTER_CAST_TYPE::ANY_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Any());

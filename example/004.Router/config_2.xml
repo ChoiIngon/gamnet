@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <server>
-  <log path="log" prefix="server" max_file_size="5">
-    <dev console="yes" file="yes" sys="no"/>
-    <inf console="yes" file="yes" sys="no"/>
-    <wrn console="yes" file="yes" sys="no"/>
-    <err console="yes" file="yes" sys="no"/>
-  </log>
+	<log path="log" prefix="server" max_file_size="5">
+		<dev console="yes" file="yes" sys="no"/>
+		<inf console="yes" file="yes" sys="no"/>
+		<wrn console="yes" file="yes" sys="no"/>
+		<err console="yes" file="yes" sys="no"/>
+	</log>
 
-  <tcp port="40020" max_count="8000" accept_queue="4000" keep_alive="30" thread_count="20"/>
-  <http port="40021"/>
-  <router name="ROUTER_2" port="40022">
-	<remote name="ROUTER_1" host="127.0.0.1" port="40002"/>
-    <remote name="ROUTER_2" host="127.0.0.1" port="40022"/>
-  </router>
-  <!-- <farm host="127.0.0.1" port="6379"/> -->
-  
-  <test host="127.0.0.1" port="40020" session_count="1" loop_count="1">
-    <message name="Test_SendMessage_WithResponse"/>
-  </test>
+	<farm host="127.0.0.1" port="6379"/>
+
+	<tcp port="10002" max_count="8000" accept_queue="100" keep_alive="30" thread_count="20"/>
+	<http port="20002"/>
+	<router name="ROUTER" id="2" port="30002"/>
+	<!--
+	<router name="ROUTER_1" port="40002">
+		<remote name="ROUTER_1" host="127.0.0.1" port="40002"/>
+		<remote name="ROUTER_2" host="127.0.0.1" port="40022"/>
+	</router>
+	-->
+	<test host="127.0.0.1" port="10002" session_count="1" loop_count="1">
+		<message name="Test_SendMessage_WithResponse"/>
+	</test>
 </server>
