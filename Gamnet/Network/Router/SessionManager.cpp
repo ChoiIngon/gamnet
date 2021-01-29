@@ -42,7 +42,7 @@ namespace Gamnet { namespace Network { namespace Router {
 
 		acceptor.Listen(port, 1024);
 		
-		std::shared_ptr<Session> session = std::make_shared<Session>();
+		std::shared_ptr<LocalSession> session = std::make_shared<LocalSession>();
 		session->session_manager = this;
 		session->remote_endpoint.address(Network::Tcp::GetLocalAddress());
 		session->remote_endpoint.port(port);

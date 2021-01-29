@@ -1,9 +1,12 @@
 #include "Dispatcher.h"
 #include "RouterCaster.h"
 #include "../../Library/Singleton.h"
+#include "../../Library/ThreadPool.h"
 
 namespace Gamnet { namespace Network { namespace Router {
-	
+
+	static ThreadPool thread_pool(std::thread::hardware_concurrency());
+
 	Dispatcher::Dispatcher() 
 	{
 	}
@@ -24,9 +27,10 @@ namespace Gamnet { namespace Network { namespace Router {
 		std::shared_ptr<IHandlerFunctor> handlerFunctor = itr->second;
 		
 		Address addr = session->router_address;
-		addr.session = session;
 		addr.msg_seq = packet->msg_seq;
 
+		//thread_pool.PostTask(std::bind(&IHandlerFunctor::OnReceive, handlerFunctor, addr, packet));
+		
 		try {
 			handlerFunctor->OnReceive(addr, packet);
 		}

@@ -27,7 +27,6 @@ struct Address
 		ss << "{\"service_name\":\"" << service_name << "\", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
 		return ss.str();
 	}
-	std::shared_ptr<Session> session;
 	uint32_t msg_seq;
 	%%
 	string service_name;
@@ -138,7 +137,7 @@ message MsgRouter_RegisterAddress_Ntf		: 005
 
 message MsgRouter_SendMsg_Ntf				: 006
 {
-	uint32 response_seq;
+	uint32 msg_seq;
 	string buffer;
 };
 

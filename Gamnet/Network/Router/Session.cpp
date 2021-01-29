@@ -11,7 +11,6 @@ static boost::asio::io_context& io_context = Singleton<boost::asio::io_context>:
 
 Session::Session()
 	: Network::Tcp::Session()
-	, type(TYPE::INVALID)
 {
 }
 
@@ -33,17 +32,9 @@ bool Session::Init()
 	{
 		return false;
 	}
-	type = TYPE::INVALID;
+	
 	session_state = Tcp::Session::Session::State::AfterAccept;
 
-	async_pool_index = 0;
-	for(int i=0; i<ASYNC_POOL_SIZE; i++)
-	{
-		std::shared_ptr<AsyncSession> asyncSession = std::make_shared<AsyncSession>();
-		asyncSession->session_manager = session_manager;
-		asyncSession->Init();
-		async_pool[i] = asyncSession;
-	}
 	return true;
 }
 
@@ -54,11 +45,8 @@ void Session::OnConnect()
 
 void Session::OnClose(int reason)
 {
-	if (TYPE::MASTER == type)
-	{
-		Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
-		static_cast<SessionManager*>(session_manager)->on_close(router_address);
-	}
+	Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
+	static_cast<SessionManager*>(session_manager)->on_close(router_address);
 }
 
 void Session::OnDestroy()
@@ -67,16 +55,26 @@ void Session::OnDestroy()
 
 void Session::Close(int reason)
 {
-	if (nullptr == socket)
-	{
-		return;
-	}
+	auto self = shared_from_this();
+	Dispatch([this, self, reason]() {
+		if (nullptr == socket)
+		{
+			return;
+		}
 
-	OnClose(reason);
-	socket = nullptr;
+		for (auto& itr : async_responses)
+		{
+			const std::shared_ptr<Tcp::IAsyncResponse>& response = itr.second;
+			response->OnException(Exception(ErrorCode::SendMsgFailError));
+		}
 
-	OnDestroy();
-	session_manager->Remove(shared_from_this());
+		async_responses.clear();
+
+		OnClose(reason);
+		socket = nullptr;
+		OnDestroy();
+		session_manager->Remove(shared_from_this());
+	});
 }
 
 std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout)
@@ -99,34 +97,65 @@ std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet
 
 void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 {
-	std::shared_ptr<AsyncSession> session = async_pool[async_pool_index++ % ASYNC_POOL_SIZE];
-	if (nullptr == session->socket)
-	{
-		if (false == session->Connect(remote_endpoint))
-		{
-			LOG(ERR, "connect fail");
-			return;
-		}
-		session->AsyncRead();
-	}
-
-	session->AsyncSend(packet);
+	Network::Session::AsyncSend(packet);
 }
 
 void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<Tcp::IAsyncResponse>& response)
 {
-	std::shared_ptr<AsyncSession> session = async_pool[async_pool_index++ % ASYNC_POOL_SIZE];
-	if (nullptr == session->socket)
-	{
-		if (false == session->Connect(remote_endpoint))
-		{
-			LOG(ERR, "connect fail");
-			return;
-		}
-		session->AsyncRead();
-	}
+	auto self = shared_from_this();
+	uint32_t seq = response->seq;
+	response->OnExpire([this, self, seq]() {
+		Dispatch([this, self, seq]() {
+			this->async_responses.erase(seq);
+		});
+	});
 
-	session->AsyncSend(packet, response);
+	Dispatch([this, self, response]() {
+		this->async_responses[response->seq] = response;
+	});
+
+	Network::Session::AsyncSend(packet);
+}
+
+LocalSession::LocalSession()
+{
+}
+
+LocalSession::~LocalSession()
+{
+}
+
+void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
+{
+	auto self = shared_from_this();
+	Dispatch(std::bind(&Network::SessionManager::OnReceive, self->session_manager, self, packet));
+}
+
+void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<Tcp::IAsyncResponse>& response)
+{
+	auto self = shared_from_this();
+	Dispatch([this, self, packet, response] {
+		MsgRouter_SendMsg_Ntf ntf;
+		if (false == Network::Tcp::Packet::Load(ntf, packet))
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
+		}
+
+		std::shared_ptr<Network::Tcp::Packet> inner = Network::Tcp::Packet::Create();
+		if (nullptr == inner)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
+		}
+
+		inner->Append(ntf.buffer.data(), ntf.buffer.size());
+		inner->ReadHeader();
+
+		response->OnReceive(inner);
+	});
+}
+
+void LocalSession::OnRead(const std::shared_ptr<Buffer>& buffer)
+{
 }
 
 SyncSession::SyncSession() 
@@ -240,113 +269,6 @@ std::shared_ptr<Tcp::Packet> SyncSession::SyncRead(int timeout)
 		promise.set_value(packet);
 	});
 	return promise.get_future().get();
-}
-
-AsyncSession::AsyncSession()
-{
-	connector.connect_handler = std::bind(&AsyncSession::OnConnect, this, std::placeholders::_1);
-}
-
-bool AsyncSession::Init()
-{
-	Network::Session::Init();
-	protocol.Init();
-	return true;
-}
-
-bool AsyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)
-{
-	return connector.SyncConnect(endpoint.address().to_v4().to_string(), endpoint.port(), 5);
-}
-
-void AsyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
-{
-	Session::Init();
-
-	this->socket = socket;
-
-	MsgRouter_RegisterAddress_Ntf ntf;
-	ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
-
-	std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
-	packet->Write(ntf);
-	AsyncSend(packet);
-}
-
-void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) 
-{
-	Network::Session::AsyncSend(packet);
-}
-
-void AsyncSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<Tcp::IAsyncResponse>& response)
-{
-	auto self = shared_from_this();
-	uint32_t seq = response->seq;
-	response->OnExpire([this, self, seq]() {
-		Dispatch([this, self, seq]() {
-			this->async_responses.erase(seq);
-		});
-	});
-	Dispatch([this, self, response]() {
-		this->async_responses[response->seq] = response;
-	});
-
-	Network::Session::AsyncSend(packet);
-}
-
-void AsyncSession::OnRead(const std::shared_ptr<Buffer>& buffer)
-{
-	protocol.Parse(buffer);
-	std::shared_ptr<Tcp::Packet> packet = nullptr;
-	while (packet = protocol.Pop())
-	{
-		MsgRouter_SendMsg_Ntf ntf;
-		if (false == Network::Tcp::Packet::Load(ntf, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
-		}
-
-		std::shared_ptr<Network::Tcp::Packet> inner = Network::Tcp::Packet::Create();
-		if (nullptr == inner)
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
-		}
-
-		inner->Append(ntf.buffer.data(), ntf.buffer.size());
-		inner->ReadHeader();
-
-		auto itr = async_responses.find(inner->msg_seq);
-		if (async_responses.end() == itr)
-		{
-			continue;
-		}
-		
-		std::shared_ptr<Tcp::IAsyncResponse> response = itr->second;
-		async_responses.erase(itr);
-
-		response->OnReceive(inner);
-	}
-}
-
-void AsyncSession::Close(int reason)
-{
-	auto self = shared_from_this();
-	Dispatch([this, self]() {
-		if(nullptr == socket)
-		{
-			return;
-		}
-
-		for (auto& itr : async_responses)
-		{
-			const std::shared_ptr<Tcp::IAsyncResponse>& response = itr.second;
-			response->OnException(Exception(ErrorCode::SendMsgFailError));
-		}
-
-		async_responses.clear();
-		protocol.Clear();
-		socket = nullptr;
-	});
 }
 
 }}} /* namespace Gamnet */

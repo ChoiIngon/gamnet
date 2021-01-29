@@ -172,7 +172,31 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 	buffer->Append(ntf.buffer.data(), ntf.buffer.size());
 	buffer->ReadHeader();
 
-	Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
+	if (0 == ntf.msg_seq)
+	{
+		Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
+	}
+	else
+	{
+		std::shared_ptr<Network::Tcp::Packet> inner = Network::Tcp::Packet::Create();
+		if (nullptr == inner)
+		{
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
+		}
+
+		inner->Append(ntf.buffer.data(), ntf.buffer.size());
+		inner->ReadHeader();
+
+		auto itr = session->async_responses.find(ntf.msg_seq);
+		if (session->async_responses.end() == itr)
+		{
+			return;
+		}
+
+		std::shared_ptr<Tcp::IAsyncResponse> response = itr->second;
+		session->async_responses.erase(itr);
+		response->OnReceive(inner);
+	}
 }
 
 void RouterHandler::Recv_HeartBeat_Ntf(const std::shared_ptr<Session>& session, const MsgRouter_HeartBeat_Ntf& ntf)
@@ -184,6 +208,5 @@ void RouterHandler::Recv_RegisterAddress_Ntf(const std::shared_ptr<Session>& ses
 {
 	LOG(INF, "[Gamnet::Router] MsgRouter_RegisterAddress_Ntf(address:", ntf.router_address.ToString(), ")");
 	session->router_address = ntf.router_address;
-	session->type = Session::TYPE::RECV;
 }
 }}}
