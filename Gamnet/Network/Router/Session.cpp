@@ -102,19 +102,17 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 
 void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<Tcp::IAsyncResponse>& response)
 {
-	auto self = shared_from_this();
-	uint32_t seq = response->seq;
-	response->OnExpire([this, self, seq]() {
-		Dispatch([this, self, seq]() {
-			this->async_responses.erase(seq);
-		});
+	auto self = std::static_pointer_cast<Session>(shared_from_this());
+	response->session = self;
+	response->StartTimer([this, self, response]() {
+		async_responses.erase(response->seq);
 	});
-
+	
 	Dispatch([this, self, response]() {
-		this->async_responses[response->seq] = response;
+		async_responses[response->seq] = response;
 	});
 
-	Network::Session::AsyncSend(packet);
+	AsyncSend(packet);
 }
 
 LocalSession::LocalSession()
@@ -127,35 +125,8 @@ LocalSession::~LocalSession()
 
 void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 {
-	auto self = shared_from_this();
-	Dispatch(std::bind(&Network::SessionManager::OnReceive, self->session_manager, self, packet));
-}
-
-void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<Tcp::IAsyncResponse>& response)
-{
-	auto self = shared_from_this();
-	Dispatch([this, self, packet, response] {
-		MsgRouter_SendMsg_Ntf ntf;
-		if (false == Network::Tcp::Packet::Load(ntf, packet))
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "router message format error");
-		}
-
-		std::shared_ptr<Network::Tcp::Packet> inner = Network::Tcp::Packet::Create();
-		if (nullptr == inner)
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
-		}
-
-		inner->Append(ntf.buffer.data(), ntf.buffer.size());
-		inner->ReadHeader();
-
-		response->OnReceive(inner);
-	});
-}
-
-void LocalSession::OnRead(const std::shared_ptr<Buffer>& buffer)
-{
+	auto self = std::static_pointer_cast<LocalSession>(shared_from_this());
+	Dispatch(std::bind(&LocalSession::OnRead, self, packet));
 }
 
 SyncSession::SyncSession() 

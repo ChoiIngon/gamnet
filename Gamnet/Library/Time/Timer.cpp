@@ -47,9 +47,10 @@ void Timer::OnExpire(const boost::system::error_code& ec)
 		return;
 	}
 
-	std::shared_ptr<TimerEntry> entry = this->entry;
+	std::shared_ptr<TimerEntry> entry = nullptr;
 	{
 		std::lock_guard<std::mutex> lo(lock);
+		entry = this->entry;
 		if (nullptr == entry)
 		{
 			return;

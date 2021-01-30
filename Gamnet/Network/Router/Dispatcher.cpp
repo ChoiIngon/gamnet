@@ -15,28 +15,57 @@ namespace Gamnet { namespace Network { namespace Router {
 	{
 	}
 
-	void Dispatcher::OnReceive(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
+	void Dispatcher::OnReceive(const std::shared_ptr<Session>& session, const MsgRouter_SendMsg_Ntf& ntf)
 	{
-		auto itr = handler_functors.find(packet->msg_id);
-		if (handler_functors.end() == itr)
+		std::shared_ptr<Network::Tcp::Packet> inner = Network::Tcp::Packet::Create();
+		if (nullptr == inner)
 		{
-			LOG(GAMNET_ERR, "can't find handler function(msg_id:", packet->msg_id, ")");
-			return;
+			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
 		}
 
-		std::shared_ptr<IHandlerFunctor> handlerFunctor = itr->second;
-		
+		inner->Append(ntf.buffer.data(), ntf.buffer.size());
+		inner->ReadHeader();
+
 		Address addr = session->router_address;
-		addr.msg_seq = packet->msg_seq;
+		addr.msg_seq = inner->msg_seq;
 
-		//thread_pool.PostTask(std::bind(&IHandlerFunctor::OnReceive, handlerFunctor, addr, packet));
-		
-		try {
-			handlerFunctor->OnReceive(addr, packet);
-		}
-		catch (const std::exception& e)
+		if (0 == ntf.msg_seq) // no need to be thread safe
 		{
-			LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
+			auto itr = handler_functors.find(inner->msg_id);
+			if (handler_functors.end() == itr)
+			{
+				LOG(GAMNET_ERR, "can't find handler function(msg_id:", inner->msg_id, ")");
+				return;
+			}
+
+			std::shared_ptr<IHandlerFunctor> handlerFunctor = itr->second;
+			
+			thread_pool.PostTask(std::bind(&IHandlerFunctor::OnReceive, handlerFunctor, addr, inner));
+			/*
+			try {
+				handlerFunctor->OnReceive(addr, inner);
+			}
+			catch (const std::exception& e)
+			{
+				LOG(GAMNET_ERR, "unhandled exception occurred(reason:", e.what(), ")");
+			}
+			*/
+		}
+		else
+		{
+			auto itr = session->async_responses.find(ntf.msg_seq);
+			if (session->async_responses.end() == itr)
+			{
+				return;
+			}
+
+			std::shared_ptr<Tcp::IAsyncResponse> response = itr->second;
+			session->async_responses.erase(itr);
+
+			response->StopTimer();
+			
+			thread_pool.PostTask(std::bind(&Tcp::IAsyncResponse::OnReceive, response, inner));
+			//response->OnReceive(inner);
 		}
 	}
 }}}

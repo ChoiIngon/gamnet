@@ -163,40 +163,7 @@ void RouterHandler::Recv_RegisterAddress_Ans(const std::shared_ptr<Session>& ses
 
 void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, const MsgRouter_SendMsg_Ntf& ntf)
 {
-	std::shared_ptr<Network::Tcp::Packet> buffer = Network::Tcp::Packet::Create();
-	if (nullptr == buffer)
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
-	}
-
-	buffer->Append(ntf.buffer.data(), ntf.buffer.size());
-	buffer->ReadHeader();
-
-	if (0 == ntf.msg_seq)
-	{
-		Singleton<Dispatcher>::GetInstance().OnReceive(session, buffer);
-	}
-	else
-	{
-		std::shared_ptr<Network::Tcp::Packet> inner = Network::Tcp::Packet::Create();
-		if (nullptr == inner)
-		{
-			throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create packet");
-		}
-
-		inner->Append(ntf.buffer.data(), ntf.buffer.size());
-		inner->ReadHeader();
-
-		auto itr = session->async_responses.find(ntf.msg_seq);
-		if (session->async_responses.end() == itr)
-		{
-			return;
-		}
-
-		std::shared_ptr<Tcp::IAsyncResponse> response = itr->second;
-		session->async_responses.erase(itr);
-		response->OnReceive(inner);
-	}
+	Singleton<Dispatcher>::GetInstance().OnReceive(session, ntf);
 }
 
 void RouterHandler::Recv_HeartBeat_Ntf(const std::shared_ptr<Session>& session, const MsgRouter_HeartBeat_Ntf& ntf)

@@ -71,7 +71,7 @@ namespace Gamnet { namespace Network { namespace Router
 		}
 
 		MsgRouter_SendMsg_Ntf ntf;
-		ntf.msg_seq = 0;
+		ntf.msg_seq = addr.msg_seq;
 		ntf.buffer.assign(inner->ReadPtr(), inner->Size());
 
 		std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
@@ -100,18 +100,18 @@ namespace Gamnet { namespace Network { namespace Router
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidRouterAddress, "can not find route(route_address:", addr.ToString(), ", msg_id:", REQ::MSG_ID, ")");
 		}
 
-		std::shared_ptr<Gamnet::Network::Tcp::Packet> inner = Gamnet::Network::Tcp::Packet::Create();
-		if(nullptr == inner)
+		std::shared_ptr<Gamnet::Network::Tcp::Packet> buffer = Gamnet::Network::Tcp::Packet::Create();
+		if(nullptr == buffer)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::NullPointerError, "fail to create packet instance(msg_id:", REQ::MSG_ID, ")");
 		}
-		if(false == inner->Write(req))
+		if(false == buffer->Write(req))
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "fail to serialize message(msg_id:", REQ::MSG_ID, ")");
 		}
 		
 		MsgRouter_SendMsg_Ntf ntf;
-		std::copy(inner->ReadPtr(), inner->ReadPtr() + inner->Size(), std::back_inserter(ntf.buffer));
+		std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
 
 		std::shared_ptr<Gamnet::Network::Tcp::Packet> packet = Gamnet::Network::Tcp::Packet::Create();
 		if(nullptr == packet)

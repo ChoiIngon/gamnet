@@ -100,7 +100,7 @@ public:
 		return true;
 	}
 
-	void OnReceive(const std::shared_ptr<Session>& session, const std::shared_ptr<Network::Tcp::Packet>& packet);
+	void OnReceive(const std::shared_ptr<Session>& session, const MsgRouter_SendMsg_Ntf& ntf);
 };
 } /* namespace Router */
 } /* namespace Gamnet */

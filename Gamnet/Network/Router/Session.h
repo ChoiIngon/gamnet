@@ -50,9 +50,6 @@ public:
 	virtual ~LocalSession();
 
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
-	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<Tcp::IAsyncResponse>& response) override;
-
-	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;
 };
 
 class SyncSession : public Network::Session

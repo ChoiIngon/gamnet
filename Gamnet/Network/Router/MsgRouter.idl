@@ -18,7 +18,7 @@ struct Address
 {
 	.cpp %%
 	Address(ROUTER_CAST_TYPE _cast_type, const std::string& _service_name, uint32_t _id)
-		: service_name(_service_name), cast_type(_cast_type), id(_id), msg_seq(0)
+		: msg_seq(0), service_name(_service_name), cast_type(_cast_type), id(_id)
 	{
 	}
 	std::string ToString() const

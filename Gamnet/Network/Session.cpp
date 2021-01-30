@@ -46,6 +46,7 @@ void Session::Clear()
 void Session::AsyncSend(const char* data, size_t length)
 {
 	std::shared_ptr<Buffer> buffer = Buffer::Create();
+
 	buffer->Append(data, length);
 	AsyncSend(buffer);
 }
