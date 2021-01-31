@@ -1,5 +1,7 @@
 #ifndef _VECTOR2_H_
 #define _VECTOR2_H_
+#include <math.h>
+#include <algorithm>
 
 template <class T>
 class TVector2
@@ -25,7 +27,7 @@ public :
 		{
 			length = 0.0f;
 		}
-		Vector2Int ret = vec;
+		TVector2<T> ret = vec;
 		ret.x = vec.x / length;
 		ret.y = vec.y / length;
 		return ret;

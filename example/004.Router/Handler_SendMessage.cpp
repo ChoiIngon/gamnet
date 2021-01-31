@@ -35,7 +35,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ansSvrCli.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(INF, "--- [SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrCli.error_code, ")");
+	LOG(INF, "--- [2.SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrCli.error_code), ")");
 	Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 }
 
@@ -58,7 +58,7 @@ void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ansSvrSvr.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(INF, "--- [4.SEND] MsgSvrSvr_SendMessage_Ans(router_address:", address.ToString(), ", error_code:", (int)ansSvrSvr.error_code, ")");
+	LOG(INF, "--- [4.SEND] MsgSvrSvr_SendMessage_Ans(router_address:", address.ToString(), ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
 	Gamnet::Network::Router::SendMsg(address, ansSvrSvr);
 }
 
@@ -80,13 +80,13 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address
 		ansSvrCli.error_code = ErrorCode::Success;
 		try {
 			ansSvrCli.error_code = ansSvrSvr.error_code;
-			LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrSvr.error_code, ")");
+			LOG(INF, "--- [5.RECV] MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
 		}
 		catch (const Gamnet::Exception& e)
 		{
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
-		LOG(INF, "--- [SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrSvr.error_code, ")");
+		LOG(INF, "--- [6.SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
 		Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 	});
 }
@@ -102,13 +102,13 @@ void Handler_SendMessage::Timeout_SvrSvr_Ans(const Gamnet::Exception& e)
 		MsgSvrCli_SendMessage_Ans ansSvrCli;
 		ansSvrCli.error_code = (ErrorCode)e.error_code();
 		try {
-			LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)e.error_code(), ", reason:", e.what(), ")");
+			LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>((ErrorCode)e.error_code()), ", reason:", e.what(), ")");
 		}
 		catch (const Gamnet::Exception& e)
 		{
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
-		LOG(INF, "--- [SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrCli.error_code, ")");
+		LOG(INF, "--- [SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrCli.error_code), ")");
 		Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 	});
 }
@@ -181,7 +181,7 @@ void Test_SvrCli_SendMessage_Ans(const std::shared_ptr<TestSession>& session, co
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
-		//LOG(INF, "[S->C/", session->link->link_key, "/", session->session_key, "] MsgSvrCli_SendMessage_Ntf(message:", ntf.Message, ")");
+		LOG(INF, "--- [7.RECV] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ans.error_code), ")");
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
