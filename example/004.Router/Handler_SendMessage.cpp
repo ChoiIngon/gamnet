@@ -68,9 +68,13 @@ GAMNET_BIND_ROUTER_HANDLER(
 	HandlerStatic
 );
 
-void Handler_SendMessage::Recv_SvrSvr_Ans(const MsgSvrSvr_SendMessage_Ans& ansSvrSvr)
+void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address& address, const MsgSvrSvr_SendMessage_Ans& ansSvrSvr)
 {
 	std::shared_ptr<UserSession> session = this->session.lock();
+	if (nullptr == session)
+	{
+		return;
+	}
 	session->Dispatch([this, session, ansSvrSvr]() {
 		MsgSvrCli_SendMessage_Ans ansSvrCli;
 		ansSvrCli.error_code = ErrorCode::Success;
@@ -90,6 +94,10 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const MsgSvrSvr_SendMessage_Ans& ansSv
 void Handler_SendMessage::Timeout_SvrSvr_Ans(const Gamnet::Exception& e)
 {
 	std::shared_ptr<UserSession> session = this->session.lock();
+	if (nullptr == session)
+	{
+		return;
+	}
 	session->Dispatch([this, session, e]() {
 		MsgSvrCli_SendMessage_Ans ansSvrCli;
 		ansSvrCli.error_code = (ErrorCode)e.error_code();

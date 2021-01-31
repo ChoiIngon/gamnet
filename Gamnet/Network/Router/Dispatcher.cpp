@@ -64,7 +64,7 @@ namespace Gamnet { namespace Network { namespace Router {
 
 			response->StopTimer();
 			
-			thread_pool.PostTask(std::bind(&IAsyncResponse::OnReceive, response, inner));
+			thread_pool.PostTask(std::bind(&IAsyncResponse::OnReceive, response, addr, inner));
 			//response->OnReceive(inner);
 		}
 	}

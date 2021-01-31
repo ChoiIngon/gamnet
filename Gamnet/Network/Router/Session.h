@@ -31,8 +31,6 @@ public :
 	virtual void OnDestroy() override;
 	virtual void Close(int reason) override;
 
-	virtual void OnConnect();
-
 	std::shared_ptr<Tcp::Packet> SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout = 5);
 
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;

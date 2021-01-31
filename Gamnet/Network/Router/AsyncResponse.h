@@ -5,7 +5,7 @@
 #include "../Tcp/Packet.h"
 #include "../../Library/Pool.h"
 #include "../../Library/Time/Timer.h"
-
+#include "MsgRouter.h"
 
 namespace Gamnet { namespace Network { 
 
@@ -22,7 +22,7 @@ struct IAsyncResponse
 
 	virtual void Init();
 	virtual void Clear();
-	virtual void OnReceive(const std::shared_ptr<Tcp::Packet>&) = 0;
+	virtual void OnReceive(const Address&, const std::shared_ptr<Tcp::Packet>&) = 0;
 	virtual void OnException(const Gamnet::Exception& e);
 	void StartTimer(std::function<void()> expire);
 	void StopTimer();
@@ -38,7 +38,7 @@ struct IAsyncResponse
 template <class MsgType>
 struct AsyncResponse : IAsyncResponse
 {
-	typedef void(IHandler::*OnReceiveFuncType)(const MsgType&);
+	typedef void(IHandler::*OnReceiveFuncType)(const Address&, const MsgType&);
 	typedef void(IHandler::*OnExceptionFuncType)(const Gamnet::Exception&);
 
 	struct InitFunctor
@@ -70,7 +70,7 @@ struct AsyncResponse : IAsyncResponse
 		on_receive = nullptr;
 	}
 
-	virtual void OnReceive(const std::shared_ptr<Tcp::Packet>& packet) override
+	virtual void OnReceive(const Address& address, const std::shared_ptr<Tcp::Packet>& packet) override
 	{
 		MsgType msg;
 		
@@ -83,10 +83,10 @@ struct AsyncResponse : IAsyncResponse
 				return;
 			}
 		}
-		on_receive(handler, msg);
+		on_receive(handler, address, msg);
 	}
 
-	std::function<void(const std::shared_ptr<IHandler>&, const MsgType&)> on_receive;
+	std::function<void(const std::shared_ptr<IHandler>&, const Address&, const MsgType&)> on_receive;
 
 	static std::shared_ptr<AsyncResponse<MsgType>> Create();
 	static Pool<AsyncResponse<MsgType>, std::mutex, typename AsyncResponse<MsgType>::InitFunctor, typename AsyncResponse<MsgType>::ReleaseFunctor> pool;

@@ -18,14 +18,6 @@ Session::~Session()
 {
 }
 
-void Session::OnCreate()
-{
-}
-
-void Session::OnAccept()
-{
-}
-
 bool Session::Init()
 {
 	if (false == Network::Tcp::Session::Init())
@@ -33,20 +25,36 @@ bool Session::Init()
 		return false;
 	}
 	
-	session_state = Tcp::Session::Session::State::AfterAccept;
-
 	return true;
 }
 
-void Session::OnConnect()
+void Session::OnCreate()
 {
+}
+
+void Session::OnAccept()
+{
+	auto self = std::static_pointer_cast<Session>(shared_from_this());
+	if (false == Singleton<RouterCaster>::GetInstance().RegisterAddress(router_address, self))
+	{
+		throw GAMNET_EXCEPTION(ErrorCode::DuplicateRouterAddress, 
+			"duplicate router server(",
+			"router_address:", router_address.ToString(), 
+			", ip:", remote_endpoint.address().to_v4().to_string(), ", port:", remote_endpoint.port(), 
+			")"
+		);
+	}
 	static_cast<SessionManager*>(session_manager)->on_connect(router_address);
+	session_state = Tcp::Session::Session::State::AfterAccept;
 }
 
 void Session::OnClose(int reason)
 {
-	Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
-	static_cast<SessionManager*>(session_manager)->on_close(router_address);
+	if (Tcp::Session::Session::State::AfterAccept == session_state)
+	{
+		static_cast<SessionManager*>(session_manager)->on_close(router_address);
+		Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
+	}
 }
 
 void Session::OnDestroy()
@@ -126,7 +134,13 @@ LocalSession::~LocalSession()
 void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 {
 	auto self = shared_from_this();
-	Dispatch(std::bind(&Network::SessionManager::OnReceive, self->session_manager, self, packet));
+	try {
+		Dispatch(std::bind(&Network::SessionManager::OnReceive, self->session_manager, self, packet));
+	}
+	catch (const Gamnet::Exception& e)
+	{
+		LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
+	}
 }
 
 SyncSession::SyncSession() 
