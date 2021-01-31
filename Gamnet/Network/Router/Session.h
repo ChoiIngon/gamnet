@@ -2,10 +2,10 @@
 #define GAMNET_NETWORK_ROUTER_SESSION_H
 
 #include "MsgRouter.h"
+#include "AsyncResponse.h"
 #include "../Handler.h"
 #include "../Tcp/Session.h"
 #include "../Tcp/Connector.h"
-#include "../Tcp/AsyncResponse.h"
 #include "../../Library/Time/Time.h"
 #include "../../Library/Exception.h"
 #include <future>
@@ -36,9 +36,9 @@ public :
 	std::shared_ptr<Tcp::Packet> SyncSend(const std::shared_ptr<Tcp::Packet>& packet, int timeout = 5);
 
 	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet) override;
-	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<Tcp::IAsyncResponse>& response);
+	virtual void AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<IAsyncResponse>& response);
 
-	std::map<uint32_t, std::shared_ptr<Tcp::IAsyncResponse>> async_responses;
+	std::map<uint32_t, std::shared_ptr<IAsyncResponse>> async_responses;
 private :
 	Pool<SyncSession, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> sync_pool;
 };

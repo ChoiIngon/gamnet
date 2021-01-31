@@ -1,7 +1,8 @@
 #include "AsyncResponse.h"
+#include "Session.h"
 #include "../../Library/Singleton.h"
 
-namespace Gamnet { namespace Network { namespace Tcp {
+namespace Gamnet { namespace Network { namespace Router {
 
 std::atomic_uint32_t response_seq;
 
@@ -42,7 +43,7 @@ void IAsyncResponse::OnException(const Gamnet::Exception& e)
 
 void IAsyncResponse::StartTimer(std::function<void()> expire)
 {
-	std::shared_ptr<Network::Session> session = this->session.lock();
+	std::shared_ptr<Session> session = this->session.lock();
 	assert(nullptr != session);
 
 	timer.expires_from_now(boost::posix_time::milliseconds(timeout));

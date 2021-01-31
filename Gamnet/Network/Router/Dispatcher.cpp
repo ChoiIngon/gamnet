@@ -59,12 +59,12 @@ namespace Gamnet { namespace Network { namespace Router {
 				return;
 			}
 
-			std::shared_ptr<Tcp::IAsyncResponse> response = itr->second;
+			std::shared_ptr<IAsyncResponse> response = itr->second;
 			session->async_responses.erase(itr);
 
 			response->StopTimer();
 			
-			thread_pool.PostTask(std::bind(&Tcp::IAsyncResponse::OnReceive, response, inner));
+			thread_pool.PostTask(std::bind(&IAsyncResponse::OnReceive, response, inner));
 			//response->OnReceive(inner);
 		}
 	}

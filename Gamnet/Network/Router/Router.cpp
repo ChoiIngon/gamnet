@@ -59,6 +59,11 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 		return;
 	}
 
+	auto optional = ptree_.get_child_optional("server.router");
+	if (false == (bool)optional)
+	{
+		return;
+	}
 	try {
 		auto router = ptree_.get_child("server.router");
 		std::string service_name = router.get<std::string>("<xmlattr>.name");

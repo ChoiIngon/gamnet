@@ -194,7 +194,7 @@ namespace Gamnet {	namespace Test {
 		log.Init("test", "test", 5);
 		log_timer = Time::Timer::Create();
 		log_timer->AutoReset(true);
-		log_timer->SetTimer(1000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
+		log_timer->SetTimer(60000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
 
 		total_time.Reset();
 

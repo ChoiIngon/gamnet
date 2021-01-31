@@ -2,13 +2,18 @@
 #define GAMNET_NETWORK_TCP_ASYNC_RESPONSE_H_
 
 #include <memory>
-#include "Packet.h"
-#include "../Handler.h"
+#include "../Tcp/Packet.h"
 #include "../../Library/Pool.h"
 #include "../../Library/Time/Timer.h"
-#include "Session.h"
 
-namespace Gamnet { namespace Network { namespace Tcp {
+
+namespace Gamnet { namespace Network { 
+
+struct IHandler;
+
+namespace Router {
+
+class Session;
 
 struct IAsyncResponse
 {
@@ -17,7 +22,7 @@ struct IAsyncResponse
 
 	virtual void Init();
 	virtual void Clear();
-	virtual void OnReceive(const std::shared_ptr<Packet>&) = 0;
+	virtual void OnReceive(const std::shared_ptr<Tcp::Packet>&) = 0;
 	virtual void OnException(const Gamnet::Exception& e);
 	void StartTimer(std::function<void()> expire);
 	void StopTimer();
@@ -65,11 +70,11 @@ struct AsyncResponse : IAsyncResponse
 		on_receive = nullptr;
 	}
 
-	virtual void OnReceive(const std::shared_ptr<Packet>& packet) override
+	virtual void OnReceive(const std::shared_ptr<Tcp::Packet>& packet) override
 	{
 		MsgType msg;
 		
-		if (false == Packet::Load(msg, packet))
+		if (false == Tcp::Packet::Load(msg, packet))
 		{
 			assert(nullptr != on_receive);
 			if (nullptr != on_exception)

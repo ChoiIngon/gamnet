@@ -41,7 +41,7 @@ namespace Gamnet { namespace Network { namespace Router
 	}
 
 	template <class MSG>
-	bool SendMsg(const Address& addr, const MSG& msg, const std::shared_ptr<Tcp::IAsyncResponse>& response)
+	bool SendMsg(const Address& addr, const MSG& msg, const std::shared_ptr<IAsyncResponse>& response)
 	{
 		if ((unsigned int)ROUTER_CAST_TYPE::MAX <= (unsigned int)addr.cast_type)
 		{

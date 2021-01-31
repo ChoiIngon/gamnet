@@ -64,7 +64,7 @@ void Session::Close(int reason)
 
 		for (auto& itr : async_responses)
 		{
-			const std::shared_ptr<Tcp::IAsyncResponse>& response = itr.second;
+			const std::shared_ptr<IAsyncResponse>& response = itr.second;
 			response->OnException(Exception(ErrorCode::SendMsgFailError));
 		}
 
@@ -100,7 +100,7 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 	Network::Session::AsyncSend(packet);
 }
 
-void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<Tcp::IAsyncResponse>& response)
+void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::shared_ptr<IAsyncResponse>& response)
 {
 	auto self = std::static_pointer_cast<Session>(shared_from_this());
 	response->session = self;
@@ -125,8 +125,8 @@ LocalSession::~LocalSession()
 
 void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 {
-	auto self = std::static_pointer_cast<LocalSession>(shared_from_this());
-	Dispatch(std::bind(&LocalSession::OnRead, self, packet));
+	auto self = shared_from_this();
+	Dispatch(std::bind(&Network::SessionManager::OnReceive, self->session_manager, self, packet));
 }
 
 SyncSession::SyncSession() 

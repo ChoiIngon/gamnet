@@ -2,9 +2,8 @@
 #define HANDLER_ROUTER_SENDMESSAGE_H_
 
 #include "UserSession.h"
-#include <Gamnet/Network/Tcp/Handler.h>
 
-class Handler_SendMessage : public Gamnet::Network::Tcp::Handler {
+class Handler_SendMessage : public Gamnet::Network::IHandler {
 public:
 	Handler_SendMessage();
 	virtual ~Handler_SendMessage();
