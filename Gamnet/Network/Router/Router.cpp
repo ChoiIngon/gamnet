@@ -34,7 +34,7 @@ void Listen(const Address& localRouterAddress, int port, const std::function<voi
 	Tcp::BindHandler<Session, MsgRouter_HeartBeat_Ntf>("MsgRouter_HeartBeat_Ntf", &RouterHandler::Recv_HeartBeat_Ntf, handlerFactory);
 
 	Singleton<SessionManager>::GetInstance().Listen(localRouterAddress, port, acceptHandler, closeHandler);
-	LOG(INF, "[Gamnet::Router] listener start(port:", port, ", router_address:",
+	LOG(INF, "[Gamnet::Network::Router] listener start(port:", port, ", router_address:",
 		Singleton<SessionManager>::GetInstance().local_address.service_name, ":",
 		(int)Singleton<SessionManager>::GetInstance().local_address.cast_type, ":",
 		Singleton<SessionManager>::GetInstance().local_address.id, ", ",
@@ -126,7 +126,7 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 	}
 	catch (const boost::property_tree::ptree_bad_path& e)
 	{
-		std::cerr << "[Gamnet::Router] " << e.what() << std::endl;
+		std::cerr << "[Gamnet::Network::Router] " << e.what() << std::endl;
 		throw GAMNET_EXCEPTION(ErrorCode::SystemInitializeError, e.what());
 	}
 }

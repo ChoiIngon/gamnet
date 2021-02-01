@@ -17,7 +17,7 @@ void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, co
 		SessionManager* sessionManager = static_cast<SessionManager*>(session->session_manager);
 		ans.router_address = sessionManager->local_address;
 
-		LOG(INF, "[Gamnet::Router] ",
+		LOG(INF, "[Gamnet::Network::Router] ",
 			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
 			"localhost:", session->socket->local_endpoint().port(), " "
 			"RECV MsgRouter_Connect_Req(router_address:", remote.ToString(), ")"
@@ -29,7 +29,7 @@ void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, co
 		ans.error_code = e.error_code();
 	}
 
-	LOG(INF, "[Gamnet::Router] ",
+	LOG(INF, "[Gamnet::Network::Router] ",
 		"localhost:", session->socket->local_endpoint().port(), " -> ",
 		session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " ",
 		"SEND MsgRouter_Connect_Ans(router_address:", ans.router_address.ToString(), ")"
@@ -51,7 +51,7 @@ void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, co
 			);
 		}
 
-		LOG(INF, "[Gamnet::Router] ",
+		LOG(INF, "[Gamnet::Network::Router] ",
 			"localhost:", session->socket->local_endpoint().port(), " -> ",
 			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " ",
 			"SEND MsgRouter_RegisterAddress_Req(router_address:", ans.router_address.ToString(), ")"
@@ -71,7 +71,7 @@ void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, co
 	try {
 		SessionManager* sessionManager = static_cast<SessionManager*>(session->session_manager);
 		
-		LOG(INF, "[Gamnet::Router] ",
+		LOG(INF, "[Gamnet::Network::Router] ",
 			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
 			"localhost:", session->socket->local_endpoint().port(), " "
 			"RECV MsgRouter_Connect_Ans(router_address:", remote.ToString(), ", error_code:", ans.error_code, ")"
@@ -94,7 +94,7 @@ void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, co
 				);
 			}
 
-			LOG(INF, "[Gamnet::Router] ",
+			LOG(INF, "[Gamnet::Network::Router] ",
 				"localhost:", session->socket->local_endpoint().port(), " -> ",
 				session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " ",
 				"SEND MsgRouter_RegisterAddress_Req(router_address:", remote.ToString(), ")"
@@ -124,7 +124,7 @@ void RouterHandler::Recv_RegisterAddress_Req(const std::shared_ptr<Session>& ses
 	ans.error_code = ErrorCode::Success;
 
 	try {
-		LOG(INF, "[Gamnet::Router] ",
+		LOG(INF, "[Gamnet::Network::Router] ",
 			session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
 			"localhost:", session->socket->local_endpoint().port(), " "
 			"RECV MsgRouter_RegisterAddress_Req(router_address:", ans.router_address.ToString(), ")"
@@ -150,7 +150,7 @@ void RouterHandler::Recv_RegisterAddress_Req(const std::shared_ptr<Session>& ses
 		ans.error_code = e.error_code();
 	}
 
-	LOG(INF, "[Gamnet::Router] ",
+	LOG(INF, "[Gamnet::Network::Router] ",
 		session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
 		"localhost:", session->socket->local_endpoint().port(), " ",
 		"SEND MsgRouter_RegisterAddress_Ans(error_code:", (int)ans.error_code, ", router_address : ", ans.router_address.ToString(), ")"
@@ -162,7 +162,7 @@ void RouterHandler::Recv_RegisterAddress_Req(const std::shared_ptr<Session>& ses
 
 void RouterHandler::Recv_RegisterAddress_Ans(const std::shared_ptr<Session>& session, const MsgRouter_RegisterAddress_Ans& ans)
 {
-	LOG(INF, "[Gamnet::Router] ",
+	LOG(INF, "[Gamnet::Network::Router] ",
 		session->socket->remote_endpoint().address().to_v4().to_string(), ":", session->socket->remote_endpoint().port(), " -> ",
 		"localhost:", session->socket->local_endpoint().port(), " "
 		"RECV MsgRouter_RegisterAddress_Ans(error_code:", ans.error_code, ")"
@@ -191,12 +191,12 @@ void RouterHandler::Recv_SendMsg_Ntf(const std::shared_ptr<Session>& session, co
 
 void RouterHandler::Recv_HeartBeat_Ntf(const std::shared_ptr<Session>& session, const MsgRouter_HeartBeat_Ntf& ntf)
 {
-	LOG(INF, "[Gamnet::Router] recv heartbeat message(address:", session->router_address.ToString(),")");
+	LOG(INF, "[Gamnet::Network::Router] recv heartbeat message(address:", session->router_address.ToString(),")");
 }
 
 void RouterHandler::Recv_RegisterAddress_Ntf(const std::shared_ptr<Session>& session, const MsgRouter_RegisterAddress_Ntf& ntf)
 {
-	LOG(INF, "[Gamnet::Router] MsgRouter_RegisterAddress_Ntf(address:", ntf.router_address.ToString(), ")");
+	LOG(INF, "[Gamnet::Network::Router] MsgRouter_RegisterAddress_Ntf(address:", ntf.router_address.ToString(), ")");
 	session->router_address = ntf.router_address;
 }
 }}}

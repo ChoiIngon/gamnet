@@ -191,10 +191,10 @@ namespace Gamnet {	namespace Test {
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'session_count' should be set");
 		}
 
-		log.Init("test", "test", 5);
+		log.Init("log", "test", 5);
 		log_timer = Time::Timer::Create();
 		log_timer->AutoReset(true);
-		log_timer->SetTimer(60000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
+		log_timer->SetTimer(3000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
 
 		total_time.Reset();
 
@@ -330,6 +330,11 @@ namespace Gamnet {	namespace Test {
 		{
 			begin_execute_count++;
 			connector.AsyncConnect(host.c_str(), port, 0);
+		}
+
+		if (finish_execute_count >= max_execute_count)
+		{
+			OnLogTimerExpire();
 		}
 	}
 

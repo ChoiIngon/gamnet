@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 	Gamnet::InitCrashDump();
 	try {
 		Gamnet::Log::ReadXml(config_path);
-		LOG(INF, argv[0], " Server Starts..");
+		LOG(INF, "file:", argv[0]);
 		LOG(INF, "build date:", __DATE__, " ", __TIME__);
 		LOG(INF, "local ip:", Gamnet::Network::Tcp::GetLocalAddress().to_string());
 

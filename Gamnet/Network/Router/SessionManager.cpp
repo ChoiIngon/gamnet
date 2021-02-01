@@ -100,7 +100,7 @@ namespace Gamnet { namespace Network { namespace Router {
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Network::Route] can not create session instance(availble:", session_pool.Available(), ")");
 		}
 
-		LOG(INF, "[Gamnet::Router] accept a connection..(remote_endpoint:", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), ")");
+		LOG(INF, "[Gamnet::Network::Router] accept a connection..(remote_endpoint:", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), ")");
 		session->socket = socket;
 		session->AsyncRead();
 	}
@@ -113,11 +113,11 @@ namespace Gamnet { namespace Network { namespace Router {
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Network::Route] can not create session instance(availble:", session_pool.Available(), ")");
 		}
 
-		LOG(INF, "[Gamnet::Router] connect success..(remote_endpoint:", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), ")");
+		LOG(INF, "[Gamnet::Network::Router] connect success..(remote_endpoint:", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), ")");
 		session->socket = socket;
 		session->AsyncRead();
 		
-		LOG(INF, "[Gamnet::Router] "
+		LOG(INF, "[Gamnet::Network::Router] "
 			"localhost:", port, " -> ",
 			socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), " ",
 			"SEND MsgRouter_Connect_Req(router_address:", local_address.ToString(), ")"

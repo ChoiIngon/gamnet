@@ -12,7 +12,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 	MsgSvrCli_SendMessage_Ans ansSvrCli;
 	try {
 		this->session = session;
-		LOG(INF, "--- [1.RECV] MsgCliSvr_SendMessage_Req(session_key:", session->session_key, ", message:", reqCliSvr.text, ")");
+		LOG(DEV, "MsgCliSvr_SendMessage_Req(session_key:", session->session_key, ", message:", reqCliSvr.text, ")");
 		reqSvrSvr.text = reqCliSvr.text;
 
 		std::string serviceName = "ROUTER";
@@ -26,7 +26,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		ansSvrCli.error_code = ansSvrSvr.error_code;
 		*/
 
-		LOG(INF, "--- [2.SEND] MsgSvrSvr_SendMessage_Req(session_key:", session->session_key, ", router_address:", dest.ToString(), ", message:", reqSvrSvr.text, ")");
+		LOG(DEV, "MsgSvrSvr_SendMessage_Req(session_key:", session->session_key, ", message:", reqSvrSvr.text, ", to:", dest.ToString(),  ")");
 		Gamnet::Network::Router::SendMsg(dest, reqSvrSvr, BindResponse<MsgSvrSvr_SendMessage_Ans>(7, &Handler_SendMessage::Recv_SvrSvr_Ans, &Handler_SendMessage::Timeout_SvrSvr_Ans));
 		return;
 	}
@@ -35,7 +35,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ansSvrCli.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(INF, "--- [2.SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrCli.error_code), ")");
+	LOG(DEV, "MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrCli.error_code), ")");
 	Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 }
 
@@ -51,14 +51,14 @@ void Handler_SendMessage::Recv_SvrSvr_Req(const Gamnet::Network::Router::Address
 	MsgSvrSvr_SendMessage_Ans ansSvrSvr;
 	ansSvrSvr.error_code = ErrorCode::Success;
 	try {
-		LOG(INF, "--- [3.RECV] MsgSvrSvr_SendMessage_Req(router_address:", address.ToString(), ", message:", reqSvrSvr.text, ")");
+		LOG(DEV, "MsgSvrSvr_SendMessage_Req(from:", address.ToString(), ", message:", reqSvrSvr.text, ")");
 	}
 	catch (const Gamnet::Exception& e)
 	{
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ansSvrSvr.error_code = (ErrorCode)e.error_code();
 	}
-	LOG(INF, "--- [4.SEND] MsgSvrSvr_SendMessage_Ans(router_address:", address.ToString(), ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
+	LOG(DEV, "MsgSvrSvr_SendMessage_Ans(to:", address.ToString(), ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
 	Gamnet::Network::Router::SendMsg(address, ansSvrSvr);
 }
 
@@ -73,20 +73,21 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address
 	std::shared_ptr<UserSession> session = this->session.lock();
 	if (nullptr == session)
 	{
+		LOG(ERR, "MsgSvrSvr_SendMessage_Ans(can't find user session)");
 		return;
 	}
+	LOG(DEV, "MsgSvrSvr_SendMessage_Ans(from:", address.ToString(), ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
 	session->Dispatch([this, session, ansSvrSvr]() {
 		MsgSvrCli_SendMessage_Ans ansSvrCli;
 		ansSvrCli.error_code = ErrorCode::Success;
 		try {
 			ansSvrCli.error_code = ansSvrSvr.error_code;
-			LOG(INF, "--- [5.RECV] MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
 		}
 		catch (const Gamnet::Exception& e)
 		{
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
-		LOG(INF, "--- [6.SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
+		LOG(DEV, "MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
 		Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 	});
 }
@@ -96,19 +97,22 @@ void Handler_SendMessage::Timeout_SvrSvr_Ans(const Gamnet::Exception& e)
 	std::shared_ptr<UserSession> session = this->session.lock();
 	if (nullptr == session)
 	{
+		LOG(ERR, "MsgSvrSvr_SendMessage_Ans(can't find user session)");
 		return;
 	}
+
+	LOG(DEV, "MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>((ErrorCode)e.error_code()), ", reason:", e.what(), ")");
 	session->Dispatch([this, session, e]() {
 		MsgSvrCli_SendMessage_Ans ansSvrCli;
 		ansSvrCli.error_code = (ErrorCode)e.error_code();
 		try {
-			LOG(INF, "--- [RECV] MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>((ErrorCode)e.error_code()), ", reason:", e.what(), ")");
+			
 		}
 		catch (const Gamnet::Exception& e)
 		{
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
-		LOG(INF, "--- [SEND] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrCli.error_code), ")");
+		LOG(DEV, "MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrCli.error_code), ")");
 		Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 	});
 }
@@ -166,11 +170,7 @@ void Test_CliSvr_SendMessage_Req(const std::shared_ptr<TestSession>& session)
 {
 	MsgCliSvr_SendMessage_Req req;
 	req.text = "Hello World";
-	//LOG(INF, "[C->S/", session->link->link_key, "/", session->session_key, "] MsgCliSvr_SendMessage_Ntf(message:", ntf.Message, ")");
-	session->pause_timer = Gamnet::Time::Timer::Create();
-	session->pause_timer->SetTimer(3000, [session, req]() {
-		Gamnet::Test::SendMsg(session, req);
-	});
+	Gamnet::Test::SendMsg(session, req);
 }
 
 void Test_SvrCli_SendMessage_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
@@ -181,7 +181,6 @@ void Test_SvrCli_SendMessage_Ans(const std::shared_ptr<TestSession>& session, co
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail");
 		}
-		LOG(INF, "--- [7.RECV] MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ans.error_code), ")");
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
