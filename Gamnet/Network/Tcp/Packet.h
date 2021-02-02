@@ -97,20 +97,6 @@ public :
 	bool Write(uint32_t msgID, const char* buf, size_t bytes);
 	bool WriteHeader();
 	bool ReadHeader();
-
-public :
-	class Protocol
-	{
-	public :
-		Protocol();
-		void Init();
-		void Clear();
-		void Parse(const std::shared_ptr<Buffer>& buffer);
-		std::shared_ptr<Packet> Pop();
-	private:
-		std::shared_ptr<Packet> recv_packet;
-		std::list<std::shared_ptr<Packet>> recv_packet_queue;
-	};
 };
 
 

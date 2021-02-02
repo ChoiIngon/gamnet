@@ -17,6 +17,7 @@ Session::Session()
 	, recv_seq(0)
 	, send_seq(0)
 	, last_recv_time(0)
+	, recv_packet(nullptr)
 	, session_state(State::Invalid)
 {
 }
@@ -32,8 +33,14 @@ bool Session::Init()
 		return false;
 	}
 
-	protocol.Init();
 	session_token = Session::GenerateSessionToken(session_key);
+
+	recv_packet = Packet::Create();
+	if(nullptr == recv_packet)
+	{
+		LOG(GAMNET_ERR, "ErrorCode::NullPacketError can not create Packet instance");
+		return false;
+	}
 
 	recv_seq = 0;
 	send_seq = 0;
@@ -45,6 +52,7 @@ bool Session::Init()
 
 void Session::Clear()
 {
+	recv_packet = nullptr;
 	send_packets.clear();
 	session_state = State::Invalid;
 	Network::Session::Clear();
@@ -75,12 +83,40 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 {
 	try {
 		last_recv_time = time( nullptr );
-		protocol.Parse(buffer);
-		std::shared_ptr<Packet> packet = nullptr;
-		while (packet = protocol.Pop())
+		while(0 < buffer->Size())
 		{
-			auto self = shared_from_this();
-			session_manager->OnReceive(self, packet);
+			size_t readSize = std::min(buffer->Size(), recv_packet->Available());
+			recv_packet->Append(buffer->ReadPtr(), readSize);
+			buffer->Remove(readSize);
+
+			while(Packet::HEADER_SIZE <= (int)recv_packet->Size())
+			{
+				recv_packet->ReadHeader();
+				if(Packet::HEADER_SIZE > recv_packet->length)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::BufferUnderflowError, "buffer underflow(read size:", recv_packet->length, ")");
+				}
+
+				if(recv_packet->length >= (uint16_t)recv_packet->Capacity())
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::BufferOverflowError, "buffer overflow(read size:", recv_packet->length, ")");
+				}
+
+				if(recv_packet->length > (uint16_t)recv_packet->Size())
+				{
+					break;
+				}
+
+				std::shared_ptr<Packet> packet = recv_packet;
+				recv_packet = Packet::Create();
+				if(nullptr == recv_packet)
+				{
+					throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
+				}
+				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
+				auto self = shared_from_this();
+				session_manager->OnReceive(self, packet);
+			}
 		}
 	}
 	catch (const Exception& e)
@@ -107,7 +143,6 @@ void Session::Close(int reason)
 			OnDestroy();
 			session_state = State::Invalid;
 			session_manager->Remove(self);
-			protocol.Clear();
 		}
 	});
 }
