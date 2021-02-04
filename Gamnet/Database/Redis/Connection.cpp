@@ -29,7 +29,10 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	{	
 		if (nullptr == socket)
 		{
-			Reconnect();
+			if (false == Reconnect())
+			{
+				return nullptr;
+			}
 		}
 	
 		try 
@@ -65,6 +68,10 @@ namespace Gamnet { namespace Database {	namespace Redis {
 			}
 
 			return impl;
+		}
+		catch (const Gamnet::Exception& e)
+		{
+			LOG(ERR, "error_code:", e.error_code(), ", reason:", e.what());
 		}
 		catch(const boost::system::system_error& e)
 		{

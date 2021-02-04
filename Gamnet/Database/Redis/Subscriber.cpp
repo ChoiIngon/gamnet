@@ -35,7 +35,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 	{
 		this->host = host;
 		this->port = port;
-		connector.SyncConnect(host, port, 5);
+		connector.AsyncConnect(host, port, 5);
 	}
 
 	void Subscriber::Reconnect()
@@ -44,7 +44,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		{
 			return;
 		}
-		connector.SyncConnect(host, port, 5);
+		connector.AsyncConnect(host, port, 5);
 	}
 
 	void Subscriber::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)

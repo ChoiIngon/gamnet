@@ -101,8 +101,47 @@ void Session::OnSendHandler(const boost::system::error_code& ec, std::size_t tra
 
 int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 {
-	std::promise<int> promise;
 	auto self = shared_from_this();
+	int totalSentBytes = -1;
+	Dispatch([this, self, buffer, &totalSentBytes]() {
+		if (nullptr == socket)
+		{
+			totalSentBytes = -1;
+			return;
+		}
+
+		while (0 < buffer->Size())
+		{
+			try {
+				boost::system::error_code ec;
+				int sentBytes = boost::asio::write(*(socket), boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), ec);
+				if (0 > sentBytes || 0 != ec.value())
+				{
+					LOG(ERR, "send fail(errno:", errno, ", ec:", ec, ")");
+					totalSentBytes = -1;
+					return;
+				}
+				if (0 == sentBytes)
+				{
+					LOG(ERR, "send '0' byte(errno:", errno, ", ec:", ec, ")");
+					totalSentBytes = -1;
+					return;
+				}
+				totalSentBytes += sentBytes;
+				buffer->Remove(sentBytes);
+			}
+			catch (const boost::system::system_error& e)
+			{
+				LOG(ERR, "send exception(errno:", errno, ", errstr:", e.what(), ")");
+				Close(errno);
+				totalSentBytes = -1;
+				return;
+			}
+		}
+	});
+	return totalSentBytes;
+	/*
+	std::promise<int> promise;
 	Dispatch([self, this, &promise, buffer]() {
 		if (nullptr == self->socket)
 		{
@@ -143,6 +182,7 @@ int Session::SyncSend(const std::shared_ptr<Buffer>& buffer)
 		promise.set_value(totalSentBytes);
 	});
 	return promise.get_future().get();
+	*/
 }
 
 int Session::SyncSend(const char* data, int length)
