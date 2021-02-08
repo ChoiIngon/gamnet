@@ -6,6 +6,9 @@ namespace Gamnet { namespace Test {
 
 Session::Session() :  test_seq(0)
 {
+#ifdef _DEBUG
+	reconnector.name = "Test::Session";
+#endif
 	reconnector.connect_handler = std::bind(&Session::OnReconnect, this, std::placeholders::_1);
 }
 

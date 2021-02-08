@@ -35,8 +35,15 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		void AsyncConnect(const std::string& host, int port, int timeout);
 		bool SyncConnect(const std::string& host , int port, int timeout);
 	private:
-		void Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer, const boost::asio::ip::tcp::endpoint& endpoint, const boost::system::error_code& ec);
-		void Callback_ConnectTimeout(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer);
+		void Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const boost::asio::ip::tcp::endpoint& endpoint, const boost::system::error_code& ec);
+		void Callback_ConnectTimeout();
+
+		Time::Timer timer;
+#ifdef _DEBUG
+	public :
+		std::string name;
+		boost::asio::ip::tcp::endpoint endpoint;
+#endif
 	};
 }}}
 #endif

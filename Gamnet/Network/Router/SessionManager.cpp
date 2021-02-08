@@ -20,6 +20,9 @@ namespace Gamnet { namespace Network { namespace Router {
 		, port(0)
 	{
 		acceptor.accept_handler = std::bind(&SessionManager::OnAcceptHandler, this, std::placeholders::_1);
+#ifdef _DEBUG
+		connector.name = "Router::SessionManager";
+#endif
 		connector.connect_handler = std::bind(&SessionManager::OnConnectHandler, this, std::placeholders::_1);
 	}
 

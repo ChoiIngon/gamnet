@@ -45,7 +45,9 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 
 		boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ address_.to_v4().to_string(), std::to_string(port).c_str() }));
-
+#ifdef _DEBUG
+		this->endpoint = endpoint_;
+#endif
 		std::shared_ptr<boost::asio::ip::tcp::socket> socket = socket_pool.Create();
 		if (nullptr == socket)
 		{
@@ -53,14 +55,12 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return;
 		}
 		
-		std::shared_ptr<Time::Timer> timer = nullptr;
 		if (0 < timeout)
 		{
-			timer = Time::Timer::Create();
-			timer->AutoReset(false);
-			timer->SetTimer(timeout * 1000, std::bind(&Connector::Callback_ConnectTimeout, this, socket, timer));
+			timer.AutoReset(false);
+			timer.SetTimer(timeout * 1000, std::bind(&Connector::Callback_ConnectTimeout, this));
 		}
-		socket->async_connect(endpoint_, boost::bind(&Connector::Callback_Connect, this, socket, timer, endpoint_, boost::asio::placeholders::error));
+		socket->async_connect(endpoint_, boost::bind(&Connector::Callback_Connect, this, socket, endpoint_, boost::asio::placeholders::error));
 	}
 
 	bool Connector::SyncConnect(const std::string& host, int port, int timeout)
@@ -73,12 +73,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			return false;
 		}
 
-		std::shared_ptr<Time::Timer> timer = nullptr;
 		if(timeout > 0)
 		{
-			timer = Time::Timer::Create();
-			timer->AutoReset(false);
-			timer->SetTimer(timeout * 1000, std::bind(&Connector::Callback_ConnectTimeout, this, socket, timer));
+			timer.AutoReset(false);
+			timer.SetTimer(timeout * 1000, std::bind(&Connector::Callback_ConnectTimeout, this));
 		}
 		
 		boost::asio::ip::address address_;
@@ -92,25 +90,31 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 
 		boost::asio::ip::tcp::endpoint endpoint_(*resolver_.resolve({ address_.to_v4().to_string(), std::to_string(port).c_str() }));
-
+#ifdef _DEBUG
+		this->endpoint = endpoint_;
+#endif
 		boost::system::error_code ec;
 		socket->connect(endpoint_, ec);
 		if (0 != ec.value())
 		{
-			LOG(GAMNET_ERR, "connect fail(host:", host, ", port:", port, ")");
+#ifdef _DEBUG
+			LOG(ERR, name, " connector, fail to connect '", endpoint.address().to_v4().to_string(), ":", endpoint.port(), "'");
+#endif
+			if (nullptr != error_handler)
+			{
+				error_handler(ErrorCode::ConnectFailError);
+			}
 			return false;
 		}
+		timer.Cancel();
 		connect_handler(socket);
 		return true;
 	}
 
-	void Connector::Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer, const boost::asio::ip::tcp::endpoint& endpoint, const boost::system::error_code& ec)
+	void Connector::Callback_Connect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const boost::asio::ip::tcp::endpoint& endpoint, const boost::system::error_code& ec)
 	{
 		try {
-			if(nullptr != timer)
-			{
-				timer->Cancel();
-			}
+			timer.Cancel();
 
 			if (false == socket->is_open())
 			{
@@ -142,13 +146,11 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 	}
 
-	void Connector::Callback_ConnectTimeout(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<Time::Timer>& timer)
+	void Connector::Callback_ConnectTimeout()
 	{
-		if(nullptr == timer)
-		{
-			return;
-		}
-		timer->Cancel();
+#ifdef _DEBUG
+		LOG(ERR, name, " connector, fail to connect '", endpoint.address().to_v4().to_string(), ":", endpoint.port(), "'");
+#endif
 		if(nullptr != error_handler)
 		{
 			error_handler(ErrorCode::ConnectTimeoutError);

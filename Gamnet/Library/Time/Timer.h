@@ -50,7 +50,9 @@ private :
 	bool auto_reset;
 	std::shared_ptr<TimerEntry> entry;
 	boost::asio::deadline_timer deadline_timer;
-
+#ifdef _DEBUG
+	uint32_t timer_seq;
+#endif
 	void OnExpire(const boost::system::error_code& ec);
 public :
 	Timer();

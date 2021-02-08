@@ -7,6 +7,9 @@ namespace Gamnet { namespace Database {	namespace Redis {
 
 	Connection::Connection() 
 	{
+#ifdef _DEBUG
+		connector.name = "Redis::Connection";
+#endif
 		connector.connect_handler = std::bind(&Connection::OnConnect, this, std::placeholders::_1);
 	}
 

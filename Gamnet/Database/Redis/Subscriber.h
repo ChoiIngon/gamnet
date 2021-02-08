@@ -26,7 +26,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		virtual ~Subscriber();
 
 		bool Init();
-		void Connect(const std::string& host, int port);
+		bool Connect(const std::string& host, int port);
 		void Subscribe(const std::string& channel, const std::function<void(const std::string& message)>& callback);
 		void Unsubscribe(const std::string& channel);
 
@@ -42,7 +42,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		std::string host;
 		int port;
 
-		void Reconnect();
+		bool Reconnect();
 		void AsyncSend(const std::string& query);
 		void OnRead(const std::shared_ptr<Buffer>& buffer);
 		void OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket);

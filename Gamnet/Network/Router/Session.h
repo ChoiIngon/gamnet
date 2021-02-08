@@ -56,8 +56,6 @@ public:
 	SyncSession();
 	~SyncSession();
 
-	virtual bool Init() override;
-
 	bool Connect(const boost::asio::ip::tcp::endpoint& endpoint);
 
 	std::shared_ptr<Tcp::Packet> SyncRead(int timeout);

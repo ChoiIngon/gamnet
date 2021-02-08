@@ -145,16 +145,14 @@ void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 
 SyncSession::SyncSession() 
 {
+#ifdef _DEBUG
+	connector.name = "Router::SyncSession";
+#endif
 	connector.connect_handler = std::bind(&SyncSession::OnConnect, this, std::placeholders::_1);
 }
 
 SyncSession::~SyncSession() 
 {
-}
-
-bool SyncSession::Init()
-{
-	return true;
 }
 
 bool SyncSession::Connect(const boost::asio::ip::tcp::endpoint& endpoint)

@@ -76,6 +76,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		subscriber->Init();
 		subscriber->Connect(connInfo.host, connInfo.port);
 		subscribers.insert(std::make_pair(db_type, std::static_pointer_cast<Subscriber>(subscriber)));
+
 		return Singleton<ConnectionPool<Connection>>::GetInstance().Connect(db_type, connInfo);
 	}
 

@@ -168,6 +168,9 @@ namespace Gamnet {	namespace Test {
 	template <class SESSION_T>
 	SessionManager<SESSION_T>::SessionManager() : session_pool(65535, SessionFactory(this))
 	{
+#ifdef _DEBUG
+		connector.name = "Test::SessionManager";
+#endif
 		connector.connect_handler = std::bind(&SessionManager::OnConnectHandler, this, std::placeholders::_1);
 		system_recv_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2)));
 		system_recv_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Reconnect_Ans, this, std::placeholders::_1, std::placeholders::_2)));

@@ -4,6 +4,9 @@
 namespace Gamnet { namespace Database { namespace Redis {
 	Subscriber::Subscriber() 
 	{
+#ifdef _DEBUG
+		connector.name = "Subscriber";
+#endif
 		connector.connect_handler = std::bind(&Subscriber::OnConnect, this, std::placeholders::_1);
 		connector.error_handler = std::bind(&Subscriber::OnError, this, std::placeholders::_1);
 		handlers.insert(std::make_pair("subscribe", std::bind(&Subscriber::OnRecv_SubscribeAns, this, std::placeholders::_1)));
@@ -31,20 +34,20 @@ namespace Gamnet { namespace Database { namespace Redis {
 		return true;
 	}
 
-	void Subscriber::Connect(const std::string& host, int port)
+	bool Subscriber::Connect(const std::string& host, int port)
 	{
 		this->host = host;
 		this->port = port;
-		connector.AsyncConnect(host, port, 5);
+		return connector.SyncConnect(host, port, 5);
 	}
 
-	void Subscriber::Reconnect()
+	bool Subscriber::Reconnect()
 	{
 		if(nullptr != this->socket)
 		{
-			return;
+			return true;
 		}
-		connector.AsyncConnect(host, port, 5);
+		return connector.SyncConnect(host, port, 5);
 	}
 
 	void Subscriber::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)

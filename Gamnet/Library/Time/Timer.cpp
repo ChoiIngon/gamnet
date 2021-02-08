@@ -30,8 +30,12 @@ namespace Gamnet { namespace Time {
 		return pool.Create();
 	}
 
+	static std::atomic<uint32_t> TIMER_SEQ;
 Timer::Timer()
 	: interval(0), auto_reset(false), entry(nullptr), deadline_timer(Singleton<boost::asio::io_context>::GetInstance())
+#ifdef _DEBUG
+	, timer_seq(++TIMER_SEQ)
+#endif
 {
 }
 
