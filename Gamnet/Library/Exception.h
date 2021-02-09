@@ -25,6 +25,7 @@ public :
 		InvalidSessionTokenError	= 21,
 		InvalidSessionError			= 22,
 		InvalidSessionKeyError		= 23,
+		InvalidSessionStateError	= 24,
 		InvalidArrayRangeError		= 30,
 		InvalidKeyError				= 40,
 		InvalidAddressError			= 41,

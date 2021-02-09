@@ -121,7 +121,7 @@ public:
 				prevSession->session_state = Network::Tcp::Session::State::AfterAccept;
 				for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
 				{
-					prevSession->AsyncSend(sendPacket);
+					prevSession->Network::Session::AsyncSend(sendPacket);
 				}
 				prevSession->AsyncRead();
 			});
@@ -145,7 +145,6 @@ public:
 
 		ansPacket->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
 		session->AsyncSend(ansPacket);
-		session->session_key = 0;
 		session->session_token = "";
 		session->Close(ErrorCode::InvalidSessionError);
 	}

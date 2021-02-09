@@ -60,20 +60,18 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 			std::shared_ptr<IHandler> handler = factory->GetHandler();
 			if (nullptr == handler)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "can't create message handler instance(name:", name, ", msg_id:", MsgType::MSG_ID, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidHandlerError, "session_key:", session->session_key, ", msg_name:", typeid(MsgType).name(), ", msg_id:", MsgType::MSG_ID);
 			}
 
-			/*
 			if(Network::Tcp::Session::State::AfterAccept != std::static_pointer_cast<SessionType>(session)->session_state)
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "invalid session error(name:", name, ", msg_id:", MsgType::MSG_ID, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionStateError, "session_key:", session->session_key, ", msg_name:", typeid(MsgType).name(), ", msg_id:", MsgType::MSG_ID);
 			}
-			*/
 
 			MsgType msg;
 			if (false == Gamnet::Network::Tcp::Packet::Load(msg, packet))
 			{
-				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "message load fail(name:", name, ", msg_id:", MsgType::MSG_ID, ")");
+				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "session_key:", session->session_key, ", msg_name:", typeid(MsgType).name(), ", msg_id:", MsgType::MSG_ID);
 			}
 
 			function(handler, std::static_pointer_cast<SessionType>(session), msg);

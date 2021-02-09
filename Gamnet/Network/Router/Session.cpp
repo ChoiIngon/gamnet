@@ -24,7 +24,7 @@ bool Session::Init()
 	{
 		return false;
 	}
-	
+	session_state = Network::Tcp::Session::State::AfterAccept;
 	return true;
 }
 
@@ -45,16 +45,12 @@ void Session::OnAccept()
 		);
 	}
 	static_cast<SessionManager*>(session_manager)->on_connect(router_address);
-	session_state = Tcp::Session::Session::State::AfterAccept;
 }
 
 void Session::OnClose(int reason)
 {
-	if (Tcp::Session::Session::State::AfterAccept == session_state)
-	{
-		static_cast<SessionManager*>(session_manager)->on_close(router_address);
-		Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
-	}
+	static_cast<SessionManager*>(session_manager)->on_close(router_address);
+	Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
 }
 
 void Session::OnDestroy()

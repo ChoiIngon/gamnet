@@ -3,6 +3,7 @@
 
 #include <idl/MessageCommon.h>
 #include <Gamnet/Library/Time/Time.h>
+#include <Gamnet/Library/Time/Timer.h>
 
 namespace Component {
 	class Disconnect
@@ -10,6 +11,7 @@ namespace Component {
 	public:
 		Disconnect();
 
+		Gamnet::Time::Timer timer;
 		Gamnet::Time::ElapseTimer elapse_time;
 	};
 };

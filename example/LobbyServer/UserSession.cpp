@@ -7,6 +7,7 @@
 #include "Component/Disconnect.h"
 #include "Component/Suit.h"
 #include "Component/Dungeon/Dungeon.h"
+#include <idl/MessageLobby.h>
 
 UserSession::UserSession()
 	: shard_index(0)
@@ -49,18 +50,19 @@ void UserSession::OnClose(int reason)
 
 void UserSession::OnDestroy()
 {
+	LOG(DEV, "OnDistroy(session_key:", session_key,")");
+	Gamnet::Singleton<UserSession::Manager>::GetInstance().RemoveSession(std::static_pointer_cast<UserSession>(shared_from_this()));
+
 	std::shared_ptr<Component::Dungeon::Data> dungeon = GetComponent<Component::Dungeon::Data>();
 	if (nullptr != dungeon)
 	{
 		dungeon->Leave(std::static_pointer_cast<UserSession>(shared_from_this()));
 	}
+	
+	components.Clear();
 
-	LOG(DEV, "OnDistroy(session_key:", session_key,")");
 	shard_index = 0;
 	user_seq = 0;
-
-	components.Clear();
-	Gamnet::Singleton<UserSession::Manager>::GetInstance().RemoveSession(std::static_pointer_cast<UserSession>(shared_from_this()));
 }
 
 void UserSession::StartTransaction()
@@ -101,6 +103,7 @@ std::shared_ptr<UserSession> UserSession::Manager::AddSession(std::shared_ptr<Us
 
 void UserSession::Manager::RemoveSession(std::shared_ptr<UserSession> session)
 {
+	assert(0 != session->user_seq);
 	auto itr = sessions.find(session->user_seq);
 	if (sessions.end() == itr)
 	{
