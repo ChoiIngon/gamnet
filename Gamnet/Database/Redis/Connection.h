@@ -14,6 +14,7 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	public:
 		struct ConnectionInfo
 		{
+			int db_num;
 			std::string host;
 			int port;
 		};

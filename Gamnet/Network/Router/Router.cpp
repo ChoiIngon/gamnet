@@ -72,56 +72,49 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 
 		Address localRouterAddress(ROUTER_CAST_TYPE::UNI_CAST, service_name, id);
 		Listen(localRouterAddress, port, connectHandler, closeHandler);
-		for (const auto& remote : router)
+		for (const auto& child : router)
 		{
-			if ("remote" != remote.first)
+			if ("remote" == child.first)
 			{
-				continue;
+				const std::string remote_host = child.second.get<std::string>("<xmlattr>.host");
+				int remote_port = child.second.get<int>("<xmlattr>.port");
+				Connect(remote_host.c_str(), remote_port, 5);
 			}
 
-			const std::string remote_host = remote.second.get<std::string>("<xmlattr>.host");
-			int remote_port = remote.second.get<int>("<xmlattr>.port");
-			Connect(remote_host.c_str(), remote_port, 5);
-		}
-
-		try {
-			auto farm = ptree_.get_child("server.farm");
-			std::string farm_host = farm.get<std::string>("<xmlattr>.host");
-			int farm_port = farm.get<int>("<xmlattr>.port");
-
-			Database::Redis::Connect(-1, farm_host.c_str(), farm_port);
-			Database::Redis::Subscribe(-1, "__router__", [=](const std::string& message)
+			if ("farm" == child.first)
 			{
-				Json::Reader reader;
+				std::string farm_host = child.second.get<std::string>("<xmlattr>.host");
+				int farm_port = child.second.get<int>("<xmlattr>.port");
+
+				Database::Redis::Connect(-1, farm_host.c_str(), farm_port);
+				Database::Redis::Subscribe(-1, "__router__", [=](const std::string& message) {
+					Json::Reader reader;
+					Json::Value router_info;
+					if (false == reader.parse(message, router_info))
+					{
+						LOG(ERR, "router message parse failed(message:", message, ")");
+						return;
+					}
+
+					if (true == router_info["host"].isNull())
+					{
+						LOG(ERR, "router message format error(\'host\' is null)");
+						return;
+					}
+
+					if (true == router_info["port"].isNull())
+					{
+						LOG(ERR, "router message format error(\'port\' is null)");
+						return;
+					}
+					Connect(router_info["host"].asString().c_str(), router_info["port"].asInt(), 5);
+				});
+
 				Json::Value router_info;
-				if (false == reader.parse(message, router_info))
-				{
-					LOG(ERR, "router message parse failed(message:", message, ")");
-					return;
-				}
-
-				if (true == router_info["host"].isNull())
-				{
-					LOG(ERR, "router message format error(\'host\' is null)");
-					return;
-				}
-
-				if (true == router_info["port"].isNull())
-				{
-					LOG(ERR, "router message format error(\'port\' is null)");
-					return;
-				}
-				Connect(router_info["host"].asString().c_str(), router_info["port"].asInt(), 5);
-			});
-
-			Json::Value router_info;
-			router_info["host"] = Network::Tcp::GetLocalAddress().to_v4().to_string();
-			router_info["port"] = port;
-			Database::Redis::Publish(-1, "__router__", router_info);
-		}
-		catch(boost::property_tree::ptree_bad_path& e)
-		{
-			// do nothing
+				router_info["host"] = Network::Tcp::GetLocalAddress().to_v4().to_string();
+				router_info["port"] = port;
+				Database::Redis::Publish(-1, "__router__", router_info);
+			}
 		}
 	}
 	catch (const boost::property_tree::ptree_bad_path& e)

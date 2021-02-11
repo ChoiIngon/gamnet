@@ -60,6 +60,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 	bool Connect(int db_type, const char* host, int port)
 	{
 		Connection::ConnectionInfo connInfo;
+		connInfo.db_num = db_type;
 		connInfo.host = host;
 		if("localhost" == connInfo.host)
 		{

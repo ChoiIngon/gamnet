@@ -88,6 +88,6 @@ namespace Gamnet { namespace Database {	namespace Redis {
 	void Connection::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>& socket)
 	{
 		this->socket = socket;
-		LOG(INF, "[Gamnet::Database::Redis] connect...(host:", connection_info.host, ", port:", connection_info.port, ")");
+		LOG(INF, "[Gamnet::Database::Redis] connect...(db_num:", connection_info.db_num, ", host:", connection_info.host, ", port:", connection_info.port, ")");
 	}
 }}}
