@@ -47,7 +47,7 @@ bool Session::Init()
 	send_seq = 0;
 	handover_safe = false;
 	last_recv_time = time(nullptr);
-	
+
 	return true;
 }
 
@@ -56,6 +56,7 @@ void Session::Clear()
 	recv_packet = nullptr;
 	send_packets.clear();
 	session_state = State::Invalid;
+	expire_timer.Cancel();
 	Network::Session::Clear();
 }
 
@@ -148,4 +149,26 @@ void Session::Close(int reason)
 	});
 }
 
+void Session::SetExpire(int timeout)
+{
+	if (0 >= timeout)
+	{
+		return;
+	}
+	last_recv_time = time(nullptr);
+	expire_timer.AutoReset(true);
+	expire_timer.SetTimer(timeout, std::bind(&Session::OnIdleTimeout, this));
+}
+
+void Session::OnIdleTimeout()
+{
+	time_t now = time(nullptr);
+	if (last_recv_time + expire_timer.GetInterval() >= now)
+	{
+		return;
+	}
+
+	handover_safe = false;
+	Close(ErrorCode::IdleTimeoutError);
+}
 }}}

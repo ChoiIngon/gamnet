@@ -89,6 +89,7 @@ public :
 	bool Resume();
 	void AutoReset(bool flag);
 	void Cancel();
+	long GetInterval() const;
 };
 
 class ElapseTimer

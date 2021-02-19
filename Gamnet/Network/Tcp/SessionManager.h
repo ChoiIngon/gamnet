@@ -40,10 +40,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 		Acceptor		acceptor;
 		SessionPool		session_pool;
-		std::shared_ptr<Time::Timer>	expire_timer;
+		//std::shared_ptr<Time::Timer>	expire_timer;
 		int								expire_time;
 	public:
-		SessionManager() : session_pool(65535, SessionFactory(this)), expire_timer(nullptr), expire_time(0)
+		SessionManager() : session_pool(65535, SessionFactory(this)), expire_time(0)
 		{
 			acceptor.accept_handler = std::bind(&SessionManager::OnAcceptHandler, this, std::placeholders::_1);
 		}
@@ -52,12 +52,14 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		{
 			acceptor.Listen(port, max_session);
 			expire_time = alive_time;
+			/*
 			if (0 < expire_time)
 			{
 				expire_timer = Time::Timer::Create();
 				expire_timer->AutoReset(true);
 				expire_timer->SetTimer(60000, std::bind(&SessionManager::OnSessionExpire, this));
 			}
+			*/
 		}
 		
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override
@@ -104,8 +106,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 			session->socket = socket;
 			session->AsyncRead();
+			session->SetExpire(expire_time);
 		}
 
+		/*
 		void OnSessionExpire()
 		{
 			time_t now = time(nullptr);
@@ -133,6 +137,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				session->Close(ErrorCode::IdleTimeoutError);
 			}
 		}
+		*/
 	};
 }}}
 #endif /* LISTENER_H_ */

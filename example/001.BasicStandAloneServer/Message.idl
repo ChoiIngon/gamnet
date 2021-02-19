@@ -1,0 +1,15 @@
+message MsgSvrCli_Welcome_Ntf : 0000001
+{
+	string greeting;
+};
+
+message MsgCliSvr_HelloWorld_Req : 0000002
+{
+	string greeting;
+};
+
+message MsgSvrCli_HelloWorld_Ans : 0000002
+{
+	string answer;
+};
+

@@ -98,6 +98,11 @@ void Timer::Cancel()
 	entry = nullptr;
 }
 
+long Timer::GetInterval() const
+{
+	return interval;
+}
+
 ElapseTimer::ElapseTimer()
 	: t0_(std::chrono::high_resolution_clock::now()), auto_reset_(false)
 {

@@ -1,4 +1,3 @@
-call :RequestAdminElevation "%~dpfs0" %* || goto:eof
 if not exist "C:\Program Files\7-Zip\" 7z1900-x64.exe
 if not exist "C:\Program Files\MySQL\MySQL Connector C 6.1" mysql-connector-c-6.1.6-winx64.msi
 if not exist "C:\OpenSSL-Win64" Win64OpenSSL-1_0_2c.exe
@@ -13,4 +12,3 @@ cd /d "C:\local\boost_1_71_0"
 if not exist b2.exe call .\bootstrap.bat
 .\b2
 cd /d %curdir%
-del boost_1_71_0.zip
