@@ -101,7 +101,7 @@ void Handler_SendMessage::Timeout_SvrSvr_Ans(const Gamnet::Exception& e)
 		return;
 	}
 
-	LOG(DEV, "MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>((ErrorCode)e.error_code()), ", reason:", e.what(), ")");
+	LOG(DEV, "MsgSvrSvr_SendMessage_Ans(session_key:", session->session_key, ", error_code:", e.error_code(), ", reason:", e.what(), ")");
 	session->Dispatch([this, session, e]() {
 		MsgSvrCli_SendMessage_Ans ansSvrCli;
 		ansSvrCli.error_code = (ErrorCode)e.error_code();

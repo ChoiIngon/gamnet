@@ -1,7 +1,7 @@
 #ifndef GAMNET_NETWORK_TCP_SESSION_H_
 #define GAMNET_NETWORK_TCP_SESSION_H_
 
-#include "../../Library/Json/json.h"
+#include "../../Library/Time/Timer.h"
 #include "../Session.h"
 #include "Packet.h"
 
@@ -40,7 +40,13 @@ public :
 	virtual void Close(int reason) override;
 
 	virtual void AsyncSend(const std::shared_ptr<Packet>& packet);
+
+	void SetExpire(int timeout);
 	static std::string GenerateSessionToken(uint32_t session_key);
+	void OnIdleTimeout();
+private :
+
+	Time::Timer expire_timer;
 };
 
 }}}

@@ -10,11 +10,12 @@
 	<mysql  name="account"	id="1"    host="127.0.0.1" port="3306" db="account" user="gamnet" passwd="P@ssword!" fail_query_log="false"/>
 	<sqlite name="gamnet_sqlite"	id="1"  db="gamnet.sqlite"/>
 	<redis  name="gamnet_redis" id="1"  host="localhost" port="6379"/>
-	<farm host="127.0.0.1" port="6379"/>
 	
 	<tcp port="40001" max_count="8000" accept_queue="4000" keep_alive="120" thread_count="20"/>
 	<http port="8081"/>
-	<router name="GAME" id="1" port="50001"/>
+	<router name="GAME" id="1" port="50001">
+		<farm host="127.0.0.1" port="6379"/>
+	</router>
 		
 	<test host="127.0.0.1" port="40001" session_count="1" loop_count="1">
 		<message name="Test_User_Login"/>

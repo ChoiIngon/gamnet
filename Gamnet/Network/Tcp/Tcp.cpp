@@ -59,7 +59,6 @@ Config::Config()
 	, max_count(0)
 	, keep_alive(0)
 	, accept_queue(0)
-	, thread_count(0)
 {
 }
 
@@ -85,7 +84,6 @@ void Config::ReadXml(const std::string& path)
 		max_count = ptree_.get<int>("server.tcp.<xmlattr>.max_count");
 		keep_alive = ptree_.get<int>("server.tcp.<xmlattr>.keep_alive");
 		accept_queue = ptree_.get<int>("server.tcp.<xmlattr>.accept_queue");
-		thread_count = ptree_.get<int>("server.tcp.<xmlattr>.thread_count");
 	}
 	catch (const boost::property_tree::ptree_bad_path& e)
 	{

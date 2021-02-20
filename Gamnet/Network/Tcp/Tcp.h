@@ -25,7 +25,6 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		int max_count;
 		int keep_alive;
 		int accept_queue;
-		int thread_count;
 	};
 
 	template <class SESSION_T>

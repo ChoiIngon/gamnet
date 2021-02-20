@@ -123,7 +123,7 @@ void Test_CreateDungeon_Ans(const std::shared_ptr<TestSession>& session, const s
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-
+  /*
 	for(int y=0; y<ans.height; y++)
 	{
 		for(int x=0; x<ans.width; x++)
@@ -149,7 +149,7 @@ void Test_CreateDungeon_Ans(const std::shared_ptr<TestSession>& session, const s
 		}
 		std::cout << std::endl;
 	}
-
+	*/
 	session->Next();
 }
 

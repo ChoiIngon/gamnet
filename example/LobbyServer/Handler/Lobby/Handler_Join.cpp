@@ -13,10 +13,12 @@ Handler_Join::~Handler_Join()
 {
 }
 
+
 void Handler_Join::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Lobby::MsgCliSvr_Join_Req& req)
 {
 	Message::Lobby::MsgSvrCli_Join_Ans ans;
 	ans.error_code = Message::ErrorCode::Success;
+	
 	
 	try {
 		LOG(DEV, "Message::Lobby::MsgCliSvr_Join_Req()");

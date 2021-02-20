@@ -7,18 +7,16 @@
 		<err console="yes" file="yes" sys="no"/>
 	</log>
 
-	<farm host="127.0.0.1" port="6379"/>
-
 	<tcp port="10002" max_count="8000" accept_queue="100" keep_alive="30" thread_count="20"/>
 	<http port="20002"/>
-	<router name="ROUTER" id="2" port="30002"/>
-	<!--
-	<router name="ROUTER_1" port="40002">
-		<remote name="ROUTER_1" host="127.0.0.1" port="40002"/>
-		<remote name="ROUTER_2" host="127.0.0.1" port="40022"/>
+	<router name="ROUTER" id="2" port="30002">
+		<farm host="127.0.0.1" port="6379"/>
+		<!--
+		<remote name="ROUTER" host="127.0.0.1" port="30001"/>
+		<remote name="ROUTER" host="127.0.0.1" port="30002"/>
+		-->
 	</router>
-	-->
-	<test host="127.0.0.1" port="10002" session_count="1" loop_count="1">
+	<test host="127.0.0.1" port="10002" session_count="1" loop_count="10">
 		<message name="Test_SendMessage_WithResponse"/>
 	</test>
 </server>
