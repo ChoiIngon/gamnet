@@ -4,29 +4,31 @@ BasicStandAloneServer 예제에서는 클라이언트로 부터 "Hello World" �
 ## Visual Studio 프로젝트 셋팅
 1. 비주얼스튜디오에서 빈 C++ 프로젝트를 생성한다.
 1. 구성 속성 > C/C++ > 일반 > 추가 포함 디렉터리 메뉴에서 아래에 나열된 include 디렉토리들을 추가한다.
-    ../../ (gamnet 헤더 디렉토리, 예제 프로젝트와 Gamnet 프로젝트의 상대 경로)
-    C:\local\boost_1_71_0 (boost 헤더 디렉토리)
-    C:\local\curl-7.43.0-win64\include (curl 헤더 디렉토리)
-    C:\OpenSSL-Win64\include (open ssl 헤더 디렉토리)
-    C:\Program Files\MySQL\MySQL Connector C 6.1\include (MySQL Connector 헤더 디렉토리)
+	* ../../ (gamnet 헤더 디렉토리, 예제 프로젝트와 Gamnet 프로젝트의 상대 경로)
+	* C:\local\boost_1_71_0 (boost 헤더 디렉토리)
+	* C:\local\curl-7.43.0-win64\include (curl 헤더 디렉토리)
+	* C:\OpenSSL-Win64\include (open ssl 헤더 디렉토리)
+	* C:\Program Files\MySQL\MySQL Connector C 6.1\include (MySQL Connector 헤더 디렉토리)
 1. 구성 속성 > C/C++ > 미리 컴파일 된 헤더 : '사용 안함'으로 설정
 1. 구성 속성 > C/C++ > 출력 파일 > 개체 파일 이름 : $(IntDir)/%(RelativeDir) 로 설정하여 동일한 파일 이름을 가지더라도 디렉토리에 따라 다른 오브젝트 파일을 생성하도록 설정
 1. 구성 속성 > 링커 > 일반 > 추가 라이브러리 디렉터리 메뉴에서 아래에 나열된 라이브러리 디렉토리들을 추가한다.
-    ../../x64/Debug (gamnet.lib 디렉토리, 예제 프로젝트와 Gamnet 프로젝트의 상대 경로)
-    C:\local\boost_1_71_0\stage\lib (boobst 라이브러리 디렉토리)
-    C:\local\curl-7.43.0-win64\lib (curl 라이브러리 디렉토리)
-    C:\OpenSSL-Win64\lib (open ssl 라이브러리 디렉토리)
-    C:\Program Files\MySQL\MySQL Connector C 6.1\lib (MySQL Connector 라이브러리 디렉토리)
+	* ../../x64/Debug (gamnet.lib 디렉토리, 예제 프로젝트와 Gamnet 프로젝트의 상대 경로)
+	* C:\local\boost_1_71_0\stage\lib (boobst 라이브러리 디렉토리)
+	* C:\local\curl-7.43.0-win64\lib (curl 라이브러리 디렉토리)
+	* C:\OpenSSL-Win64\lib (open ssl 라이브러리 디렉토리)
+	* C:\Program Files\MySQL\MySQL Connector C 6.1\lib (MySQL Connector 라이브러리 디렉토리)
 1. 구성 속성 > 링커 > 입력 > 추가 종속성 
-    Gamnet.lib
-    libcurl.lib
-    ssleay32.lib
-    libeay32.lib
-    libmysql.lib
+	* Gamnet.lib
+	* libcurl.lib
+	* ssleay32.lib
+	* libeay32.lib
+	* libmysql.lib
 
 ## Configuration
-gamnet 프레임워크를 이용하여 개발된 서버를 구동하기 위해서는, 특정한 포멧을 가진 xml 파일이 필요하다. 설정 파일에서는 gamnet 프레임워크 서버가 사용하게 될 tcp 리슨 포트, 로그 디렉토리, 데이터베이스 연결 정보 등등의 정보를 저장한다. 포멧만 맞다면 파일이름에 대한 제약 사항은 없으며 본 예제에서는 'config.xml'라는이름을 사용한다.
-비주얼스튜디오프 로젝트에 config.xml 파일을 추가 하고 아래와 같이 작성 해보자.
+* gamnet 프레임워크를 이용하여 개발된 서버를 구동하기 위해서는, 특정한 포멧을 가진 xml 파일이 필요하다. 
+* 설정 파일에서는 gamnet 프레임워크 서버가 사용하게 될 tcp 리슨 포트, 로그 디렉토리, 데이터베이스 연결 정보 등등의 정보를 저장한다. 
+* 포멧만 맞다면 파일이름에 대한 제약 사항은 없으며 본 예제에서는 'config.xml'라는이름을 사용한다.
+* 비주얼스튜디오프 로젝트에 config.xml 파일을 추가 하고 아래와 같이 작성 해보자.
 
 ### config.xml
 ```xml
@@ -45,23 +47,22 @@ gamnet 프레임워크를 이용하여 개발된 서버를 구동하기 위해�
 ### log
 log 항목은 gamnet 프레임워크 서버가 실행 중에 생성하는 로그를 기록하는 위치, 파일의 네이밍, 로그 레벨에 따른 기록 방식에 대한 차이들을 서술 한다.
 - log.path
-    로그 파일이 생성 될 디렉토리 지정. 절대 경로 상대 경로 모두 가능하다. 
-    예제에서는 log라는 상대 경로를 설정했고, 서버를 실행하면 실행 위치에 log라는 디렉토리와 내부에 로그 파일들이 생성되는 것을 볼수 있다.
+	* 로그 파일이 생성 될 디렉토리 지정. 절대 경로 상대 경로 모두 가능하다. 
+	* 예제에서는 log라는 상대 경로를 설정했고, 서버를 실행하면 실행 위치에 log라는 디렉토리와 내부에 로그 파일들이 생성되는 것을 볼수 있다.
 - log.prefix : 
-    생성 되는 로그 파일명 앞에 붙는 문자열. 예제에서는 BasicStandAloneServer를 사용하였으므로 BasicStandAloneServer_YYYYMMDD.txt 형식으로 파일 이름이 정해진다.
+	* 생성 되는 로그 파일명 앞에 붙는 문자열. 
+	* 예제에서는 BasicStandAloneServer를 사용하였으므로 BasicStandAloneServer_YYYYMMDD.txt 형식으로 파일 이름이 정해진다.
 - log.max_file_size : 
-    로그 파일의 크기가 너무 커지면 파일을 열지 못하거나 오랜 시간이 걸릴 수 있다.
-    그것을 방지하기 위해 지정된 사이즈 보다 커지면 파일 이름 뒤에 생성 시각을 추가하여 신규 파일을 생성하여 계속 로깅을 한다.
-    max_file_size는 메가바이트 단위다. 예제에서는 5메가 바이트 이상이 되면 새로운 로그 파일을 생성하도록 설정 했다.
-- 로그 레벨 : gamnet 에서는 아래와 같이 네가지 로그 레벨을 제공하고 있으며 각 로그 레벨에 따라 출력 방식을 개별 설정 할 수 있다. 예를 들어 개발 환경에서는 dev레벨 로그를 활성화 시키고, 실제 서비스 환경에서는 비활성화 시키는 방식으로 불필요한 로그들이 생성되는 것을 방지 할 수 있다.
-    * dev : 디버깅, 개발용 레벨
-    * inf : 정보 출력 레벨
-    * wrn : 경고 레벨
-    * err : 에러 레벨
+	* 로그 파일의 크기가 너무 커지면 파일을 열지 못하거나 오랜 시간이 걸릴 수 있다. 그것을 방지하기 위해 지정된 사이즈 보다 커지면 파일 이름 뒤에 생성 시각을 추가하여 신규 파일을 생성하여 계속 로깅을 한다.
+	* max_file_size는 메가바이트 단위다. 예제에서는 5메가 바이트 이상이 되면 새로운 로그 파일을 생성하도록 설정 했다.
+- 로그 레벨 : 
+	* gamnet 에서는 아래와 같이 네가지 로그 레벨을 제공하고 있으며 각 로그 레벨에 따라 출력 방식을 개별 설정 할 수 있다. 예를 들어 개발 환경에서는 dev레벨 로그를 활성화 시키고, 실제 서비스 환경에서는 비활성화 시키는 방식으로 불필요한 로그들이 생성되는 것을 방지 할 수 있다.
+	* dev : 디버깅, 개발용 레벨, inf : 정보 출력 레벨, wrn : 경고 레벨, err : 에러 레벨
 - 로그 레벨 별 출력
-    * console : "yes" 또는 "no" 를 지정 할 수 있으며 콘솔 출력 여부를 지정한다.
-    * file : "yes" 또는 "no" 를 지정 할 수 있으며 파일 출력 여부를 지정한다.
-    * sys : "yes" 또는 "no" 를 지정 할 수 있으며 윈도우의 경우 event 로그, 리눅스의 경우 syslog 출력 여부를 지정한다.
+	* console : "yes" 또는 "no" 를 지정 할 수 있으며 콘솔 출력 여부를 지정한다.
+	* file : "yes" 또는 "no" 를 지정 할 수 있으며 파일 출력 여부를 지정한다.
+	* sys : "yes" 또는 "no" 를 지정 할 수 있으며 윈도우의 경우 event 로그, 리눅스의 경우 syslog 출력 여부를 지정한다.
+	
 ### tcp 리스너 설정
 ```xml
 <tcp port="10001" max_count="8000" accept_queue="4000" keep_alive="30"/>
@@ -69,10 +70,12 @@ log 항목은 gamnet 프레임워크 서버가 실행 중에 생성하는 로그
 - tcp.port : 서버가 대기하게 될 리슨 포트
 - tcp.max_count : 서버가 동시에 받아 들일 수 있는 최대 connection 개수
 - tcp.accept_queue : 접속 대기 큐 사이즈
-- tcp.keep_alive : tcp 접속이 끊어 졌을 때 세션을 삭제하지 않고 유지 시켜주는 시간(초).
-    접속 네트워크가 변경되어 순단 현상이 빈번한 모바일 환경을 위한 기능이다. 접속 종료와 함께 세션을 삭제하고 싶다면 0으로 설정한다.
+- tcp.keep_alive : 
+	* tcp 접속이 끊어 졌을 때 세션을 삭제하지 않고 유지 시켜주는 시간(초).
+	* 접속 네트워크가 변경되어 순단 현상이 빈번한 모바일 환경을 위한 기능이다. 접속 종료와 함께 세션을 삭제하고 싶다면 0으로 설정한다.
 
 이상 gamnet프레임워크 서버를 구동하기 위해 필요한 기본 설정들을 알아 보았다. 위에 언급된것들 말고도 데이터베이스 사용과 서버간 통신을 위해 필요한 설정들이 있지만 해당 내용들은 다른 예제에서 살펴 보도록 하자.
+
 ## Writing Code
 기본적인 설정을 완료했으니 이제 본격적으로 gamnet프레임워크를 이용한 서버 코드 작성에 대해서 알아 보도록 한다.
 ### include
@@ -81,8 +84,8 @@ gamnet을 사용하기 위해서는 가장 먼저 gamnet의 헤더파일을 인�
 #include <Gamnet/Gamnet.h>
 ```
 ### Session
-Session이란 gamnet 서버에 접속하는 클라이언트 연결을 추상화한 클래스다. 이 클래스에 서비스를 위해 각 클라이언트 마다 저장이 필요한 데이터들을 추가한다. 
-Gamnet::Network::Tcp::Session 클래스를 상속 받아 아래의 이벤트 함수들을 오버라이드하면 특정 이벤트가 발생 할 시 지정된 함수들이 호출 된다. 이벤트에 대한 설명들은 아래 코드에 주석으로 설명했다.
+* Session이란 gamnet 서버에 접속하는 클라이언트 연결을 추상화한 클래스다. 이 클래스에 서비스를 위해 각 클라이언트 마다 저장이 필요한 데이터들을 추가한다. 
+* Gamnet::Network::Tcp::Session 클래스를 상속 받아 아래의 이벤트 함수들을 오버라이드하면 특정 이벤트가 발생 할 시 지정된 함수들이 호출 된다. 이벤트에 대한 설명들은 아래 코드에 주석으로 설명했다.
 ```cpp
 class Session : public Gamnet::Network::Tcp::Session
 {
@@ -95,10 +98,9 @@ public:
 };
 ```
 ### 예외 발생시 덤프 처리
-세션 클래스의 작성이 완료 되었으면 main 함수에 gamnet 프레임워크 초기화에 필요한 코드들을 추가한다. 가장 먼저 추가 할 것은 
-서버 실행 중 예외가 발생 했을 때 덤프를 남기는 InitCrashDump() 함수다. 
-예외가 발생 하면 실행 위치에 덤프 파일이 생성 되게 되며, 윈도우 운영체제에서만 동작한다. 
-리눅스의 경우는 os에서 제공하는 coredump를 이용한다.
+* 세션 클래스의 작성이 완료 되었으면 main 함수에 gamnet 프레임워크 초기화에 필요한 코드들을 해보자. 가장 먼저 추가 할 것은 서버 실행 중 예외가 발생 했을 때 덤프를 남기는 InitCrashDump() 함수다. 
+* 예외가 발생 하면 실행 위치에 덤프 파일이 생성 되게 되며, 윈도우 운영체제에서만 동작한다. 
+* 리눅스의 경우는 os에서 제공하는 coredump를 이용한다.
 ```cpp
 Gamnet::InitCrashDump();
 ```
@@ -121,8 +123,9 @@ Gamnet::Run(thread_count);
 ```
 이렇게 해서 빌드가 성공하면 기본적인 서버 실행이 가능하다. 하지만 아직 tcp 접속을 받아 들이는것 외에는 아무것도 할 없는 반쪽 짜리 서버다. 다시 비주얼스튜디오로 돌아가 프로젝트에 HelloWorld 메시지를 받고, 응답을 보낼 수 있는 기능을 추가해 보자.
 ### 메시지 추가
-gamnet 프레임워크는 메시지를 위해 idl(interface definition language) 컴파일러를 사용한다. C++ 구조체 선언과 비슷한 형식의 메시지 구조체를 선언해주면 idl 컴파일러는 해당 메시지를 C++ 구조체와 그것을 시리얼라이즈/디시리얼라이즈 할 수 있는 코드를 생성 한다. 
-프로젝트에 Message.idl 이라는 파일을 추가하고 메시지 구조체를 정의한다. (자세한 idl 문법은 다음 링크 참조)
+* gamnet 프레임워크는 메시지를 위해 idl(interface definition language) 컴파일러를 사용한다. 
+* C++ 구조체 선언과 비슷한 형식의 메시지 구조체를 선언해주면 idl 컴파일러는 해당 메시지를 C++ 구조체와 그것을 시리얼라이즈/디시리얼라이즈 할 수 있는 코드를 생성 한다. 
+* 프로젝트에 Message.idl 이라는 파일을 추가하고 메시지 구조체를 정의한다. (자세한 idl 문법은 다음 링크 참조)
 ```cpp
 // 클라이언트에서 서버로 요청하는 메시지
 // 구조체 뒤에 : 0000002 은 메시지 아이디다.
@@ -137,6 +140,7 @@ message MsgSvrCli_HelloWorld_Ans : 0000001
 };
 ```
 메시지 구조체 정의가 완료 되었으니 이제 프로젝트 빌드시 idl 파일도 함께 컴파일 될 수 있도록 설정 한다.
+
 "파일 속성 > 일반 > 항목 형식 > 사용자 빌드 도구 선택 > 확인" 사용자 커스텀 빌드 도구를 사용 할 수 있도록 설정 하고 창을 닫은 후, 다시 "파일 속성 > 사용자 지정 빌드 도구" 를 선택하여 아래와 같이 입력한다.
 * 명령줄 : ..\..\x64\Debug\idlc.exe -lcpp  %(Filename).idl
 * 설명 : idl build : ..\..\x64\Debug\idlc.exe -lcpp  %(Filename).idl
