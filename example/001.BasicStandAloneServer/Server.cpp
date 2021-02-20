@@ -10,14 +10,13 @@ public:
 	virtual void OnCreate() override
 	{
 		LOG(DEV, "session_key:", session_key);
-
-		MsgSvrCli_Welcome_Ntf ntf;
-		ntf.greeting = "Welcome";
-		Gamnet::Network::Tcp::SendMsg(std::static_pointer_cast<Session>(shared_from_this()), ntf);
 	}
 	virtual void OnAccept() override
 	{
 		LOG(DEV, "session_key:", session_key);
+		MsgSvrCli_Welcome_Ntf ntf;
+		ntf.greeting = "Welcome";
+		Gamnet::Network::Tcp::SendMsg(std::static_pointer_cast<Session>(shared_from_this()), ntf);
 	}
 	virtual void OnClose(int reason) override
 	{

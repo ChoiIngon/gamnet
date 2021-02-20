@@ -9,7 +9,7 @@
 
 	<tcp port="10001" max_count="8000" accept_queue="4000" keep_alive="30"/>
 
-	<test host="127.0.0.1" port="10001" session_count="100" loop_count="1">
+	<test host="127.0.0.1" port="10001" session_count="1" loop_count="1">
 		<message name="Test_HelloWorld"/>
 	</test>
 </server>
