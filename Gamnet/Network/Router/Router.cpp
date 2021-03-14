@@ -18,7 +18,7 @@ const Address& GetRouterAddress()
 
 void Listen(const std::string& serviceName, int port, const std::function<void(const Address& addr)>& acceptHandler, const std::function<void(const Address& addr)>& closeHandler)
 {
-	Address localRouterAddress(ROUTER_CAST_TYPE::UNI_CAST, serviceName, Network::Tcp::GetLocalAddress().to_v4().to_ulong());
+	Address localRouterAddress(serviceName, Address::CAST_TYPE::UNI_CAST, Network::Tcp::GetLocalAddress().to_v4().to_ulong());
 	Listen(localRouterAddress, port, acceptHandler, closeHandler);
 }
 
@@ -70,7 +70,7 @@ void ReadXml(const std::string& path, const std::function<void(const Address& ad
 		uint32_t id = router.get<uint32_t>("<xmlattr>.id", Network::Tcp::GetLocalAddress().to_v4().to_ulong());
 		int port = router.get<int>("<xmlattr>.port");
 
-		Address localRouterAddress(ROUTER_CAST_TYPE::UNI_CAST, service_name, id);
+		Address localRouterAddress(service_name, Address::CAST_TYPE::UNI_CAST, id);
 		Listen(localRouterAddress, port, connectHandler, closeHandler);
 		for (const auto& child : router)
 		{

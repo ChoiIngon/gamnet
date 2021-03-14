@@ -6,6 +6,7 @@
  */
 
 #include "RouterCaster.h"
+#include "MsgRouter.h"
 #include "../../Log/Log.h"
 
 namespace Gamnet { namespace Network { namespace Router {
@@ -45,16 +46,15 @@ bool RouterCasterImpl_Uni::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Uni::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
+int RouterCasterImpl_Uni::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::shared_ptr<Session> router_session = FindSession(addr);
 	if(nullptr == router_session)
 	{
-		LOG(ERR, "invalide router_address:", addr.ToString());
-		return false;
+		return 0;
 	}
 	router_session->AsyncSend(packet);
-	return true;
+	return 1;
 }
 
 bool RouterCasterImpl_Uni::UnregisterAddress(const Address& addr)
@@ -99,7 +99,7 @@ bool RouterCasterImpl_Multi::RegisterAddress(const Address& addr, const std::sha
 	return true;
 }
 
-bool RouterCasterImpl_Multi::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
+int RouterCasterImpl_Multi::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::list<std::shared_ptr<Session>> sessions;
 	{
@@ -107,8 +107,8 @@ bool RouterCasterImpl_Multi::SendMsg(const Address& addr, const std::shared_ptr<
 		auto itr = route_table_.find(addr.service_name);
 		if(route_table_.end() == itr)
 		{
-			LOG(ERR, "[Gamnet::Network::Router] Can't find route info(service_name:", addr.service_name.c_str(), ", cast_type:MULTI_CAST, server_id:", addr.id, ")");
-			return false;
+			LOG(ERR, "[Gamnet::Network::Router] can not find 'MULTI_CAST' route info(service_name:", addr.service_name, ")");
+			return 0;
 		}
 
 		for(auto& session : itr->second)
@@ -121,7 +121,7 @@ bool RouterCasterImpl_Multi::SendMsg(const Address& addr, const std::shared_ptr<
 	{
 		session->AsyncSend(packet);
 	}
-	return true;
+	return sessions.size();
 }
 
 bool RouterCasterImpl_Multi::UnregisterAddress(const Address& addr)
@@ -171,16 +171,17 @@ bool RouterCasterImpl_Any::RegisterAddress(const Address& addr, const std::share
 	return true;
 }
 
-bool RouterCasterImpl_Any::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
+int RouterCasterImpl_Any::SendMsg(const Address& addr, const std::shared_ptr<Tcp::Packet>& packet)
 {
 	std::shared_ptr<Session> router_session = FindSession(addr);
 	if(nullptr == router_session)
 	{
-		return false;
+		LOG(ERR, "[Gamnet::Network::Router] can not find 'ANY_CAST' route(route_address:", addr.ToString(), ")");
+		return 0;
 	}
 
 	router_session->AsyncSend(packet);
-	return true;
+	return 1;
 }
 
 bool RouterCasterImpl_Any::UnregisterAddress(const Address& addr)
@@ -212,7 +213,7 @@ std::shared_ptr<Session> RouterCasterImpl_Any::FindSession(const Address& addr)
 	auto itr = route_table_.find(addr.service_name);
 	if (route_table_.end() == itr)
 	{
-		LOG(ERR, "[Gamnet::Network::Router] Can't find route info(service_name:", addr.service_name.c_str(), ", cast_type:ANY_CAST)");
+		LOG(ERR, "[Gamnet::Network::Router] can not find 'ANY_CAST' route info(service_name:", addr.service_name, ")");
 		return nullptr;
 	}
 
@@ -221,7 +222,7 @@ std::shared_ptr<Session> RouterCasterImpl_Any::FindSession(const Address& addr)
 
 	if (0 >= arrSession.size())
 	{
-		LOG(ERR, "[Gamnet::Network::Router] Cant find Session(service_name:", addr.service_name.c_str(), ", cast_type:ANY_CAST)");
+		LOG(ERR, "[Gamnet::Network::Router] can not find 'ANY_CAST' route info(service_name:", addr.service_name, ")");
 		return nullptr;
 	}
 	return arrSession[pairSessionArray.first++ % arrSession.size()];
@@ -229,14 +230,14 @@ std::shared_ptr<Session> RouterCasterImpl_Any::FindSession(const Address& addr)
 
 RouterCaster::RouterCaster() 
 {
-	arrCasterImpl_[(int)ROUTER_CAST_TYPE::UNI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
-	arrCasterImpl_[(int)ROUTER_CAST_TYPE::MULTI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
-	arrCasterImpl_[(int)ROUTER_CAST_TYPE::ANY_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Any());
+	arrCasterImpl_[(int)Address::CAST_TYPE::UNI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
+	arrCasterImpl_[(int)Address::CAST_TYPE::MULTI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
+	arrCasterImpl_[(int)Address::CAST_TYPE::ANY_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Any());
 }
 
 bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session> session)
 {
-	for(int i=0; i<(int)ROUTER_CAST_TYPE::MAX; i++)
+	for(int i=0; i<(int)Address::CAST_TYPE::MAX; i++)
 	{
 		if(false == arrCasterImpl_[i]->RegisterAddress(addr, session))
 		{
@@ -247,7 +248,7 @@ bool RouterCaster::RegisterAddress(const Address& addr, std::shared_ptr<Session>
 	return true;
 }
 
-bool RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& buffer)
+int RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& buffer)
 {
 	MsgRouter_SendMsg_Ntf ntf;
 	ntf.msg_seq = addr.msg_seq;
@@ -257,19 +258,19 @@ bool RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& b
 	if(nullptr == packet)
 	{
 		LOG(ERR, "fail to create packet instance(msg:MsgRouter_SendMsg_Ntf)");
-		return false;
+		return 0;
 	}
 
 	if(false == packet->Write(ntf))
 	{
 		LOG(ERR, "fail to serialize message(MsgRouter_SendMsg_Ntf)");
-		return false;
+		return 0;
 	}
 
-	if((unsigned int)ROUTER_CAST_TYPE::MAX <= (unsigned int)addr.cast_type)
+	if((int)Address::CAST_TYPE::MAX <= (unsigned int)addr.cast_type)
 	{
 		LOG(ERR, "cast_type:", (unsigned int)addr.cast_type, " is undefined cast_type");
-		return false;
+		return 0;
 	}
 
 	return arrCasterImpl_[(unsigned int)addr.cast_type]->SendMsg(addr, packet);
@@ -277,7 +278,7 @@ bool RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& b
 
 bool RouterCaster::UnregisterAddress(const Address& addr)
 {
-	for(int i=0; i<(int)ROUTER_CAST_TYPE::MAX; i++)
+	for(int i=0; i<(int)Address::CAST_TYPE::MAX; i++)
 	{
 		if(false == arrCasterImpl_[i]->UnregisterAddress(addr))
 		{

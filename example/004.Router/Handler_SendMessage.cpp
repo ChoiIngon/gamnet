@@ -16,7 +16,7 @@ void Handler_SendMessage::Recv_CliSvr_Req(const std::shared_ptr<UserSession>& se
 		reqSvrSvr.text = reqCliSvr.text;
 
 		std::string serviceName = "ROUTER";
-		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::ANY_CAST, serviceName, 0);
+		Gamnet::Network::Router::Address dest(serviceName, Gamnet::Network::Router::Address::CAST_TYPE::ANY_CAST);
 		
 		/*
 		MsgSvrSvr_SendMessage_Ans ansSvrSvr;
@@ -87,7 +87,7 @@ void Handler_SendMessage::Recv_SvrSvr_Ans(const Gamnet::Network::Router::Address
 		{
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
-		LOG(DEV, "MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrSvr.error_code), ")");
+		LOG(DEV, "MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrSvr.error_code, ")");
 		Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 	});
 }
@@ -112,7 +112,7 @@ void Handler_SendMessage::Timeout_SvrSvr_Ans(const Gamnet::Exception& e)
 		{
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
-		LOG(DEV, "MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", ToString<ErrorCode>(ansSvrCli.error_code), ")");
+		LOG(DEV, "MsgSvrCli_SendMessage_Ans(session_key:", session->session_key, ", error_code:", (int)ansSvrCli.error_code, ")");
 		Gamnet::Network::Tcp::SendMsg(session, ansSvrCli);
 	});
 }
@@ -129,11 +129,11 @@ void Handler_SendMessage::Recv_CliSvr_Ntf(const std::shared_ptr<UserSession>& se
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 	{
-		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::ANY_CAST, "ROUTER_1", 0);
+		Gamnet::Network::Router::Address dest("ROUTER_1", Gamnet::Network::Router::Address::CAST_TYPE::ANY_CAST, 0);
 		Gamnet::Network::Router::SendMsg(dest, ntfSvrSvr);
 	}
 	{
-		Gamnet::Network::Router::Address dest(Gamnet::Network::Router::ROUTER_CAST_TYPE::MULTI_CAST, "ROUTER_2", 0);
+		Gamnet::Network::Router::Address dest("ROUTER_2", Gamnet::Network::Router::Address::CAST_TYPE::MULTI_CAST, 0);
 		Gamnet::Network::Router::SendMsg(dest, ntfSvrSvr);
 	}
 }

@@ -177,6 +177,7 @@
     <ClCompile Include="Network\Http\Request.cpp" />
     <ClCompile Include="Network\Http\Response.cpp" />
     <ClCompile Include="Network\Http\Session.cpp" />
+    <ClCompile Include="Network\Router\Address.cpp" />
     <ClCompile Include="Network\Router\Dispatcher.cpp" />
     <ClCompile Include="Network\Router\Router.cpp" />
     <ClCompile Include="Network\Router\RouterCaster.cpp" />
@@ -246,6 +247,7 @@
     <ClInclude Include="Network\Http\Response.h" />
     <ClInclude Include="Network\Http\Session.h" />
     <ClInclude Include="Network\Network.h" />
+    <ClInclude Include="Network\Router\Address.h" />
     <ClInclude Include="Network\Router\Dispatcher.h" />
     <ClInclude Include="Network\Router\MsgRouter.h" />
     <ClInclude Include="Network\Router\Router.h" />

@@ -3,7 +3,7 @@
 
 void OnRouterConnect(const Gamnet::Network::Router::Address& address)
 {
-	LOG(INF, "OnConnect:", address.ToString());
+	LOG(DEV, "OnConnect:", address.ToString());
 }
 
 void OnRouterClose(const Gamnet::Network::Router::Address& address)

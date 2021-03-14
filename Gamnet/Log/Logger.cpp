@@ -39,6 +39,12 @@ void Logger::Init(const char* logPath, const char* prefix, int max_file_size)
 		}
 	}
 
+#ifdef _WIN32
+	console_ = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_SCREEN_BUFFER_INFO info;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
+	dev_text_color = info.wAttributes;
+#endif
 	IsInit_ = true;
 }
 
@@ -78,6 +84,23 @@ void Logger::Write(LOG_LEVEL_TYPE level, const std::string& log)
 	std::lock_guard<std::mutex> lo(mutex_);
 	if (Property_[level] & LOG_STDERR)
 	{
+#ifdef _WIN32
+		switch (level)
+		{
+		case LOG_LEVEL_ERR:
+			SetConsoleTextAttribute(console_, err_text_color);
+			break;
+		case LOG_LEVEL_WRN:
+			SetConsoleTextAttribute(console_, wrn_text_color);
+			break;
+		case LOG_LEVEL_INF:
+			SetConsoleTextAttribute(console_, inf_text_color);
+			break;
+		case LOG_LEVEL_DEV:
+			SetConsoleTextAttribute(console_, dev_text_color);
+			break;
+		}
+#endif
 		if (level == LOG_LEVEL_ERR)
 		{
 			std::cerr << timebuf << " " << log.c_str() << std::endl;

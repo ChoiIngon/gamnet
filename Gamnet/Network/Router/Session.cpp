@@ -3,6 +3,7 @@
 #include "../Tcp/Tcp.h"
 #include "SessionManager.h"
 #include "RouterCaster.h"
+#include "MsgRouter.h"
 #include <boost/bind.hpp>
 
 namespace Gamnet { namespace Network { namespace Router {
@@ -34,21 +35,16 @@ void Session::OnCreate()
 
 void Session::OnAccept()
 {
-	auto self = std::static_pointer_cast<Session>(shared_from_this());
-	if (false == Singleton<RouterCaster>::GetInstance().RegisterAddress(router_address, self))
-	{
-		throw GAMNET_EXCEPTION(ErrorCode::DuplicateRouterAddress, 
-			"duplicate router server(",
-			"router_address:", router_address.ToString(), 
-			", ip:", remote_endpoint.address().to_v4().to_string(), ", port:", remote_endpoint.port(), 
-			")"
-		);
-	}
+	session_state = Network::Tcp::Session::State::AfterAccept;
 	static_cast<SessionManager*>(session_manager)->on_connect(router_address);
 }
 
 void Session::OnClose(int reason)
 {
+	if (Network::Tcp::Session::State::AfterAccept != session_state)
+	{
+		return;
+	}
 	static_cast<SessionManager*>(session_manager)->on_close(router_address);
 	Singleton<RouterCaster>::GetInstance().UnregisterAddress(router_address);
 }
@@ -162,7 +158,8 @@ void SyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>&
 	this->socket = socket;
 	
 	MsgRouter_RegisterAddress_Ntf ntf;
-	ntf.router_address = Singleton<SessionManager>::GetInstance().local_address;
+	ntf.service_name = Singleton<SessionManager>::GetInstance().local_address.service_name;
+	ntf.id = Singleton<SessionManager>::GetInstance().local_address.id;
 
 	std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
 	packet->Write(ntf);

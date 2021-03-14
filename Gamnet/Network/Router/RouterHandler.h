@@ -2,6 +2,7 @@
 #define GAMNET_NETWORK_ROUTER_MSGHANDLER_H_
 
 #include "Session.h"
+#include "MsgRouter.h"
 #include "../Handler.h"
 
 namespace Gamnet { namespace Network { namespace Router {

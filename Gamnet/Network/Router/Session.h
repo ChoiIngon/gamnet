@@ -1,7 +1,6 @@
 #ifndef GAMNET_NETWORK_ROUTER_SESSION_H
 #define GAMNET_NETWORK_ROUTER_SESSION_H
 
-#include "MsgRouter.h"
 #include "AsyncResponse.h"
 #include "../Handler.h"
 #include "../Tcp/Session.h"

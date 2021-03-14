@@ -36,7 +36,7 @@ namespace Gamnet { namespace Network { namespace Router {
 		on_close = onClose;
 
 		//local_address = Address(ROUTER_CAST_TYPE::UNI_CAST, serviceName, Network::Tcp::GetLocalAddress().to_v4().to_ulong());
-		local_address = Address(ROUTER_CAST_TYPE::UNI_CAST, localRouterAddress.service_name, localRouterAddress.id);
+		local_address = localRouterAddress;
 		if (0 == local_address.id)
 		{
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidAddressError, "unique router id is not set");
@@ -121,13 +121,13 @@ namespace Gamnet { namespace Network { namespace Router {
 		session->AsyncRead();
 		
 		LOG(INF, "[Gamnet::Network::Router] "
-			"localhost:", port, " -> ",
-			socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), " ",
+			"[localhost:", port, " -> ", socket->remote_endpoint().address().to_v4().to_string(), ":", socket->remote_endpoint().port(), "] ",
 			"SEND MsgRouter_Connect_Req(router_address:", local_address.ToString(), ")"
 		);
 
 		MsgRouter_Connect_Req req;
-		req.router_address = local_address;
+		req.service_name = local_address.service_name;
+		req.id = local_address.id;
 
 		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
 		packet->Write(req);

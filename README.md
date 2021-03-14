@@ -1,7 +1,9 @@
 # Gamnet
 
-'Gamnet' is boost asio based TCP/IP server framwork. It supports automatic client connction mananging, server to server communication by using logical address(not ip and port number), structured message format(..and serialize/deserialize compiler) and some helpful functions for your service.
+* 'Gamnet'은 boost asio 기반의 TCP/IP 서버 프레임워크로써 
+based TCP/IP server framwork. It supports automatic client connction mananging, server to server communication by using logical address(not ip and port number), structured message format(..and serialize/deserialize compiler) and some helpful functions for your service.
 
+# 개발 환경 만들기
 # Features
 
 - managing automatic create/delete client session resource

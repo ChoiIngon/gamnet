@@ -35,6 +35,13 @@ private :
 	bool timeRecord_;
 	File file_;
 	std::mutex mutex_;
+#ifdef _WIN32
+	HANDLE console_;
+	short dev_text_color;
+	const short inf_text_color = 10;
+	const short wrn_text_color = 14;
+	const short err_text_color = 12;
+#endif
 public :
 	Logger() : IsInit_(false), timeRecord_(true){};
 	virtual ~Logger(){};

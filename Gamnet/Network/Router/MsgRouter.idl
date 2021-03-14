@@ -3,136 +3,39 @@
 #include <memory>
 namespace Gamnet { namespace Network { namespace Router {
 %%
-enum ROUTER_CAST_TYPE
-{
-	UNI_CAST,
-	MULTI_CAST,
-	ANY_CAST,
-	MAX	
-};
 
-.cpp %%
-class Session;
-%%
-struct Address
-{
-	.cpp %%
-	Address(ROUTER_CAST_TYPE _cast_type, const std::string& _service_name, uint32_t _id)
-		: msg_seq(0), service_name(_service_name), cast_type(_cast_type), id(_id)
-	{
-	}
-	std::string ToString() const
-	{
-		std::stringstream ss;
-		ss << "{\"service_name\":\"" << service_name << "\", \"cast_type\":" << (int)cast_type << ", \"id\":" << id << "}";
-		return ss.str();
-	}
-	uint32_t msg_seq;
-	%%
-	string service_name;
-	ROUTER_CAST_TYPE cast_type;
-	uint32 id;
-};
- 
-.cpp %%
-inline bool operator == (const Address& lhs, const Address& rhs)
-{
-	if(lhs.service_name != rhs.service_name || (int)lhs.cast_type != (int)rhs.cast_type || lhs.id != rhs.id)
-	{
-		return false;
-	}
-	return true;
-}
-
-inline bool operator != (const Address& lhs, const Address& rhs)
-{
-	return !(lhs == rhs);
-}
-
-inline bool operator < (const Address& lhs, const Address& rhs)
-{
-	if(lhs.id < rhs.id)
-	{
-		return true;
-	}
-	else if(lhs.id == rhs.id)
-	{	
-		if(lhs.service_name < rhs.service_name)
-		{
-			return true;
-		}
-		else if(lhs.service_name == rhs.service_name)
-		{
-			if((int)lhs.cast_type < (int)rhs.cast_type)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-inline bool operator > (const Address& lhs, const Address& rhs)
-{
-	if(lhs == rhs)
-	{
-		return false;
-	}
-
-	if(lhs < rhs)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-inline bool operator <= (const Address& lhs, const Address& rhs)
-{
-	if(lhs == rhs || lhs < rhs)
-	{
-		return true;
-	}
-	return false;
-}
-
-inline bool operator >= (const Address& lhs, const Address& rhs)
-{
-	if(lhs == rhs || lhs > rhs)
-	{
-		return true;
-	}
-	return false;
-}
-
-%%
 message MsgRouter_Connect_Req				: 001
 {
-	Address router_address;
+	string	service_name;
+	uint32	id;
 };
 
 message MsgRouter_Connect_Ans				: 002
 {
 	int32	error_code;
-	Address router_address;
+	string	service_name;
+	uint32	id;
 };
 
 message MsgRouter_RegisterAddress_Req		: 003
 {
-	Address router_address;
-	int32 router_port;
+	string	service_name;
+	uint32	id;
+	int32	router_port;
 };
 
 message MsgRouter_RegisterAddress_Ans		: 004
 {
-	int32 error_code;
-	Address router_address;
-	int32 router_port;
+	int32	error_code;
+	string	service_name;
+	uint32	id;
+	int32	router_port;
 };
 
 message MsgRouter_RegisterAddress_Ntf		: 005
 {
-	Address router_address;
+	string	service_name;
+	uint32	id;
 };
 
 message MsgRouter_SendMsg_Ntf				: 006
@@ -144,7 +47,6 @@ message MsgRouter_SendMsg_Ntf				: 006
 message MsgRouter_HeartBeat_Ntf				: 007
 {
 };
-
 
 .cpp %%
 }}}
