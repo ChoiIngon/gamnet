@@ -81,7 +81,7 @@ void Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 	Network::Session::AsyncSend(packet);
 }
 
-void Session::OnRead(const std::shared_ptr<Buffer>& buffer) 
+void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 {
 	try {
 		last_recv_time = time( nullptr );
@@ -155,9 +155,11 @@ void Session::SetExpire(int timeout)
 	{
 		return;
 	}
+
+    auto self = std::static_pointer_cast<Session>(shared_from_this());
 	last_recv_time = time(nullptr);
 	expire_timer.AutoReset(true);
-	expire_timer.SetTimer(timeout, std::bind(&Session::OnIdleTimeout, this));
+	expire_timer.SetTimer(timeout, std::bind(&Session::OnIdleTimeout, self));
 }
 
 void Session::OnIdleTimeout()
