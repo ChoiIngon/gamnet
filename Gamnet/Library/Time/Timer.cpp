@@ -5,42 +5,49 @@
 
 namespace Gamnet { namespace Time {
 
-	struct InitFunctor
-	{
-		Timer* operator() (Timer* timer)
-		{
-			return timer;
-		}
-	};
+struct InitFunctor
+{
+    template<class T>
+    T* operator() (T* timer)
+    {
+        return timer;
+    }
+};
 
-	struct ReleaseFunctor
-	{
-		Timer* operator() (Timer* timer)
-		{
-			if (nullptr != timer)
-			{
-				timer->Cancel();
-			}
-			return timer;
-		}
-	};
-	static Pool<Timer, std::mutex, InitFunctor, ReleaseFunctor> pool(std::numeric_limits<uint32_t>::max());
-	std::shared_ptr<Timer> Timer::Create()
-	{
-		return pool.Create();
-	}
+struct ReleaseFunctor
+{
+    template<class T>
+    T* operator() (T* timer)
+    {
+        if (nullptr != timer)
+        {
+            timer->Cancel();
+        }
+        return timer;
+    }
+};
 
-	static std::atomic<uint32_t> TIMER_SEQ;
-Timer::Timer()
-	: interval(0), auto_reset(false), entry(nullptr), deadline_timer(Singleton<boost::asio::io_context>::GetInstance())
+static std::atomic<uint32_t> TIMER_SEQ = 1;
+static Pool<Timer, std::mutex, InitFunctor, ReleaseFunctor> timer_pool(std::numeric_limits<uint32_t>::max());
+static Pool<RepeatTimer, std::mutex, InitFunctor, ReleaseFunctor> repeattimer_pool(std::numeric_limits<uint32_t>::max());
+
+std::shared_ptr<Timer> Timer::Create()
+{
+    auto timer = timer_pool.Create();
 #ifdef _DEBUG
-	, timer_seq(++TIMER_SEQ)
+    timer->timer_seq = TIMER_SEQ++;
 #endif
+    return timer;
+}
+
+Timer::Timer()
+	: entry(nullptr), deadline_timer(Singleton<boost::asio::io_context>::GetInstance())
 {
 }
 
 Timer::~Timer()
 {
+    deadline_timer.cancel();
 	deadline_timer.expires_at(boost::posix_time::pos_infin);
 }
 
@@ -51,69 +58,66 @@ void Timer::OnExpire(const boost::system::error_code& ec)
 		return;
 	}
 
-	std::shared_ptr<TimerEntry> entry = nullptr;
-	{
-		std::lock_guard<std::mutex> lo(lock);
-		entry = this->entry;
-		if (nullptr == entry)
-		{
-			return;
-		}
-	}
-	entry->OnExpire();
-
-	if (true == auto_reset)
-	{
-		Resume();
-	}
-}
-
-bool Timer::Resume()
-{
-	std::lock_guard<std::mutex> lo(lock);
-	if (0 == interval)
-	{
-		return false;
-	}
-
+	std::lock_guard<std::recursive_mutex> lo(lock);
 	if (nullptr == entry)
 	{
-		return false;
+		return;
 	}
 
-	deadline_timer.expires_at(deadline_timer.expires_at() + boost::posix_time::milliseconds(interval));
-	deadline_timer.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
-	return true;
-}
-
-void Timer::AutoReset(bool flag)
-{
-	auto_reset = flag;
+	entry->OnExpire();
+	entry = nullptr;
 }
 
 void Timer::Cancel()
 {
-	deadline_timer.cancel();
-	std::lock_guard<std::mutex> lo(lock);
-	entry = nullptr;
+    std::lock_guard<std::recursive_mutex> lo(lock);
+    deadline_timer.cancel();
+    entry = nullptr;
 }
 
-long Timer::GetInterval() const
+std::shared_ptr<RepeatTimer> RepeatTimer::Create()
 {
-	return interval;
+    auto timer = repeattimer_pool.Create();
+#ifdef _DEBUG
+    timer->timer_seq = TIMER_SEQ++;
+#endif
+    return timer;
 }
 
-ElapseTimer::ElapseTimer()
-	: t0_(std::chrono::high_resolution_clock::now()), auto_reset_(false)
+RepeatTimer::RepeatTimer()
+    : interval(0), Timer()
 {
 }
 
-void ElapseTimer::AutoReset(bool flag)
+RepeatTimer::~RepeatTimer()
 {
-	auto_reset_ = flag;
 }
 
-void ElapseTimer::Reset()
+void RepeatTimer::OnExpire(const boost::system::error_code& ec)
+{
+    if (0 != ec.value())
+    {
+        return;
+    }
+
+    std::lock_guard<std::recursive_mutex> lo(lock);
+    if (nullptr == entry)
+    {
+        return;
+    }
+
+    entry->OnExpire();
+
+    deadline_timer.expires_at(deadline_timer.expires_at() + boost::posix_time::milliseconds(interval));
+    deadline_timer.async_wait(boost::bind(&RepeatTimer::OnExpire, this, boost::asio::placeholders::error));
+}
+
+ElapseTimeCounter::ElapseTimeCounter()
+	: t0_(std::chrono::high_resolution_clock::now())
+{
+}
+
+void ElapseTimeCounter::Reset()
 {
 	t0_ = std::chrono::high_resolution_clock::now();
 }

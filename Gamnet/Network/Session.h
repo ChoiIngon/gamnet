@@ -88,7 +88,7 @@ namespace Gamnet { namespace Network {
 		void AsyncSend(const std::shared_ptr<Buffer>& buffer);
 		int SyncSend(const char* data, int length);
 		int SyncSend(const std::shared_ptr<Buffer>& buffer);
-		
+
 		virtual void Close(int reason);
 		virtual void AsyncRead();
 	protected :

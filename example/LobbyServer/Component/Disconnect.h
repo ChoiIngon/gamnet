@@ -12,7 +12,7 @@ namespace Component {
 		Disconnect();
 
 		Gamnet::Time::Timer timer;
-		Gamnet::Time::ElapseTimer elapse_time;
+		Gamnet::Time::ElapseTimeCounter elapse_time;
 	};
 };
 #endif

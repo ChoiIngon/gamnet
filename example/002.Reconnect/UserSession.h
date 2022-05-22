@@ -5,7 +5,7 @@
 #include <Library/Component.h>
 #include "../idl/Message.h"
 
-class UserSession 
+class UserSession
 	: public Gamnet::Network::Tcp::Session
 {
 public:
@@ -39,6 +39,12 @@ public:
 		return components.GetComponent<T>();
 	}
 
+    template <class T>
+    std::shared_ptr<T> GetComponent(const std::string& name)
+    {
+        return components.GetComponent<T>(name);
+    }
+
 	template <class T>
 	void RemoveComponent()
 	{
@@ -48,7 +54,7 @@ private :
 	Gamnet::Component components;
 };
 
-class TestSession : public Gamnet::Test::Session 
+class TestSession : public Gamnet::Test::Session
 {
 public:
 	virtual void OnCreate() override;

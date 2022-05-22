@@ -22,7 +22,7 @@ namespace Gamnet {	namespace Network {		namespace Tcp {
 		MsgID_SvrCli_ReliableAck_Ntf = MsgID_Max - 4,
 		MsgID_SvrCli_Kickout_Ntf = MsgID_Max - 5,
 		MsgID_CliSvr_Close_Req = MsgID_Max - 6,
-		MsgID_SvrCli_Close_Ans = MsgID_Max - 6		
+		MsgID_SvrCli_Close_Ans = MsgID_Max - 6
 	};
 
 template <class SESSION_T>
@@ -104,6 +104,7 @@ public:
 
 			prevSession->Dispatch([=]() {
 				prevSession->socket = socket;
+                prevSession->expire_timer->Cancel();
 
 				Json::FastWriter writer;
 				std::string str = writer.write(ans);

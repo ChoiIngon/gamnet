@@ -2,7 +2,7 @@
 #include "ResultSet.h"
 
 namespace Gamnet { namespace Database { namespace Redis {
-	Subscriber::Subscriber() 
+	Subscriber::Subscriber()
 	{
 #ifdef _DEBUG
 		connector.name = "Subscriber";
@@ -68,7 +68,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 
 	void Subscriber::OnError(int error)
 	{
-		reconnect_timer.SetTimer(1000, std::bind(&Subscriber::Reconnect, this));
+		reconnect_timer.ExpireFromNow(1000, std::bind(&Subscriber::Reconnect, this));
 	}
 
 	void Subscriber::Close(int reason)
@@ -82,8 +82,8 @@ namespace Gamnet { namespace Database { namespace Redis {
 			OnClose(reason);
 			OnDestroy();
 			socket = nullptr;
-			
-			reconnect_timer.SetTimer(1000, std::bind(&Subscriber::Reconnect, this));
+
+			reconnect_timer.ExpireFromNow(1000, std::bind(&Subscriber::Reconnect, this));
 		});
 	}
 
@@ -103,7 +103,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 	void Subscriber::OnRead(const std::shared_ptr<Buffer>& buffer)
 	{
 		recv_buffer->Append(buffer->ReadPtr(), buffer->Size());
-		
+
 		std::shared_ptr<ResultSetImpl> impl = std::make_shared<ResultSetImpl>();
 		if(false == impl->Parse(std::string(recv_buffer->ReadPtr(), recv_buffer->Size())))
 		{
@@ -150,7 +150,7 @@ namespace Gamnet { namespace Database { namespace Redis {
 		}
 		AsyncSend(Format("UNSUBSCRIBE ", channel));
 	}
-	
+
 	void Subscriber::OnRecv_SubscribeAns(const Json::Value& ans)
 	{
 		if(3 != ans.size())

@@ -32,7 +32,7 @@ namespace Component { namespace Unit {
 
 		Meta();
 	};
-	
+
 	class Data : public std::enable_shared_from_this<Data>, public Gamnet::Component
 	{
 	public :
@@ -58,7 +58,7 @@ namespace Component { namespace Unit {
 		void SetPosition(const Vector2Int& position);
 
 		std::shared_ptr<AStarPathFinder> path_finder;
-		std::shared_ptr<Gamnet::Time::Timer> timer;
+		std::shared_ptr<Gamnet::Time::RepeatTimer> timer;
 	};
 
 	class Manager

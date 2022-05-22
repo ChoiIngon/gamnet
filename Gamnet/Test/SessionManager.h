@@ -12,7 +12,7 @@
 #include <atomic>
 #include <functional>
 
-namespace Gamnet {	namespace Test { 
+namespace Gamnet {	namespace Test {
 
 	template <class SESSION_T>
 	class SessionManager : public Network::SessionManager
@@ -21,7 +21,7 @@ namespace Gamnet {	namespace Test {
 	public:
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
-		
+
 	private :
 		struct SessionFactory
 		{
@@ -42,12 +42,12 @@ namespace Gamnet {	namespace Test {
 
 		struct TestCase
 		{
-			TestCase() 
+			TestCase()
 				: name("")
 				, send_count(0)
 				, recv_count(0)
 				, fail_count(0)
-				, total_time(0) 
+				, total_time(0)
 				, max_time(0)
 				, send_handler(nullptr)
 			{
@@ -72,11 +72,11 @@ namespace Gamnet {	namespace Test {
 
 		virtual void Remove(const std::shared_ptr<Network::Session>& session) override;
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override;
-		
+
 		void BindSendHandler(const std::string& testName, SEND_HANDLER_TYPE sendHandler);
 		void BindRecvHandler(const std::string& testName, uint32_t msgID, RECV_HANDLER_TYPE recv);
 		void BindGlobalRecvHandler(uint32_t msgID, RECV_HANDLER_TYPE recv);
-		
+
 		void RegisterTestcase(const std::string& test_name)
 		{
 			auto itr = test_cases.find(test_name);
@@ -103,7 +103,7 @@ namespace Gamnet {	namespace Test {
 		{
 			session->Recv_Reconnect_Ans(packet);
 		}
-		
+
 		void Recv_Close_Ans(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Network::Tcp::Packet>& packet)
 		{
 			session->Recv_Close_Ans(packet);
@@ -116,7 +116,7 @@ namespace Gamnet {	namespace Test {
 				return;
 			}
 			const std::shared_ptr<TestCase>& testCase = test_sequence[session->test_seq];
-			session->elapse_timer.Reset();
+			session->elapse_time.Reset();
 			testCase->send_handler(std::static_pointer_cast<SESSION_T>(session));
 			testCase->send_count++;
 		}
@@ -133,7 +133,7 @@ namespace Gamnet {	namespace Test {
 			{
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Test] can not create session instance(availble:", session_pool.Available(), ")");
 			}
-			
+
 			session->socket = socket;
 			session->OnCreate();
 			session->session_state = Network::Tcp::Session::State::AfterCreate;
@@ -145,8 +145,8 @@ namespace Gamnet {	namespace Test {
 
 	private :
 		Log::Logger						log;
-		std::shared_ptr<Time::Timer>	log_timer;
-		Time::ElapseTimer				total_time;;
+		Time::RepeatTimer               log_timer;
+		Time::ElapseTimeCounter			total_time;
 
 		std::atomic<int64_t>			begin_execute_count;
 		std::atomic<int64_t>			finish_execute_count;
@@ -195,9 +195,7 @@ namespace Gamnet {	namespace Test {
 		}
 
 		log.Init("log", "test", 5);
-		log_timer = Time::Timer::Create();
-		log_timer->AutoReset(true);
-		log_timer->SetTimer(3000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
+		log_timer.ExpireRepeat(3000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
 
 		total_time.Reset();
 
@@ -256,7 +254,7 @@ namespace Gamnet {	namespace Test {
 	{
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(networkSession);
 		const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
-		
+
 		auto itr = system_recv_handlers.find(packet->msg_id);
 		if(system_recv_handlers.end() != itr)
 		{
@@ -283,7 +281,7 @@ namespace Gamnet {	namespace Test {
 
 				}
 			}
-		
+
 			int currentSEQ = session->test_seq;
 			if (test_sequence.size() > (size_t)session->test_seq)
 			{
@@ -293,8 +291,8 @@ namespace Gamnet {	namespace Test {
 				{
 					RECV_HANDLER_TYPE& recvHandler = itr->second;
 					try {
-						time_t elapsedTime = session->elapse_timer.Count();
-						session->elapse_timer.Reset();
+						time_t elapsedTime = session->elapse_time.Count();
+						session->elapse_time.Reset();
 						testcase->recv_count++;
 						testcase->total_time += elapsedTime;
 						testcase->max_time = std::max(testcase->max_time, elapsedTime);
@@ -311,7 +309,7 @@ namespace Gamnet {	namespace Test {
 			{
 				session->recv_seq = packet->msg_seq;
 			}
-		
+
 			if (true == packet->reliable)
 			{
 				session->Send_ReliableAck_Ntf();
@@ -323,9 +321,9 @@ namespace Gamnet {	namespace Test {
 			}
 		}
 	}
-	
+
 	template <class SESSION_T>
-	void SessionManager<SESSION_T>::Remove(const std::shared_ptr<Network::Session>& session) 
+	void SessionManager<SESSION_T>::Remove(const std::shared_ptr<Network::Session>& session)
 	{
 		Network::SessionManager::Remove(session);
 		finish_execute_count++;
@@ -362,8 +360,9 @@ namespace Gamnet {	namespace Test {
 		}
 		if (finish_execute_count >= max_execute_count)
 		{
-			log_timer->Cancel();
+			log_timer.Cancel();
 			log.Write(GAMNET_INF, "[Gamnet::Test] test finished..(", finish_execute_count, "/", max_execute_count, ", second:", total_time.Count<std::chrono::seconds>(), ")");
+            total_time.Reset();
 		}
 	}
 }} /* namespace Gamnet */

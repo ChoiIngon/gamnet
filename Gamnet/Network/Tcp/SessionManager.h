@@ -52,16 +52,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		{
 			acceptor.Listen(port, max_session);
 			expire_time = alive_time;
-			/*
-			if (0 < expire_time)
-			{
-				expire_timer = Time::Timer::Create();
-				expire_timer->AutoReset(true);
-				expire_timer->SetTimer(60000, std::bind(&SessionManager::OnSessionExpire, this));
-			}
-			*/
 		}
-		
+
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override
 		{
 			Singleton<Dispatcher<SESSION_T>>::GetInstance().OnReceive(std::static_pointer_cast<SESSION_T>(session), std::static_pointer_cast<Packet>(buffer));
@@ -106,38 +98,8 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 			session->socket = socket;
 			session->AsyncRead();
-			session->SetExpire(expire_time);
+			session->expire_time = expire_time;
 		}
-
-		/*
-		void OnSessionExpire()
-		{
-			time_t now = time(nullptr);
-			std::list<std::shared_ptr<Session>> expireSessions;
-			{
-				std::lock_guard<std::mutex> lo( lock );
-				for (auto itr : sessions)
-				{
-					std::shared_ptr<Session> session = std::static_pointer_cast<Session>(itr.second);
-					if (session->last_recv_time + expire_time < now)
-					{
-						expireSessions.push_back( session );
-					}
-				}
-
-				for (const std::shared_ptr<Session>& session : expireSessions)
-				{
-					sessions.erase(session->session_key);
-				}
-			}
-
-			for (const std::shared_ptr<Session>& session : expireSessions)
-			{
-				session->handover_safe = false;
-				session->Close(ErrorCode::IdleTimeoutError);
-			}
-		}
-		*/
 	};
 }}}
 #endif /* LISTENER_H_ */

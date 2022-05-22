@@ -24,6 +24,7 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Handler_ServerState.cpp" />
     <ClCompile Include="Handler_UpdateFrame.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Handler_Login.cpp" />
@@ -31,6 +32,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Handler_Login.h" />
+    <ClInclude Include="Handler_ServerState.h" />
     <ClInclude Include="Handler_UpdateFrame.h" />
     <ClInclude Include="UserSession.h" />
   </ItemGroup>
@@ -115,7 +117,7 @@
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../../x64/Debug;C:\Program Files\MySQL\MySQL Connector C 6.1\lib;C:\local\OpenSSL-Win64\lib;C:\local\curl-7.43.0-win64\lib;C:\local\boost_1_71_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\local\boost_1_71_0\stage\lib;C:\local\curl-7.43.0-win64\lib;C:\OpenSSL-Win64\lib;C:\Program Files\MySQL\MySQL Connector C 6.1\lib;../../x64/Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Gamnet.lib;ssleay32.lib;libeay32.lib;libcurl.lib;libmysql.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

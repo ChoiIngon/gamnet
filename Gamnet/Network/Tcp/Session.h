@@ -23,10 +23,11 @@ public :
 	virtual ~Session();
 
 	bool	 handover_safe;
+    int      expire_time;
+    std::shared_ptr<Time::Timer> expire_timer;
+
 	uint32_t recv_seq;
 	uint32_t send_seq;
-
-	time_t	 last_recv_time;
 
 	std::shared_ptr<Packet>								recv_packet;
 	std::deque<std::shared_ptr<Packet>>					send_packets;
@@ -41,12 +42,9 @@ public :
 
 	virtual void AsyncSend(const std::shared_ptr<Packet>& packet);
 
-	void SetExpire(int timeout);
 	static std::string GenerateSessionToken(uint32_t session_key);
-	void OnIdleTimeout();
 private :
-
-	Time::Timer expire_timer;
+	void OnIdleTimeout();
 };
 
 }}}

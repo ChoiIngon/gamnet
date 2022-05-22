@@ -8,7 +8,7 @@
 
 namespace Gamnet { namespace Test {
 
-class Session : public Network::Tcp::Session 
+class Session : public Network::Tcp::Session
 {
 public :
 	Session();
@@ -40,7 +40,7 @@ public:
 	std::string	host;
 	int	port;
 	int test_seq;
-	Time::ElapseTimer elapse_timer;
+	Time::ElapseTimeCounter elapse_time;
 };
 
 }} /* namespace Gamnet */

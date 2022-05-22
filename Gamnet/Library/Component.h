@@ -42,6 +42,17 @@ namespace Gamnet {
 			return std::static_pointer_cast<T>(itr->second);
 		}
 
+        template <class T>
+        std::shared_ptr<T> GetComponent(const std::string& name)
+        {
+            auto itr = components.find(name);
+            if (components.end() == itr)
+            {
+                return nullptr;
+            }
+            return std::static_pointer_cast<T>(itr->second);
+        }
+
 		template <class T>
 		void RemoveComponent()
 		{

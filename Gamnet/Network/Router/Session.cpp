@@ -87,7 +87,7 @@ std::shared_ptr<Tcp::Packet> Session::SyncSend(const std::shared_ptr<Tcp::Packet
 			return nullptr;
 		}
 	}
-	
+
 	if (0 > session->SyncSend(packet))
 	{
 		return nullptr;
@@ -107,7 +107,7 @@ void Session::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet, const std::s
 	response->StartTimer([this, self, response]() {
 		async_responses.erase(response->seq);
 	});
-	
+
 	Dispatch([this, self, response]() {
 		async_responses[response->seq] = response;
 	});
@@ -135,7 +135,7 @@ void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 	}
 }
 
-SyncSession::SyncSession() 
+SyncSession::SyncSession()
 {
 #ifdef _DEBUG
 	connector.name = "Router::SyncSession";
@@ -143,7 +143,7 @@ SyncSession::SyncSession()
 	connector.connect_handler = std::bind(&SyncSession::OnConnect, this, std::placeholders::_1);
 }
 
-SyncSession::~SyncSession() 
+SyncSession::~SyncSession()
 {
 }
 
@@ -156,7 +156,7 @@ void SyncSession::OnConnect(const std::shared_ptr<boost::asio::ip::tcp::socket>&
 {
 	Session::Init();
 	this->socket = socket;
-	
+
 	MsgRouter_RegisterAddress_Ntf ntf;
 	ntf.service_name = Singleton<SessionManager>::GetInstance().local_address.service_name;
 	ntf.id = Singleton<SessionManager>::GetInstance().local_address.id;
@@ -179,7 +179,7 @@ std::shared_ptr<Tcp::Packet> SyncSession::SyncRead(int timeout)
 {
 	auto self = shared_from_this();
 	std::promise<std::shared_ptr<Tcp::Packet>> promise;
-	
+
 	// promise 써줘야 함. 다른 스레드에서 호출 됨.
 	Dispatch([this, self, &promise, timeout](){
 		if (nullptr == socket)
@@ -191,8 +191,7 @@ std::shared_ptr<Tcp::Packet> SyncSession::SyncRead(int timeout)
 		std::shared_ptr<boost::asio::ip::tcp::socket> socket = this->socket;
 
 		bool expire = false;
-		expire_timer.AutoReset(false);
-		expire_timer.SetTimer(timeout * 1000, [socket, &expire]() {
+		expire_timer.ExpireFromNow(timeout * 1000, [socket, &expire]() {
 			expire = true;
 			socket->cancel();
 		});

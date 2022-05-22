@@ -36,7 +36,7 @@ Data::Data()
 	, sight(10)
 	, critical_chance(0.0f)
 	, critical_rate(0.0f)
-	, timer(std::make_shared<Gamnet::Time::Timer>())
+	, timer(Gamnet::Time::RepeatTimer::Create())
 {
 }
 
@@ -52,7 +52,7 @@ void Data::SetPosition(const Vector2Int& position)
 	{
 		return;
 	}
-	
+
 	std::shared_ptr<Tile> curTile = dungeon->GetTile(this->position);
 	if(nullptr != curTile)
 	{

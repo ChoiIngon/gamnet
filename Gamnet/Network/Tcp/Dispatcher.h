@@ -158,21 +158,22 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 
 			const std::shared_ptr<IHandlerFunctor>& handlerFunctor = itr->second;
 #ifdef _DEBUG
-			Time::ElapseTimer elapseTimer;
+			Time::ElapseTimeCounter elapseTimeCounter;
 			IHandlerFunctor::Statistics& statistics = handlerFunctor->statistics;
 			statistics.begin_count++;
 #endif
 			handlerFunctor->OnReceive(session, packet);
-			
+
 			if (true == packet->reliable)
 			{
 				session->recv_seq = packet->msg_seq;
 			}
 #ifdef _DEBUG
-			int64_t elapsedTime = elapseTimer.Count();
+			int64_t elapsedTime = elapseTimeCounter.Count();
 			statistics.max_time = std::max(statistics.max_time, elapsedTime);
 			statistics.total_time += elapsedTime;
 			statistics.finish_count++;
+            elapseTimeCounter.Reset();
 #endif
 		}
 

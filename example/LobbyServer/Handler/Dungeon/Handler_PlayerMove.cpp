@@ -30,11 +30,10 @@ void Handler_PlayerMove::Recv_Ntf(const std::shared_ptr<UserSession>& session, c
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
-		
+
 		player->path_finder = std::make_shared<AStarPathFinder>(*dungeon, player->position, Vector2Int(ntf.destination.x, ntf.destination.y));
 		player->timer->Cancel();
-		player->timer->AutoReset(true);
-		player->timer->SetTimer(100, [dungeon, player, session](){
+		player->timer->ExpireRepeat(100, [dungeon, player, session](){
 			std::shared_ptr<AStarPathFinder> pathFinder = player->path_finder;
 			const Vector2Int position = pathFinder->path.front();
 			pathFinder->path.pop_front();

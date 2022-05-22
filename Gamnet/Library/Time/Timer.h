@@ -9,108 +9,102 @@
 
 namespace Gamnet { namespace Time {
 
-/*!
- * \brief event timer
- 
-		timer will call registered callback function if time expired
-		
-		Sample code :<br>
-  	<pre>
-		Gamnet::Timer timer;
-		timer.SetTimer(500, [&timer](){
-			// Do Something
-			timer.Resume();
-		});
-  	</pre>
- */
 class Timer
 {
+private:
+    struct TimerEntry
+    {
+        virtual ~TimerEntry() {}
+        virtual void OnExpire() = 0;
+    };
+
+    template<class EXPIRE_HANDLER>
+    struct TimerEntryT : public TimerEntry
+    {
+        EXPIRE_HANDLER expire_handler;
+        TimerEntryT(EXPIRE_HANDLER handler) : expire_handler(handler) {}
+        virtual ~TimerEntryT() {}
+        virtual void OnExpire() { expire_handler(); }
+    };
+
 public :
 	static std::shared_ptr<Timer> Create();
-private :
-	struct TimerEntry
-	{
-		virtual ~TimerEntry()
-		{
-		}
-		virtual void OnExpire() = 0;
-	};
 
-	template<class FUNCTOR>
-	struct TimerEntryT : public TimerEntry
-	{
-	    FUNCTOR functor;
-	    TimerEntryT(FUNCTOR functor) : functor(functor) {}
-	    virtual ~TimerEntryT() {}
-	    virtual void OnExpire() { functor(); }
-	};
-
-	std::mutex lock;
-	long interval;
-	bool auto_reset;
+public :
+#ifdef _DEBUG
+    uint32_t timer_seq;
+#endif
+protected :
+	std::recursive_mutex lock;
 	std::shared_ptr<TimerEntry> entry;
 	boost::asio::deadline_timer deadline_timer;
-#ifdef _DEBUG
-	uint32_t timer_seq;
-#endif
-	void OnExpire(const boost::system::error_code& ec);
+
 public :
 	Timer();
 	~Timer();
 
-	/*!
-		\param interval ms(1/1000 sec)
-		\param functor call back funcion
-	*/
-	template <class FUNCTOR>
-	void SetTimer(int interval, FUNCTOR functor)
+	template <class EXPIRE_HANDLER>
+	void ExpireFromNow(long interval, EXPIRE_HANDLER& handler)
 	{
-		std::lock_guard<std::mutex> lo(lock);
-		this->interval = interval;
-		this->entry = std::make_shared<TimerEntryT<FUNCTOR>>(functor);
-		this->deadline_timer.expires_from_now(boost::posix_time::milliseconds(this->interval));
+		std::lock_guard<std::recursive_mutex> lo(lock);
+		this->entry = std::make_shared<TimerEntryT<EXPIRE_HANDLER>>(handler);
+		this->deadline_timer.expires_from_now(boost::posix_time::milliseconds(interval));
 		this->deadline_timer.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
 	}
 
-	template <class FUNCTOR>
-	void SetTimer(const DateTime& datetime, FUNCTOR functor)
+	template <class EXPIRE_HANDLER>
+	void ExpireAt(const DateTime& datetime, EXPIRE_HANDLER& handler)
 	{
-		std::lock_guard<std::mutex> lo(lock);
-		this->interval = 0;
-		this->auto_reset = false;
-		this->entry = std::make_shared<TimerEntryT<FUNCTOR>>(functor);
-		deadline_timer.expires_at((boost::posix_time::ptime&)datetime.UTC());
-		deadline_timer.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
+		std::lock_guard<std::recursive_mutex> lo(lock);
+		this->entry = std::make_shared<TimerEntryT<EXPIRE_HANDLER>>(handler);
+        this->deadline_timer.expires_at((boost::posix_time::ptime&)datetime.UTC());
+        this->deadline_timer.async_wait(boost::bind(&Timer::OnExpire, this, boost::asio::placeholders::error));
 	}
 
-    /*!
-     * \brief timer event will expire just onetime. if reset timer event call 'Resume'
-     */
-	bool Resume();
-	void AutoReset(bool flag);
 	void Cancel();
-	long GetInterval() const;
+
+protected:
+    virtual void OnExpire(const boost::system::error_code& ec);
 };
 
-class ElapseTimer
+class RepeatTimer : public Timer
+{
+private :
+    long interval;
+
+public :
+    static std::shared_ptr<RepeatTimer> Create();
+
+    RepeatTimer();
+    virtual ~RepeatTimer();
+
+    template <class EXPIRE_HANDLER>
+    void ExpireRepeat(long interval, EXPIRE_HANDLER handler)
+    {
+        std::lock_guard<std::recursive_mutex> lo(lock);
+        this->entry = std::make_shared<TimerEntryT<EXPIRE_HANDLER>>(handler);
+        this->deadline_timer.expires_from_now(boost::posix_time::milliseconds(interval));
+        this->deadline_timer.async_wait(boost::bind(&RepeatTimer::OnExpire, this, boost::asio::placeholders::error));
+        this->interval = interval;
+    }
+
+protected:
+    virtual void OnExpire(const boost::system::error_code& ec) override;
+};
+
+class ElapseTimeCounter
 {
 	std::chrono::time_point<std::chrono::high_resolution_clock> t0_;
-	bool auto_reset_;
 public :
-	ElapseTimer();
-	void AutoReset(bool flag);
+    ElapseTimeCounter();
 	void Reset();
 
 	template<class TIMEUNIT_T = std::chrono::milliseconds>
-	uint64_t Count() 
+	uint64_t Count()
 	{
 		auto t1 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> fsec = t1 - t0_;
 		TIMEUNIT_T diff = std::chrono::duration_cast<TIMEUNIT_T>(fsec);
-		if(true == auto_reset_)
-		{
-			t0_ = t1;
-		}
 		return diff.count();
 	}
 };

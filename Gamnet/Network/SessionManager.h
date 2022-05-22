@@ -5,7 +5,7 @@
 #include <mutex>
 
 namespace Gamnet { namespace Network {
-	class SessionManager 
+	class SessionManager
 	{
 	protected :
 		std::mutex lock;

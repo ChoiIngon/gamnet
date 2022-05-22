@@ -28,9 +28,9 @@ void SingletonInitHelper::CallInitFunc(const std::string& name)
 	}
 
 	LOG(GAMNET_INF, "[Gamnet::Singleton<", name, ">] start initialization...");
-	Time::ElapseTimer elapse;
+	Time::ElapseTimeCounter elapse_time;
 	info.func();
-	LOG(GAMNET_INF, "[Gamnet::Singleton<", name, ">] complete initialization...(", elapse.Count(), "ms)");
+	LOG(GAMNET_INF, "[Gamnet::Singleton<", name, ">] complete initialization...(", elapse_time.Count(), "ms)");
 }
 
 }

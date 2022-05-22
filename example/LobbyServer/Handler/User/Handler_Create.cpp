@@ -17,7 +17,7 @@ namespace Handler { namespace User {
 		const int			page_size;
 		uint64_t			last_user_seq;
 		std::mutex			lock;
-		Gamnet::Time::Timer	timer;
+		std::shared_ptr<Gamnet::Time::Timer>	timer;
 		std::shared_ptr<std::set<std::string>> cache;
 	};
 
@@ -131,8 +131,8 @@ namespace Handler { namespace User {
 			cache = temp;
 		}
 
-		timer.AutoReset(false);
-		timer.SetTimer(60000, std::bind(&ExistUserNameCache::Init, this));
+        timer = Gamnet::Time::Timer::Create();
+		timer->ExpireFromNow(60000, std::bind(&ExistUserNameCache::Init, this));
 	}
 
 	const std::shared_ptr<std::set<std::string>> ExistUserNameCache::GetCache()

@@ -22,7 +22,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		return socket;
 	}
 
-	Connector::Connector() 
+	Connector::Connector()
 	{
 	}
 
@@ -54,11 +54,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 			LOG(GAMNET_ERR, "can not create socket. deny additional connection");
 			return;
 		}
-		
+
 		if (0 < timeout)
 		{
-			timer.AutoReset(false);
-			timer.SetTimer(timeout * 1000, std::bind(&Connector::Callback_ConnectTimeout, this));
+			timer.ExpireFromNow(timeout * 1000, std::bind(&Connector::Callback_ConnectTimeout, this));
 		}
 		socket->async_connect(endpoint_, boost::bind(&Connector::Callback_Connect, this, socket, endpoint_, boost::asio::placeholders::error));
 	}
@@ -75,10 +74,9 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 		if(timeout > 0)
 		{
-			timer.AutoReset(false);
-			timer.SetTimer(timeout * 1000, std::bind(&Connector::Callback_ConnectTimeout, this));
+			timer.ExpireFromNow(timeout * 1000, std::bind(&Connector::Callback_ConnectTimeout, this));
 		}
-		
+
 		boost::asio::ip::address address_;
 		boost::asio::ip::tcp::resolver resolver_(Singleton<boost::asio::io_context>::GetInstance());
 		boost::asio::ip::tcp::resolver::query query_(host, "");

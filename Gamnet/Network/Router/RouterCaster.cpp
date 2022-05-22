@@ -13,8 +13,7 @@ namespace Gamnet { namespace Network { namespace Router {
 
 RouterCasterImpl_Uni::RouterCasterImpl_Uni()
 {
-	heartbeat_timer.AutoReset(true);
-	heartbeat_timer.SetTimer(HEARTBEAT_INTERVAL, [this]() {
+	heartbeat_timer.ExpireRepeat(HEARTBEAT_INTERVAL, [this]() {
 		std::lock_guard<std::mutex> lo(lock_);
 		MsgRouter_HeartBeat_Ntf ntf;
 		std::shared_ptr<Tcp::Packet> packet = Tcp::Packet::Create();
@@ -228,7 +227,7 @@ std::shared_ptr<Session> RouterCasterImpl_Any::FindSession(const Address& addr)
 	return arrSession[pairSessionArray.first++ % arrSession.size()];
 }
 
-RouterCaster::RouterCaster() 
+RouterCaster::RouterCaster()
 {
 	arrCasterImpl_[(int)Address::CAST_TYPE::UNI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Uni());
 	arrCasterImpl_[(int)Address::CAST_TYPE::MULTI_CAST] = std::shared_ptr<RouterCasterImpl>(new RouterCasterImpl_Multi());
@@ -253,7 +252,7 @@ int RouterCaster::SendMsg(const Address& addr, const std::shared_ptr<Buffer>& bu
 	MsgRouter_SendMsg_Ntf ntf;
 	ntf.msg_seq = addr.msg_seq;
 	std::copy(buffer->ReadPtr(), buffer->ReadPtr() + buffer->Size(), std::back_inserter(ntf.buffer));
-	
+
 	std::shared_ptr<Network::Tcp::Packet> packet = Network::Tcp::Packet::Create();
 	if(nullptr == packet)
 	{
