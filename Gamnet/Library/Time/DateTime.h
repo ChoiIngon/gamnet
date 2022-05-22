@@ -15,11 +15,14 @@ public:
 	static const DateTime MaxValue;
 	static const DateTime MinValue;
 
+    typedef boost::gregorian::years Years;
+    typedef boost::gregorian::months Months;
+    typedef boost::gregorian::weeks Weeks;
 	typedef boost::gregorian::days Days;
+
 	typedef boost::posix_time::hours Hours;
 	typedef boost::posix_time::minutes Minutes;
 	typedef boost::posix_time::seconds Seconds;
-	typedef boost::posix_time::time_duration Duration;
 
 	DateTime();
 	DateTime(time_t unixTimestamp);
@@ -31,6 +34,27 @@ public:
 
 	DateTime& operator = (const std::string& fmt);
 	DateTime& operator = (const boost::posix_time::ptime& ptime);
+
+
+    boost::posix_time::ptime operator + (const boost::gregorian::years& duration);
+    boost::posix_time::ptime operator - (const boost::gregorian::years& duration);
+    boost::posix_time::ptime& operator += (const boost::gregorian::years& duration);
+    boost::posix_time::ptime& operator -= (const boost::gregorian::years& duration);
+
+    boost::posix_time::ptime operator + (const boost::gregorian::months& duration);
+    boost::posix_time::ptime operator - (const boost::gregorian::months& duration);
+    boost::posix_time::ptime& operator += (const boost::gregorian::months& duration);
+    boost::posix_time::ptime& operator -= (const boost::gregorian::months& duration);
+
+    boost::posix_time::ptime operator + (const boost::gregorian::weeks& duration);
+    boost::posix_time::ptime operator - (const boost::gregorian::weeks& duration);
+    boost::posix_time::ptime& operator += (const boost::gregorian::weeks& duration);
+    boost::posix_time::ptime& operator -= (const boost::gregorian::weeks& duration);
+
+    boost::posix_time::ptime operator + (const boost::gregorian::days& duration);
+    boost::posix_time::ptime operator - (const boost::gregorian::days& duration);
+    boost::posix_time::ptime& operator += (const boost::gregorian::days& duration);
+    boost::posix_time::ptime& operator -= (const boost::gregorian::days& duration);
 
 	boost::posix_time::ptime operator + (const boost::posix_time::time_duration& duration);
 	boost::posix_time::ptime operator -	(const boost::posix_time::time_duration& duration);

@@ -30,7 +30,7 @@ DateTime::DateTime(const boost::posix_time::ptime& ptime) : ptime(ptime)
 {
 }
 
-int DateTime::Year() const 
+int DateTime::Year() const
 {
 	const boost::gregorian::date& date = ptime.date();
 	return date.year();
@@ -102,6 +102,86 @@ DateTime& DateTime::operator = (const boost::posix_time::ptime& ptime)
 DateTime::operator boost::posix_time::ptime& ()
 {
 	return this->ptime;
+}
+
+boost::posix_time::ptime DateTime::operator + (const boost::gregorian::years& duration)
+{
+    return this->ptime + duration;
+}
+
+boost::posix_time::ptime DateTime::operator - (const boost::gregorian::years& duration)
+{
+    return this->ptime - duration;
+}
+
+boost::posix_time::ptime& DateTime::operator += (const boost::gregorian::years& duration)
+{
+    return this->ptime = this->ptime + duration;
+}
+
+boost::posix_time::ptime& DateTime::operator -= (const boost::gregorian::years& duration)
+{
+    return this->ptime = this->ptime - duration;
+}
+
+boost::posix_time::ptime DateTime::operator + (const boost::gregorian::months& duration)
+{
+    return this->ptime + duration;
+}
+
+boost::posix_time::ptime DateTime::operator - (const boost::gregorian::months& duration)
+{
+    return this->ptime - duration;
+}
+
+boost::posix_time::ptime& DateTime::operator += (const boost::gregorian::months& duration)
+{
+    return this->ptime = this->ptime + duration;
+}
+
+boost::posix_time::ptime& DateTime::operator -= (const boost::gregorian::months& duration)
+{
+    return this->ptime = this->ptime - duration;
+}
+
+boost::posix_time::ptime DateTime::operator + (const boost::gregorian::weeks& duration)
+{
+    return this->ptime + duration;
+}
+
+boost::posix_time::ptime DateTime::operator - (const boost::gregorian::weeks& duration)
+{
+    return this->ptime - duration;
+}
+
+boost::posix_time::ptime& DateTime::operator += (const boost::gregorian::weeks& duration)
+{
+    return this->ptime = this->ptime + duration;
+}
+
+boost::posix_time::ptime& DateTime::operator -= (const boost::gregorian::weeks& duration)
+{
+    return this->ptime = this->ptime - duration;
+}
+
+boost::posix_time::ptime DateTime::operator + (const boost::gregorian::days& duration)
+{
+    return this->ptime + duration;
+}
+
+boost::posix_time::ptime DateTime::operator - (const boost::gregorian::days& duration)
+{
+    return this->ptime - duration;
+}
+
+boost::posix_time::ptime& DateTime::operator += (const boost::gregorian::days& duration)
+{
+    return this->ptime = this->ptime + duration;
+}
+
+boost::posix_time::ptime& DateTime::operator -= (const boost::gregorian::days& duration)
+{
+    return this->ptime = this->ptime - duration;
 }
 
 boost::posix_time::ptime DateTime::operator + (const boost::posix_time::time_duration& duration)

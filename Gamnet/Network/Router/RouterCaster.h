@@ -29,7 +29,7 @@ private :
 	std::map<Address, std::shared_ptr<Session>> route_table_;
 
 	static constexpr int HEARTBEAT_INTERVAL = 60 * 1000; //ms
-	Time::Timer heartbeat_timer;
+	Time::RepeatTimer heartbeat_timer;
 public :
 	RouterCasterImpl_Uni();
 	virtual bool RegisterAddress(const Address& addr, const std::shared_ptr<Session>& router_session) override;
