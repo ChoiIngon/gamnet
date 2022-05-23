@@ -81,12 +81,6 @@ namespace BasicStandAloneServer
 
         private void OnDisable()
         {
-            session.onConnect = null;
-            session.onClose = null;
-            session.onError = null;
-
-            session.UnregisterHandler<MsgSvrCli_Welcome_Ntf>();
-            session.UnregisterHandler<MsgSvrCli_HelloWorld_Ans>();
             session.Close();
         }
         // Update is called once per frame
@@ -97,6 +91,12 @@ namespace BasicStandAloneServer
 
         private void OnDestroy()
         {
+            session.onConnect = null;
+            session.onClose = null;
+            session.onError = null;
+
+            session.UnregisterHandler<MsgSvrCli_Welcome_Ntf>();
+            session.UnregisterHandler<MsgSvrCli_HelloWorld_Ans>();
             session = null;
         }
     }

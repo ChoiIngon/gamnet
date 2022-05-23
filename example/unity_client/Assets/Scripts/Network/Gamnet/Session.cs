@@ -193,7 +193,7 @@ namespace Gamnet
 		private System.Timers.Timer _timer = null;
 
 		private List<SessionEvent> _event_queue = new List<SessionEvent>();
-		private List<Gamnet.Packet> _send_queue = new List<Gamnet.Packet>(); // 바로 보내지 못하고 
+		private List<Gamnet.Packet> _send_queue = new List<Gamnet.Packet>(); // 바로 보내지 못하고
 		private int _send_queue_idx = 0;
 
 		private Dictionary<uint, IMsgHandler> _handlers = new Dictionary<uint, IMsgHandler>();
@@ -425,7 +425,7 @@ namespace Gamnet
 
 					Send_Reconnect_Req();
 					Send_HeartBeat_Req();
-					
+
 					_timer = new System.Timers.Timer();
 					_timer.Interval = heartbeat_time;
 					_timer.AutoReset = true;
@@ -600,7 +600,7 @@ namespace Gamnet
 				{
 					_state = ConnectionState.Disconnected;
 					_timer.Stop();
-					
+
 					if (null == _socket)
 					{
 						return;
@@ -622,7 +622,7 @@ namespace Gamnet
 				}
 			}
 		}
-		
+
 		private void Callback_Disconnect(IAsyncResult result) {
 			try
 			{
@@ -639,7 +639,7 @@ namespace Gamnet
 				Debug.Log("[Session.Callback_Disconnect] session_state:" + _state + ", exception:" + e.ToString());
 			}
 		}
-        
+
 		public TimeoutMonitor SendMsg(object msg, bool handOverRelility = false)
 		{
 			if (null == _endpoint)
@@ -830,7 +830,7 @@ namespace Gamnet
 				_handlers.Remove((uint)msg_id);
 			}
 		}
-		
+
 		const uint MsgID_Max = uint.MaxValue;
 		const uint MsgID_CliSvr_Connect_Req = MsgID_Max - 1;
 		const uint MsgID_SvrCli_Connect_Ans = MsgID_Max - 1;
@@ -1062,7 +1062,11 @@ namespace Gamnet
 			{
 				return;
 			}
-			Gamnet.Packet packet = new Gamnet.Packet();
+
+            _timer.Stop();
+            _endpoint = null;
+
+            Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = Packet.HEADER_SIZE;
 			packet.msg_seq = ++_send_seq;
 			packet.msg_id = MsgID_CliSvr_Close_Req;
