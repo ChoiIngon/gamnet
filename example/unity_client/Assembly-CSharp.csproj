@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\001.BasicStandAloneServer\GameManager.cs" />
+    <Compile Include="Assets\001.BasicStandAloneServer\Message.cs" />
     <Compile Include="Assets\Scripts\Component\Bag.cs" />
     <Compile Include="Assets\Scripts\Component\Counter.cs" />
     <Compile Include="Assets\Scripts\Component\Item.cs" />
