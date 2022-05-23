@@ -11,7 +11,7 @@ namespace Gamnet { namespace Time {
 
 class Timer
 {
-private:
+protected :
     struct TimerEntry
     {
         virtual ~TimerEntry() {}
@@ -41,10 +41,10 @@ protected :
 
 public :
 	Timer();
-	~Timer();
+	virtual ~Timer();
 
 	template <class EXPIRE_HANDLER>
-	void ExpireFromNow(long interval, EXPIRE_HANDLER& handler)
+	void ExpireFromNow(long interval, const EXPIRE_HANDLER& handler)
 	{
 		std::lock_guard<std::recursive_mutex> lo(lock);
 		this->entry = std::make_shared<TimerEntryT<EXPIRE_HANDLER>>(handler);
@@ -53,7 +53,7 @@ public :
 	}
 
 	template <class EXPIRE_HANDLER>
-	void ExpireAt(const DateTime& datetime, EXPIRE_HANDLER& handler)
+	void ExpireAt(const DateTime& datetime, const EXPIRE_HANDLER& handler)
 	{
 		std::lock_guard<std::recursive_mutex> lo(lock);
 		this->entry = std::make_shared<TimerEntryT<EXPIRE_HANDLER>>(handler);
@@ -79,7 +79,7 @@ public :
     virtual ~RepeatTimer();
 
     template <class EXPIRE_HANDLER>
-    void ExpireRepeat(long interval, EXPIRE_HANDLER handler)
+    void ExpireRepeat(long interval, const EXPIRE_HANDLER& handler)
     {
         std::lock_guard<std::recursive_mutex> lo(lock);
         this->entry = std::make_shared<TimerEntryT<EXPIRE_HANDLER>>(handler);

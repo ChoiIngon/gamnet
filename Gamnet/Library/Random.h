@@ -6,6 +6,7 @@
 #include <vector>
 #include <list>
 #include <limits>
+#include <stdexcept>
 
 #undef max
 namespace Gamnet {

@@ -22,10 +22,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gamnet", "Gamnet\Gamnet_vs2
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LobbyServer", "example\LobbyServer\LobbyServer_vs2019.vcxproj", "{CA5743D6-4E85-44FB-B48C-2968A019D5C2}"
 	ProjectSection(ProjectDependencies) = postProject
+		{E16B955B-DBB0-3D9D-C23F-F53667609365} = {E16B955B-DBB0-3D9D-C23F-F53667609365}
 		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E} = {019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "001.BasicStandAloneServer", "example\001.BasicStandAloneServer\001.BasicStandAloneServer.vcxproj", "{0D7AB428-5420-48D4-91DA-4A5A52516338}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E16B955B-DBB0-3D9D-C23F-F53667609365} = {E16B955B-DBB0-3D9D-C23F-F53667609365}
+		{019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E} = {019BA4FB-BF7B-4EAC-A72D-E32BAFD5172E}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

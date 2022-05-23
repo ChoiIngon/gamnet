@@ -72,7 +72,7 @@ namespace Gamnet { namespace Network { namespace Http {
 	{
 		Json::Value root;
 		root["name"] = "Gamnet::Network::Http";
-		for(const std::shared_ptr<Tcp::Acceptor> acceptor : acceptors)
+		for(const std::shared_ptr<Tcp::Acceptor>& acceptor : acceptors)
 		{
 			root["acceptor"].append(acceptor->State());
 		}

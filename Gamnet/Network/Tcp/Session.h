@@ -22,9 +22,9 @@ public :
 	Session();
 	virtual ~Session();
 
-	bool	 handover_safe;
-    int      expire_time;
-    std::shared_ptr<Time::Timer> expire_timer;
+	bool	    handover_safe;
+    int         expire_time;
+    Time::Timer expire_timer;
 
 	uint32_t recv_seq;
 	uint32_t send_seq;

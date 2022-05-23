@@ -104,7 +104,7 @@ public:
 
 			prevSession->Dispatch([=]() {
 				prevSession->socket = socket;
-                prevSession->expire_timer->Cancel();
+                prevSession->expire_timer.Cancel();
 
 				Json::FastWriter writer;
 				std::string str = writer.write(ans);

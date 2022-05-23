@@ -27,7 +27,7 @@ struct ReleaseFunctor
     }
 };
 
-static std::atomic<uint32_t> TIMER_SEQ = 1;
+static std::atomic<uint32_t> TIMER_SEQ;
 static Pool<Timer, std::mutex, InitFunctor, ReleaseFunctor> timer_pool(std::numeric_limits<uint32_t>::max());
 static Pool<RepeatTimer, std::mutex, InitFunctor, ReleaseFunctor> repeattimer_pool(std::numeric_limits<uint32_t>::max());
 
@@ -35,20 +35,19 @@ std::shared_ptr<Timer> Timer::Create()
 {
     auto timer = timer_pool.Create();
 #ifdef _DEBUG
-    timer->timer_seq = TIMER_SEQ++;
+    timer->timer_seq = ++TIMER_SEQ;
 #endif
     return timer;
 }
 
 Timer::Timer()
-	: entry(nullptr), deadline_timer(Singleton<boost::asio::io_context>::GetInstance())
+	: timer_seq(0), entry(nullptr), deadline_timer(Singleton<boost::asio::io_context>::GetInstance())
 {
 }
 
 Timer::~Timer()
 {
-    deadline_timer.cancel();
-	deadline_timer.expires_at(boost::posix_time::pos_infin);
+    Cancel();
 }
 
 void Timer::OnExpire(const boost::system::error_code& ec)
@@ -71,7 +70,13 @@ void Timer::OnExpire(const boost::system::error_code& ec)
 void Timer::Cancel()
 {
     std::lock_guard<std::recursive_mutex> lo(lock);
+    if(nullptr == entry)
+    {
+        return;
+    }
+
     deadline_timer.cancel();
+    deadline_timer.expires_at(boost::posix_time::pos_infin);
     entry = nullptr;
 }
 
@@ -85,7 +90,7 @@ std::shared_ptr<RepeatTimer> RepeatTimer::Create()
 }
 
 RepeatTimer::RepeatTimer()
-    : interval(0), Timer()
+    : Timer(), interval(0)
 {
 }
 

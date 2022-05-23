@@ -15,7 +15,6 @@ std::string Session::GenerateSessionToken(uint32_t session_key)
 Session::Session()
 	: handover_safe(false)
     , expire_time(0)
-    , expire_timer(Time::Timer::Create())
 	, recv_seq(0)
 	, send_seq(0)
 	, recv_packet(nullptr)
@@ -56,7 +55,7 @@ void Session::Clear()
 	recv_packet = nullptr;
 	send_packets.clear();
 	session_state = State::Invalid;
-	expire_timer->Cancel();
+	expire_timer.Cancel();
 	Network::Session::Clear();
 }
 
@@ -138,7 +137,7 @@ void Session::Close(int reason)
 			session_state = State::AfterCreate;
             if(true == handover_safe)
             {
-                self->expire_timer->ExpireFromNow(expire_time * 1000, std::bind(&Session::OnIdleTimeout, self));
+                self->expire_timer.ExpireFromNow(expire_time * 1000, std::bind(&Session::OnIdleTimeout, self));
             }
 		}
 
@@ -156,7 +155,7 @@ void Session::Close(int reason)
 void Session::OnIdleTimeout()
 {
 	handover_safe = false;
-    expire_timer->Cancel();
+    expire_timer.Cancel();
 	Close(ErrorCode::IdleTimeoutError);
 }
 }}}
