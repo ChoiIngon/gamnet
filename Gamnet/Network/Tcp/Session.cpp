@@ -129,27 +129,29 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 void Session::Close(int reason)
 {
     auto self = std::static_pointer_cast<Session>(shared_from_this());
-	Dispatch([this, self, reason]() {
-		if (State::AfterAccept == session_state)
-		{
+    Dispatch([this, self, reason]() {
+        if (nullptr != socket)
+        {
+            OnClose(reason);
+
             socket->close();
-			OnClose(reason);
-			session_state = State::AfterCreate;
-            if(true == handover_safe)
+            socket = nullptr;
+            session_state = State::AfterCreate;
+
+            if (true == handover_safe)
             {
                 self->expire_timer.ExpireFromNow(expire_time * 1000, std::bind(&Session::OnIdleTimeout, self));
             }
-		}
+        }
 
-		socket = nullptr;
-
-		if(State::AfterCreate == session_state && false == handover_safe)
-		{
-			OnDestroy();
-			session_state = State::Invalid;
-			session_manager->Remove(self);
-		}
-	});
+        if (false == handover_safe)
+        {
+            expire_timer.Cancel();
+            OnDestroy();
+            session_state = State::Invalid;
+            session_manager->Remove(self);
+        }
+        });
 }
 
 void Session::OnIdleTimeout()
