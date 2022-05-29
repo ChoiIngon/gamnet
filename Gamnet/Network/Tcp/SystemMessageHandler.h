@@ -42,10 +42,11 @@ public:
 			session->OnCreate();
 			session->session_state = Network::Tcp::Session::State::AfterCreate;
 
+            session->handover_safe = true;
+
 			session->OnAccept();
 			session->session_state = Network::Tcp::Session::State::AfterAccept;
 			session->session_manager->Add(session);
-			session->handover_safe = true;
 
 			ans["session_key"] = session->session_key;
 			ans["session_token"] = session->session_token;

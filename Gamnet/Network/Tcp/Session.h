@@ -35,6 +35,9 @@ public :
 	std::string	session_token;
 	State		session_state;
 
+    void EnableHandoverSafe(long expire_seconds = 0 /* 0 is infinite */);
+    void DisableHandoverSafe();
+
 	virtual bool Init() override;
 	virtual void Clear() override;
 	virtual void OnRead(const std::shared_ptr<Buffer>& buffer) override;

@@ -12,9 +12,12 @@ void SessionManager::Add(const std::shared_ptr<Session>& session)
 	}
 }
 
-void SessionManager::Remove(const std::shared_ptr<Network::Session>& session) 
+void SessionManager::Remove(const std::shared_ptr<Network::Session>& session)
 {
 	std::lock_guard<std::mutex> lo(lock);
+#ifdef _DEBUG
+    assert(sessions.end() != sessions.find(session->session_key));
+#endif
 	sessions.erase(session->session_key);
 }
 

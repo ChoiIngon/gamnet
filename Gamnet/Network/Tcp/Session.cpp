@@ -33,25 +33,23 @@ bool Session::Init()
 		return false;
 	}
 
-	session_token = Session::GenerateSessionToken(session_key);
-	session_state = Session::State::Invalid;
-
-	recv_packet = Packet::Create();
+	session_state   = Session::State::Invalid;
+	session_token   = Session::GenerateSessionToken(session_key);
+	recv_packet     = Packet::Create();
 	if(nullptr == recv_packet)
 	{
 		LOG(GAMNET_ERR, "ErrorCode::NullPacketError can not create Packet instance");
 		return false;
 	}
 
-	recv_seq = 0;
-	send_seq = 0;
-	handover_safe = false;
-
 	return true;
 }
 
 void Session::Clear()
 {
+    recv_seq = 0;
+    send_seq = 0;
+    handover_safe = false;
 	recv_packet = nullptr;
 	send_packets.clear();
 	session_state = State::Invalid;
@@ -130,34 +128,66 @@ void Session::Close(int reason)
 {
     auto self = std::static_pointer_cast<Session>(shared_from_this());
     Dispatch([this, self, reason]() {
-        if (nullptr != socket)
+        if (State::AfterAccept == session_state)
         {
             OnClose(reason);
-
-            socket->close();
-            socket = nullptr;
             session_state = State::AfterCreate;
-
-            if (true == handover_safe)
+            if (true == handover_safe && 0 != expire_time)
             {
                 self->expire_timer.ExpireFromNow(expire_time * 1000, std::bind(&Session::OnIdleTimeout, self));
             }
         }
 
-        if (false == handover_safe)
+        if (nullptr != socket)
         {
-            expire_timer.Cancel();
-            OnDestroy();
-            session_state = State::Invalid;
-            session_manager->Remove(self);
+            socket->close();
+            socket = nullptr;
         }
-        });
+
+        if (State::AfterCreate == session_state && false == handover_safe)
+        {
+            OnDestroy();
+            session_manager->Remove(self);
+            Clear();
+        }
+    });
 }
 
 void Session::OnIdleTimeout()
 {
-	handover_safe = false;
-    expire_timer.Cancel();
-	Close(ErrorCode::IdleTimeoutError);
+    Dispatch([this]() {
+        this->handover_safe = false;
+
+        this->expire_time = 0;
+        this->Close(ErrorCode::IdleTimeoutError);
+    });
 }
+
+void Session::EnableHandoverSafe(long expire_seconds)
+{
+    Dispatch([this, expire_seconds]() {
+        this->handover_safe = true;
+
+        this->expire_timer.Cancel();
+        this->expire_time = expire_seconds;
+    });
+}
+
+void Session::DisableHandoverSafe()
+{
+    Dispatch([this]() {
+        this->handover_safe = false;
+
+        this->expire_timer.Cancel();
+        this->expire_time = 0;
+
+        if (nullptr == socket && State::AfterCreate == session_state)
+        {
+            OnDestroy();
+            session_manager->Remove(shared_from_this());
+            Clear();
+        }
+    });
+}
+
 }}}

@@ -6,7 +6,7 @@
 #include "../Library/Singleton.h"
 
 namespace Gamnet { namespace Network {
-	
+
 static std::atomic<uint32_t> SESSION_KEY;
 static boost::asio::io_context& io_context = Singleton<boost::asio::io_context>::GetInstance();
 
@@ -15,7 +15,7 @@ std::shared_ptr<Session::Strand> Session::CreateStrand()
 	return std::make_shared<Session::Strand>(io_context.get_executor());
 }
 
-Session::Session() 
+Session::Session()
 	: session_key(0)
 	, session_manager(nullptr)
 	, socket(nullptr)
@@ -41,6 +41,7 @@ void Session::Clear()
 	read_buffer = nullptr;
 	send_buffers.clear();
 	session_key = 0;
+    socket = nullptr;
 }
 
 void Session::AsyncSend(const char* data, size_t length)
@@ -76,7 +77,7 @@ void Session::FlushSend()
 		LOG(ERR, "invalid link[session_key:", session_key, "]");
 		return;
 	}
-	
+
 	auto self = shared_from_this();
 	const std::shared_ptr<Buffer> buffer = send_buffers.front();
 	boost::asio::async_write(*socket, boost::asio::buffer(buffer->ReadPtr(), buffer->Size()), Bind(std::bind(&Session::OnSendHandler, self, std::placeholders::_1, std::placeholders::_2)));

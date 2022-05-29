@@ -113,7 +113,7 @@ void Session::Send_Reconnect_Req()
 
 	packet->Write(Network::Tcp::MsgID_CliSvr_Reconnect_Req, str.c_str(), str.length());
 	send_buffers.clear();
-	Network::Session::AsyncSend(packet); 
+	Network::Session::AsyncSend(packet);
 }
 
 void Session::Recv_Reconnect_Ans(const std::shared_ptr<Network::Tcp::Packet>& packet)

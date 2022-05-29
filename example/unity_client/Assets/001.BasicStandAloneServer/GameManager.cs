@@ -1,11 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace BasicStandAloneServer
 {
     public class GameManager : MonoBehaviour
     {
+        public Button connect;
+        public Button reconnect;
+        public Button pause;
+        public Button close;
+
         public string host;
         public int port;
 
@@ -67,6 +73,25 @@ namespace BasicStandAloneServer
                 Debug.Log($"hello world ans from server");
             });
 
+            connect.onClick.AddListener(() =>
+            {
+                session.Connect(host, port);
+            });
+
+            reconnect.onClick.AddListener(() =>
+            {
+                session.Resume();
+            });
+
+            pause.onClick.AddListener(() =>
+            {
+                session.Pause();
+            });
+
+            close.onClick.AddListener(() =>
+            {
+                session.Close();
+            });
         }
 
         void Start()
@@ -74,19 +99,12 @@ namespace BasicStandAloneServer
 
         }
 
-        private void OnEnable()
-        {
-            session.Connect(host, port);
-        }
-
-        private void OnDisable()
-        {
-            session.Close();
-        }
-        // Update is called once per frame
         void Update()
         {
-            session.Update();
+            if (null != session)
+            {
+                session.Update();
+            }
         }
 
         private void OnDestroy()
