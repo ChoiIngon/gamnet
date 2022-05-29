@@ -5,6 +5,8 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+// 도움말 문서 : https://kukuta.tistory.com/408
+
 namespace Gamnet { namespace Time {
 
 class DateTime
