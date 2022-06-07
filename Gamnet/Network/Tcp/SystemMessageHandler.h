@@ -95,26 +95,31 @@ public:
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionKeyError, "[Gamnet::Network::Tcp] can not find session data for reconnect(session_key:", session_key, ")");
 			}
 
-			if (session_token != prevSession->session_token)
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "[Gamnet::Network::Tcp] invalid session token(expect:", prevSession->session_token, ", receive:", session_token, ")");
-			}
-
-			std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
-			session->socket = nullptr;
-
 			prevSession->Dispatch([=]() {
+                if (session_token != prevSession->session_token)
+                {
+                    throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "[Gamnet::Network::Tcp] invalid session token(expect:", prevSession->session_token, ", receive:", session_token, ")");
+                }
+
+                if(Network::Tcp::Session::State::AfterCreate != prevSession->session_state || false == prevSession->handover_safe)
+                {
+                    throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionStateError, "[Gamnet::Network::Tcp] invalid session state(state:", (int)prevSession->session_state, ", handover_safe:", prevSession->handover_safe, ")");
+                }
+
+                std::shared_ptr<Packet> ansPacket = Packet::Create();
+                if (nullptr == ansPacket)
+                {
+                    throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "[Gamnet::Network::Tcp] can not create packet)");
+                }
+
+                std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
+                session->socket = nullptr;
+
 				prevSession->socket = socket;
                 prevSession->expire_timer.Cancel();
 
 				Json::FastWriter writer;
 				std::string str = writer.write(ans);
-
-				std::shared_ptr<Packet> ansPacket = Packet::Create();
-				if (nullptr == ansPacket)
-				{
-					return;
-				}
 
 				ansPacket->Write(MSG_ID::MsgID_SvrCli_Reconnect_Ans, str.c_str(), str.length());
 				prevSession->send_buffers.clear();
@@ -127,7 +132,8 @@ public:
 				}
 				prevSession->AsyncRead();
 			});
-			return;
+
+            return;
 		}
 		catch (const Exception& e)
 		{

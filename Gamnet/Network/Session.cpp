@@ -227,7 +227,13 @@ void Session::AsyncRead()
 			return;
 		}
 
+        if (nullptr == read_buffer)
+        {
+            return;
+        }
+
 		read_buffer->write_index += readbytes;
+
 		try
 		{
 			OnRead(read_buffer);
@@ -239,11 +245,14 @@ void Session::AsyncRead()
 			Close(e.error_code());
 			return;
 		}
+
 		read_buffer->Clear();
-		if (nullptr == socket)
-		{
-			return;
-		}
+
+        if (nullptr == socket)
+        {
+            return;
+        }
+
 		AsyncRead();
 	}));
 }

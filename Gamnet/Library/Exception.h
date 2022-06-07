@@ -11,7 +11,7 @@
 
 namespace Gamnet {
 
-class ErrorCode { 
+class ErrorCode {
 public :
 	enum {
 		Success = 0,
@@ -33,7 +33,7 @@ public :
 		InvalidHandlerError			= 43,
 		InvalidDatabaseNum			= 44,
 		InvalidLinkError			= 45,
-		InvalidDateTimeFormat		= 46,	
+		InvalidDateTimeFormat		= 46,
 		NotInitializedError			= 50,
 		NullPointerError			= 60,
 		NullPacketError				= 61,
@@ -63,7 +63,7 @@ public :
 		DecryptFinalFail			= 205,
 		RedisResultError			= 300,
 		ExecuteQueryError			= 301,
-		FileNotFound				= 400,		
+		FileNotFound				= 400,
 		SystemInitializeError		= 401,
 		UndefinedError				= 999
 	};
