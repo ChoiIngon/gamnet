@@ -34,7 +34,6 @@ bool Session::Init()
 	}
 
 	session_state   = Session::State::Invalid;
-	session_token   = Session::GenerateSessionToken(session_key);
 	recv_packet     = Packet::Create();
 	if(nullptr == recv_packet)
 	{
