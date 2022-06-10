@@ -74,64 +74,77 @@ public:
 
 		try
 		{
-			std::string json = std::string(packet->ReadPtr() + Packet::HEADER_SIZE, packet->Size());
-			Json::Reader reader;
+            std::string json = std::string(packet->ReadPtr() + Packet::HEADER_SIZE, packet->Size());
+            Json::Reader reader;
 
-			if (false == reader.parse(json, req))
-			{
-				throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[Gamnet::Network::Tcp] message format error(data:", json, ")");
-			}
+            if (false == reader.parse(json, req))
+            {
+                throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[Gamnet::Network::Tcp] message format error(data:", json, ")");
+            }
 
-			uint32_t session_key = req["session_key"].asUInt();
-			const std::string session_token = req["session_token"].asString();
+            uint32_t session_key = req["session_key"].asUInt();
+            const std::string session_token = req["session_token"].asString();
 
-			LOG(DEV, "[Gamnet::Network::Tcp] Recv_Reconnect_Req(session_key:", session_key, ", session_token:", session_token, ")");
+            LOG(DEV, "Recv_Reconnect_Req(session_key:", session_key, ", session_token:", session_token, ")");
+
+            if (session_key == session->session_key) // 자기가 자기한테 Reconnect 메시지 어뷰징
+            {
+                throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionKeyError, "invalid session key(session_key:", session->session_key, ", state:", (int)session->session_state, ")");
+            }
+
+            if (Network::Tcp::Session::State::Invalid != session->session_state) // 리컨넥트용 세션이 아니라 뭔가 다른 놈이 어뷰징
+            {
+                throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "invalid session state(session_key:", session->session_key, ", state:", (int)session->session_state, ")");
+            }
+
 			const std::shared_ptr<SESSION_T> prevSession = std::static_pointer_cast<SESSION_T>(session->session_manager->Find(session_key));
-			if (nullptr == prevSession)
+			if (nullptr == prevSession) // 재 연결한 세션 못찾음
 			{
                 throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionKeyError, "[Gamnet::Network::Tcp] can not find session data for reconnect(session_key:", session_key, ")");
 			}
 
-			prevSession->Dispatch([=]() {
-                Json::Value ans;
-                ans["error_code"] = 0;
+            std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
 
+            prevSession->Dispatch([=]() {
+                // 요청 세션 토큰이 다름
                 if (session_token != prevSession->session_token)
                 {
-                    LOG(ERR, "invalid session token(session_key:", prevSession->session_key, ", expect:", prevSession->session_token, ", receive:", session_token, ")");
-                    ans["error_code"] = (int)ErrorCode::InvalidSessionTokenError;
-                    SendMsg(session, MSG_ID::MsgID_SvrCli_Reconnect_Ans, ans);
-                    session->Close(ErrorCode::InvalidSessionError);
-                    return;
+                    throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "invalid session token(session_key:", prevSession->session_key, ", expect:", prevSession->session_token, ", receive:", session_token, ")");
                 }
 
-                if(Network::Tcp::Session::State::AfterCreate != prevSession->session_state || false == prevSession->handover_safe)
+                if(nullptr != prevSession->socket)
                 {
-                    LOG(ERR, "invalid session state(session_key:", prevSession->session_key, ", state:", (int)prevSession->session_state, ", handover_safe:", prevSession->handover_safe, ")");
-                    ans["error_code"] = (int)ErrorCode::InvalidSessionTokenError;
-                    SendMsg(session, MSG_ID::MsgID_SvrCli_Reconnect_Ans, ans);
-                    session->Close(ErrorCode::InvalidSessionError);
-                    return;
+                    throw GAMNET_EXCEPTION(ErrorCode::InvalidSocketError, "prev_session alreay has socket(session_key:", prevSession->session_key, ")");
                 }
 
-                std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
-                session->socket = nullptr;
+                if(Network::Tcp::Session::State::AfterCreate != prevSession->session_state)
+                {
+                    throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionStateError, "invalid session state(session_key:", prevSession->session_key, ", state:", (int)prevSession->session_state, ")");
+                }
+
+                if(false == prevSession->handover_safe)
+                {
+                    throw GAMNET_EXCEPTION(ErrorCode::ReconnectFailError, "not handover_safe session(session_key:", prevSession->session_key, ", handover_safe:", prevSession->handover_safe, ")");
+                }
 
 				prevSession->socket = socket;
                 prevSession->expire_timer.Cancel();
                 prevSession->send_buffers.clear();
 
+                prevSession->OnAccept();
+                prevSession->session_state = Network::Tcp::Session::State::AfterAccept;
+
                 SendMsg(prevSession, MSG_ID::MsgID_SvrCli_Reconnect_Ans, ans);
 
-				prevSession->OnAccept();
-				prevSession->session_state = Network::Tcp::Session::State::AfterAccept;
-				for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
-				{
-					prevSession->Network::Session::AsyncSend(sendPacket);
-				}
-				prevSession->AsyncRead();
+                for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
+                {
+                    prevSession->Network::Session::AsyncSend(sendPacket);
+                }
+
+                prevSession->AsyncRead();
 			});
 
+            session->socket = nullptr;
             return;
 		}
 		catch (const Exception& e)

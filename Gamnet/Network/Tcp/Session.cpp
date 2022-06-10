@@ -86,7 +86,7 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 			recv_packet->Append(buffer->ReadPtr(), readSize);
 			buffer->Remove(readSize);
 
-			while(Packet::HEADER_SIZE <= (int)recv_packet->Size())
+			while(Packet::HEADER_SIZE <= (int)recv_packet->Size() && nullptr != socket)
 			{
 				recv_packet->ReadHeader();
 				if(Packet::HEADER_SIZE > recv_packet->length)
@@ -111,13 +111,8 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 					throw GAMNET_EXCEPTION(ErrorCode::NullPacketError, "can not create Packet instance");
 				}
 				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
-				auto self = shared_from_this();
-				session_manager->OnReceive(self, packet);
 
-				if (nullptr == socket)	// OnReceive 내부에서 소켓 Close 되는 경우 recv_packet에 데이터가 남아 있더라도 무시하고 세션 종료 처리
-				{
-					throw GAMNET_EXCEPTION(ErrorCode::InvalidSocketError, "null socket(session_key:", session_key, ")");
-				}
+				session_manager->OnReceive(shared_from_this(), packet);
 			}
 		}
 	}
