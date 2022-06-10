@@ -131,9 +131,6 @@ public:
                 prevSession->expire_timer.Cancel();
                 prevSession->send_buffers.clear();
 
-                prevSession->OnAccept();
-                prevSession->session_state = Network::Tcp::Session::State::AfterAccept;
-
                 SendMsg(prevSession, MSG_ID::MsgID_SvrCli_Reconnect_Ans, ans);
 
                 for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
@@ -141,6 +138,8 @@ public:
                     prevSession->Network::Session::AsyncSend(sendPacket);
                 }
 
+                prevSession->OnAccept();
+                prevSession->session_state = Network::Tcp::Session::State::AfterAccept;
                 prevSession->AsyncRead();
 			});
 
