@@ -20,7 +20,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		Config();
 
 		void ReadXml(const std::string& path);
-		
+
 		int port;
 		int max_count;
 		int keep_alive;
@@ -44,7 +44,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	template <class SESSION_T, class MSG>
-	void SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = true)
+	void SendMsg(const std::shared_ptr<SESSION_T>& session, const MSG& msg, bool reliable = false)
 	{
 		if(nullptr == session)
 		{
@@ -68,7 +68,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	}
 
 	const boost::asio::ip::address& GetLocalAddress();
-	
+
 	template <class SESSION_T>
 	std::shared_ptr<SESSION_T> FindSession(uint32_t session_key)
 	{
