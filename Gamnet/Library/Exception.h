@@ -34,6 +34,7 @@ public :
 		InvalidDatabaseNum			= 44,
 		InvalidLinkError			= 45,
 		InvalidDateTimeFormat		= 46,
+		InvalidSocketError			= 47,
 		NotInitializedError			= 50,
 		NullPointerError			= 60,
 		NullPacketError				= 61,
