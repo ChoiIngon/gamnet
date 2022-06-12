@@ -106,41 +106,55 @@ public:
             std::shared_ptr<boost::asio::ip::tcp::socket> socket = session->socket;
 
             prevSession->Dispatch([=]() {
-                // 요청 세션 토큰이 다름
-                if (session_token != prevSession->session_token)
+                Json::Value ans;
+                ans["error_code"] = 0;
+
+                try
                 {
-                    throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "invalid session token(session_key:", prevSession->session_key, ", expect:", prevSession->session_token, ", receive:", session_token, ")");
+                    if (session_token != prevSession->session_token)
+                    {
+                        throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionTokenError, "invalid session token(session_key:", prevSession->session_key, ", expect:", prevSession->session_token, ", receive:", session_token, ")");
+                    }
+
+                    if(nullptr != prevSession->socket)
+                    {
+                        throw GAMNET_EXCEPTION(ErrorCode::InvalidSocketError, "prev_session alreay has socket(session_key:", prevSession->session_key, ")");
+                    }
+
+                    if(Network::Tcp::Session::State::AfterCreate != prevSession->session_state)
+                    {
+                        throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionStateError, "invalid session state(session_key:", prevSession->session_key, ", state:", (int)prevSession->session_state, ")");
+                    }
+
+                    if(false == prevSession->handover_safe)
+                    {
+                        throw GAMNET_EXCEPTION(ErrorCode::ReconnectFailError, "not handover_safe session(session_key:", prevSession->session_key, ", handover_safe:", prevSession->handover_safe, ")");
+                    }
+
+				    prevSession->socket = socket;
+                    prevSession->expire_timer.Cancel();
+                    prevSession->send_buffers.clear();
+
+                    SendMsg(prevSession, MSG_ID::MsgID_SvrCli_Reconnect_Ans, ans);
+
+                    for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
+                    {
+                        prevSession->Network::Session::AsyncSend(sendPacket);
+                    }
+
+                    prevSession->OnAccept();
+                    prevSession->session_state = Network::Tcp::Session::State::AfterAccept;
+                    prevSession->AsyncRead();
+                    return;
+                }
+                catch (const Exception& e)
+                {
+                    LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
+                    ans["error_code"] = e.error_code();
                 }
 
-                if(nullptr != prevSession->socket)
-                {
-                    throw GAMNET_EXCEPTION(ErrorCode::InvalidSocketError, "prev_session alreay has socket(session_key:", prevSession->session_key, ")");
-                }
-
-                if(Network::Tcp::Session::State::AfterCreate != prevSession->session_state)
-                {
-                    throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionStateError, "invalid session state(session_key:", prevSession->session_key, ", state:", (int)prevSession->session_state, ")");
-                }
-
-                if(false == prevSession->handover_safe)
-                {
-                    throw GAMNET_EXCEPTION(ErrorCode::ReconnectFailError, "not handover_safe session(session_key:", prevSession->session_key, ", handover_safe:", prevSession->handover_safe, ")");
-                }
-
-				prevSession->socket = socket;
-                prevSession->expire_timer.Cancel();
-                prevSession->send_buffers.clear();
-
-                SendMsg(prevSession, MSG_ID::MsgID_SvrCli_Reconnect_Ans, ans);
-
-                for (const std::shared_ptr<Packet>& sendPacket : prevSession->send_packets)
-                {
-                    prevSession->Network::Session::AsyncSend(sendPacket);
-                }
-
-                prevSession->OnAccept();
-                prevSession->session_state = Network::Tcp::Session::State::AfterAccept;
-                prevSession->AsyncRead();
+                SendMsg(session, MSG_ID::MsgID_SvrCli_Reconnect_Ans, ans);
+                session->Close(ErrorCode::InvalidSessionError);
 			});
 
             session->socket = nullptr;
