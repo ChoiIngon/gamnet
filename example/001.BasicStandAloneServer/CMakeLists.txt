@@ -57,6 +57,7 @@ link_libraries(
 	boost_program_options
 	boost_date_time
 	boost_context
+	boost_thread
 	curl
 	crypto
 	ssl

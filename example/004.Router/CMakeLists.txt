@@ -19,11 +19,14 @@ endif()
 
 if(LINUX) 
 	include_directories( 
+		../
 		../../
 		/usr/include/mysql 
+
 	) 
 	link_directories(
 		../../Gamnet/Debug
+		/usr/lib64/mysql
 		/usr/lib/x86_64-linux-gnu
 	) 
 endif()
@@ -49,11 +52,16 @@ endif()
  
 link_libraries( 
 	Gamnet
-	curl
 	boost_filesystem
 	boost_system
 	boost_program_options
 	boost_date_time
+	boost_context
+	boost_thread
+	curl
+	crypto
+	ssl
+	mysqlclient
 	pthread
 )
 
