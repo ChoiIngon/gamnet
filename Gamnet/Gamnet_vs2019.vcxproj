@@ -222,7 +222,6 @@
     <ClInclude Include="library\Buffer.h" />
     <ClInclude Include="Library\Component.h" />
     <ClInclude Include="Library\Coroutine.h" />
-    <ClInclude Include="Library\DataCache.h" />
     <ClInclude Include="Library\Debugs.h" />
     <ClInclude Include="Library\Delegate.h" />
     <ClInclude Include="library\Exception.h" />

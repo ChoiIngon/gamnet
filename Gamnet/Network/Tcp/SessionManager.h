@@ -2,10 +2,10 @@
 #define GAMNET_NETWORK_TCP_SESSION_MANAGER_H_
 
 #include "Acceptor.h"
-#include "CastGroup.h"
 #include "Dispatcher.h"
 #include "Packet.h"
 #include "Session.h"
+#include "SystemMessageHandler.h"
 #include "../SessionManager.h"
 #include "../../Library/Json/json.h"
 #include "../../Library/Time/Time.h"
@@ -40,8 +40,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 
 		Acceptor		acceptor;
 		SessionPool		session_pool;
-		//std::shared_ptr<Time::Timer>	expire_timer;
-		int								expire_time;
+		int				expire_time;
 	public:
 		SessionManager() : session_pool(65535, SessionFactory(this)), expire_time(0)
 		{
@@ -96,9 +95,29 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Network::Tcp] can not create session instance(availble:", session_pool.Available(), ")");
 			}
 
+            constexpr int HEARTBEAT_INTERVAL = 60 * 1000; //ms
+
 			session->socket = socket;
-			session->AsyncRead();
 			session->expire_time = expire_time;
+			session->AsyncRead();
+            session->heartbeat_timer.ExpireRepeat(HEARTBEAT_INTERVAL, [session]() {
+                Json::Value ntf;
+                ntf["msg_seq"] = session->recv_seq;
+                ntf["timestamp"] = Time::UTC::Now();
+
+                Json::FastWriter writer;
+                std::string message = writer.write(ntf);
+
+                std::shared_ptr<Packet> packet = Packet::Create();
+                if (nullptr == packet)
+                {
+                    LOG(ERR, "can not create Packet instance");
+                    return;
+                }
+
+                packet->Write(MSG_ID::MsgID_SvrCli_HeartBeat_Ntf, message.c_str(), message.length());
+                session->AsyncSend(packet);
+            });
 		}
 	};
 }}}

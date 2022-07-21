@@ -28,46 +28,22 @@ struct ReleaseFunctor
 };
 
 static std::atomic<uint32_t> TIMER_SEQ;
-static Pool<Timer, std::mutex, InitFunctor, ReleaseFunctor> timer_pool(std::numeric_limits<uint32_t>::max());
-static Pool<RepeatTimer, std::mutex, InitFunctor, ReleaseFunctor> repeattimer_pool(std::numeric_limits<uint32_t>::max());
 
-std::shared_ptr<Timer> Timer::Create()
-{
-    auto timer = timer_pool.Create();
+TimerBase::TimerBase()
+    : entry(nullptr)
+    , deadline_timer(Singleton<boost::asio::io_context>::GetInstance())
 #ifdef _DEBUG
-    timer->timer_seq = ++TIMER_SEQ;
+    , timer_seq(++TIMER_SEQ)
 #endif
-    return timer;
-}
-
-Timer::Timer()
-	: timer_seq(0), entry(nullptr), deadline_timer(Singleton<boost::asio::io_context>::GetInstance())
 {
 }
 
-Timer::~Timer()
+TimerBase::~TimerBase()
 {
     Cancel();
 }
 
-void Timer::OnExpire(const boost::system::error_code& ec)
-{
-	if (0 != ec.value())
-	{
-		return;
-	}
-
-	std::lock_guard<std::recursive_mutex> lo(lock);
-	if (nullptr == entry)
-	{
-		return;
-	}
-
-	entry->OnExpire();
-	entry = nullptr;
-}
-
-void Timer::Cancel()
+void TimerBase::Cancel()
 {
     std::lock_guard<std::recursive_mutex> lo(lock);
     if(nullptr == entry)
@@ -80,17 +56,48 @@ void Timer::Cancel()
     entry = nullptr;
 }
 
+static Pool<Timer, std::mutex, InitFunctor, ReleaseFunctor> timer_pool(std::numeric_limits<uint32_t>::max());
+
+std::shared_ptr<Timer> Timer::Create()
+{
+    return timer_pool.Create();
+}
+
+Timer::Timer()
+    : TimerBase()
+{
+}
+
+Timer::~Timer()
+{
+}
+
+void Timer::OnExpire(const boost::system::error_code& ec)
+{
+    if (0 != ec.value())
+    {
+        return;
+    }
+
+    std::lock_guard<std::recursive_mutex> lo(lock);
+    if (nullptr == entry)
+    {
+        return;
+    }
+
+    entry->OnExpire();
+    entry = nullptr;
+}
+
+static Pool<RepeatTimer, std::mutex, InitFunctor, ReleaseFunctor> repeattimer_pool(std::numeric_limits<uint32_t>::max());
+
 std::shared_ptr<RepeatTimer> RepeatTimer::Create()
 {
-    auto timer = repeattimer_pool.Create();
-#ifdef _DEBUG
-    timer->timer_seq = TIMER_SEQ++;
-#endif
-    return timer;
+    return repeattimer_pool.Create();
 }
 
 RepeatTimer::RepeatTimer()
-    : Timer(), interval(0)
+    : TimerBase(), interval(0)
 {
 }
 
