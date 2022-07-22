@@ -121,8 +121,8 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 			BindHandler(MSG_ID::MsgID_CliSvr_Close_Req,		std::make_shared<SystemMessageHandlerFunctor<SESSION_T>>(
 				"MsgID_CliSvr_Close_Req",		handlerFactory, static_cast<typename SystemMessageHandlerFunctor<SESSION_T>::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_Close_Req)
 			));
-			BindHandler(MSG_ID::MsgID_CliSvr_HeartBeat_Ntf,	std::make_shared<SystemMessageHandlerFunctor<SESSION_T>>(
-				"MsgID_CliSvr_HeartBeat_Req",	handlerFactory, static_cast<typename SystemMessageHandlerFunctor<SESSION_T>::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Ntf)
+			BindHandler(MSG_ID::MsgID_CliSvr_HeartBeat_Req,	std::make_shared<SystemMessageHandlerFunctor<SESSION_T>>(
+				"MsgID_CliSvr_HeartBeat_Req",	handlerFactory, static_cast<typename SystemMessageHandlerFunctor<SESSION_T>::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_HeartBeat_Req)
 			));
 			BindHandler(MSG_ID::MsgID_CliSvr_ReliableAck_Ntf, std::make_shared<SystemMessageHandlerFunctor<SESSION_T>>(
 				"MsgID_CliSvr_ReliableAck_Ntf", handlerFactory,	static_cast<typename SystemMessageHandlerFunctor<SESSION_T>::FunctionType>(&SystemMessageHandler<SESSION_T>::Recv_ReliableAck_Ntf)

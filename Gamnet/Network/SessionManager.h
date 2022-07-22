@@ -11,6 +11,9 @@ namespace Gamnet { namespace Network {
 		std::mutex lock;
 		std::map<uint32_t, std::shared_ptr<Session>> sessions;
 	public :
+        SessionManager();
+        virtual ~SessionManager();
+
 		virtual void Add(const std::shared_ptr<Session>& session);
 		virtual void Remove(const std::shared_ptr<Session>& session);
 		virtual void OnReceive(const std::shared_ptr<Session>& session, const std::shared_ptr<Buffer>& buffer) = 0;

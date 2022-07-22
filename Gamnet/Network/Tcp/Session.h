@@ -22,11 +22,10 @@ public :
 	Session();
 	virtual ~Session();
 
-	bool	    handover_safe;
-    int         expire_time;
-    Time::Timer expire_timer;
-    Time::RepeatTimer heartbeat_timer;
-
+	bool	                handover_safe;
+    int                     expire_time;
+    Time::Timer             expire_timer;
+    Time::ElapseTimeCounter elaplsed_time;
 	uint32_t recv_seq;
 	uint32_t send_seq;
 

@@ -2,10 +2,10 @@
 #define GAMNET_NETWORK_TCP_SESSION_MANAGER_H_
 
 #include "Acceptor.h"
+#include "CastGroup.h"
 #include "Dispatcher.h"
 #include "Packet.h"
 #include "Session.h"
-#include "SystemMessageHandler.h"
 #include "../SessionManager.h"
 #include "../../Library/Json/json.h"
 #include "../../Library/Time/Time.h"
@@ -38,9 +38,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 	private:
 		typedef Pool<SESSION_T, std::mutex, Network::Session::InitFunctor, Network::Session::ReleaseFunctor> SessionPool;
 
-		Acceptor		acceptor;
-		SessionPool		session_pool;
-		int				expire_time;
+		Acceptor		    acceptor;
+		SessionPool		    session_pool;
+		Time::RepeatTimer   expire_timer;
+        time_t              expire_time;
 	public:
 		SessionManager() : session_pool(65535, SessionFactory(this)), expire_time(0)
 		{
@@ -51,6 +52,10 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		{
 			acceptor.Listen(port, max_session);
 			expire_time = alive_time;
+            if(0 != expire_time)
+            {
+                expire_timer.ExpireRepeat(60 * 1000, std::bind(&SessionManager::OnHeartBeatExpire, this));
+            }
 		}
 
 		virtual void OnReceive(const std::shared_ptr<Network::Session>& session, const std::shared_ptr<Buffer>& buffer) override
@@ -66,7 +71,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				LOG(WRN, "can not find session(session_key:", session_key, ")");
 				return;
 			}
-			session->handover_safe = false;
+            session->DisableHandoverSafe();
 			session->Close(ErrorCode::Success);
 		}
 
@@ -95,30 +100,33 @@ namespace Gamnet { namespace Network { namespace Tcp {
 				throw GAMNET_EXCEPTION(ErrorCode::InvalidSessionError, "[Gamnet::Network::Tcp] can not create session instance(availble:", session_pool.Available(), ")");
 			}
 
-            constexpr int HEARTBEAT_INTERVAL = 60 * 1000; //ms
-
 			session->socket = socket;
-			session->expire_time = expire_time;
 			session->AsyncRead();
-            session->heartbeat_timer.ExpireRepeat(HEARTBEAT_INTERVAL, [session]() {
-                Json::Value ntf;
-                ntf["msg_seq"] = session->recv_seq;
-                ntf["timestamp"] = Time::UTC::Now();
-
-                Json::FastWriter writer;
-                std::string message = writer.write(ntf);
-
-                std::shared_ptr<Packet> packet = Packet::Create();
-                if (nullptr == packet)
-                {
-                    LOG(ERR, "can not create Packet instance");
-                    return;
-                }
-
-                packet->Write(MSG_ID::MsgID_SvrCli_HeartBeat_Ntf, message.c_str(), message.length());
-                session->AsyncSend(packet);
-            });
+			session->expire_time = expire_time;
 		}
+
+        void OnHeartBeatExpire()
+        {
+            std::list<std::shared_ptr<Session>> delete_sessions;
+            {
+                std::lock_guard<std::mutex> lo(lock);
+                for (const auto& pair : sessions)
+                {
+                    std::shared_ptr<Session> session = std::static_pointer_cast<Session>(pair.second);
+                    uint64_t t = session->elaplsed_time.Count<std::chrono::seconds>();
+                    if (expire_time * 3 < session->elaplsed_time.Count<std::chrono::seconds>())
+                    {
+                        delete_sessions.push_back(session);
+                    }
+                }
+            }
+
+            for (const auto& session : delete_sessions)
+            {
+                session->DisableHandoverSafe();
+                session->Close(ErrorCode::IdleTimeoutError);
+            }
+        }
 	};
 }}}
 #endif /* LISTENER_H_ */

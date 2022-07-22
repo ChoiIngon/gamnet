@@ -217,22 +217,7 @@ namespace Gamnet
 		public Action onClose;
 		public Action<Gamnet.Exception> onError;
 
-        #region MsgID
-        const uint MsgID_Max = uint.MaxValue;
-        const uint MsgID_CliSvr_Connect_Req = MsgID_Max - 1;
-        const uint MsgID_SvrCli_Connect_Ans = MsgID_Max - 1;
-        const uint MsgID_CliSvr_Reconnect_Req = MsgID_Max - 2;
-        const uint MsgID_SvrCli_Reconnect_Ans = MsgID_Max - 2;
-        const uint MsgID_CliSvr_HeartBeat_Ntf = MsgID_Max - 3;
-        const uint MsgID_SvrCli_HeartBeat_Ntf = MsgID_Max - 3;
-        const uint MsgID_CliSvr_ReliableAck_Ntf = MsgID_Max - 4;
-        const uint MsgID_SvrCli_Kickout_Ntf = MsgID_Max - 5;
-        const uint MsgID_CliSvr_Close_Req = MsgID_Max - 6;
-        const uint MsgID_SvrCli_Close_Ans = MsgID_Max - 6;
-        #endregion
-
-        #region SessionEvent
-        public abstract class SessionEvent
+		public abstract class SessionEvent
 		{
 			protected Session session;
 			public SessionEvent(Session session)
@@ -306,17 +291,15 @@ namespace Gamnet
 				session.OnReceive(buffer);
 			}
 		}
-        #endregion
 
-        public Session()
+		public Session()
 		{
 			_handlers.Add(MsgID_SvrCli_Connect_Ans, new ConnectHandler(this));
 			_handlers.Add(MsgID_SvrCli_Reconnect_Ans, new ReconnectHandler(this));
-			_handlers.Add(MsgID_SvrCli_HeartBeat_Ntf, new HeartBeatHandler(this));
+			_handlers.Add(MsgID_SvrCli_HeartBeat_Ans, new HeartBeatHandler(this));
 			_handlers.Add(MsgID_SvrCli_Kickout_Ntf, new KickoutHandler(this));
 			_handlers.Add(MsgID_SvrCli_Close_Ans, new CloseHandler(this));
 		}
-
 		public void Connect(string host, int port, int timeout_sec = 10)
 		{
 			try
@@ -382,6 +365,15 @@ namespace Gamnet
 					_disconnectState = DisconnectState.Invalid;
 
 					Send_Connect_Req();
+
+					_timer = new System.Timers.Timer();
+					_timer.Interval = heartbeat_time;
+					_timer.AutoReset = true;
+					_timer.Elapsed += delegate
+					{
+						Send_HeartBeat_Req();
+					};
+					_timer.Start();
 				}
 			}
 			catch (System.Exception e)
@@ -432,6 +424,16 @@ namespace Gamnet
 					_state = ConnectionState.Connected;
 
 					Send_Reconnect_Req();
+					Send_HeartBeat_Req();
+
+					_timer = new System.Timers.Timer();
+					_timer.Interval = heartbeat_time;
+					_timer.AutoReset = true;
+					_timer.Elapsed += delegate
+					{
+						Send_HeartBeat_Req();
+					};
+					_timer.Start();
 				}
 			}
 			catch (SocketException e)
@@ -553,24 +555,18 @@ namespace Gamnet
 		}
 		public void Resume()
 		{
-            lock (this)
-            {
-                if (false == _connect_complete)
-                {
-                    return;
-                }
-                Debug.Log("[Session.Resume]");
-                Reconnect();
-            }
+			if (false == _connect_complete)
+			{
+				return;
+			}
+			Debug.Log("[Session.Resume]");
+			Reconnect();
 		}
 		public void Pause()
 		{
-            lock (this)
-            {
-                Debug.Log("[Session.Pause]");
-                Disconnect();
-                _disconnectState = DisconnectState.Pause;
-            }
+			Debug.Log("[Session.Pause]");
+			Disconnect();
+			_disconnectState = DisconnectState.Pause;
 		}
 		public void Error(Gamnet.Exception e)
 		{
@@ -626,6 +622,7 @@ namespace Gamnet
 				}
 			}
 		}
+
 		private void Callback_Disconnect(IAsyncResult result) {
 			try
 			{
@@ -677,14 +674,17 @@ namespace Gamnet
 					throw new System.Exception(string.Format("Overflow the send buffer max size : {0}", packetLength));
 				}
 
-				Gamnet.Packet packet = new Gamnet.Packet();
-				packet.length = packetLength;
-				packet.msg_seq = ++_send_seq;
-				packet.msg_id = msgID;
-				packet.reliable = handOverRelility;
-				packet.Append(ms);
+                lock (this)
+                {
+                    Gamnet.Packet packet = new Gamnet.Packet();
+                    packet.length = packetLength;
+                    packet.msg_seq = ++_send_seq;
+                    packet.msg_id = msgID;
+                    packet.reliable = handOverRelility;
+                    packet.Append(ms);
 
-				SendMsg(packet);
+                    SendMsg(packet);
+                }
 			}
 			catch (System.Exception e)
 			{
@@ -701,7 +701,13 @@ namespace Gamnet
                 _send_queue.Add(packet);
                 if (ConnectionState.Connected == _state && 1 == _send_queue.Count - _send_queue_idx)
                 {
+                    //Debug.Log("begin send 1(msg_seq:" + _send_queue[_send_queue_idx].msg_seq + ", msg_id:" + _send_queue[_send_queue_idx].msg_id + ")");
                     _socket.BeginSend(_send_queue[_send_queue_idx].data, 0, _send_queue[_send_queue_idx].Size(), 0, new AsyncCallback(Callback_SendMsg), packet);
+                }
+
+                if (0 == _send_seq % 30 && ConnectionState.Connected == _state)
+                {
+                    Send_HeartBeat_Req();
                 }
             }
 		}
@@ -773,7 +779,6 @@ namespace Gamnet
 			};
 			_timer.Start();
 		}
-
 		public void Update()
 		{
 			lock (this)
@@ -830,8 +835,20 @@ namespace Gamnet
 			}
 		}
 
-        #region Connect
-        private void Send_Connect_Req()
+		const uint MsgID_Max = uint.MaxValue;
+		const uint MsgID_CliSvr_Connect_Req = MsgID_Max - 1;
+		const uint MsgID_SvrCli_Connect_Ans = MsgID_Max - 1;
+		const uint MsgID_CliSvr_Reconnect_Req = MsgID_Max - 2;
+		const uint MsgID_SvrCli_Reconnect_Ans = MsgID_Max - 2;
+		const uint MsgID_CliSvr_HeartBeat_Req = MsgID_Max - 3;
+		const uint MsgID_SvrCli_HeartBeat_Ans = MsgID_Max - 3;
+		const uint MsgID_CliSvr_ReliableAck_Ntf = MsgID_Max - 4;
+		const uint MsgID_SvrCli_ReliableAck_Ntf = MsgID_Max - 4;
+		const uint MsgID_SvrCli_Kickout_Ntf = MsgID_Max - 5;
+		const uint MsgID_CliSvr_Close_Req = MsgID_Max - 6;
+		const uint MsgID_SvrCli_Close_Ans = MsgID_Max - 6;
+
+		private void Send_Connect_Req()
 		{
 			Gamnet.Packet packet = new Gamnet.Packet();
 			packet.length = Packet.HEADER_SIZE;
@@ -842,7 +859,7 @@ namespace Gamnet
 		}
 
 		[System.Serializable]
-		class MsgSvrCli_Connect_Ans
+		class Msg_Connect_Ans
 		{
 			public int error_code = 0;
 			public uint session_key = 0;
@@ -860,14 +877,15 @@ namespace Gamnet
 			public override void OnRecvMsg(System.IO.MemoryStream buffer)
 			{
 				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)buffer.Length);
-				MsgSvrCli_Connect_Ans ans = JsonUtility.FromJson<MsgSvrCli_Connect_Ans>(json);
+				//Debug.Log(LogHeader.Function + "position:" + (int)buffer.Position + ", length:" + (int)(buffer.Length - buffer.Position) + ", json:" + json);
+				Msg_Connect_Ans ans = JsonUtility.FromJson<Msg_Connect_Ans>(json);
 				if (0 != ans.error_code)
 				{
 					Debug.LogError("[ConnectHandler.OnRecvMsgrecv] connect fail(error_code:" + ans.error_code + ")");
 					session.Error(new Gamnet.Exception(ErrorCode.ConnectFailError, "connect fail(error_code:" + ans.error_code + ")"));
 					return;
 				}
-				Debug.Log("[ConnectHandler.OnRecvMsg] connect ans(session_key:" + ans.session_key + ", session_token:" + ans.session_token + ")");
+				Debug.Log("[ConnectHandler.OnRecvMsgrecv] connect ans(session_key:" + ans.session_key + ", session_token:" + ans.session_token + ")");
 				session._session_key = ans.session_key;
 				session._session_token = ans.session_token;
 				session._connect_complete = true;
@@ -876,17 +894,16 @@ namespace Gamnet
 				session._event_queue.Add(evt); // already locked
 			}
 		}
-        #endregion
-        #region Reconnect
-        [System.Serializable]
-		class MsgCliSvr_Reconnect_Req
+
+		[System.Serializable]
+		class Msg_Reconnect_Req
 		{
 			public uint session_key = 0;
 			public string session_token = "";
 		}
 		private void Send_Reconnect_Req()
 		{
-			MsgCliSvr_Reconnect_Req req = new MsgCliSvr_Reconnect_Req();
+			Msg_Reconnect_Req req = new Msg_Reconnect_Req();
 			req.session_key = _session_key;
 			req.session_token = _session_token;
 			string json = JsonUtility.ToJson(req);
@@ -912,11 +929,13 @@ namespace Gamnet
 				_send_queue.Add(itr);
 			}
 		}
-
 		[System.Serializable]
-		class MsgSvrCli_Reconnect_Ans
+		class Msg_Reconnect_Ans
 		{
 			public int error_code = 0;
+			//public uint session_key = 0;
+			//public string session_token = "";
+			//public uint msg_seq = 0;
 		}
 		public class ReconnectHandler : IMsgHandler
 		{
@@ -928,7 +947,7 @@ namespace Gamnet
 			public override void OnRecvMsg(System.IO.MemoryStream buffer)
 			{
 				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)buffer.Length);
-				MsgSvrCli_Reconnect_Ans ans = JsonUtility.FromJson<MsgSvrCli_Reconnect_Ans>(json);
+				Msg_Reconnect_Ans ans = JsonUtility.FromJson<Msg_Reconnect_Ans>(json);
 				if (0 != ans.error_code)
 				{
 					Debug.LogError("[Session.ReconnectHandler.OnRecvMsg] reconnect fail(error_code:" + ans.error_code + ")");
@@ -936,6 +955,8 @@ namespace Gamnet
 					return;
 				}
 				Debug.Log("[Session.ReconnectHandler.OnRecvMsg] recv reconnect ans(session_key:" + session._session_key + ", session_token:" + session._session_token + ", disconnect_state:" + session._disconnectState.ToString() + ")");
+				//session._session_key = ans.session_key;
+				//session._session_token = ans.session_token;
 
 				SessionEvent evt = null;
 				switch (session._disconnectState)
@@ -957,37 +978,23 @@ namespace Gamnet
 				session._disconnectState = DisconnectState.Invalid;
 			}
 		}
-        #endregion
-
-        [System.Serializable]
-        class MsgCliSvr_HeartBeat_Ntf
-        {
-            public Int64 timestamp;
-        }
-        private void Send_HeartBeat_Ntf(Int64 timestamp)
+		private void Send_HeartBeat_Req()
 		{
-            MsgCliSvr_HeartBeat_Ntf ntf = new MsgCliSvr_HeartBeat_Ntf();
-            ntf.timestamp = timestamp;
-            string json = JsonUtility.ToJson(ntf);
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(json);
-
-            Gamnet.Packet packet = new Gamnet.Packet();
-            packet.length = (ushort)(Packet.HEADER_SIZE + data.Length);
-            packet.msg_seq = ++_send_seq;
-            packet.msg_id = MsgID_CliSvr_HeartBeat_Ntf;
-            packet.reliable = false;
-            packet.Append(data);
-
+			Reconnect();
+			Gamnet.Packet packet = new Gamnet.Packet();
+			packet.length = Packet.HEADER_SIZE;
+			packet.msg_seq = ++_send_seq;
+			packet.msg_id = MsgID_CliSvr_HeartBeat_Req;
+			packet.reliable = false;
+			//Debug.Log("[Session.Send_HeartBeat_Req] send heartbeat req(msg_seq:" + packet.msg_seq + ")");
 			SendMsg(packet);
 		}
-
 		[System.Serializable]
-		class MsgSvrCli_HeartBeat_Ntf
+		class Msg_HeartBeat_Ans
 		{
+			public int error_code = 0;
 			public uint msg_seq = 0;
-            public Int64 timestamp = 0;
 		}
-
 		public class HeartBeatHandler : IMsgHandler
 		{
 			private Session session;
@@ -997,11 +1004,16 @@ namespace Gamnet
 			}
 			public override void OnRecvMsg(System.IO.MemoryStream buffer)
 			{
-                string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)buffer.Length);
-                MsgSvrCli_HeartBeat_Ntf ntf = JsonUtility.FromJson<MsgSvrCli_HeartBeat_Ntf>(json);
-
-                session.RemoveSentPacket(ntf.msg_seq);
-                session.Send_HeartBeat_Ntf(ntf.timestamp);
+				string json = System.Text.Encoding.UTF8.GetString(buffer.GetBuffer(), (int)buffer.Position, (int)buffer.Length);
+				Msg_HeartBeat_Ans ans = JsonUtility.FromJson<Msg_HeartBeat_Ans>(json);
+				if (0 != ans.error_code)
+				{
+					Debug.LogError("[Session.HeartBeatHandler.OnRecvMsg] heart beat message error(error_code:" + ans.error_code + ")");
+					session.Error(new Gamnet.Exception(ErrorCode.HeartbeatFailError, "heart beat message error(error_code:" + ans.error_code + ")"));
+					return;
+				}
+				//Debug.Log("[Session.HeartBeatHandler.OnRecvMsg] recv heartbeat ans(msg_seq:" + ans.msg_seq + ")");
+				session.RemoveSentPacket(ans.msg_seq);
 			}
 		}
 		[System.Serializable]

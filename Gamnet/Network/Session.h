@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <deque>
 #include "../Library/Buffer.h"
+#include "../Library/Time/Time.h"
 
 namespace Gamnet { namespace Network {
 	class SessionManager;
@@ -48,7 +49,7 @@ namespace Gamnet { namespace Network {
 		std::shared_ptr<Strand>							strand;
 		std::shared_ptr<Buffer> 						read_buffer;
 		std::deque<std::shared_ptr<Buffer>>				send_buffers;
-
+        
 		template <class Executor>
 		void Dispatch(Executor& executor)
 		{

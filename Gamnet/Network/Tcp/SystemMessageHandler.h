@@ -16,9 +16,10 @@ namespace Gamnet {	namespace Network {		namespace Tcp {
 		MsgID_SvrCli_Connect_Ans = MsgID_Max - 1,
 		MsgID_CliSvr_Reconnect_Req = MsgID_Max - 2,
 		MsgID_SvrCli_Reconnect_Ans = MsgID_Max - 2,
-		MsgID_CliSvr_HeartBeat_Ntf = MsgID_Max - 3,
-		MsgID_SvrCli_HeartBeat_Ntf = MsgID_Max - 3,
+		MsgID_CliSvr_HeartBeat_Req = MsgID_Max - 3,
+		MsgID_SvrCli_HeartBeat_Ans = MsgID_Max - 3,
 		MsgID_CliSvr_ReliableAck_Ntf = MsgID_Max - 4,
+		MsgID_SvrCli_ReliableAck_Ntf = MsgID_Max - 4,
 		MsgID_SvrCli_Kickout_Ntf = MsgID_Max - 5,
 		MsgID_CliSvr_Close_Req = MsgID_Max - 6,
 		MsgID_SvrCli_Close_Ans = MsgID_Max - 6
@@ -169,20 +170,13 @@ public:
 		session->Close(ErrorCode::InvalidSessionError);
 	}
 
-	void Recv_HeartBeat_Ntf(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
+	void Recv_HeartBeat_Req(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
 	{
-        Json::Value ntf;
-        std::string json = std::string(packet->ReadPtr() + Packet::HEADER_SIZE, packet->Size());
-        Json::Reader reader;
+		Json::Value ans;
+		ans["error_code"] = 0;
+		ans["msg_seq"] = session->recv_seq;
 
-        if (false == reader.parse(json, ntf))
-        {
-            throw GAMNET_EXCEPTION(ErrorCode::MessageFormatError, "[Gamnet::Network::Tcp] message format error(data:", json, ")");
-        }
-
-        time_t timestamp = ntf["timestamp"].asInt64();
-
-        //SendMsg(session, MSG_ID::MsgID_SvrCli_HeartBeat_Ntf, ans);
+        SendMsg(session, MSG_ID::MsgID_SvrCli_HeartBeat_Ans, ans);
 	}
 
 	void Recv_ReliableAck_Ntf(const std::shared_ptr<SESSION_T>& session, const std::shared_ptr<Packet>& packet)
@@ -222,6 +216,7 @@ public:
 		session->AsyncSend(ansPacket);
 	}
 
+private :
     void SendMsg(const std::shared_ptr<SESSION_T>& session, MSG_ID msgID, const Json::Value& msg)
     {
         Json::FastWriter writer;

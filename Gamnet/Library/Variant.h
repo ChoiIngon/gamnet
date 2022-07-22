@@ -22,7 +22,7 @@ namespace Gamnet {
 		Variant(int16_t val);
 		Variant(int32_t val);
 		Variant(int64_t val);
-
+		
 		operator bool() const;
 
 		operator std::string();
@@ -55,8 +55,8 @@ namespace Gamnet {
 		bool operator != (const Variant& rhs);
 	};
 
-
-
+	
+	
 } /* namespace Gamnet */
 
 #endif

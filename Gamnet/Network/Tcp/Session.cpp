@@ -80,6 +80,8 @@ void Session::AsyncSend(const std::shared_ptr<Packet>& packet)
 void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 {
 	try {
+        elaplsed_time.Reset();
+
 		while(0 < buffer->Size())
 		{
 			size_t readSize = std::min(buffer->Size(), recv_packet->Available());
