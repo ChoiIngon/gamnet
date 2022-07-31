@@ -41,7 +41,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		Acceptor		    acceptor;
 		SessionPool		    session_pool;
 		Time::RepeatTimer   expire_timer;
-        time_t              expire_time;
+        std::time_t         expire_time;
 	public:
 		SessionManager() : session_pool(65535, SessionFactory(this)), expire_time(0)
 		{
@@ -113,8 +113,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
                 for (const auto& pair : sessions)
                 {
                     std::shared_ptr<Session> session = std::static_pointer_cast<Session>(pair.second);
-                    uint64_t t = session->elaplsed_time.Count<std::chrono::seconds>();
-                    if (expire_time * 3 < session->elaplsed_time.Count<std::chrono::seconds>())
+                    if (expire_time + 60 < session->elaplsed_time.Count<std::chrono::seconds>())
                     {
                         delete_sessions.push_back(session);
                     }

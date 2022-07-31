@@ -23,7 +23,7 @@ public :
 	virtual ~Session();
 
 	bool	                handover_safe;
-    int                     expire_time;
+    std::time_t             expire_time;
     Time::Timer             expire_timer;
     Time::ElapseTimeCounter elaplsed_time;
 	uint32_t recv_seq;
