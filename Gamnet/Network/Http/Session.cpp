@@ -1,9 +1,11 @@
 #include "Request.h"
 #include "Dispatcher.h"
 #include "Session.h"
-#include "../../Library/String.h"
+//#include "../../Library/String.h"
 #include "../../Library/Singleton.h"
 #include <curl/curl.h>
+
+import Gamnet.String;
 
 namespace Gamnet { namespace Network { namespace Http {
 

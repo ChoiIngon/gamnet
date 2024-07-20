@@ -6,10 +6,12 @@
 #include "../../Library/Delegate.h"
 #include "../../Library/Time/Time.h"
 #include "../../Library/Exception.h"
-#include "../../Library/Singleton.h"
 #include "../../Library/Buffer.h"
 #include "../../Library/Json/json.h"
 #include "../../Log/Log.h"
+
+import Gamnet.Singleton;
+import Gamnet.String;
 
 namespace Gamnet { namespace Database { namespace Redis {
 	class Subscriber : public Network::Session

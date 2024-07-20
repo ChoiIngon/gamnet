@@ -17,7 +17,7 @@ namespace Gamnet { namespace Time {
 	time_t UnixTimestamp(const DateTime& datetime);
 	DateTime FromUnixtime(time_t timestamp);
 	int DateDiff(const DateTime& lhs, const DateTime& rhs);
-	int TimestampDiff(const DateTime& lhs, const DateTime& rhs);
+	int SecondDiff(const DateTime& lhs, const DateTime& rhs);
 }}
 
 #endif /* TIME_H_ */

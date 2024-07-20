@@ -3,7 +3,6 @@
 
 #include <memory>
 #include <stdint.h>
-#include "../Library/Debugs.h"
 #include "../Library/Pool.h"
 #include "Handler.h"
 
@@ -26,7 +25,7 @@ struct IHandlerFactory
 template <class T>
 struct HandlerCreate : public IHandlerFactory
 {
-	GAMNET_WHERE(T, IHandler);
+	static_assert(std::is_base_of<IHandler, T>::value);
 
 	Pool<T, std::mutex> pool_;
 	HandlerCreate() : pool_(65535)
@@ -43,7 +42,7 @@ struct HandlerCreate : public IHandlerFactory
 template <class T>
 struct HandlerStatic : public IHandlerFactory
 {
-	GAMNET_WHERE(T, IHandler);
+	static_assert(std::is_base_of<IHandler, T>::value);
 
 	std::shared_ptr<T> _handler;
 	HandlerStatic() : _handler(std::shared_ptr<T>(new T()))

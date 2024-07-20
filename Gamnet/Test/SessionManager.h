@@ -12,12 +12,14 @@
 #include <atomic>
 #include <functional>
 
+import Gamnet.String;
+
 namespace Gamnet {	namespace Test {
 
 	template <class SESSION_T>
 	class SessionManager : public Network::SessionManager
 	{
-		GAMNET_WHERE(SESSION_T, Session);
+		static_assert(std::is_base_of<Session, SESSION_T>::value);
 	public:
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&)> SEND_HANDLER_TYPE;
 		typedef std::function<void(const std::shared_ptr<SESSION_T>&, const std::shared_ptr<Network::Tcp::Packet>&)> RECV_HANDLER_TYPE;
@@ -144,7 +146,7 @@ namespace Gamnet {	namespace Test {
 		void OnLogTimerExpire();
 
 	private :
-		Log::Logger						log;
+		//Log::Logger						log;
 		Time::RepeatTimer               log_timer;
 		Time::ElapseTimeCounter			total_time;
 
@@ -194,7 +196,7 @@ namespace Gamnet {	namespace Test {
 			throw GAMNET_EXCEPTION(ErrorCode::InvalidArgumentError, " 'session_count' should be set");
 		}
 
-		log.Init("log", "test", 5);
+		//log.Init("log", "test", 5);
 		log_timer.ExpireRepeat(3000, std::bind(&SessionManager<SESSION_T>::OnLogTimerExpire, this));
 
 		total_time.Reset();
@@ -344,10 +346,11 @@ namespace Gamnet {	namespace Test {
 	{
 		//log.Write(GAMNET_INF, "[Gamnet::Test] link count..(active:", this->Size(), ", available:", link_pool.Available(), ", max:", link_pool.Capacity(), ")");
 		//log.Write(GAMNET_INF, "[Gamnet::Test] session count..(active:", this->session_manager.Size(), ", available:", this->session_pool.Available(), ", max:", this->session_pool.Capacity(), ")");
-		log.Write(GAMNET_INF, "[Gamnet::Test] begin count..(", begin_execute_count, "/", max_execute_count, ")");
+		//log.Write(GAMNET_INF, "[Gamnet::Test] begin count..(", begin_execute_count, "/", max_execute_count, ")");
 
 		for(const auto& testcase : test_sequence)
 		{
+			/*
 			log.Write(GAMNET_INF, "[Gamnet::Test] ",
 				"name:", testcase->name,
 				", send_count:", testcase->send_count,
@@ -357,11 +360,12 @@ namespace Gamnet {	namespace Test {
 				", max_time:", testcase->max_time,
 				", tot_time:", testcase->total_time
 			);
+			*/
 		}
 		if (finish_execute_count >= max_execute_count)
 		{
 			log_timer.Cancel();
-			log.Write(GAMNET_INF, "[Gamnet::Test] test finished..(", finish_execute_count, "/", max_execute_count, ", second:", total_time.Count<std::chrono::seconds>(), ")");
+			//log.Write(GAMNET_INF, "[Gamnet::Test] test finished..(", finish_execute_count, "/", max_execute_count, ", second:", total_time.Count<std::chrono::seconds>(), ")");
             total_time.Reset();
 		}
 	}

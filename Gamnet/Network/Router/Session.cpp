@@ -4,7 +4,10 @@
 #include "SessionManager.h"
 #include "RouterCaster.h"
 #include "MsgRouter.h"
-#include <boost/bind.hpp>
+#include "../../Library/Exception.h"
+#include <boost/bind/bind.hpp>
+
+import Gamnet.Singleton;
 
 namespace Gamnet { namespace Network { namespace Router {
 
@@ -131,7 +134,7 @@ void LocalSession::AsyncSend(const std::shared_ptr<Tcp::Packet>& packet)
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
+		GAMNET_LOG(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
 	}
 }
 

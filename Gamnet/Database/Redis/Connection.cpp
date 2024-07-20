@@ -1,9 +1,10 @@
 #include "Connection.h"
-#include "../../Library/Singleton.h"
 #include "../../Library/Exception.h"
 #include "../../Log/Log.h"
+import Gamnet.Singleton;
 
-namespace Gamnet { namespace Database {	namespace Redis {
+namespace Gamnet::Database {
+namespace Redis {
 
 	Connection::Connection() 
 	{
@@ -90,4 +91,4 @@ namespace Gamnet { namespace Database {	namespace Redis {
 		this->socket = socket;
 		LOG(INF, "[Gamnet::Database::Redis] connect...(db_num:", connection_info.db_num, ", host:", connection_info.host, ", port:", connection_info.port, ")");
 	}
-}}}
+}}

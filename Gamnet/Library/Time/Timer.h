@@ -3,7 +3,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/asio/deadline_timer.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <mutex>
 #include "DateTime.h"
 
@@ -117,7 +117,7 @@ public :
 	void Reset();
 
 	template<class TIMEUNIT_T = std::chrono::milliseconds>
-	uint64_t Count()
+	std::time_t Count()
 	{
 		auto t1 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> fsec = t1 - t0_;

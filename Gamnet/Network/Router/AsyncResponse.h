@@ -5,6 +5,7 @@
 #include "../Tcp/Packet.h"
 #include "../../Library/Pool.h"
 #include "../../Library/Time/Timer.h"
+#include "../../Library/Exception.h"
 #include "Address.h"
 
 namespace Gamnet { namespace Network { 

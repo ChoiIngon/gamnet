@@ -3,7 +3,10 @@
 #include "../../Library/MD5.h"
 #include "../../Library/Random.h"
 #include "../../Library/Time/Time.h"
+#include "../../Library/Exception.h"
 #include "SessionManager.h"
+
+import Gamnet.String;
 
 namespace Gamnet { namespace Network { namespace Tcp {
 

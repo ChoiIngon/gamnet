@@ -1,7 +1,7 @@
 #include "Transaction.h"
 #include "../ConnectionPool.h"
-#include "../../Library/Singleton.h"
-#include "../../Library/Exception.h"
+
+import Gamnet.Singleton;
 
 namespace Gamnet { namespace Database { namespace Redis {
 

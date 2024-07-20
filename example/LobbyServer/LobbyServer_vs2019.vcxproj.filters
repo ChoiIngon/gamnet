@@ -159,9 +159,6 @@
     <ClInclude Include="Component\Dungeon\Unit\Monster.h">
       <Filter>Component\Dungeon\Unit</Filter>
     </ClInclude>
-    <ClInclude Include="Component\Dungeon\Unit\MonsterAction.h">
-      <Filter>Component\Dungeon\Unit</Filter>
-    </ClInclude>
     <ClInclude Include="Component\Dungeon\Unit\Player.h">
       <Filter>Component\Dungeon\Unit</Filter>
     </ClInclude>
@@ -183,6 +180,7 @@
     <ClInclude Include="Handler\Item\Handler_UnequipItem.h" />
     <ClInclude Include="Handler\Item\Handler_SellItem.h" />
     <ClInclude Include="Component\Dungeon\TileMap.h" />
+    <ClInclude Include="Component\Dungeon\Unit\MonsterAction.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\idl\MessageUser.idl" />

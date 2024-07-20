@@ -1,6 +1,8 @@
 #include "Subscriber.h"
 #include "ResultSet.h"
 
+import Gamnet.String;
+
 namespace Gamnet { namespace Database { namespace Redis {
 	Subscriber::Subscriber()
 	{

@@ -43,7 +43,7 @@ public:
 		}
 		catch (const Gamnet::Exception& e)
 		{
-			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+			LOG(Gamnet::Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
 			ans.answer = e.what();
 		}
 		LOG(DEV, "MsgSvrCli_HelloWorld_Ans(session_key:", session->session_key, ", message:", ans.answer, ")");
@@ -75,7 +75,7 @@ public:
                 order = false;
             }
         }
-        catch (const Gamnet::Exception& e)
+        catch (const Gamnet::Exception& /*e*/)
         {
         }
 
@@ -96,7 +96,7 @@ public:
                 sortIndex = itr->second;
             }
         }
-        catch (const Gamnet::Exception& e)
+        catch (const Gamnet::Exception& /*e*/)
         {
             sortIndex = -1;
         }
@@ -215,7 +215,7 @@ void Test_SvrCli_HelloWorld_Ans(const std::shared_ptr<TestSession>& session, con
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(Gamnet::Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
 	}
 	session->Next();
 }
@@ -236,7 +236,7 @@ void Test_SvrCli_Welcome_Ntf(const std::shared_ptr<TestSession>& session, const 
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(Gamnet::Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
 	}
 }
 
@@ -263,7 +263,7 @@ int main(int argc, char** argv)
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		LOG(ERR, e.what(), "(error_code:", e.error_code(), ")");
 		return -1;
 	}
 

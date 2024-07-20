@@ -428,7 +428,7 @@ namespace Component { namespace Dungeon {
 				break;
 			}
 		}
-		for (int i = edges.size()-1; i >= 0; i--)
+		for (size_t i = edges.size()-1; i >= 0; i--)
 		{
 			if (Block::Type::Room == edges[i]->block->type)
 			{

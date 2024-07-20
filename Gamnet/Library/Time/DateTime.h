@@ -37,7 +37,6 @@ public:
 	DateTime& operator = (const std::string& fmt);
 	DateTime& operator = (const boost::posix_time::ptime& ptime);
 
-
     boost::posix_time::ptime operator + (const boost::gregorian::years& duration);
     boost::posix_time::ptime operator - (const boost::gregorian::years& duration);
     boost::posix_time::ptime& operator += (const boost::gregorian::years& duration);
@@ -81,11 +80,11 @@ public:
 	time_t ToUnixTimestamp() const;
 
 	int DateDiff(const DateTime& rhs) const;
-	int TimestampDiff(const DateTime& rhs) const;
+	int SecondDiff(const DateTime& rhs) const;
+
 	DateTime UTC() const;
 private :
 	void FromString(const std::string& fmt);
-	static int second_diff;
 };
 
 }}

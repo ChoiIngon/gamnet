@@ -4,13 +4,11 @@
 #include "Connection.h"
 #include <list>
 #include <set>
-#include "../../Library/String.h"
-#include "../../Library/Exception.h"
 
 namespace Gamnet { namespace Database { namespace MySQL {
 class Transaction 
 {
-public :
+private:
 	struct Query
 	{
 		enum class Type
@@ -24,7 +22,7 @@ public :
 		virtual std::string MakeQuery() = 0;
 		virtual void Clear() = 0;
 	};
-private :
+
 	struct PlainQuery : public Query
 	{
 		virtual Type GetType() const override;

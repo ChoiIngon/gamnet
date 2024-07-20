@@ -3,7 +3,10 @@
 #include "../../Library/Singleton.h"
 #include "../../Library/Exception.h"
 
-namespace Gamnet { namespace Database { namespace MySQL {
+import Gamnet.String;
+
+namespace Gamnet::Database { 
+namespace MySQL {
 
 	Transaction::Query::Type Transaction::PlainQuery::GetType() const
 	{
@@ -236,7 +239,7 @@ ResultSet Transaction::Commit()
 		catch (const Gamnet::Exception& e)
 		{
 			connection->Execute("rollback");
-			throw Exception(e.error_code(), e.what(), "\n\t", execute);
+			throw Gamnet::Exception(e.error_code(), e.what(), "\n\t", execute);
 		}
 	}
 	
@@ -254,4 +257,4 @@ void Transaction::Clear()
 	queries.clear();
 }
 
-}}}
+}}

@@ -5,8 +5,9 @@
 #include <string>
 #include <cstring>
 #include <vector>
-
+#include <mutex>
 #include "../../Log/Log.h"
+#include "../../Library/Exception.h"
 struct curl_slist;
 
 #include "HttpClient.h"
@@ -146,7 +147,7 @@ bool HttpClient::Get(const char* path, const char* param, std::function<void(int
 	}
 	catch(const Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(Gamnet::Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
 	
@@ -187,7 +188,7 @@ bool HttpClient::Post(const char* path, const char* param, std::function<void(in
 	}
 	catch(const Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(Gamnet::Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
 	
@@ -222,7 +223,7 @@ bool HttpClient::Put(const char* path, const char* param, std::function<void(int
 	}
 	catch(const Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(Gamnet::Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
 	
@@ -257,7 +258,7 @@ bool HttpClient::Delete(const char* path, const char* param, std::function<void(
 	}
 	catch(const Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(Gamnet::Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
 		return false;
 	}
 	
@@ -351,7 +352,7 @@ int HttpClient::HttpRequest(const std::string& path)
 	catch(const Exception& e)
 	{
 		_httpCode = e.error_code();
-		Log::Write(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		Log::Write(Gamnet::Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
 	}
 
 	if(NULL != header_list)

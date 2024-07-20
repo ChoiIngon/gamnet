@@ -38,7 +38,7 @@ void RouterHandler::Recv_Connect_Req(const std::shared_ptr<Session>& session, co
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		LOG(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 		session->session_state = Network::Tcp::Session::State::Invalid;
 		ans.error_code = e.error_code();
 	}
@@ -116,7 +116,7 @@ void RouterHandler::Recv_Connect_Ans(const std::shared_ptr<Session>& session, co
 	}
 	catch(const Exception& e)
 	{
-		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		GAMNET_LOG(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 		session->session_state = Network::Tcp::Session::State::Invalid;
 		session->Close(e.error_code());
 		if (ErrorCode::DuplicateRouterAddress == e.error_code())
@@ -160,9 +160,10 @@ void RouterHandler::Recv_RegisterAddress_Req(const std::shared_ptr<Session>& ses
 		ans.id = localRouterAddr.id;
 		ans.router_port = sessionManager->port;
 	}
-	catch(const Exception& e) {
+	catch(const Exception& e) 
+	{
 		session->session_state = Network::Tcp::Session::State::Invalid;
-		LOG(Log::Logger::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
+		GAMNET_LOG(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what(), "(error_code:", e.error_code(), ")");
 		ans.error_code = e.error_code();
 	}
 

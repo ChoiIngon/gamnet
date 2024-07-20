@@ -6,7 +6,7 @@
 #include "../Tcp/Session.h"
 #include "../Tcp/Connector.h"
 #include "../../Library/Time/Time.h"
-#include "../../Library/Exception.h"
+
 #include <future>
 
 namespace Gamnet { namespace Network { namespace Router {
