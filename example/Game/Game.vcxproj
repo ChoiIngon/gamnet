@@ -138,6 +138,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Session.cpp" />
+    <ClCompile Include="Transaction.cpp" />
     <ClCompile Include="UserCount.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -152,6 +154,8 @@
     <None Include="Schema.sql" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Session.h" />
+    <ClInclude Include="Transaction.h" />
     <ClInclude Include="UserCount.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

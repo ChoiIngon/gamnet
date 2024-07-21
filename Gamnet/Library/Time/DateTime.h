@@ -36,6 +36,7 @@ public:
 
 	DateTime& operator = (const std::string& fmt);
 	DateTime& operator = (const boost::posix_time::ptime& ptime);
+	DateTime& operator = (time_t unixTimestamp);
 
     boost::posix_time::ptime operator + (const boost::gregorian::years& duration);
     boost::posix_time::ptime operator - (const boost::gregorian::years& duration);

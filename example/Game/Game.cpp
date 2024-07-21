@@ -1,5 +1,6 @@
 #include <Gamnet/Gamnet.h>
 #include <boost/program_options.hpp>
+#include "Session.h"
 
 int main(int argc, char** argv)
 {
@@ -31,7 +32,10 @@ int main(int argc, char** argv)
 		Gamnet::Database::Redis::ReadXml(config_path);
 
 		Gamnet::Network::Router::ReadXml(config_path, [](const Gamnet::Network::Router::Address& address) {}, [](const Gamnet::Network::Router::Address& address) {});
+		Gamnet::Network::Tcp::ReadXml<Session>(config_path);
 		Gamnet::Network::Http::ReadXml(config_path);
+
+		Gamnet::Test::ReadXml<TestSession>(config_path);
 				
 		Gamnet::Run(vm["thread"].as<int>());
 	}

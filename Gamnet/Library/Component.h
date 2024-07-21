@@ -10,7 +10,7 @@ namespace Gamnet {
 		std::map<std::string, std::shared_ptr<void>> components;
 	public :
 		template <class T>
-		std::shared_ptr<T> AddComponent()
+		std::shared_ptr<T> Add()
 		{
 			std::shared_ptr<T> component = std::make_shared<T>();
 			components[typeid(T).name()] = component;
@@ -18,21 +18,21 @@ namespace Gamnet {
 		}
 
 		template <class T>
-		std::shared_ptr<T> AddComponent(const std::shared_ptr<T>& component)
+		std::shared_ptr<T> Add(const std::shared_ptr<T>& component)
 		{
 			components[typeid(T).name()] = component;
 			return component;
 		}
 
 		template <class T>
-		std::shared_ptr<T> AddComponent(const std::string& name)
+		std::shared_ptr<T> Add(const std::string& name)
 		{
 			std::shared_ptr<T> component = std::make_shared<T>();
 			components[name] = component;
 			return component;
 		}
 		template <class T>
-		std::shared_ptr<T> GetComponent()
+		std::shared_ptr<T> Get()
 		{
 			auto itr = components.find(typeid(T).name());
 			if(components.end() == itr)
@@ -43,7 +43,7 @@ namespace Gamnet {
 		}
 
         template <class T>
-        std::shared_ptr<T> GetComponent(const std::string& name)
+        std::shared_ptr<T> Get(const std::string& name)
         {
             auto itr = components.find(name);
             if (components.end() == itr)
@@ -54,7 +54,7 @@ namespace Gamnet {
         }
 
 		template <class T>
-		void RemoveComponent()
+		void Remove()
 		{
 			components.erase(typeid(T).name());
 		}

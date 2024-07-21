@@ -3,12 +3,11 @@
 
 import Gamnet.Singleton;
 
-#define GAMNET_TOKEN_PASTE(x, y) x ## y
+#define GAMNET_TOKEN_PASTE(x, y) x##y
 #define GAMNET_TOKEN_PASTE_2(x, y) GAMNET_TOKEN_PASTE(x, y)
 
 #define GAMNET_BIND_INIT_HANDLER(class_type, func_type) \
-	static auto GAMNET_TOKEN_PASTE_2(func_type, __COUNTER__) = Gamnet::Singleton<Gamnet::SingletonInitHelper>::GetInstance();
-	//static bool GAMNET_TOKEN_PASTE_2(func_type, __COUNTER__) = Gamnet::Singleton<Gamnet::SingletonInitHelper>::GetInstance().RegisterInitFunction(#class_type, std::bind(&class_type::func_type, &Gamnet::Singleton<class_type>::GetInstance()))
+	static bool GAMNET_TOKEN_PASTE_2(func_type, __COUNTER__) = Gamnet::Singleton<Gamnet::SingletonInitHelper>::GetInstance().RegisterInitFunction(#class_type, std::bind(&class_type::func_type, &Gamnet::Singleton<class_type>::GetInstance()))
 
 #define GAMNET_CALL_INIT_HANDLER(class_type) \
 	Gamnet::Singleton<Gamnet::SingletonInitHelper>::GetInstance().CallInitFunc(#class_type);

@@ -105,6 +105,12 @@ DateTime& DateTime::operator = (const boost::posix_time::ptime& ptime)
 	this->ptime = ptime;
 	return *this;
 }
+DateTime& DateTime::operator = (time_t unixTimestamp)
+{
+	this->ptime = boost::posix_time::from_time_t(unixTimestamp);
+	return *this;
+}
+
 
 DateTime::operator boost::posix_time::ptime& ()
 {
