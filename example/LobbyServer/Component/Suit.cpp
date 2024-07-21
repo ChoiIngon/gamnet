@@ -109,7 +109,7 @@ void Test_EquipItem_Ntf(const std::shared_ptr<TestSession>& session, const std::
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 	}
 
 }
@@ -129,7 +129,7 @@ void Test_UnequipItem_Ntf(const std::shared_ptr<TestSession>& session, const std
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 	}
 }
 

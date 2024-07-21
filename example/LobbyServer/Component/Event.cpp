@@ -37,8 +37,12 @@ namespace Component {
 		return reader.GetAllMetaData();
 	}
 
-	GAMNET_BIND_INIT_HANDLER(Manager_Event, Init);
+	void func()
+	{
+	}
 
+	GAMNET_BIND_INIT_HANDLER(Manager_Event, Init);
+	
 	Event::Event(const std::shared_ptr<UserSession>& session)
 		: session(session)
 	{

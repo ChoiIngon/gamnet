@@ -90,7 +90,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 		ans.error_code = (Message::ErrorCode)e.error_code();
 	}
 	LOG(DEV, "Message::Dungeon::MsgSvrCli_CreateDungeon_Ans(error_code:", (int)ans.error_code, ")");
@@ -121,7 +121,7 @@ void Test_CreateDungeon_Ans(const std::shared_ptr<TestSession>& session, const s
 		//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUser_CreateDungeonLobby_Ans");
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 	}
   /*
 	for(int y=0; y<ans.height; y++)

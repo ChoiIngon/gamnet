@@ -49,5 +49,6 @@ namespace Component {
 		std::map<uint32_t, std::shared_ptr<Data>> events;
 	};
 
+	void func();
 }
 #endif

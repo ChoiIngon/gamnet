@@ -5,6 +5,8 @@
 #include "Transaction.h"
 #include <functional>
 
+import Gamnet.String;
+
 namespace Gamnet { namespace Database { namespace MySQL {
 	void ReadXml(const char* xml_path);
 	bool Connect(int db_type, const std::string& host, int port, const std::string& id, const std::string& passwd, const std::string& db, bool fail_query_log = false);

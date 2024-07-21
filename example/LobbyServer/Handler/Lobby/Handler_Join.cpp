@@ -32,7 +32,7 @@ void Handler_Join::Recv_Req(const std::shared_ptr<UserSession>& session, const M
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 		ans.error_code = (Message::ErrorCode)e.error_code();
 	}
 	LOG(DEV, "Message::Lobby::MsgSvrCli_Join_Ans(error_code:", (int)ans.error_code, ")");
@@ -77,7 +77,7 @@ void Test_Join_Ans(const std::shared_ptr<TestSession>& session, const std::share
 		//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUser_JoinLobby_Ans");
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 	}
 
 	session->Next();
@@ -100,7 +100,7 @@ void Test_Mail_Ntf(const std::shared_ptr<TestSession>& session, const std::share
 		//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUser_JoinLobby_Ans");
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 	}
 
 	for (auto& mail : ntf.mail_datas)

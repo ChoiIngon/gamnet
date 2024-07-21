@@ -78,7 +78,8 @@ namespace Handler { namespace User {
 		}
 		catch (const Gamnet::Exception& e)
 		{
-			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+			LOG(
+				, e.what());
 			switch (e.error_code())
 			{
 			case 1061: // duplicated key
@@ -231,7 +232,7 @@ void Test_Create_Ans(const std::shared_ptr<TestSession>& session, const std::sha
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 	}
 
 	Message::User::MsgCliSvr_Login_Req req;

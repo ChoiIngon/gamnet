@@ -8,7 +8,7 @@
 namespace Gamnet { namespace Database { namespace MySQL {
 class Transaction 
 {
-private:
+public :
 	struct Query
 	{
 		enum class Type
@@ -22,7 +22,7 @@ private:
 		virtual std::string MakeQuery() = 0;
 		virtual void Clear() = 0;
 	};
-
+private:
 	struct PlainQuery : public Query
 	{
 		virtual Type GetType() const override;
@@ -78,6 +78,11 @@ public:
 		queries.push_back(plain);
 	}
 	
+	void Execute(const std::shared_ptr<Query>& query)
+	{
+		queries.push_back(query);
+	}
+
 	ResultSet Commit();
 	void Rollback();
 private :

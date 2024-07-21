@@ -52,7 +52,7 @@ void Handler_Delete::Recv_Req(const std::shared_ptr<UserSession>& session, const
 	catch (const Gamnet::Exception& e)
 	{
 		ans.error_code = (Message::ErrorCode)e.error_code();
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 	}
 	LOG(DEV, "Message::User::MsgSvrCli_Delete_Ans(error_code:", (int)ans.error_code, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
@@ -81,7 +81,7 @@ void Test_Delete_Ans(const std::shared_ptr<TestSession>& session, const std::sha
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 	}
 	session->Next();
 }

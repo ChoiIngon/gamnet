@@ -249,7 +249,7 @@ void Test_AddItem_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(GAMNET_ERR, e.what());
 	}
 
 	for (auto& item : ntf.item_datas)
@@ -273,7 +273,7 @@ void Test_UpdateItem_Ntf(const std::shared_ptr<TestSession>& session, const std:
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		LOG(ERR, e.what());
 	}
 
 	for (auto& item : ntf.item_datas)

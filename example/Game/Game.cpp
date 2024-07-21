@@ -1,7 +1,7 @@
-#include "UserSession.h"
+#include <Gamnet/Gamnet.h>
 #include <boost/program_options.hpp>
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
 	boost::program_options::options_description desc("All Options");
 	desc.add_options()
@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 	boost::program_options::variables_map vm;
 	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
 	boost::program_options::notify(vm);
-	if(0 != vm.count("help"))
+	if (0 != vm.count("help"))
 	{
 		std::cout << desc << std::endl;
 		return 1;
@@ -29,12 +29,10 @@ int main(int argc, char** argv)
 
 		Gamnet::Database::MySQL::ReadXml(config_path);
 		Gamnet::Database::Redis::ReadXml(config_path);
-		Gamnet::Network::Router::ReadXml(config_path, [](const Gamnet::Network::Router::Address& address) {}, [](const Gamnet::Network::Router::Address& address) {});
-		//Gamnet::Database::SQLite::ReadXml(config_path);
 
-		Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);
+		Gamnet::Network::Router::ReadXml(config_path, [](const Gamnet::Network::Router::Address& address) {}, [](const Gamnet::Network::Router::Address& address) {});
 		Gamnet::Network::Http::ReadXml(config_path);
-		Gamnet::Test::ReadXml<TestSession>(config_path);
+				
 		Gamnet::Run(vm["thread"].as<int>());
 	}
 	catch (const Gamnet::Exception& e)
@@ -43,6 +41,5 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	return 0;
+    return 0;
 }
-
-

@@ -1,6 +1,7 @@
 #include "CSVReader.h"
 #include <boost/algorithm/string.hpp>  
 #include <fstream>
+#include <string>
 #include <streambuf>
 #include <Gamnet/Log/Log.h>
 
