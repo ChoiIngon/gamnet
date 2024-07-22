@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <memory>
+#include <random>
 #include <boost/property_tree/ptree.hpp>
 #include <Gamnet/Library/Component.h>
 #include <Gamnet/Library/Json/json.h>
@@ -258,7 +259,9 @@ bool BehaviourTree<T>::RandomSelector::Run(T param)
 {
 	std::vector<std::shared_ptr<Node>> temp = BehaviourTree<T>::Node::GetChildren();
 	// The order is shuffled
-	std::random_shuffle(temp.begin(), temp.end());
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(temp.begin(), temp.end(), g);
 	for (const std::shared_ptr<Node>& child : temp)
 	{
 		if (true == child->Run(param))

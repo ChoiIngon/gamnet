@@ -12,7 +12,9 @@ struct curl_slist;
 #include "HttpClient.h"
 //#include <unistd.h>
 
+#ifndef USE_OPENSSL
 #define USE_OPENSSL
+#endif
 
 namespace Gamnet { namespace Network { namespace Http {
 

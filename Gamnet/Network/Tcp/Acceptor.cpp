@@ -2,7 +2,7 @@
 #include "SessionManager.h"
 #include "../../Library/Singleton.h"
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 namespace Gamnet { namespace Network { namespace Tcp {
 	

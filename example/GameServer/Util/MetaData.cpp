@@ -99,7 +99,7 @@ void MetaData::Init(const Json::Value& row)
 		try {
 			bind_functions[key](cell);
 		}
-		catch(const boost::bad_lexical_cast& e)
+		catch(const boost::bad_lexical_cast& /*e*/)
 		{
 			throw Gamnet::Exception((int)Message::ErrorCode::UndefineError, "[MetaData] meta data load fail(file:", row["file"].asString(), ", name:", key, ", row_num:", row["row_num"].asInt(), ", reason:bed lexical cast)");
 		}

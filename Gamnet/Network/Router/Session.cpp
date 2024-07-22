@@ -4,7 +4,7 @@
 #include "SessionManager.h"
 #include "RouterCaster.h"
 #include "MsgRouter.h"
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 namespace Gamnet { namespace Network { namespace Router {
 

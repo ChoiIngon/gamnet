@@ -75,7 +75,7 @@ public:
                 order = false;
             }
         }
-        catch (const Gamnet::Exception& e)
+        catch (const Gamnet::Exception& /*e*/)
         {
         }
 
@@ -96,7 +96,7 @@ public:
                 sortIndex = itr->second;
             }
         }
-        catch (const Gamnet::Exception& e)
+        catch (const Gamnet::Exception& /*e*/)
         {
             sortIndex = -1;
         }
