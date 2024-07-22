@@ -14,8 +14,7 @@
 #include "../../Library/Pool.h"
 #include "../../Log/Log.h"
 
-namespace Gamnet::Database::MySQL 
-{
+namespace Gamnet { namespace Database {namespace MySQL {
 	class Connection : public std::enable_shared_from_this<Connection>
 	{
 		// bool Reconnect();
@@ -73,6 +72,6 @@ namespace Gamnet::Database::MySQL
 		std::map<int, Connection::ConnectionInfo> conn_infos;;
 	};
 	*/
-}
+} } }
 
 #endif /* CONNECTION_H_ */

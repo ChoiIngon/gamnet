@@ -53,7 +53,7 @@ public:
 		}
 		catch (const Exception& e)
 		{
-			LOG(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 			ans["error_code"] = e.error_code();
 		}
 
@@ -149,7 +149,7 @@ public:
                 }
                 catch (const Exception& e)
                 {
-                    LOG(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
+                    LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
                     ans["error_code"] = e.error_code();
                 }
 
@@ -162,7 +162,7 @@ public:
 		}
 		catch (const Exception& e)
 		{
-			LOG(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 			ans["error_code"] = e.error_code();
 		}
 

@@ -8,10 +8,11 @@
 #include "Connection.h"
 #include <boost/algorithm/string.hpp>
 #include "../../Library/Exception.h"
+#include "../../Library/String.h"
 #include "../../Library/ThreadPool.h"
+#include "../../Log/Log.h"
 
-namespace Gamnet::Database::MySQL 
-{
+namespace Gamnet {	namespace Database { namespace MySQL {
 	static std::map<int, Log::Logger> logger_manager;
 	//static ThreadPool thread_pool(30);
 
@@ -60,10 +61,10 @@ namespace Gamnet::Database::MySQL
 		mysql_options(&mysql_conn, MYSQL_OPT_RECONNECT, (bool*)&reconnectFlag);
 		mysql_options(&mysql_conn, MYSQL_SET_CHARSET_NAME, conn_info.charset.c_str());
 		//mysql_options(&mysql_conn, MYSQL_INIT_COMMAND, Format("SET NAMES '", conn_info.charset, "';").c_str());
-		GAMNET_LOG(GAMNET_INF, "[Gamnet::Database::MySQL] connect...(db_num:", conn_info.db_num, ", host:", conn_info.host, ", port:", conn_info.port, ", db:", conn_info.database, ", user:", connInfo.userid, /*", passwd:", connInfo.passwd_, */")");
+		LOG(INF, "[Gamnet::Database::MySQL] connect...(db_num:", conn_info.db_num, ", host:", conn_info.host, ", port:", conn_info.port, ", db:", conn_info.database, ", user:", connInfo.userid, /*", passwd:", connInfo.passwd_, */")");
 		if (nullptr == mysql_real_connect(&mysql_conn, conn_info.host.c_str(), conn_info.userid.c_str(), conn_info.password.c_str(), conn_info.database.c_str(), conn_info.port, nullptr, CLIENT_MULTI_STATEMENTS))
 		{
-			GAMNET_LOG(GAMNET_ERR, "[Gamnet::Database::MySQL] connect fail(host:", conn_info.host, ", port:", conn_info.port, ", error_message:", mysql_error(&mysql_conn),")");
+			LOG(GAMNET_ERR, "[Gamnet::Database::MySQL] connect fail(host:", conn_info.host, ", port:", conn_info.port, ", error_message:", mysql_error(&mysql_conn),")");
 			mysql_thread_end();
 			return false;
 		}
@@ -75,13 +76,13 @@ namespace Gamnet::Database::MySQL
 			{
 				auto& logger = logger_manager[conn_info.db_num];
 				logger.Init("db_error", conn_info.database.c_str(), 5);
-				logger.SetLevelProperty(Log::LOG_LEVEL_TYPE::LOG_LEVEL_INF, Log::LOG_TYPE::LOG_FILE);
+				logger.SetTimeRecord(false);
+				logger.SetLevelProperty(Log::Logger::LOG_LEVEL_INF, Log::Logger::LOG_FILE);
 			}
 
 			auto& logger = logger_manager[conn_info.db_num];
 			fail_query_logger = &logger;
 		}
-		
 		return true;
 	}
 
@@ -115,12 +116,10 @@ namespace Gamnet::Database::MySQL
 		catch(const Exception& e)
 		{
 			LOG(GAMNET_ERR, impl->error_code, "(query:", query, ")");
-			
 			if(nullptr != fail_query_logger)
 			{
-				fail_query_logger->Write(Log::LOG_LEVEL_TYPE::LOG_LEVEL_INF, query, ";");
+				fail_query_logger->Write(Log::Logger::LOG_LEVEL_INF, query, ";");
 			}
-			
 			//Reconnect();
 			throw e;
 		}
@@ -170,17 +169,15 @@ namespace Gamnet::Database::MySQL
 	void Connection::Release()
 	{
 		// trash remain result
-		if (false == mysql_more_results(&mysql_conn))
+		if (mysql_more_results(&mysql_conn))
 		{
-			return;
-		}
-
-		while (0 == mysql_next_result(&mysql_conn))
-		{
-			MYSQL_RES* res = mysql_store_result(&mysql_conn);
-			if (nullptr != res)
+			while (0 == mysql_next_result(&mysql_conn))
 			{
-				mysql_free_result(res);
+				MYSQL_RES* res = mysql_store_result(&mysql_conn);
+				if (nullptr != res)
+				{
+					mysql_free_result(res);
+				}
 			}
 		}
 	}
@@ -246,4 +243,4 @@ namespace Gamnet::Database::MySQL
 		return conn;
 	}
 	*/
-} 
+} /* namespace Database */ } /* namespace Gamnet */ }

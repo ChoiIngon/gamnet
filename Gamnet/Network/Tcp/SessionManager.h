@@ -14,8 +14,6 @@
 #include <atomic>
 #include <list>
 
-import Gamnet.Singleton;
-
 namespace Gamnet { namespace Network { namespace Tcp {
 
 	template <class SESSION_T>

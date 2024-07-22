@@ -4,6 +4,8 @@
 #include "Connection.h"
 #include <list>
 #include <set>
+#include "../../Library/String.h"
+#include "../../Library/Exception.h"
 
 namespace Gamnet { namespace Database { namespace MySQL {
 class Transaction 
@@ -22,7 +24,7 @@ public :
 		virtual std::string MakeQuery() = 0;
 		virtual void Clear() = 0;
 	};
-private:
+private :
 	struct PlainQuery : public Query
 	{
 		virtual Type GetType() const override;
@@ -78,11 +80,6 @@ public:
 		queries.push_back(plain);
 	}
 	
-	void Execute(const std::shared_ptr<Query>& query)
-	{
-		queries.push_back(query);
-	}
-
 	ResultSet Commit();
 	void Rollback();
 private :

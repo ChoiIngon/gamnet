@@ -8,13 +8,6 @@ namespace Gamnet { namespace Time {
 const DateTime DateTime::MaxValue("2038-01-19 03:14:07");
 const DateTime DateTime::MinValue;
 
-static int TimeDiffBetweenUtcAndLocal()
-{
-	time_t utc = boost::posix_time::to_time_t(boost::posix_time::second_clock::universal_time());
-	time_t local = boost::posix_time::to_time_t(boost::posix_time::second_clock::local_time());
-	return local - utc;
-}
-
 DateTime::DateTime() : ptime(boost::posix_time::ptime(boost::posix_time::min_date_time))
 {
 }
@@ -105,12 +98,6 @@ DateTime& DateTime::operator = (const boost::posix_time::ptime& ptime)
 	this->ptime = ptime;
 	return *this;
 }
-DateTime& DateTime::operator = (time_t unixTimestamp)
-{
-	this->ptime = boost::posix_time::from_time_t(unixTimestamp);
-	return *this;
-}
-
 
 DateTime::operator boost::posix_time::ptime& ()
 {
@@ -249,7 +236,7 @@ int DateTime::DateDiff(const DateTime& rhs) const
 	return duration.days();
 }
 
-int DateTime::SecondDiff(const DateTime& rhs) const
+int DateTime::TimestampDiff(const DateTime& rhs) const
 {
 	boost::posix_time::time_duration duration = this->ptime - rhs.ptime;
 	return duration.total_seconds();
@@ -257,10 +244,18 @@ int DateTime::SecondDiff(const DateTime& rhs) const
 
 DateTime DateTime::UTC() const
 {
-	static const int diffSecondBetweenUtcAndLocal = TimeDiffBetweenUtcAndLocal();
-	DateTime datetime(ptime - Seconds(diffSecondBetweenUtcAndLocal));
+	DateTime datetime(ptime - Seconds(DateTime::second_diff));
 	return datetime;
 }
+
+static int TimeDiffBetweenUtcAndLocal()
+{
+	time_t utc = boost::posix_time::to_time_t(boost::posix_time::second_clock::universal_time());
+	time_t local = boost::posix_time::to_time_t(boost::posix_time::second_clock::local_time());
+	return local - utc;
+}
+
+int DateTime::second_diff = TimeDiffBetweenUtcAndLocal();
 
 }}
 

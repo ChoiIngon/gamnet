@@ -2,7 +2,7 @@
 #define GAMNET_DATABASE_SQLITE_TRANSACTION_H_
 
 #include "Connection.h"
-import Gamnet.String;
+#include "../../Library/String.h"
 
 namespace Gamnet { namespace Database { namespace SQLite {
 	class Transaction {

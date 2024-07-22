@@ -41,7 +41,7 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(ERR, e.what());
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.error_code = (Message::ErrorCode)e.error_code();
 	}
 	LOG(DEV, "Message::Item::MsgSvrCli_OpenPackage_Ans(error_code:", (int)ans.error_code, ")");
@@ -83,7 +83,7 @@ void Test_OpenPackage_Ans(const std::shared_ptr<TestSession>& session, const std
 		//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUser_OpenPackageLobby_Ans");
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(ERR, e.what());
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
 	/*

@@ -128,7 +128,7 @@ namespace Gamnet { namespace Network { namespace Tcp {
 		}
 		catch (const Exception& e)
 		{
-			LOG(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 			if (nullptr != error_handler)
 			{
 				error_handler(e.error_code());

@@ -15,8 +15,8 @@
 #include "Library/MultiLock.h"
 #include "Library/Pool.h"
 #include "Library/Random.h"
-#include "Library/WeightRandom.h"
 #include "Library/Singleton.h"
+#include "Library/String.h"
 #include "Library/ThreadPool.h"
 #include "Library/Time/Time.h"
 #include "Library/Variant.h"
@@ -26,7 +26,7 @@
 #if BOOST_VERSION < 106600
 #error "need boost higher version"
 #endif
-
-import Gamnet;
-
+namespace Gamnet {
+void Run(int thread_count = 0);
+}
 #endif /* GAMNET_H_ */

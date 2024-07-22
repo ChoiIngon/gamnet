@@ -2,30 +2,32 @@
 #define GAMNET_DATABASE_REDIS_TRANSACTION_H_
 
 #include "Connection.h"
+#include "../../Library/String.h"
 
-namespace Gamnet::Database {
-namespace Redis {
+namespace Gamnet {
+	namespace Database {
+		namespace Redis {
+			class Transaction {
+				bool commit;
+				std::shared_ptr<Connection> connection;
+			public:
+				Transaction(int db_type);
+				virtual ~Transaction();
 
-	class Transaction 
-	{
-		bool commit;
-		std::shared_ptr<Connection> connection;
-	public:
-		Transaction(int db_type);
-		virtual ~Transaction();
+				template <class... ARGS>
+				ResultSet Execute(ARGS... args)
+				{
+					const std::string query = Format(args...);
+					ResultSet res;
+					res.impl_ = connection->Execute(query);
+					res.impl_->conn_ = connection;
+					return res;
+				}
+				ResultSet Commit();
+			};
 
-		template <class... ARGS>
-		ResultSet Execute(ARGS... args)
-		{
-			const std::string query = Format(args...);
-			ResultSet res;
-			res.impl_ = connection->Execute(query);
-			res.impl_->conn_ = connection;
-			return res;
 		}
-		ResultSet Commit();
-	};
-
-}}
+	}
+}
 
 #endif

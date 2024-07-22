@@ -5,6 +5,8 @@
 
 #include "../AStarPathFinder.h"
 #include "../Dungeon.h"
+
+#include <Gamnet/Library/Exception.h>
 #include <idl/MessageCommon.h>
 
 

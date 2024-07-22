@@ -39,7 +39,7 @@ int main(int argc, char** argv)
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(ERR, e.what());
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		return 1;
 	}
 	return 0;

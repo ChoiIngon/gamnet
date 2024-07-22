@@ -256,12 +256,9 @@ bool BehaviourTree<T>::Selector::Run(T param)
 template <class T>
 bool BehaviourTree<T>::RandomSelector::Run(T param)
 {
-	//std::vector<std::shared_ptr<Node>> temp = BehaviourTree<T>::Node::GetChildren();
-
-	//std::random_device aa;
-
-	/*
-	std::shuffle(temp.begin(), temp.end(), std::default_random_engine(rd()));
+	std::vector<std::shared_ptr<Node>> temp = BehaviourTree<T>::Node::GetChildren();
+	// The order is shuffled
+	std::random_shuffle(temp.begin(), temp.end());
 	for (const std::shared_ptr<Node>& child : temp)
 	{
 		if (true == child->Run(param))
@@ -269,7 +266,6 @@ bool BehaviourTree<T>::RandomSelector::Run(T param)
 			return true;
 		}
 	}
-	*/
 	return false;
 }
 

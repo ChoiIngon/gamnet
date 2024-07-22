@@ -3,8 +3,6 @@
 #include "RouterCaster.h"
 #include "../Tcp/Tcp.h"
 
-import Gamnet.Singleton;
-
 namespace Gamnet { namespace Network { namespace Router {
 	SessionManager::SessionFactory::SessionFactory(SessionManager* manager) : session_manager(manager)
 	{

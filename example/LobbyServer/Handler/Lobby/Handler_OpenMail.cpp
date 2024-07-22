@@ -34,7 +34,7 @@ void Handler_OpenMail::Recv_Req(const std::shared_ptr<UserSession>& session, con
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(ERR, e.what());
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		ans.error_code = (Message::ErrorCode)e.error_code();
 	}
 	LOG(DEV, "Message::Lobby::MsgSvrCli_User_OpenMailLobby_Ans(error_code:", (int)ans.error_code, ")");
@@ -74,7 +74,7 @@ void Test_OpenMail_Ans(const std::shared_ptr<TestSession>& session, const std::s
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(ERR, e.what());
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
 	session->Next();

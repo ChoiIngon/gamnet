@@ -1,8 +1,6 @@
 #ifndef _META_DATA_H_
 #define _META_DATA_H_
 
-#undef min
-
 #include <functional>
 #include <fstream>
 #include <list>
@@ -12,7 +10,6 @@
 #include <Gamnet/Library/Time/DateTime.h>
 #include <Gamnet/Library/Json/json.h>
 #include <Gamnet/Library/Exception.h>
-#include <Gamnet/Library/Singleton.h>
 #include "CSVReader.h"
 
 class MetaData

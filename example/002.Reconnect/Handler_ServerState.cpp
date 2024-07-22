@@ -35,7 +35,7 @@ void Handler_ServerState::Recv_ServerState_Req(const std::shared_ptr<Gamnet::Net
 			order = false;
 		}
 	}
-	catch (const Gamnet::Exception& /*e*/)
+	catch (const Gamnet::Exception& e)
 	{
 	}
 
@@ -56,7 +56,7 @@ void Handler_ServerState::Recv_ServerState_Req(const std::shared_ptr<Gamnet::Net
 			sortIndex = itr->second;
 		}
 	}
-	catch(const Gamnet::Exception& /*e*/)
+	catch(const Gamnet::Exception& e)
 	{
 		sortIndex = -1;
 	}

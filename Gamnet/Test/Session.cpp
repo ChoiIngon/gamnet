@@ -1,6 +1,5 @@
 #include "Session.h"
 #include "../Library/Time/Time.h"
-#include "../Library/Exception.h"
 #include "../Network/Tcp/SystemMessageHandler.h"
 
 namespace Gamnet { namespace Test {

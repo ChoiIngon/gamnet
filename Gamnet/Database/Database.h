@@ -3,6 +3,6 @@
 
 #include "MySQL/MySQL.h"
 #include "Redis/Redis.h"
-//#include "SQLite/SQLite.h"
+#include "SQLite/SQLite.h"
 
 #endif

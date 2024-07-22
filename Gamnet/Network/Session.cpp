@@ -241,7 +241,7 @@ void Session::AsyncRead()
 		}
 		catch (const Exception& e)
 		{
-			GAMNET_LOG(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, e.what());
+			LOG(Log::Logger::LOG_LEVEL_ERR, e.what());
 			Close(e.error_code());
 			return;
 		}

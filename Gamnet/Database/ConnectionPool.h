@@ -2,7 +2,6 @@
 #define _GAMNET_DATABASE_CONNECTIONPOOL_H_
 
 #include "../Library/Pool.h"
-#include "../Library/Exception.h"
 #include "../Log/Log.h"
 
 namespace Gamnet {	namespace Database {
@@ -19,7 +18,7 @@ class ConnectionPool {
 		if (mapConnectionInfo_.end() == itr)
 		{
 			LOG(GAMNET_ERR, "can't find connection information for db(db_type:", db_type, ")");
-			throw Gamnet::Exception(ErrorCode::UndefinedError, "can't find connection information for db(db_type:", db_type, ")");
+			throw Exception(0, "can't find connection information for db(db_type:", db_type, ")");
 		}
 
 		CONNECTION_T* conn = new CONNECTION_T();
@@ -60,13 +59,13 @@ public :
 		auto itr = mapConnectionPool_.find(db_type);
 		if (mapConnectionPool_.end() == itr)
 		{
-			throw Gamnet::Exception(ErrorCode::InvalidDatabaseNum, "can't find database connection(db_type:", db_type, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidDatabaseNum, "can't find database connection(db_type:", db_type, ")");
 		}
 
 		std::shared_ptr<CONNECTION_T> conn(itr->second->Create());
 		if (nullptr == conn)
 		{
-			throw Gamnet::Exception(ErrorCode::InvalidDatabaseNum, "create Connection object error(db_type:", db_type, ")");
+			throw GAMNET_EXCEPTION(ErrorCode::InvalidDatabaseNum, "create Connection object error(db_type:", db_type, ")");
 		}
 		return conn;
 	}

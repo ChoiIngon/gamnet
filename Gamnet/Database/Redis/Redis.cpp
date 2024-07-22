@@ -1,13 +1,13 @@
 #include "Redis.h"
 #include "../ConnectionPool.h"
+#include "../../Library/Singleton.h"
+#include "../../Library/Exception.h"
 #include "Subscriber.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-
-import Gamnet.Singleton;
-import Gamnet.String;
+#include <boost/bind.hpp>
 
 namespace Gamnet { namespace Database { namespace Redis {
 

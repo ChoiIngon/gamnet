@@ -3,9 +3,6 @@
 
 #include "Vector2.h"
 
-#undef max
-#undef min
-
 template <class T>
 class TRect
 {

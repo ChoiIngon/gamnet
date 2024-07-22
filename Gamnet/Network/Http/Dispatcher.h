@@ -4,7 +4,6 @@
 #include "../HandlerFactory.h"
 #include "Request.h"
 #include "Session.h"
-import Gamnet.String;
 
 namespace Gamnet { namespace Network { namespace Http {
 	

@@ -38,7 +38,7 @@ void Dispatcher::OnReceive(const std::shared_ptr<Session>& session, const std::s
 	}
 	catch (const std::exception& e)
 	{
-		Log::Write(Log::LOG_LEVEL_TYPE::LOG_LEVEL_ERR, "[unhandled exception occurred(reason:", e.what(), ")");
+		Log::Write(Log::Logger::LOG_LEVEL_ERR, "[unhandled exception occurred(reason:", e.what(), ")");
 	}
 }
 

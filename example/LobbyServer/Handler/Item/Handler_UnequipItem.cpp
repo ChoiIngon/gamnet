@@ -33,7 +33,7 @@ namespace Handler {	namespace Item {
 		}
 		catch (const Gamnet::Exception& e)
 		{
-			LOG(ERR, e.what());
+			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 			ans.error_code = (Message::ErrorCode)e.error_code();
 		}
 		LOG(DEV, "Message::Item::MsgSvrCli_UnequipItem_Ans(error_code:", (int)ans.error_code, ")");
@@ -77,7 +77,7 @@ namespace Handler {	namespace Item {
 			//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUser_UnequipItemLobby_Ans");
 		}
 		catch (const Gamnet::Exception& e) {
-			LOG(ERR, e.what());
+			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
 
 		/*

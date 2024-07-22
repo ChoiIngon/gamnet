@@ -46,7 +46,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <EnableUnitySupport>false</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
@@ -127,18 +127,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\local\boost_1_85_0;C:\OpenSSL-Win64\include;C:\local\curl-7.43.0-win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\local\boost_1_71_0;C:\OpenSSL-Win64\include;C:\local\curl-7.43.0-win64\include;C:\Program Files\MySQL\MySQL Connector C 6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
-      <PreprocessorDefinitions>_DEBUG;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;USE_OPENSSL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;USE_OPENSSL</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinFilesInUnityFile>0</MinFilesInUnityFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <CompileAs>CompileAsCppModule</CompileAs>
-      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
-      <ModuleOutputFile>$(IntDir)/%(RelativeDir)/</ModuleOutputFile>
-      <ModuleDependenciesFile>$(IntDir)/%(RelativeDir)/</ModuleDependenciesFile>
-      <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -157,22 +151,28 @@
     <ClCompile Include="Database\Redis\ResultSet.cpp" />
     <ClCompile Include="Database\Redis\Subscriber.cpp" />
     <ClCompile Include="Database\Redis\Transaction.cpp" />
+    <ClCompile Include="Database\SQLite\Connection.cpp" />
+    <ClCompile Include="Database\SQLite\ResultSet.cpp" />
+    <ClCompile Include="Database\SQLite\SQLite.cpp" />
+    <ClCompile Include="Database\SQLite\sqlite3.c" />
+    <ClCompile Include="Database\SQLite\Transaction.cpp" />
     <ClCompile Include="Gamnet.cpp" />
     <ClCompile Include="library\Base64.cpp" />
     <ClCompile Include="library\Buffer.cpp" />
-    <ClCompile Include="Library\Dump.cpp" />
+    <ClCompile Include="Library\Debugs.cpp" />
     <ClCompile Include="library\Exception.cpp" />
     <ClCompile Include="Library\Json\jsoncpp.cpp" />
     <ClCompile Include="library\MD5.cpp" />
     <ClCompile Include="Library\Random.cpp" />
     <ClCompile Include="Library\Singleton.cpp" />
-    <ClCompile Include="Library\String.cpp" />
     <ClCompile Include="Library\ThreadPool.cpp" />
     <ClCompile Include="Library\Time\DateTime.cpp" />
     <ClCompile Include="Library\Time\Time.cpp" />
     <ClCompile Include="Library\Time\Timer.cpp" />
     <ClCompile Include="Library\Variant.cpp" />
+    <ClCompile Include="log\File.cpp" />
     <ClCompile Include="log\Log.cpp" />
+    <ClCompile Include="log\Logger.cpp" />
     <ClCompile Include="Network\Http\Dispatcher.cpp" />
     <ClCompile Include="Network\Http\HttpClient.cpp" />
     <ClCompile Include="Network\Http\HttpServer.cpp" />
@@ -210,6 +210,12 @@
     <ClInclude Include="Database\Redis\ResultSet.h" />
     <ClInclude Include="Database\Redis\Subscriber.h" />
     <ClInclude Include="Database\Redis\Transaction.h" />
+    <ClInclude Include="Database\SQLite\Connection.h" />
+    <ClInclude Include="Database\SQLite\ResultSet.h" />
+    <ClInclude Include="Database\SQLite\SQLite.h" />
+    <ClInclude Include="Database\SQLite\sqlite3.h" />
+    <ClInclude Include="Database\SQLite\sqlite3ext.h" />
+    <ClInclude Include="Database\SQLite\Transaction.h" />
     <ClInclude Include="Gamnet.h" />
     <ClInclude Include="library\Atomic.h" />
     <ClInclude Include="library\Base64.h" />
@@ -217,6 +223,7 @@
     <ClInclude Include="Library\Component.h" />
     <ClInclude Include="Library\Coroutine.h" />
     <ClInclude Include="Library\DataCache.h" />
+    <ClInclude Include="Library\Debugs.h" />
     <ClInclude Include="Library\Delegate.h" />
     <ClInclude Include="library\Exception.h" />
     <ClInclude Include="Library\Json\json-forwards.h" />
@@ -232,8 +239,9 @@
     <ClInclude Include="Library\Time\Time.h" />
     <ClInclude Include="Library\Time\Timer.h" />
     <ClInclude Include="Library\Variant.h" />
-    <ClInclude Include="Library\WeightRandom.h" />
+    <ClInclude Include="log\File.h" />
     <ClInclude Include="log\Log.h" />
+    <ClInclude Include="log\Logger.h" />
     <ClInclude Include="Network\Http\Dispatcher.h" />
     <ClInclude Include="Network\Http\HttpClient.h" />
     <ClInclude Include="Network\Http\HttpServer.h" />

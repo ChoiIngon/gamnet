@@ -13,13 +13,10 @@
 
 #include "../../Log/Log.h"
 #include "../../Library/Time/Timer.h"
-#include "../../Library/Exception.h"
 #include "../Handler.h"
 #include "../HandlerFactory.h"
 #include "Packet.h"
 #include "SystemMessageHandler.h"
-
-import Gamnet.String;
 
 namespace Gamnet {	namespace Network { namespace Tcp {
 	class IHandlerFunctor
@@ -110,7 +107,7 @@ namespace Gamnet {	namespace Network { namespace Tcp {
 	template <class SESSION_T>
 	class Dispatcher
 	{
-		static_assert(std::is_base_of<Session, SESSION_T>::value);
+		GAMNET_WHERE(SESSION_T, Session);
 	public:
 		Dispatcher()
 		{

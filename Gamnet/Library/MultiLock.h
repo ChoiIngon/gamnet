@@ -6,7 +6,7 @@
 #include <set>
 
 template <class LOCK>
-class [[deprecated("use std::scoped_lock(C++17) instead")]] MultiLock
+class MultiLock
 {
     class MultiLockImpl
     {

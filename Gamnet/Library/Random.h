@@ -3,6 +3,9 @@
 
 #include <random>
 #include <thread>
+#include <vector>
+#include <list>
+#include <limits>
 #include <stdexcept>
 
 #undef max
@@ -26,6 +29,77 @@ namespace Gamnet {
 		static uint64_t Range(uint64_t min, uint64_t max);
 		static float Range(float min, float max);
 		static double Range(double min, double max);
+	};
+
+	template <class T, int WEIGHT_LIMIT = std::numeric_limits<int>::max()>
+	class WeightRandom
+	{
+		int total_weight;
+		std::vector<std::pair<int, T>> weighted_values;
+	public :
+		WeightRandom() : total_weight(0) {};
+		~WeightRandom() {};
+
+		void SetWeight(const T&& value, uint32_t weight)
+		{
+			if (0 == weight)
+			{
+				return;
+			}
+			total_weight += weight;
+			if (WEIGHT_LIMIT < total_weight)
+			{
+				throw std::overflow_error("total weight was over limit");
+			}
+			weighted_values.push_back(std::make_pair(total_weight, value));
+		}
+
+		void SetWeight(const T& value, uint32_t weight)
+		{
+			if (0 == weight)
+			{
+				return;
+			}
+			total_weight += weight;
+			if (WEIGHT_LIMIT < total_weight)
+			{
+				throw std::overflow_error("total weight was over limit");
+			}
+			weighted_values.push_back(std::make_pair(total_weight, value));
+		}
+
+		const T& Random() const
+		{
+			if (0 == weighted_values.size())
+			{
+				throw std::underflow_error("no weight info");
+			}
+
+			int weight = Random::Range(0, total_weight - 1);
+			for (const auto& itr : weighted_values)
+			{
+				if (weight < itr.first)
+				{
+					return itr.second;
+				}
+			}
+			return weighted_values.back().second;
+		}
+
+		int GetTotalWeight() const
+		{
+			return total_weight;
+		}
+
+		std::list<T> GetAllRandomEntity() const
+		{
+			std::list<T> entities;
+			for(const auto& itr : weighted_values)
+			{
+				entities.push_back(itr.second);
+			}
+			return entities;
+		}
 	};
 }
 

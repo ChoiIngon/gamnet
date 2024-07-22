@@ -53,7 +53,7 @@ void Handler_PlayerMove::Recv_Ntf(const std::shared_ptr<UserSession>& session, c
 	}
 	catch (const Gamnet::Exception& e)
 	{
-		LOG(ERR, e.what());
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 }
 

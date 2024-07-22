@@ -23,8 +23,8 @@
     <Xml Include="config.xml" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="Message.idl">
+    <Midl Include="Message.idl">
       <Filter>소스 파일</Filter>
-    </CustomBuild>
+    </Midl>
   </ItemGroup>
 </Project>

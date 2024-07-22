@@ -40,8 +40,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		ans.error_code = (Message::ErrorCode)e.error_code();
 		if(Message::ErrorCode::InvalidUserError != ans.error_code)
 		{
-			LOG(
-				, e.what());
+			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
 		session->RemoveComponent<Component::Account>();
 		session->user_seq = 0;
@@ -188,7 +187,7 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(ERR, e.what());
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 	session->Next();
 }
@@ -209,7 +208,7 @@ void Test_Counter_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 		}
 	}
 	catch (const Gamnet::Exception& e) {
-		LOG(ERR, e.what());
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
 	for(auto& counter : ntf.counter_datas)

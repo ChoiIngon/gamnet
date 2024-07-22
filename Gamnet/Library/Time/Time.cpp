@@ -30,8 +30,8 @@ namespace Gamnet { namespace Time {
 		return lhs.DateDiff(rhs);
 	}
 
-	int SecondDiff(const DateTime& lhs, const DateTime& rhs)
+	int TimestampDiff(const DateTime& lhs, const DateTime& rhs)
 	{
-		return lhs.SecondDiff(rhs);
+		return lhs.TimestampDiff(rhs);
 	}
 }}
