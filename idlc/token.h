@@ -161,12 +161,12 @@ struct EnumElmt : public Base {
 };
 
 struct Message : public Base {
-	Message(const char* sName, const char* sParentName, int nSeqNo) : Base(sName), m_sParentName(sParentName), m_nSeqNo(nSeqNo)	{}
+	Message(const char* sName, const char* sParentName, const char* messageNo) : Base(sName), m_sParentName(sParentName), m_sMessageNo(messageNo)	{}
 
 	virtual TYPE Type() const {	return TYPE_MESSAGE;	}
 	
 	const std::string m_sParentName;
-	const int m_nSeqNo;
+	const std::string m_sMessageNo;
 	std::list<Base*> list_;
 };
 

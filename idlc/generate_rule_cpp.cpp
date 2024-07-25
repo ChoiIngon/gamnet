@@ -342,9 +342,9 @@ bool GenerateRuleCpp::CompileMessage(const Token::Message* pToken)
 	}
 	std::cout << " {" << std::endl;
 
-	if(pToken->m_nSeqNo > 0)
+	if("" != pToken->m_sMessageNo)
 	{
-		std::cout << "	enum { MSG_ID = " << pToken->m_nSeqNo << " }; " << std::endl;
+		std::cout << "	enum { MSG_ID = " << pToken->m_sMessageNo << " }; " << std::endl;
 	}
 
 	for(const auto& itr : pToken->list_)

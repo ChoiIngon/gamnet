@@ -1,6 +1,8 @@
 %{
 #include <string>
+#include <memory>
 #include "lexer.h" 
+
 int nLineNo = 0;
 void yyerror(const char* text);
 //void yyerrorEx(int line_no, const char* text, const char* error_code);
@@ -32,68 +34,64 @@ stmt_list	: stmt {
 				g_pRoot = new Token::StmtList("stmt");
 				g_pRoot->list_.push_back($1);
 			}
-		| stmt_list stmt {
+			| stmt_list stmt {
 				g_pRoot->list_.push_back($2);
 			}
-		;
+			;
 
 stmt 		: message { $$ = $1; }
 			| struct  { $$ = $1; } 
 			| typedef { $$ = $1; }
 			| enum	  { $$ = $1; }
 			| literal { $$ = $1; } 
-			| COMMENT { $$ = new Token::Base("comment"); }			 
+			| COMMENT { $$ = new Token::Base("comment"); }
 			;
 
 typedef		: TYPEDEF var_decl {
 				Token::Typedef* pTypedef = new Token::Typedef("typedef", (Token::VarDecl*)$2);
 				$$ = pTypedef;
 			}
-		;
+			;
 
 message		: MESSAGE var_name COLON INTEGER OPEN_BRACE var_decl_list CLOSE_BRACE SEMI_COLON {
-				int nSeqNo = ::atoi($4); 
-				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), "", nSeqNo);
+				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), "", $4);
 				pMessage->list_ = ((Token::List*)$6)->list_;	
 				$$ = pMessage;
 			}
-		| MESSAGE var_name COLON INTEGER OPEN_BRACE CLOSE_BRACE SEMI_COLON {
-				int nSeqNo = ::atoi($4); 
-				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), "", nSeqNo);
+			| MESSAGE var_name COLON INTEGER OPEN_BRACE CLOSE_BRACE SEMI_COLON {
+				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), "", $4);
 				$$ = pMessage;
 			}
-		| MESSAGE var_name OPEN_PARENTHESIS var_name CLOSE_PARENTHESIS COLON INTEGER OPEN_BRACE var_decl_list CLOSE_BRACE SEMI_COLON {
-				int nSeqNo = ::atoi($7); 
-				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), $4->GetName().c_str(), nSeqNo);
+			| MESSAGE var_name OPEN_PARENTHESIS var_name CLOSE_PARENTHESIS COLON INTEGER OPEN_BRACE var_decl_list CLOSE_BRACE SEMI_COLON {
+				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), $4->GetName().c_str(), $7);
 				pMessage->list_ = ((Token::List*)$9)->list_;	
 				$$ = pMessage;
 			}
-		| MESSAGE var_name OPEN_PARENTHESIS var_name CLOSE_PARENTHESIS COLON INTEGER OPEN_BRACE CLOSE_BRACE SEMI_COLON {
-				int nSeqNo = ::atoi($7); 
-				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), $4->GetName().c_str(), nSeqNo);
+			| MESSAGE var_name OPEN_PARENTHESIS var_name CLOSE_PARENTHESIS COLON INTEGER OPEN_BRACE CLOSE_BRACE SEMI_COLON {
+				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), $4->GetName().c_str(), $7);
 				$$ = pMessage;
 			}
-		;
+			;
 
-struct	: STRUCT var_name OPEN_BRACE var_decl_list CLOSE_BRACE SEMI_COLON {
-				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), "", -1);
+struct		: STRUCT var_name OPEN_BRACE var_decl_list CLOSE_BRACE SEMI_COLON {
+				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), "", "");
 				pMessage->list_ = ((Token::List*)$4)->list_;	
 				$$ = pMessage;
 			}
-		| STRUCT var_name OPEN_BRACE CLOSE_BRACE SEMI_COLON {
-				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), "", -1);
+			| STRUCT var_name OPEN_BRACE CLOSE_BRACE SEMI_COLON {
+				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), "", "");
 				$$ = pMessage;
 			}
-		| STRUCT var_name OPEN_PARENTHESIS var_name CLOSE_PARENTHESIS OPEN_BRACE var_decl_list CLOSE_BRACE SEMI_COLON {
-				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), $4->GetName().c_str(), -1);
+			| STRUCT var_name OPEN_PARENTHESIS var_name CLOSE_PARENTHESIS OPEN_BRACE var_decl_list CLOSE_BRACE SEMI_COLON {
+				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), $4->GetName().c_str(), "");
 				pMessage->list_ = ((Token::List*)$7)->list_;	
 				$$ = pMessage;
 			}
-		| STRUCT var_name OPEN_PARENTHESIS var_name CLOSE_PARENTHESIS OPEN_BRACE CLOSE_BRACE SEMI_COLON {
-				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), $4->GetName().c_str(), -1);
+			| STRUCT var_name OPEN_PARENTHESIS var_name CLOSE_PARENTHESIS OPEN_BRACE CLOSE_BRACE SEMI_COLON {
+				Token::Message* pMessage = new Token::Message($2->GetName().c_str(), $4->GetName().c_str(), "");
 				$$ = pMessage;
 			}
-		;
+			;
 enum 	: 	ENUM var_name OPEN_BRACE CLOSE_BRACE SEMI_COLON {
 			Token::Enum* pEnum = new Token::Enum($2->GetName().c_str()); 
 			$$ = pEnum; 

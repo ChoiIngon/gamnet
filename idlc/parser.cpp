@@ -66,7 +66,9 @@
 #line 1 "parser.y"
 
 #include <string>
+#include <memory>
 #include "lexer.h" 
+
 int nLineNo = 0;
 void yyerror(const char* text);
 //void yyerrorEx(int line_no, const char* text, const char* error_code);
@@ -75,7 +77,7 @@ void yyerror(const char* text);
 Token::StmtList* g_pRoot = NULL;
 
 /* Line 371 of yacc.c  */
-#line 79 "parser.cpp"
+#line 81 "parser.cpp"
 
 # ifndef YY_NULL
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -106,14 +108,14 @@ extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
 /* Line 387 of yacc.c  */
-#line 12 "parser.y"
+#line 14 "parser.y"
 
 #include "token.h"
 Token::StmtList* MakeParseTree(const std::string& sFileName);
 
 
 /* Line 387 of yacc.c  */
-#line 117 "parser.cpp"
+#line 119 "parser.cpp"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -165,14 +167,14 @@ Token::StmtList* MakeParseTree(const std::string& sFileName);
 typedef union YYSTYPE
 {
 /* Line 387 of yacc.c  */
-#line 17 "parser.y"
+#line 19 "parser.y"
 
 	const char* str;
 	Token::Base* tok;
 
 
 /* Line 387 of yacc.c  */
-#line 176 "parser.cpp"
+#line 178 "parser.cpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -200,7 +202,7 @@ int yyparse ();
 /* Copy the second part of user declarations.  */
 
 /* Line 390 of yacc.c  */
-#line 204 "parser.cpp"
+#line 206 "parser.cpp"
 
 #ifdef short
 # undef short
@@ -514,12 +516,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    31,    31,    35,    40,    41,    42,    43,    44,    45,
-      48,    54,    60,    65,    71,    78,    83,    87,    92,    97,
-     101,   107,   112,   118,   121,   124,   127,   130,   135,   140,
-     147,   150,   153,   157,   160,   161,   162,   163,   164,   165,
-     166,   167,   168,   169,   170,   171,   172,   173,   180,   181,
-     182,   185,   186
+       0,    33,    33,    37,    42,    43,    44,    45,    46,    47,
+      50,    56,    61,    65,    70,    76,    81,    85,    90,    95,
+      99,   105,   110,   116,   119,   122,   125,   128,   133,   138,
+     145,   148,   151,   155,   158,   159,   160,   161,   162,   163,
+     164,   165,   166,   167,   168,   169,   170,   171,   178,   179,
+     180,   183,   184
 };
 #endif
 
@@ -1537,7 +1539,7 @@ yyreduce:
     {
         case 2:
 /* Line 1792 of yacc.c  */
-#line 31 "parser.y"
+#line 33 "parser.y"
     {
 				g_pRoot = new Token::StmtList("stmt");
 				g_pRoot->list_.push_back((yyvsp[(1) - (1)].tok));
@@ -1546,7 +1548,7 @@ yyreduce:
 
   case 3:
 /* Line 1792 of yacc.c  */
-#line 35 "parser.y"
+#line 37 "parser.y"
     {
 				g_pRoot->list_.push_back((yyvsp[(2) - (2)].tok));
 			}
@@ -1554,43 +1556,43 @@ yyreduce:
 
   case 4:
 /* Line 1792 of yacc.c  */
-#line 40 "parser.y"
+#line 42 "parser.y"
     { (yyval.tok) = (yyvsp[(1) - (1)].tok); }
     break;
 
   case 5:
 /* Line 1792 of yacc.c  */
-#line 41 "parser.y"
+#line 43 "parser.y"
     { (yyval.tok) = (yyvsp[(1) - (1)].tok); }
     break;
 
   case 6:
 /* Line 1792 of yacc.c  */
-#line 42 "parser.y"
+#line 44 "parser.y"
     { (yyval.tok) = (yyvsp[(1) - (1)].tok); }
     break;
 
   case 7:
 /* Line 1792 of yacc.c  */
-#line 43 "parser.y"
+#line 45 "parser.y"
     { (yyval.tok) = (yyvsp[(1) - (1)].tok); }
     break;
 
   case 8:
 /* Line 1792 of yacc.c  */
-#line 44 "parser.y"
+#line 46 "parser.y"
     { (yyval.tok) = (yyvsp[(1) - (1)].tok); }
     break;
 
   case 9:
 /* Line 1792 of yacc.c  */
-#line 45 "parser.y"
+#line 47 "parser.y"
     { (yyval.tok) = new Token::Base("comment"); }
     break;
 
   case 10:
 /* Line 1792 of yacc.c  */
-#line 48 "parser.y"
+#line 50 "parser.y"
     {
 				Token::Typedef* pTypedef = new Token::Typedef("typedef", (Token::VarDecl*)(yyvsp[(2) - (2)].tok));
 				(yyval.tok) = pTypedef;
@@ -1599,10 +1601,9 @@ yyreduce:
 
   case 11:
 /* Line 1792 of yacc.c  */
-#line 54 "parser.y"
+#line 56 "parser.y"
     {
-				int nSeqNo = ::atoi((yyvsp[(4) - (8)].str)); 
-				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (8)].tok)->GetName().c_str(), "", nSeqNo);
+				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (8)].tok)->GetName().c_str(), "", (yyvsp[(4) - (8)].str));
 				pMessage->list_ = ((Token::List*)(yyvsp[(6) - (8)].tok))->list_;	
 				(yyval.tok) = pMessage;
 			}
@@ -1610,10 +1611,9 @@ yyreduce:
 
   case 12:
 /* Line 1792 of yacc.c  */
-#line 60 "parser.y"
+#line 61 "parser.y"
     {
-				int nSeqNo = ::atoi((yyvsp[(4) - (7)].str)); 
-				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (7)].tok)->GetName().c_str(), "", nSeqNo);
+				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (7)].tok)->GetName().c_str(), "", (yyvsp[(4) - (7)].str));
 				(yyval.tok) = pMessage;
 			}
     break;
@@ -1622,8 +1622,7 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 65 "parser.y"
     {
-				int nSeqNo = ::atoi((yyvsp[(7) - (11)].str)); 
-				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (11)].tok)->GetName().c_str(), (yyvsp[(4) - (11)].tok)->GetName().c_str(), nSeqNo);
+				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (11)].tok)->GetName().c_str(), (yyvsp[(4) - (11)].tok)->GetName().c_str(), (yyvsp[(7) - (11)].str));
 				pMessage->list_ = ((Token::List*)(yyvsp[(9) - (11)].tok))->list_;	
 				(yyval.tok) = pMessage;
 			}
@@ -1631,19 +1630,18 @@ yyreduce:
 
   case 14:
 /* Line 1792 of yacc.c  */
-#line 71 "parser.y"
+#line 70 "parser.y"
     {
-				int nSeqNo = ::atoi((yyvsp[(7) - (10)].str)); 
-				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (10)].tok)->GetName().c_str(), (yyvsp[(4) - (10)].tok)->GetName().c_str(), nSeqNo);
+				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (10)].tok)->GetName().c_str(), (yyvsp[(4) - (10)].tok)->GetName().c_str(), (yyvsp[(7) - (10)].str));
 				(yyval.tok) = pMessage;
 			}
     break;
 
   case 15:
 /* Line 1792 of yacc.c  */
-#line 78 "parser.y"
+#line 76 "parser.y"
     {
-				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (6)].tok)->GetName().c_str(), "", -1);
+				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (6)].tok)->GetName().c_str(), "", "");
 				pMessage->list_ = ((Token::List*)(yyvsp[(4) - (6)].tok))->list_;	
 				(yyval.tok) = pMessage;
 			}
@@ -1651,18 +1649,18 @@ yyreduce:
 
   case 16:
 /* Line 1792 of yacc.c  */
-#line 83 "parser.y"
+#line 81 "parser.y"
     {
-				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (5)].tok)->GetName().c_str(), "", -1);
+				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (5)].tok)->GetName().c_str(), "", "");
 				(yyval.tok) = pMessage;
 			}
     break;
 
   case 17:
 /* Line 1792 of yacc.c  */
-#line 87 "parser.y"
+#line 85 "parser.y"
     {
-				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (9)].tok)->GetName().c_str(), (yyvsp[(4) - (9)].tok)->GetName().c_str(), -1);
+				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (9)].tok)->GetName().c_str(), (yyvsp[(4) - (9)].tok)->GetName().c_str(), "");
 				pMessage->list_ = ((Token::List*)(yyvsp[(7) - (9)].tok))->list_;	
 				(yyval.tok) = pMessage;
 			}
@@ -1670,16 +1668,16 @@ yyreduce:
 
   case 18:
 /* Line 1792 of yacc.c  */
-#line 92 "parser.y"
+#line 90 "parser.y"
     {
-				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (8)].tok)->GetName().c_str(), (yyvsp[(4) - (8)].tok)->GetName().c_str(), -1);
+				Token::Message* pMessage = new Token::Message((yyvsp[(2) - (8)].tok)->GetName().c_str(), (yyvsp[(4) - (8)].tok)->GetName().c_str(), "");
 				(yyval.tok) = pMessage;
 			}
     break;
 
   case 19:
 /* Line 1792 of yacc.c  */
-#line 97 "parser.y"
+#line 95 "parser.y"
     {
 			Token::Enum* pEnum = new Token::Enum((yyvsp[(2) - (5)].tok)->GetName().c_str()); 
 			(yyval.tok) = pEnum; 
@@ -1688,7 +1686,7 @@ yyreduce:
 
   case 20:
 /* Line 1792 of yacc.c  */
-#line 101 "parser.y"
+#line 99 "parser.y"
     { 
 			Token::Enum* pEnum = new Token::Enum((yyvsp[(2) - (6)].tok)->GetName().c_str()); 
 			(yyval.tok) = pEnum; 
@@ -1698,7 +1696,7 @@ yyreduce:
 
   case 21:
 /* Line 1792 of yacc.c  */
-#line 107 "parser.y"
+#line 105 "parser.y"
     {
 				Token::List* pList = new Token::List("enum_decl_list");
 				pList->list_.push_back((Token::EnumElmt*)(yyvsp[(1) - (1)].tok));
@@ -1708,7 +1706,7 @@ yyreduce:
 
   case 22:
 /* Line 1792 of yacc.c  */
-#line 112 "parser.y"
+#line 110 "parser.y"
     {
 				Token::List* pList = (Token::List*)(yyvsp[(1) - (2)].tok);
 				pList->list_.push_back((Token::EnumElmt*)(yyvsp[(2) - (2)].tok));
@@ -1718,7 +1716,7 @@ yyreduce:
 
   case 23:
 /* Line 1792 of yacc.c  */
-#line 118 "parser.y"
+#line 116 "parser.y"
     {
 			(yyval.tok) = new Token::EnumElmt("enum_decl", (yyvsp[(1) - (3)].tok), (yyvsp[(3) - (3)].str)); 
 		}
@@ -1726,7 +1724,7 @@ yyreduce:
 
   case 24:
 /* Line 1792 of yacc.c  */
-#line 121 "parser.y"
+#line 119 "parser.y"
     {
 			(yyval.tok) = new Token::EnumElmt("enum_decl", (yyvsp[(1) - (4)].tok), (yyvsp[(3) - (4)].str)); 
 		}
@@ -1734,7 +1732,7 @@ yyreduce:
 
   case 25:
 /* Line 1792 of yacc.c  */
-#line 124 "parser.y"
+#line 122 "parser.y"
     {
 			(yyval.tok) = new Token::EnumElmt("enum_decl", (yyvsp[(1) - (1)].tok), ""); 
 		}
@@ -1742,7 +1740,7 @@ yyreduce:
 
   case 26:
 /* Line 1792 of yacc.c  */
-#line 127 "parser.y"
+#line 125 "parser.y"
     {
 			(yyval.tok) = new Token::EnumElmt("enum_decl", (yyvsp[(1) - (2)].tok), ""); 
 		}
@@ -1750,7 +1748,7 @@ yyreduce:
 
   case 27:
 /* Line 1792 of yacc.c  */
-#line 130 "parser.y"
+#line 128 "parser.y"
     { 
 			(yyval.tok) = new Token::Base("comment"); 
 		}
@@ -1758,7 +1756,7 @@ yyreduce:
 
   case 28:
 /* Line 1792 of yacc.c  */
-#line 135 "parser.y"
+#line 133 "parser.y"
     { 
 			Token::List* pList = new Token::List("var_decl"); 
 			pList->list_.push_back((Token::VarDecl*)(yyvsp[(1) - (1)].tok)); 
@@ -1768,7 +1766,7 @@ yyreduce:
 
   case 29:
 /* Line 1792 of yacc.c  */
-#line 140 "parser.y"
+#line 138 "parser.y"
     { 
 			Token::List* pList = (Token::List*)(yyvsp[(1) - (2)].tok); 
 			pList->list_.push_back((Token::VarDecl*)(yyvsp[(2) - (2)].tok)); 
@@ -1778,7 +1776,7 @@ yyreduce:
 
   case 30:
 /* Line 1792 of yacc.c  */
-#line 147 "parser.y"
+#line 145 "parser.y"
     { 
 			(yyval.tok) = new Token::VarDecl("var_decl", (yyvsp[(1) - (3)].tok), (yyvsp[(2) - (3)].tok)); 
 		}
@@ -1786,7 +1784,7 @@ yyreduce:
 
   case 31:
 /* Line 1792 of yacc.c  */
-#line 150 "parser.y"
+#line 148 "parser.y"
     { 
 			(yyval.tok) = (yyvsp[(1) - (1)].tok); 
 		}
@@ -1794,7 +1792,7 @@ yyreduce:
 
   case 32:
 /* Line 1792 of yacc.c  */
-#line 153 "parser.y"
+#line 151 "parser.y"
     { 
 			(yyval.tok) = new Token::Base("comment"); 
 		}
@@ -1802,91 +1800,91 @@ yyreduce:
 
   case 33:
 /* Line 1792 of yacc.c  */
-#line 157 "parser.y"
+#line 155 "parser.y"
     { (yyval.tok) = new Token::LiteralBlock("literal", (yyvsp[(1) - (2)].str), (yyvsp[(2) - (2)].str));}
     break;
 
   case 34:
 /* Line 1792 of yacc.c  */
-#line 160 "parser.y"
+#line 158 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("boolean"); }
     break;
 
   case 35:
 /* Line 1792 of yacc.c  */
-#line 161 "parser.y"
+#line 159 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("byte"); }
     break;
 
   case 36:
 /* Line 1792 of yacc.c  */
-#line 162 "parser.y"
+#line 160 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("ubyte"); }
     break;
 
   case 37:
 /* Line 1792 of yacc.c  */
-#line 163 "parser.y"
+#line 161 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("int16"); }
     break;
 
   case 38:
 /* Line 1792 of yacc.c  */
-#line 164 "parser.y"
+#line 162 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("int32"); }
     break;
 
   case 39:
 /* Line 1792 of yacc.c  */
-#line 165 "parser.y"
+#line 163 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("int64"); }
     break;
 
   case 40:
 /* Line 1792 of yacc.c  */
-#line 166 "parser.y"
+#line 164 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("uint16"); }
     break;
 
   case 41:
 /* Line 1792 of yacc.c  */
-#line 167 "parser.y"
+#line 165 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("uint32"); }
     break;
 
   case 42:
 /* Line 1792 of yacc.c  */
-#line 168 "parser.y"
+#line 166 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("uint64"); }
     break;
 
   case 43:
 /* Line 1792 of yacc.c  */
-#line 169 "parser.y"
+#line 167 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("double"); }
     break;
 
   case 44:
 /* Line 1792 of yacc.c  */
-#line 170 "parser.y"
+#line 168 "parser.y"
     { (yyval.tok) = new Token::PrimitiveType("float"); }
     break;
 
   case 45:
 /* Line 1792 of yacc.c  */
-#line 171 "parser.y"
+#line 169 "parser.y"
     { (yyval.tok) = new Token::StringType("string"); }
     break;
 
   case 46:
 /* Line 1792 of yacc.c  */
-#line 172 "parser.y"
+#line 170 "parser.y"
     { (yyval.tok) = new Token::ArrayType("array", (yyvsp[(3) - (4)].tok)); }
     break;
 
   case 47:
 /* Line 1792 of yacc.c  */
-#line 173 "parser.y"
+#line 171 "parser.y"
     { 
 				(yyval.tok) = new Token::StaticArrayType("static_array", (yyvsp[(3) - (6)].tok), (yyvsp[(5) - (6)].str)); 
 				if(Token::TYPE_PRIMITIVE == (yyvsp[(3) - (6)].tok)->Type())
@@ -1898,37 +1896,37 @@ yyreduce:
 
   case 48:
 /* Line 1792 of yacc.c  */
-#line 180 "parser.y"
+#line 178 "parser.y"
     { (yyval.tok) = new Token::ListType("list", (yyvsp[(3) - (4)].tok)); }
     break;
 
   case 49:
 /* Line 1792 of yacc.c  */
-#line 181 "parser.y"
+#line 179 "parser.y"
     { (yyval.tok) = new Token::MapType("map", (yyvsp[(3) - (6)].tok), (yyvsp[(5) - (6)].tok)); }
     break;
 
   case 50:
 /* Line 1792 of yacc.c  */
-#line 182 "parser.y"
+#line 180 "parser.y"
     { (yyval.tok) = new Token::UserDefineType((yyvsp[(1) - (1)].tok)->GetName().c_str()); }
     break;
 
   case 51:
 /* Line 1792 of yacc.c  */
-#line 185 "parser.y"
+#line 183 "parser.y"
     { (yyval.tok) = new Token::VarName((yyvsp[(1) - (1)].str)); }
     break;
 
   case 52:
 /* Line 1792 of yacc.c  */
-#line 186 "parser.y"
+#line 184 "parser.y"
     { (yyval.tok) = new Token::VarName((yyvsp[(1) - (1)].str)); }
     break;
 
 
 /* Line 1792 of yacc.c  */
-#line 1932 "parser.cpp"
+#line 1930 "parser.cpp"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2160,7 +2158,7 @@ yyreturn:
 
 
 /* Line 2055 of yacc.c  */
-#line 188 "parser.y"
+#line 186 "parser.y"
  
 
 static char sFilePath[255] = {0};

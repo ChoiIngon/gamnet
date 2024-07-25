@@ -67,9 +67,9 @@ bool GenerateRulePython::CompileMessage(const Token::Message* pToken)
 		std::cout << "(" << pToken->m_sParentName << ") ";
 	}
 	std::cout << ":" << std::endl;
-	if(pToken->m_nSeqNo > 0)
+	if("" != pToken->m_sMessageNo)
 	{
-		std::cout << "\tMSG_ID = " << pToken->m_nSeqNo << std::endl;
+		std::cout << "\tMSG_ID = " << pToken->m_sMessageNo << std::endl;
 	}
 
 	std::cout << "\tdef __init__(self) :" << std::endl;

@@ -41,7 +41,7 @@ extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
 /* Line 2058 of yacc.c  */
-#line 12 "parser.y"
+#line 14 "parser.y"
 
 #include "token.h"
 Token::StmtList* MakeParseTree(const std::string& sFileName);
@@ -100,7 +100,7 @@ Token::StmtList* MakeParseTree(const std::string& sFileName);
 typedef union YYSTYPE
 {
 /* Line 2058 of yacc.c  */
-#line 17 "parser.y"
+#line 19 "parser.y"
 
 	const char* str;
 	Token::Base* tok;
