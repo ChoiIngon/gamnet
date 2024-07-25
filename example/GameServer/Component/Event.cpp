@@ -50,7 +50,7 @@ namespace Component {
 		if(metas.size() > events.size())
 		{
 			auto rows = Gamnet::Database::MySQL::Execute(session->shard_index,
-				"SELECT event_index, update_date FROM user_event WHERE user_seq=", session->user_seq
+				"SELECT event_index, update_date FROM user_event WHERE user_seq=", session->user_no
 			);
 
 			for(auto& row : rows)
@@ -69,7 +69,7 @@ namespace Component {
 			if (events.end() == itr)
 			{
 				session->queries->Execute(
-					"INSERT INTO user_event (user_seq, event_index, update_date) VALUES (", session->user_seq, ",", meta->index, ",NOW())"
+					"INSERT INTO user_event (user_seq, event_index, update_date) VALUES (", session->user_no, ",", meta->index, ",NOW())"
 				);
 				std::shared_ptr<Data> eventData = std::make_shared<Data>();
 				eventData->index = meta->index;
@@ -88,7 +88,7 @@ namespace Component {
 				auto eventData = itr->second;
 				if (1 <= Gamnet::Time::DateDiff(Gamnet::Time::DateTime(Gamnet::Time::Local::Now()), eventData->update_date))
 				{
-					session->queries->Execute("UPDATE user_event SET update_date=NOW() WHERE user_seq=", session->user_seq, " AND event_index=", eventData->index);
+					session->queries->Execute("UPDATE user_event SET update_date=NOW() WHERE user_seq=", session->user_no, " AND event_index=", eventData->index);
 					std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
 					mailData->expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->mail_expire_day * 86400);
 					mailData->item_index = itemMeta->index;

@@ -4,7 +4,7 @@
 
 namespace Component {
 
-Counter::Data::Data(const std::shared_ptr<UserSession>& session, Message::CounterType counter_type, int count, const Gamnet::Time::DateTime& updateDate)
+UserCounter::Data::Data(const std::shared_ptr<UserSession>& session, Message::CounterType counter_type, int count, const Gamnet::Time::DateTime& updateDate)
 	: session(session)
 	, type(counter_type)
 	, value(count)
@@ -12,45 +12,44 @@ Counter::Data::Data(const std::shared_ptr<UserSession>& session, Message::Counte
 {
 }
 
-int Counter::Data::Change(int amount)
+int UserCounter::Data::Change(int amount)
 {
 	this->value += amount;
 	this->update_date = Gamnet::Time::FromUnixtime(Gamnet::Time::Local::Now());
 	return value;
 }
 
-int Counter::Data::Count() const
+int UserCounter::Data::Count() const
 {
 	return value;
 }
 
-Counter::Counter(const std::shared_ptr<UserSession>& session)
+UserCounter::UserCounter(const std::shared_ptr<UserSession>& session)
 	: session(session)
 {
 }
 
-void Counter::Load()
+void UserCounter::Load()
 {
 	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
-		"SELECT counter_type, counter_value, update_date FROM user_counter WHERE user_seq=", session->user_seq
+		"SELECT counter_no, counter_type, counter_value, update_date FROM UserCounter WHERE user_no=", session->user_no
 	);
 
 	Message::User::MsgSvrCli_Counter_Ntf ntf;
 	for (auto& row : rows)
 	{
-		std::shared_ptr<Counter::Data> counter(std::make_shared<Counter::Data>(
-			session, 
-			(Message::CounterType)row->getUInt32("counter_type"), 
-			row->getInt("counter_value"), 
-			row->getString("update_date")
-		));
+		std::shared_ptr<Data> data = std::make_shared<Data>();
+		data->counter_no = row->getInt64("counter_no");
+		data->type = (Message::CounterType)row->getUInt32("counter_type");
+		data->value = row->getInt("counter_value");
+		data->update_time = row->getString("update_time");
 
-		AddCounter(counter);
+		AddCounter(data);
 		
 		Message::CounterData counterData;
-		counterData.counter_type = counter->type;
-		counterData.counter_value = counter->Count();
-		counterData.update_date = Gamnet::Time::UnixTimestamp(counter->update_date);
+		counterData.counter_type = data->type;
+		counterData.counter_value = data->Count();
+		counterData.update_date = Gamnet::Time::UnixTimestamp(data->update_time);
 		ntf.counter_datas.push_back(counterData);
 	}
 	if(0 < ntf.counter_datas.size())
@@ -86,7 +85,7 @@ int Counter::ChangeCount(Message::CounterType type, int amount)
 	auto itr = counters.find(type);
 	if (counters.end() == itr)
 	{
-		session->queries->Execute("INSERT INTO user_counter(user_seq, counter_type, counter_value, update_date) VALUES(", session->user_seq, ",", (int)type, ",", amount, ", NOW())");
+		session->queries->Execute("INSERT INTO user_counter(user_seq, counter_type, counter_value, update_date) VALUES(", session->user_no, ",", (int)type, ",", amount, ", NOW())");
 		std::shared_ptr<Counter::Data> counter(std::make_shared<Counter::Data>(
 			session,
 			(Message::CounterType)type,
@@ -98,7 +97,7 @@ int Counter::ChangeCount(Message::CounterType type, int amount)
 	}
 
 	int counterValue = itr->second->Change(amount);
-	session->queries->Execute("UPDATE user_counter SET counter_value=", counterValue, ", update_date=NOW() WHERE user_seq=", session->user_seq, " AND counter_type=", (int)type);
+	session->queries->Execute("UPDATE user_counter SET counter_value=", counterValue, ", update_date=NOW() WHERE user_seq=", session->user_no, " AND counter_type=", (int)type);
 	session->on_commit.push_back([=]() {
 		Message::User::MsgSvrCli_Counter_Ntf ntf;
 		Message::CounterData counter;

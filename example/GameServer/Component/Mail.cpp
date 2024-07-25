@@ -21,7 +21,7 @@ namespace Component {
 		}
 
 		auto rows = Gamnet::Database::MySQL::Execute(session->shard_index,
-			"SELECT mail_seq, expire_date, mail_message, item_index, item_count FROM user_mail WHERE user_seq=", session->user_seq, " AND expire_date > now() AND delete_yn='N' and mail_seq>", last_mail_seq
+			"SELECT mail_seq, expire_date, mail_message, item_index, item_count FROM user_mail WHERE user_seq=", session->user_no, " AND expire_date > now() AND delete_yn='N' and mail_seq>", last_mail_seq
 		);
 
 		Message::Lobby::MsgSvrCli_Mail_Ntf ntf;
@@ -102,7 +102,7 @@ namespace Component {
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
 		session->queries->Insert("user_mail", {
-			{ "user_seq", session->user_seq },
+			{ "user_seq", session->user_no },
 			{ "expire_date", mailData->expire_date.ToString() },
 			{ "mail_message", mailData->mail_message },
 			{ "item_index", mailData->item_index },

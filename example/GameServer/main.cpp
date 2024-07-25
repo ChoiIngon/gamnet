@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 		//Gamnet::Database::SQLite::ReadXml(config_path);
 
 		Gamnet::Network::Tcp::ReadXml<UserSession>(config_path);
-		Gamnet::Network::Http::ReadXml(config_path);
+		//Gamnet::Network::Http::ReadXml(config_path);
 		Gamnet::Test::ReadXml<TestSession>(config_path);
 		Gamnet::Run(vm["thread"].as<int>());
 	}

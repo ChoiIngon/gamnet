@@ -9,26 +9,26 @@ class UserSession;
 
 namespace Component {
 
-class Counter
+class UserCounter
 {
+	typedef Gamnet::Time::DateTime DateTime;
 	class Data
 	{
 	public:
-		Data(const std::shared_ptr<UserSession>& session, Message::CounterType counter_type, int count, const Gamnet::Time::DateTime& updateDate);
-		virtual int Change(int amount);
+		Data();
+		virtual int Change(int amount, const DateTime& updateTime);
 		virtual int Count() const;
-	private:
-		std::shared_ptr<UserSession> session;
+	
 	public:
-		const Message::CounterType type;
-	private:
+		int64_t counter_no;
+		Message::CounterType type;
 		int value;
-	public:
-		Gamnet::Time::DateTime update_date;
+		Gamnet::Time::DateTime update_time;
 	};
 
 public :
-	Counter(const std::shared_ptr<UserSession>& session);
+	UserCounter();
+
 	void Load();
 	int GetCount(Message::CounterType type);
 	int ChangeCount(Message::CounterType type, int amount);

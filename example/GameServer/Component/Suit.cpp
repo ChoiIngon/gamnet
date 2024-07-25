@@ -51,7 +51,7 @@ namespace Component {
 		session->queries->Update("user_item",
 			Gamnet::Format("equip_part=", (int)meta->equip->part, ",expire_date='", item->GetExpireDate().ToString(), "'"),
 			{
-				{ "user_seq", session->user_seq },
+				{ "user_seq", session->user_no },
 				{ "item_seq", item->seq }
 			}
 		);
@@ -78,7 +78,7 @@ namespace Component {
 		session->queries->Update("user_item",
 			Gamnet::Format("equip_part=", (int)Message::EquipItemPartType::Invalid),
 			{
-				{ "user_seq", session->user_seq },
+				{ "user_seq", session->user_no },
 				{ "item_seq", item->seq }
 			}
 		);

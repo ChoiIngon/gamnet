@@ -54,7 +54,7 @@ public:
 	}
 
 	int shard_index;
-	uint64_t user_seq;
+	uint64_t user_no;
 	std::shared_ptr<Gamnet::Database::MySQL::Transaction> queries;
 	std::shared_ptr<Gamnet::Database::MySQL::Transaction> logs;
 	std::list<std::function<void()>> on_commit;

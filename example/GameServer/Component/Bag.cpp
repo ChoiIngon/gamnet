@@ -19,7 +19,7 @@ namespace Component {
 		Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
 			"SELECT item_seq, item_index, item_count, equip_part, expire_date "
 			"FROM user_item "
-			"WHERE user_seq = ", session->user_seq, " AND NOW() < expire_date AND delete_yn='N'"
+			"WHERE user_seq = ", session->user_no, " AND NOW() < expire_date AND delete_yn='N'"
 		);
 
 		Message::Item::MsgSvrCli_AddItem_Ntf ntf;
@@ -83,7 +83,7 @@ namespace Component {
 					{ "item_index", meta->index },
 					{ "item_count", meta->max_stack },
 					{ "expire_date", portion->GetExpireDate().ToString() },
-					{ "user_seq", session->user_seq }
+					{ "user_seq", session->user_no }
 				});
 
 				addItems.push_back(portion);
@@ -105,7 +105,7 @@ namespace Component {
 					session->queries->Update("user_item", 
 						Gamnet::Format("item_count=", other->count), 
 						{
-							{ "user_seq", session->user_seq },
+							{ "user_seq", session->user_no },
 							{ "item_seq", other->seq }
 						}
 					);
@@ -147,7 +147,7 @@ namespace Component {
 					{ "item_index", item->meta->index },
 					{ "item_count", (int)item->count },
 					{ "expire_date", item->GetExpireDate().ToString() },
-					{ "user_seq", session->user_seq }
+					{ "user_seq", session->user_no }
 				});
 				addItems.push_back(item);
 			}
@@ -166,7 +166,7 @@ namespace Component {
 				{ "item_index", meta->index },
 				{ "item_count", 1 },
 				{ "expire_date", item->GetExpireDate().ToString() },
-				{ "user_seq", session->user_seq }
+				{ "user_seq", session->user_no }
 			});
 			addItems.push_back(item);
 		}
@@ -210,7 +210,7 @@ namespace Component {
 			if(count < item->count)
 			{
 				session->queries->Update("user_item", Gamnet::Format("item_count=", item->count), {
-					{ "user_seq", session->user_seq },
+					{ "user_seq", session->user_no },
 					{ "item_seq", item->seq }
 				});
 				session->on_commit.push_back([=]() {
@@ -224,7 +224,7 @@ namespace Component {
 		}
 		
 		session->queries->Update("user_item", "item_count=0,delete_date=NOW(),delete_yn='Y'", {
-			{ "user_seq", session->user_seq },
+			{ "user_seq", session->user_no },
 			{ "item_seq", item->seq }
 		});
 		session->on_commit.push_back([=]() {

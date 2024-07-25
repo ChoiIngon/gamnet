@@ -8,12 +8,10 @@ namespace Component {
 	class UserData
 	{
 	public:
-		UserData(uint64_t userSEQ, const std::string& name);
+		UserData();
 
-		const uint64_t user_seq;
-		const std::string user_name;
-		Gamnet::Time::DateTime create_date;
-		Gamnet::Time::DateTime offline_date;
+		std::string user_name;
+		Gamnet::Time::DateTime offline_time;
 	};
 };
 #endif

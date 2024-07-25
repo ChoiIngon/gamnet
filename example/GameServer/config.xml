@@ -7,8 +7,8 @@
 		<err console="yes" file="yes" sys="no"/>
 	</log>
 	
-	<mysql  name="account"	id="1"    host="127.0.0.1" port="3306" db="account" user="gamnet" passwd="P@ssword!" fail_query_log="false"/>
-	<sqlite name="gamnet_sqlite"	id="1"  db="gamnet.sqlite"/>
+	<mysql  name="global"		id="1"		host="127.0.0.1" port="3306" db="game_global" user="gamnet" passwd="P@ssword!" fail_query_log="false"/>
+	
 	<redis  name="gamnet_redis" id="1"  host="localhost" port="6379"/>
 	
 	<tcp port="40001" max_count="8000" accept_queue="4000" keep_alive="120" thread_count="20"/>
@@ -18,11 +18,14 @@
 	</router>
 		
 	<test host="127.0.0.1" port="40001" session_count="1" loop_count="1">
+		<message name="MsgCliSvr_Create_Req"/>
+		<!--
 		<message name="Test_User_Login"/>
 		<message name="Test_Lobby_Join"/>
 		<message name="Test_Lobby_OpenMail"/>
 		<message name="Test_Item_OpenPackage"/>
 		<message name="Test_Item_EquipItem"/>
 		<message name="Test_Dungeon_CreateDungeon"/>
+		-->
 	</test>
 </server>

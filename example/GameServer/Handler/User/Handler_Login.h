@@ -3,7 +3,7 @@
 
 #include "../../UserSession.h"
 #include "../../../idl/MessageUser.h"
-
+#include "../../Component/Account.h"
 
 namespace Handler { namespace User {
 	

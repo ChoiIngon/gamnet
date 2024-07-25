@@ -11,7 +11,7 @@
 
 UserSession::UserSession()
 	: shard_index(0)
-	, user_seq(0)
+	, user_no(0)
 {
 }
 
@@ -62,7 +62,7 @@ void UserSession::OnDestroy()
 	components.Clear();
 
 	shard_index = 0;
-	user_seq = 0;
+	user_no = 0;
 }
 
 void UserSession::StartTransaction()
@@ -89,22 +89,22 @@ void UserSession::Manager::Init()
 
 std::shared_ptr<UserSession> UserSession::Manager::AddSession(std::shared_ptr<UserSession> session)
 {
-	auto itr = sessions.find(session->user_seq);
+	auto itr = sessions.find(session->user_no);
 	if(sessions.end() == itr)
 	{
-		sessions.insert(std::make_pair(session->user_seq, session));
+		sessions.insert(std::make_pair(session->user_no, session));
 		return nullptr;
 	}
 
 	std::shared_ptr<UserSession> prev = itr->second;
-	sessions[session->user_seq] = session;
+	sessions[session->user_no] = session;
 	return prev;
 }
 
 void UserSession::Manager::RemoveSession(std::shared_ptr<UserSession> session)
 {
-	assert(0 != session->user_seq);
-	auto itr = sessions.find(session->user_seq);
+	assert(0 != session->user_no);
+	auto itr = sessions.find(session->user_no);
 	if (sessions.end() == itr)
 	{
 		return;

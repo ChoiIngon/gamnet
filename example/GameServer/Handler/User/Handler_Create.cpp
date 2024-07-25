@@ -5,203 +5,132 @@
 
 namespace Handler { namespace User {
 
-	class ExistUserNameCache
+class ShardIndex
+{
+public:
+	struct ShardData : public MetaData
 	{
-	public:
-		ExistUserNameCache();
-		void Init();
-		static bool CheckExist(const std::string& name);
-	private:
-		const std::shared_ptr<std::set<std::string>> GetCache();
-		std::shared_ptr<std::set<std::string>> Read();
-		const int			page_size;
-		uint64_t			last_user_seq;
-		std::mutex			lock;
-		std::shared_ptr<Gamnet::Time::Timer>	timer;
-		std::shared_ptr<std::set<std::string>> cache;
+		ShardData();
+
+		int shard_num;
+		int shard_index;
+		std::string master_ip;
+		int master_port;
+		std::string db_name;
+		std::string db_user;
+		std::string db_password;
 	};
 
-	class ShardIndex
-	{
-	public:
-		struct ShardData : public MetaData
+	void Init();
+	int Generate();
+private:
+	std::atomic<int> shard_mod;
+	MetaReader<ShardData> meta_reader;
+};
+
+
+void Handler_Create::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::User::MsgCliSvr_Create_Req& req)
+{
+	Message::User::MsgSvrCli_Create_Ans ans;
+	ans.error_code = Message::ErrorCode::Success;
+
+	try {
+		LOG(DEV, "Message::User::MsgCliSvr_User_Create_Req(account_id:", req.account_id, ")");
+
+		if(nullptr != session->GetComponent<Component::Account>())
 		{
-			ShardData();
-
-			int shard_num;
-			int shard_index;
-			std::string master_ip;
-			int master_port;
-			std::string db_name;
-			std::string db_user;
-			std::string db_password;
-		};
-
-		void Init();
-		static int Generate();
-	private:
-		std::atomic<int> shard_mod;
-		MetaReader<ShardData> meta_reader;
-		int _Generate();
-	};
-
-
-	Handler_Create::Handler_Create()
-	{
-	}
-
-	Handler_Create::~Handler_Create()
-	{
-	}
-
-	void Handler_Create::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::User::MsgCliSvr_Create_Req& req)
-	{
-		Message::User::MsgSvrCli_Create_Ans ans;
-		ans.error_code = Message::ErrorCode::Success;
-
-		try {
-			LOG(DEV, "Message::User::MsgCliSvr_User_Create_Req(account_id:", req.account_id, ")");
-
-			if(nullptr != session->GetComponent<Component::Account>())
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-			}
-			if (false == ExistUserNameCache::CheckExist(req.user_name))
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::DuplicateNameError, "user_name:", req.user_name);
-			}
-
-			Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
-				"INSERT INTO account(user_name, account_id, account_type, account_level, account_state, shard_index, create_date, delete_date) "
-				"VALUES('", req.user_name, "','", req.account_id, "',", (int)req.account_type, ",1,1,", ShardIndex::Generate(), ",NOW(),'0000-00-00 00:00:00')"
-			);
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
-		catch (const Gamnet::Exception& e)
-		{
-			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-			switch (e.error_code())
-			{
-			case 1061: // duplicated key
-				ans.error_code = Message::ErrorCode::DuplicateNameError;
-				break;
-			default:
-				ans.error_code = (Message::ErrorCode)e.error_code();
-				break;
-			}
-		}
-		LOG(DEV, "Message::User::MsgSvrCli_User_Create_Ans(error_code:", (int)ans.error_code, ")");
-		Gamnet::Network::Tcp::SendMsg(session, ans);
-	}
 
-	GAMNET_BIND_TCP_HANDLER(
-		UserSession,
-		Message::User::MsgCliSvr_Create_Req,
-		Handler_Create, Recv_Req,
-		HandlerStatic
-	);
-
-	ExistUserNameCache::ExistUserNameCache()
-		: page_size(5000)
-		, last_user_seq(0)
-		, cache(std::make_shared<std::set<std::string>>())
-	{
-	}
-
-	std::shared_ptr<std::set<std::string>> ExistUserNameCache::Read()
-	{
-		std::shared_ptr<std::set<std::string>> temp = std::make_shared<std::set<std::string>>();
-		*temp = *cache;
-
-		Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
-			"SELECT user_seq, user_name FROM account WHERE user_seq > ", last_user_seq, " LIMIT ", page_size
+		int shard_index = Gamnet::Singleton<ShardIndex>::GetInstance().Generate();
+		Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
+			"INSERT INTO Account(account_id, account_type, shard_index) "
+			"VALUES('", req.account_id, "',", (int)req.account_type, ",", shard_index, ")"
 		);
-		for(auto& row : rows)
+
+		auto rows = Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
+			"SELECT user_no, shard_index FROM Account WHERE account_id = '", req.account_id, "' AND account_type = ", (int)req.account_type
+		);
+
+		if (1 != rows.GetRowCount())
 		{
-			temp->insert(row->getString("user_name"));
-			last_user_seq = std::max(last_user_seq, row->getUInt64("user_seq"));
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", req.account_id, ", account_type:", (int)req.account_type);
 		}
-		return temp;
+		
+		auto row = rows[0];
+		int64_t user_no = row->getInt64("user_no");
+		Gamnet::Database::MySQL::Execute(shard_index,
+			"INSERT INTO UserData(user_no, user_name) "
+			"VALUES(", user_no, ",'", req.user_name, "')"
+		);
 	}
-
-	void ExistUserNameCache::Init()
+	catch (const Gamnet::Exception& e)
 	{
-		std::shared_ptr<std::set<std::string>> temp = Read();
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		switch (e.error_code())
 		{
-			std::lock_guard<std::mutex> lo(lock);
-			cache = temp;
+		case 1061: // duplicated key
+			ans.error_code = Message::ErrorCode::DuplicateNameError;
+			break;
+		default:
+			ans.error_code = (Message::ErrorCode)e.error_code();
+			break;
 		}
+	}
+	LOG(DEV, "Message::User::MsgSvrCli_User_Create_Ans(error_code:", (int)ans.error_code, ")");
+	Gamnet::Network::Tcp::SendMsg(session, ans);
+}
 
-        timer = Gamnet::Time::Timer::Create();
-		timer->ExpireFromNow(60000, std::bind(&ExistUserNameCache::Init, this));
+GAMNET_BIND_TCP_HANDLER(
+	UserSession,
+	Message::User::MsgCliSvr_Create_Req,
+	Handler_Create, Recv_Req,
+	HandlerStatic
+);
+
+ShardIndex::ShardData::ShardData()
+{
+	META_MEMBER(shard_num);
+	META_MEMBER(shard_index);
+	META_MEMBER(master_ip);
+	META_MEMBER(master_port);
+	META_MEMBER(db_name);
+	META_MEMBER(db_user);
+	META_MEMBER(db_password);
+}
+
+void ShardIndex::Init()
+{
+	const auto& metas = meta_reader.Read("../MetaData/Shard.csv");
+	int shard_count = (int)metas.size();
+	if (0 == shard_count)
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "no user database");
 	}
 
-	const std::shared_ptr<std::set<std::string>> ExistUserNameCache::GetCache()
+	for (auto& meta : metas)
 	{
-		std::lock_guard<std::mutex> lo(lock);
-		return cache;
-	}
-
-	GAMNET_BIND_INIT_HANDLER(ExistUserNameCache, Init);
-
-	bool ExistUserNameCache::CheckExist(const std::string& name)
-	{
-		auto cache = Gamnet::Singleton<ExistUserNameCache>::GetInstance().GetCache();
-		auto itr = cache->find(name);
-		if(cache->end() != itr)
+		if (false == Gamnet::Database::MySQL::Connect((int)DatabaseType::User + meta->shard_index, meta->master_ip, meta->master_port, meta->db_user, meta->db_password, meta->db_name, false))
 		{
-			return false;
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "fail to connect db");
 		}
-		return true;
 	}
+	shard_mod = Gamnet::Random::Range(0, shard_count - 1);
+}
 
-	ShardIndex::ShardData::ShardData()
+int ShardIndex::Generate()
+{
+	const auto& metas = meta_reader.GetAllMetaData();
+	size_t shard_count = metas.size();
+	if (0 == shard_count)
 	{
-		META_MEMBER(shard_num);
-		META_MEMBER(shard_index);
-		META_MEMBER(master_ip);
-		META_MEMBER(master_port);
-		META_MEMBER(db_name);
-		META_MEMBER(db_user);
-		META_MEMBER(db_password);
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "no user database");
 	}
 
-	void ShardIndex::Init()
-	{
-		const auto& metas = meta_reader.Read("../MetaData/Shard.csv");
-		int shard_count = (int)metas.size();
-		if (0 == shard_count)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "no user database");
-		}
+	return (int)DatabaseType::User + metas[shard_mod++ % shard_count]->shard_index;
+}
 
-		for (auto& meta : metas)
-		{
-			if (false == Gamnet::Database::MySQL::Connect((int)DatabaseType::User + meta->shard_index, meta->master_ip, meta->master_port, meta->db_user, meta->db_password, meta->db_name, false))
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "fail to connect db");
-			}
-		}
-		shard_mod = Gamnet::Random::Range(0, shard_count - 1);
-	}
-
-	int ShardIndex::_Generate()
-	{
-		const auto& metas = meta_reader.GetAllMetaData();
-		size_t shard_count = metas.size();
-		if (0 == shard_count)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "no user database");
-		}
-
-		return (int)DatabaseType::User + metas[shard_mod++ % shard_count]->shard_index;
-	}
-
-	int ShardIndex::Generate()
-	{
-		return Gamnet::Singleton<ShardIndex>::GetInstance()._Generate();
-	}
-
-	GAMNET_BIND_INIT_HANDLER(ShardIndex, Init);
+GAMNET_BIND_INIT_HANDLER(ShardIndex, Init);
 
 
 
@@ -241,7 +170,7 @@ void Test_Create_Ans(const std::shared_ptr<TestSession>& session, const std::sha
 }
 
 GAMNET_BIND_TEST_HANDLER(
-	TestSession, "Test_Create",
+	TestSession, "MsgCliSvr_Create_Req",
 	Message::User::MsgCliSvr_Create_Req, Test_Create_Req,
 	Message::User::MsgSvrCli_Create_Ans, Test_Create_Ans
 );

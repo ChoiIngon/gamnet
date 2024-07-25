@@ -2,19 +2,21 @@
 #define _COMPONENT_ACCOUNT_H_
 
 #include <idl/MessageCommon.h>
-
+#include <Gamnet/Library/Time/Time.h>
 namespace Component {
 	class Account
 	{
 	public:
-		Account(const std::string& accountID, Message::AccountType accountType, int account_level);
+		Account();
 
-		const std::string account_id;
-		const Message::AccountType account_type;
-		const int account_level;
-
+		int64_t user_no;
+		std::string account_id;
+		Message::AccountType account_type;
+		int account_level;
 		Message::AccountState account_state;
-		std::string user_name;
+		int shard_index;
+		Gamnet::Time::DateTime create_time;
+		Gamnet::Time::DateTime delete_time;
 	};
 };
 #endif

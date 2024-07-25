@@ -23,10 +23,7 @@ cd /d %WorkDirectory%
 
 set MySqlCommand=%MySqlPath% --login-path=localserver_sa --host=127.0.0.1 -P3306 ^<
 
-%MySqlCommand% account.sql
-if not "%ERRORLEVEL%" == "0" goto Fail
-
-%MySqlCommand% user_data.sql
+%MySqlCommand% Schema.sql
 if not "%ERRORLEVEL%" == "0" goto Fail
 
 echo .
