@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdexcept>
 struct MsgCliSvr_HelloWorld_Req {
-	enum { MSG_ID = 1 }; 
+	enum { MSG_ID = 0000001 }; 
 	std::string	greeting;
 	MsgCliSvr_HelloWorld_Req()	{
 	}
@@ -54,7 +54,7 @@ struct MsgCliSvr_HelloWorld_Req_Serializer {
 	static size_t Size(const MsgCliSvr_HelloWorld_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_HelloWorld_Ans {
-	enum { MSG_ID = 1 }; 
+	enum { MSG_ID = 0000001 }; 
 	std::string	answer;
 	MsgSvrCli_HelloWorld_Ans()	{
 	}
@@ -100,7 +100,7 @@ struct MsgSvrCli_HelloWorld_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_HelloWorld_Ans& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_Welcome_Ntf {
-	enum { MSG_ID = 2 }; 
+	enum { MSG_ID = 0000002 }; 
 	std::string	greeting;
 	MsgSvrCli_Welcome_Ntf()	{
 	}

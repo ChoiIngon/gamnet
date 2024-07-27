@@ -148,8 +148,7 @@ namespace Item
 		const Gamnet::Time::DateTime& GetExpireDate() const;
 	public :
 		const std::shared_ptr<Meta>	meta;
-		uint64_t					seq;
-		std::shared_ptr<UserSession>	session;
+		int64_t						item_no;
 		std::shared_ptr<Equip>		equip;
 		std::shared_ptr<Expire>		expire;
 		std::shared_ptr<Package>	package;

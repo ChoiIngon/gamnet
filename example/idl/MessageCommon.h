@@ -427,16 +427,16 @@ struct MailData_Serializer {
 };
 struct CounterData {
 	CounterType	counter_type;
-	int32_t	counter_value;
-	uint64_t	update_date;
+	int64_t	counter_value;
+	uint64_t	update_time;
 	CounterData()	{
 		counter_value = 0;
-		update_date = 0;
+		update_time = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
 		nSize += CounterType_Serializer::Size(counter_type);
-		nSize += sizeof(int32_t);
+		nSize += sizeof(int64_t);
 		nSize += sizeof(uint64_t);
 		return nSize;
 	}
@@ -452,8 +452,8 @@ struct CounterData {
 	}
 	bool Store(char** _buf_) const {
 		if(false == CounterType_Serializer::Store(_buf_, counter_type)) { return false; }
-		std::memcpy(*_buf_, &counter_value, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
-		std::memcpy(*_buf_, &update_date, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &counter_value, sizeof(int64_t)); (*_buf_) += sizeof(int64_t);
+		std::memcpy(*_buf_, &update_time, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -465,8 +465,8 @@ struct CounterData {
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
 		if(false == CounterType_Serializer::Load(counter_type, _buf_, nSize)) { return false; }
-		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&counter_value, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&update_date, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(int64_t) > nSize) { return false; }	std::memcpy(&counter_value, *_buf_, sizeof(int64_t));	(*_buf_) += sizeof(int64_t); nSize -= sizeof(int64_t);
+		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&update_time, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
 		return true;
 	}
 }; //CounterData

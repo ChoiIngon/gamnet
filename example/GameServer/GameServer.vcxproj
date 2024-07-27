@@ -83,6 +83,7 @@
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>../../x64/Debug;C:\Program Files\MySQL\MySQL Connector C 6.1\lib;C:\OpenSSL-Win64\lib;C:\local\curl-7.43.0-win64\lib;C:\local\boost_1_85_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -128,7 +129,7 @@
   <ItemGroup>
     <ClCompile Include="Component\Account.cpp" />
     <ClCompile Include="Component\Bag.cpp" />
-    <ClCompile Include="Component\Counter.cpp" />
+    <ClCompile Include="Component\UserCounter.cpp" />
     <ClCompile Include="Component\Disconnect.cpp" />
     <ClCompile Include="Component\Dungeon\AStarPathFinder.cpp" />
     <ClCompile Include="Component\Dungeon\BresenhamCircle2D.cpp" />
@@ -169,7 +170,7 @@
   <ItemGroup>
     <ClInclude Include="Component\Account.h" />
     <ClInclude Include="Component\Bag.h" />
-    <ClInclude Include="Component\Counter.h" />
+    <ClInclude Include="Component\UserCounter.h" />
     <ClInclude Include="Component\Disconnect.h" />
     <ClInclude Include="Component\Dungeon\AStarPathFinder.h" />
     <ClInclude Include="Component\Dungeon\BresenhamCircle2D.h" />

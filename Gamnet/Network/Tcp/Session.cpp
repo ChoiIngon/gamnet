@@ -88,7 +88,7 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 			recv_packet->Append(buffer->ReadPtr(), readSize);
 			buffer->Remove(readSize);
 
-			while(Packet::HEADER_SIZE <= (int)recv_packet->Size() && nullptr != socket)
+			while(Packet::HEADER_SIZE <= (int)recv_packet->Size())
 			{
 				recv_packet->ReadHeader();
 				if(Packet::HEADER_SIZE > recv_packet->length)
@@ -115,6 +115,11 @@ void Session::OnRead(const std::shared_ptr<Buffer>& buffer)
 				recv_packet->Append(packet->ReadPtr() + packet->length, packet->Size() - packet->length);
 
 				session_manager->OnReceive(shared_from_this(), packet);
+
+				if (nullptr == socket)
+				{
+					return;
+				}
 			}
 		}
 	}

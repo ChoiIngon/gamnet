@@ -19,8 +19,8 @@
 		
 	<test host="127.0.0.1" port="40001" session_count="1" loop_count="1">
 		<message name="MsgCliSvr_Create_Req"/>
+		<message name="MsgCliSvr_Login_Req"/>
 		<!--
-		<message name="Test_User_Login"/>
 		<message name="Test_Lobby_Join"/>
 		<message name="Test_Lobby_OpenMail"/>
 		<message name="Test_Item_OpenPackage"/>

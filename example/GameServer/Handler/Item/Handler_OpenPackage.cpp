@@ -26,6 +26,7 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 		}
 
 		auto bag = session->GetComponent<Component::Bag>();
+		/*
 		auto item = bag->Find(req.item_seq);
 		if(nullptr == item)
 		{
@@ -38,6 +39,7 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 		session->StartTransaction();
 		item->package->Open();
 		session->Commit();
+		*/
 	}
 	catch (const Gamnet::Exception& e)
 	{

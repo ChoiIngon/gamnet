@@ -157,7 +157,7 @@ namespace Gamnet {	namespace Test {
 		int						port;
 
 		std::map<std::string, std::shared_ptr<TestCase>>	test_cases;
-		std::map<uint32_t, RECV_HANDLER_TYPE> 				system_recv_handlers;
+		std::map<uint32_t, RECV_HANDLER_TYPE> 				system_message_handlers;
 		std::map<uint32_t, RECV_HANDLER_TYPE> 				global_recv_handlers;
 		std::vector<std::shared_ptr<TestCase>> 				test_sequence;
 
@@ -172,9 +172,9 @@ namespace Gamnet {	namespace Test {
 		connector.name = "Test::SessionManager";
 #endif
 		connector.connect_handler = std::bind(&SessionManager::OnConnectHandler, this, std::placeholders::_1);
-		system_recv_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2)));
-		system_recv_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Reconnect_Ans, this, std::placeholders::_1, std::placeholders::_2)));
-		system_recv_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Close_Ans, this, std::placeholders::_1, std::placeholders::_2)));
+		system_message_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Connect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Connect_Ans, this, std::placeholders::_1, std::placeholders::_2)));
+		system_message_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Reconnect_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Reconnect_Ans, this, std::placeholders::_1, std::placeholders::_2)));
+		system_message_handlers.insert(std::make_pair((uint32_t)Network::Tcp::MsgID_SvrCli_Close_Ans, std::bind(&SessionManager<SESSION_T>::Recv_Close_Ans, this, std::placeholders::_1, std::placeholders::_2)));
 	}
 
 	template <class SESSION_T>
@@ -255,8 +255,8 @@ namespace Gamnet {	namespace Test {
 		const std::shared_ptr<SESSION_T> session = std::static_pointer_cast<SESSION_T>(networkSession);
 		const std::shared_ptr<Network::Tcp::Packet>& packet = std::static_pointer_cast<Network::Tcp::Packet>(buffer);
 
-		auto itr = system_recv_handlers.find(packet->msg_id);
-		if(system_recv_handlers.end() != itr)
+		auto itr = system_message_handlers.find(packet->msg_id);
+		if(system_message_handlers.end() != itr)
 		{
 			RECV_HANDLER_TYPE& recvHandler = itr->second;
 			try {
@@ -264,7 +264,6 @@ namespace Gamnet {	namespace Test {
 			}
 			catch (const Exception& /*e*/)
 			{
-
 			}
 		}
 		else

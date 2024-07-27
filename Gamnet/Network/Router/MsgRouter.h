@@ -13,7 +13,7 @@
 namespace Gamnet { namespace Network { namespace Router {
 
 struct MsgRouter_Connect_Req {
-	enum { MSG_ID = 1 }; 
+	enum { MSG_ID = 001 }; 
 	std::string	service_name;
 	uint32_t	id;
 	MsgRouter_Connect_Req()	{
@@ -64,7 +64,7 @@ struct MsgRouter_Connect_Req_Serializer {
 	static size_t Size(const MsgRouter_Connect_Req& obj) { return obj.Size(); }
 };
 struct MsgRouter_Connect_Ans {
-	enum { MSG_ID = 2 }; 
+	enum { MSG_ID = 002 }; 
 	int32_t	error_code;
 	std::string	service_name;
 	uint32_t	id;
@@ -120,7 +120,7 @@ struct MsgRouter_Connect_Ans_Serializer {
 	static size_t Size(const MsgRouter_Connect_Ans& obj) { return obj.Size(); }
 };
 struct MsgRouter_RegisterAddress_Req {
-	enum { MSG_ID = 3 }; 
+	enum { MSG_ID = 003 }; 
 	std::string	service_name;
 	uint32_t	id;
 	int32_t	router_port;
@@ -176,7 +176,7 @@ struct MsgRouter_RegisterAddress_Req_Serializer {
 	static size_t Size(const MsgRouter_RegisterAddress_Req& obj) { return obj.Size(); }
 };
 struct MsgRouter_RegisterAddress_Ans {
-	enum { MSG_ID = 4 }; 
+	enum { MSG_ID = 004 }; 
 	int32_t	error_code;
 	std::string	service_name;
 	uint32_t	id;
@@ -237,7 +237,7 @@ struct MsgRouter_RegisterAddress_Ans_Serializer {
 	static size_t Size(const MsgRouter_RegisterAddress_Ans& obj) { return obj.Size(); }
 };
 struct MsgRouter_RegisterAddress_Ntf {
-	enum { MSG_ID = 5 }; 
+	enum { MSG_ID = 005 }; 
 	std::string	service_name;
 	uint32_t	id;
 	MsgRouter_RegisterAddress_Ntf()	{
@@ -288,7 +288,7 @@ struct MsgRouter_RegisterAddress_Ntf_Serializer {
 	static size_t Size(const MsgRouter_RegisterAddress_Ntf& obj) { return obj.Size(); }
 };
 struct MsgRouter_SendMsg_Ntf {
-	enum { MSG_ID = 6 }; 
+	enum { MSG_ID = 006 }; 
 	uint32_t	msg_seq;
 	std::string	buffer;
 	MsgRouter_SendMsg_Ntf()	{
@@ -339,7 +339,7 @@ struct MsgRouter_SendMsg_Ntf_Serializer {
 	static size_t Size(const MsgRouter_SendMsg_Ntf& obj) { return obj.Size(); }
 };
 struct MsgRouter_HeartBeat_Ntf {
-	enum { MSG_ID = 7 }; 
+	enum { MSG_ID = 007 }; 
 	MsgRouter_HeartBeat_Ntf()	{
 	}
 	size_t Size() const {

@@ -25,7 +25,7 @@ namespace Handler {	namespace Item {
 			{
 				throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 			}
-
+			/*
 			auto bag = session->GetComponent<Component::Bag>();
 			auto item = bag->Find(req.item_seq);
 			if (nullptr == item)
@@ -40,6 +40,7 @@ namespace Handler {	namespace Item {
 			session->StartTransaction();
 			suit->Equip(item);
 			session->Commit();
+			*/
 		}
 		catch (const Gamnet::Exception& e)
 		{

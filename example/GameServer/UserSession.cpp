@@ -1,6 +1,6 @@
 #include "UserSession.h"
 #include "Component/UserData.h"
-#include "Component/Counter.h"
+#include "Component/UserCounter.h"
 #include "Component/Bag.h"
 #include "Component/Event.h"
 #include "Component/Mail.h"
@@ -10,8 +10,8 @@
 #include <idl/MessageLobby.h>
 
 UserSession::UserSession()
-	: shard_index(0)
-	, user_no(0)
+	: user_no(0)
+	, shard_index(0)
 {
 }
 
@@ -23,12 +23,6 @@ void UserSession::OnCreate()
 {
 	LOG(DEV, "OnCreate(session_key:", session_key, ")");
 	auto self = std::static_pointer_cast<UserSession>(shared_from_this());
-
-	AddComponent<Component::Counter>(std::make_shared<Component::Counter>(self));
-	AddComponent<Component::Bag>(std::make_shared<Component::Bag>(self));
-	AddComponent<Component::Event>(std::make_shared<Component::Event>(self));
-	AddComponent<Component::Mail>(std::make_shared<Component::Mail>(self));
-	AddComponent<Component::Suit>(std::make_shared<Component::Suit>(self));
 }
 
 void UserSession::OnAccept()
@@ -61,8 +55,8 @@ void UserSession::OnDestroy()
 	
 	components.Clear();
 
-	shard_index = 0;
 	user_no = 0;
+	shard_index = 0;
 }
 
 void UserSession::StartTransaction()

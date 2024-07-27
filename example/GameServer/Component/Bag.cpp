@@ -7,57 +7,56 @@
 #include "Suit.h"
 
 namespace Component {
-	Bag::Bag(const std::shared_ptr<UserSession>& session)
-		: session(session)
-		, last_item_seq(0)
-	{
-	}
 
-	void Bag::Load()
-	{
-		last_item_seq = 0;
-		Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
-			"SELECT item_seq, item_index, item_count, equip_part, expire_date "
-			"FROM user_item "
-			"WHERE user_seq = ", session->user_no, " AND NOW() < expire_date AND delete_yn='N'"
-		);
+Bag::Bag()
+	: last_item_no(0)
+{
+}
 
-		Message::Item::MsgSvrCli_AddItem_Ntf ntf;
-		std::list<std::shared_ptr<Item::Data>> equippedItems;
-		for (auto& row : rows)
+std::shared_ptr<Bag> Bag::Load(const std::shared_ptr<UserSession>& session)
+{
+	std::shared_ptr<Bag> pBag = std::make_shared<Bag>();
+	//std::shared_ptr<Suit> pSuit = std::make_shared<Suit>(session);
+
+	pBag->last_item_no = 0;
+	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
+		"SELECT item_no, item_index, item_count, equip_part "
+		"FROM UserItem "
+		"WHERE user_no = ", session->user_no, " AND delete_yn='N'"
+	);
+
+	Message::Item::MsgSvrCli_AddItem_Ntf ntf;
+	for (auto& row : rows)
+	{
+		uint32_t itemIndex = row->getUInt32("item_index");
+		int32_t itemCount = row->getInt32("item_count");
+		std::shared_ptr<Item::Data> item = Item::Create(itemIndex, itemCount);
+		
+		item->item_no = row->getInt64("item_no");
+		if(nullptr != item->equip)
 		{
-			std::shared_ptr<Item::Data> item = Item::Create(row->getUInt32("item_index"), row->getInt("item_count"));
-			item->session = session;
-			item->seq = row->getInt64("item_seq");
-			if(nullptr != item->expire)
-			{
-				item->expire->SetDate(row->getString("expire_date"));
-			}
-			if(nullptr != item->equip)
-			{
-				item->equip->part = (Message::EquipItemPartType)row->getInt32("equip_part");
-				equippedItems.push_back(item);
-			}
-			last_item_seq = std::max(last_item_seq, item->seq);
-			item_datas.insert(std::make_pair(item->seq, item));
-			ntf.item_datas.push_back(*item);
-		}
-		if(0 < ntf.item_datas.size())
-		{
-			Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+			item->equip->part = (Message::EquipItemPartType)row->getInt32("equip_part");
+			//pSuit->EquipWithoutDB(item);
 		}
 		
-		if(0 < equippedItems.size())
-		{
-			std::shared_ptr<Component::Suit> suit = session->GetComponent<Component::Suit>();
-			assert(nullptr != suit);
-			for(std::shared_ptr<Item::Data>& item : equippedItems)
-			{
-				suit->EquipWithoutDB(item);
-			}
-		}
+		pBag->last_item_no = std::max(pBag->last_item_no, item->item_no);
+		pBag->item_datas.insert(std::make_pair(item->item_no, item));
+
+		Message::ItemData msgItemData;
+		msgItemData.item_index = item->meta->index;
+		msgItemData.item_seq = item->item_no;
+		msgItemData.item_count = item->count;
+		ntf.item_datas.push_back(msgItemData);
 	}
 
+	if(0 < ntf.item_datas.size())
+	{
+		Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+	}
+
+	return pBag;
+}
+/*
 	void Bag::Insert(const std::shared_ptr<Item::Data>& item)
 	{
 		std::shared_ptr<UserSession> session = this->session;
@@ -237,6 +236,7 @@ namespace Component {
 
 
 	}
+	*/
 }
 
 void Test_AddItem_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)

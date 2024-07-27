@@ -12,7 +12,7 @@
 namespace Message{ namespace Dungeon {
 
 struct MsgCliSvr_CreateDungeon_Req {
-	enum { MSG_ID = 40000001 }; 
+	enum { MSG_ID = 040000001 }; 
 	MsgCliSvr_CreateDungeon_Req()	{
 	}
 	size_t Size() const {
@@ -49,7 +49,7 @@ struct MsgCliSvr_CreateDungeon_Req_Serializer {
 	static size_t Size(const MsgCliSvr_CreateDungeon_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_CreateDungeon_Ans {
-	enum { MSG_ID = 40000001 }; 
+	enum { MSG_ID = 040000001 }; 
 	ErrorCode	error_code;
 	int32_t	width;
 	int32_t	height;
@@ -166,7 +166,7 @@ struct MsgSvrCli_CreateDungeon_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_CreateDungeon_Ans& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_PlayerMove_Ntf {
-	enum { MSG_ID = 40000002 }; 
+	enum { MSG_ID = 040000002 }; 
 	Vector2Int	destination;
 	MsgCliSvr_PlayerMove_Ntf()	{
 	}
@@ -207,7 +207,7 @@ struct MsgCliSvr_PlayerMove_Ntf_Serializer {
 	static size_t Size(const MsgCliSvr_PlayerMove_Ntf& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_UnitPosition_Ntf {
-	enum { MSG_ID = 40000003 }; 
+	enum { MSG_ID = 040000003 }; 
 	uint64_t	unit_seq;
 	Vector2Int	position;
 	MsgSvrCli_UnitPosition_Ntf()	{
@@ -253,7 +253,7 @@ struct MsgSvrCli_UnitPosition_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_UnitPosition_Ntf& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_CreatePlayer_Ntf : public Player {
-	enum { MSG_ID = 40000004 }; 
+	enum { MSG_ID = 040000004 }; 
 	MsgSvrCli_CreatePlayer_Ntf() : Player()	{
 	}
 	MsgSvrCli_CreatePlayer_Ntf(const Player& base) : Player(base)	{
@@ -295,7 +295,7 @@ struct MsgSvrCli_CreatePlayer_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_CreatePlayer_Ntf& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_DestroyUnit_Ntf {
-	enum { MSG_ID = 40000005 }; 
+	enum { MSG_ID = 040000005 }; 
 	uint64_t	unit_seq;
 	MsgSvrCli_DestroyUnit_Ntf()	{
 		unit_seq = 0;

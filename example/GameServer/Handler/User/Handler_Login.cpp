@@ -1,11 +1,12 @@
 #include "Handler_Login.h"
-#include "../../Component/Counter.h"
+#include "../../Component/UserCounter.h"
 #include "../../Component/Account.h"
 #include "../../Component/UserData.h"
 #include "../../Component/Item.h"
 #include "../../Component/Bag.h"
 #include "../../Component/Suit.h"
 #include "../../../idl/MessageItem.h"
+#include "../../../idl/MessageCommon.h"
 #include <future>
 namespace Handler { namespace User {
 
@@ -26,17 +27,23 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 
 	try {
 		LOG(DEV, "Message::User::MsgCliSvr_Login_Req(account_id:", req.account_id, ")");
+		if (0 != session->user_no)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+		}
+
 		ReadAccountData(session, req.account_id, req.account_type);
 		ReadUserData(session);
 
-		auto r1 = std::async(std::launch::async, &Handler_Login::ReadUserCounter, this, session);
-		auto r2 = std::async(std::launch::async, &Handler_Login::ReadUserItem, this, session);
+		auto asyncUserCounter = std::async(std::launch::async, &Component::UserCounter::Load, session);
+		auto asyncUserBag = std::async(std::launch::async, &Component::Bag::Load, session);
 		
-		r1.wait();
-		r2.wait();
+		session->AddComponent(asyncUserCounter.get());
+		session->AddComponent(asyncUserBag.get());
 
 		std::shared_ptr<Component::Account> pAccount = session->GetComponent<Component::Account>();
 		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+		
 		ans.user_data.user_seq = pAccount->user_no;
 		ans.user_data.user_name = pUserData->user_name;
 	}
@@ -48,8 +55,6 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
 		session->RemoveComponent<Component::Account>();
-		session->user_no = 0;
-		session->shard_index = 0;
 	}
 	LOG(DEV, "Message::User::MsgSvrCli_Login_Ans(error_code:", (int)ans.error_code, ", user_seq:", ans.user_data.user_seq, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
@@ -79,10 +84,9 @@ void Handler_Login::ReadAccountData(const std::shared_ptr<UserSession>& session,
 	}
 
 	auto row = rows[0];
-
-	session->user_no = row->getUInt64("user_no");
+	session->user_no = row->getInt64("user_no");
 	session->shard_index = row->getInt("shard_index");
-	
+
 	std::shared_ptr<Component::Account> account = std::make_shared<Component::Account>();
 	account->user_no = row->getInt64("user_no");
 	account->account_id = accountID;
@@ -150,23 +154,6 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 	session->AddComponent(pUserData);
 }
 
-void Handler_Login::ReadUserCounter(const std::shared_ptr<UserSession>& session)
-{
-	if (nullptr == session->GetComponent<Component::Account>())
-	{
-		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-	}
-	std::shared_ptr<Component::Counter> counter = session->GetComponent<Component::Counter>();
-	assert(nullptr != counter);
-	counter->Load();
-}
-
-void Handler_Login::ReadUserItem(const std::shared_ptr<UserSession>& session)
-{
-	std::shared_ptr<Component::Bag> bag = session->GetComponent<Component::Bag>();
-	bag->Load();
-}
-
 void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 {
 	Message::User::MsgCliSvr_Login_Req req;
@@ -201,34 +188,12 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 }
 
 GAMNET_BIND_TEST_HANDLER(
-	TestSession, "Test_User_Login",
+	TestSession, "MsgCliSvr_Login_Req",
 	Message::User::MsgCliSvr_Login_Req, Test_Login_Req,
 	Message::User::MsgSvrCli_Login_Ans, Test_Login_Ans
 );
 
-void Test_Counter_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
-{
-	Message::User::MsgSvrCli_Counter_Ntf ntf;
-	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
-		}
-	}
-	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-	}
 
-	for(auto& counter : ntf.counter_datas)
-	{
-		session->counters.insert(std::make_pair(counter.counter_type, counter));
-	}
-}
-
-GAMNET_BIND_TEST_RECV_HANDLER(
-	TestSession, "",
-	Message::User::MsgSvrCli_Counter_Ntf, Test_Counter_Ntf
-);
 
 }}
 

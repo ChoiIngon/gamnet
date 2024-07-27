@@ -3,7 +3,7 @@
 #include "../../Component/Bag.h"
 #include "../../Component/Item.h"
 #include "../../Component/Suit.h"
-#include "../../Component/Counter.h"
+#include "../../Component/UserCounter.h"
 
 namespace Handler {	namespace Item {
 
@@ -28,6 +28,7 @@ namespace Handler {	namespace Item {
 			}
 
 			auto bag = session->GetComponent<Component::Bag>();
+			/*
 			auto item = bag->Find(req.item_seq);
 			if (nullptr == item)
 			{
@@ -49,9 +50,10 @@ namespace Handler {	namespace Item {
 			}
 			bag->Remove(req.item_seq, req.item_count);
 
-			std::shared_ptr<Component::Counter> counter = session->GetComponent<Component::Counter>();
-			counter->ChangeCount(item->meta->price->type, item->meta->price->value * req.item_count);
-			session->Commit();
+			std::shared_ptr<Component::UserCounter> counter = session->GetComponent<Component::UserCounter>();
+			//counter->ChangeCount(item->meta->price->type, item->meta->price->value * req.item_count);
+			//session->Commit();
+			*/
 		}
 		catch (const Gamnet::Exception& e)
 		{

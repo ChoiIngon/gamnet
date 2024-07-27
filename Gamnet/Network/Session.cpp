@@ -237,6 +237,10 @@ void Session::AsyncRead()
 		try
 		{
 			OnRead(read_buffer);
+			if (nullptr == socket)
+			{
+				return;
+			}
 			assert(nullptr != read_buffer);
 		}
 		catch (const Exception& e)
@@ -247,11 +251,6 @@ void Session::AsyncRead()
 		}
 
 		read_buffer->Clear();
-
-        if (nullptr == socket)
-        {
-            return;
-        }
 
 		AsyncRead();
 	}));

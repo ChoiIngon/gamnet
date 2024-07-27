@@ -125,7 +125,7 @@ struct UserData_Serializer {
 	static size_t Size(const UserData& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_Login_Req {
-	enum { MSG_ID = 11 }; 
+	enum { MSG_ID = 00011 }; 
 	std::string	user_id;
 	MsgCliSvr_Login_Req()	{
 	}
@@ -171,7 +171,7 @@ struct MsgCliSvr_Login_Req_Serializer {
 	static size_t Size(const MsgCliSvr_Login_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_Login_Ans {
-	enum { MSG_ID = 12 }; 
+	enum { MSG_ID = 00012 }; 
 	ErrorCode	error_code;
 	UserData	user_data;
 	MsgSvrCli_Login_Ans()	{
@@ -216,7 +216,7 @@ struct MsgSvrCli_Login_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_Login_Ans& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_UpdateFrame_Req {
-	enum { MSG_ID = 21 }; 
+	enum { MSG_ID = 00021 }; 
 	MsgCliSvr_UpdateFrame_Req()	{
 	}
 	size_t Size() const {
@@ -253,7 +253,7 @@ struct MsgCliSvr_UpdateFrame_Req_Serializer {
 	static size_t Size(const MsgCliSvr_UpdateFrame_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_UpdateFrame_Ans {
-	enum { MSG_ID = 22 }; 
+	enum { MSG_ID = 00022 }; 
 	ErrorCode	error_code;
 	uint32_t	frame;
 	MsgSvrCli_UpdateFrame_Ans()	{
@@ -299,7 +299,7 @@ struct MsgSvrCli_UpdateFrame_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_UpdateFrame_Ans& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_JoinChannel_Req {
-	enum { MSG_ID = 31 }; 
+	enum { MSG_ID = 00031 }; 
 	MsgCliSvr_JoinChannel_Req()	{
 	}
 	size_t Size() const {
@@ -336,7 +336,7 @@ struct MsgCliSvr_JoinChannel_Req_Serializer {
 	static size_t Size(const MsgCliSvr_JoinChannel_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_JoinChannel_Ans {
-	enum { MSG_ID = 32 }; 
+	enum { MSG_ID = 00032 }; 
 	ErrorCode	error_code;
 	uint32_t	channel_seq;
 	std::list<UserData >	user_datas;
@@ -401,7 +401,7 @@ struct MsgSvrCli_JoinChannel_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_JoinChannel_Ans& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_JoinChannel_Ntf {
-	enum { MSG_ID = 33 }; 
+	enum { MSG_ID = 00033 }; 
 	uint32_t	user_count;
 	UserData	new_user_data;
 	MsgSvrCli_JoinChannel_Ntf()	{
@@ -447,7 +447,7 @@ struct MsgSvrCli_JoinChannel_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_JoinChannel_Ntf& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_SendMessage_Req {
-	enum { MSG_ID = 41 }; 
+	enum { MSG_ID = 00041 }; 
 	std::string	text;
 	MsgCliSvr_SendMessage_Req()	{
 	}
@@ -493,7 +493,7 @@ struct MsgCliSvr_SendMessage_Req_Serializer {
 	static size_t Size(const MsgCliSvr_SendMessage_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_SendMessage_Ans {
-	enum { MSG_ID = 42 }; 
+	enum { MSG_ID = 00042 }; 
 	ErrorCode	error_code;
 	MsgSvrCli_SendMessage_Ans()	{
 	}
@@ -534,7 +534,7 @@ struct MsgSvrCli_SendMessage_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_SendMessage_Ans& obj) { return obj.Size(); }
 };
 struct MsgSvrSvr_SendMessage_Req {
-	enum { MSG_ID = 43 }; 
+	enum { MSG_ID = 00043 }; 
 	std::string	text;
 	MsgSvrSvr_SendMessage_Req()	{
 	}
@@ -580,7 +580,7 @@ struct MsgSvrSvr_SendMessage_Req_Serializer {
 	static size_t Size(const MsgSvrSvr_SendMessage_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrSvr_SendMessage_Ans {
-	enum { MSG_ID = 44 }; 
+	enum { MSG_ID = 00044 }; 
 	ErrorCode	error_code;
 	MsgSvrSvr_SendMessage_Ans()	{
 	}
@@ -621,7 +621,7 @@ struct MsgSvrSvr_SendMessage_Ans_Serializer {
 	static size_t Size(const MsgSvrSvr_SendMessage_Ans& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_SendMessage_Ntf {
-	enum { MSG_ID = 45 }; 
+	enum { MSG_ID = 00045 }; 
 	std::string	text;
 	MsgCliSvr_SendMessage_Ntf()	{
 	}
@@ -667,7 +667,7 @@ struct MsgCliSvr_SendMessage_Ntf_Serializer {
 	static size_t Size(const MsgCliSvr_SendMessage_Ntf& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_SendMessage_Ntf {
-	enum { MSG_ID = 46 }; 
+	enum { MSG_ID = 00046 }; 
 	std::string	text;
 	MsgSvrCli_SendMessage_Ntf()	{
 	}
@@ -713,7 +713,7 @@ struct MsgSvrCli_SendMessage_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_SendMessage_Ntf& obj) { return obj.Size(); }
 };
 struct MsgSvrSvr_SendMessage_Ntf {
-	enum { MSG_ID = 47 }; 
+	enum { MSG_ID = 00047 }; 
 	std::string	text;
 	MsgSvrSvr_SendMessage_Ntf()	{
 	}
@@ -759,7 +759,7 @@ struct MsgSvrSvr_SendMessage_Ntf_Serializer {
 	static size_t Size(const MsgSvrSvr_SendMessage_Ntf& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_LeaveChannel_Req {
-	enum { MSG_ID = 51 }; 
+	enum { MSG_ID = 00051 }; 
 	MsgCliSvr_LeaveChannel_Req()	{
 	}
 	size_t Size() const {
@@ -796,7 +796,7 @@ struct MsgCliSvr_LeaveChannel_Req_Serializer {
 	static size_t Size(const MsgCliSvr_LeaveChannel_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_LeaveChannel_Ans {
-	enum { MSG_ID = 52 }; 
+	enum { MSG_ID = 00052 }; 
 	ErrorCode	error_code;
 	MsgSvrCli_LeaveChannel_Ans()	{
 	}
@@ -837,7 +837,7 @@ struct MsgSvrCli_LeaveChannel_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_LeaveChannel_Ans& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_LeaveChannel_Ntf {
-	enum { MSG_ID = 53 }; 
+	enum { MSG_ID = 00053 }; 
 	UserData	leave_user_data;
 	MsgSvrCli_LeaveChannel_Ntf()	{
 	}
@@ -878,7 +878,7 @@ struct MsgSvrCli_LeaveChannel_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_LeaveChannel_Ntf& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_Kickout_Ntf {
-	enum { MSG_ID = 61 }; 
+	enum { MSG_ID = 00061 }; 
 	ErrorCode	error_code;
 	MsgSvrCli_Kickout_Ntf()	{
 	}
@@ -919,7 +919,7 @@ struct MsgSvrCli_Kickout_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_Kickout_Ntf& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_HeartBeat_Ntf {
-	enum { MSG_ID = 71 }; 
+	enum { MSG_ID = 00071 }; 
 	int32_t	msg_seq;
 	MsgCliSvr_HeartBeat_Ntf()	{
 		msg_seq = 0;
@@ -961,7 +961,7 @@ struct MsgCliSvr_HeartBeat_Ntf_Serializer {
 	static size_t Size(const MsgCliSvr_HeartBeat_Ntf& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_HeartBeat_Ntf {
-	enum { MSG_ID = 72 }; 
+	enum { MSG_ID = 00072 }; 
 	int32_t	msg_seq;
 	MsgSvrCli_HeartBeat_Ntf()	{
 		msg_seq = 0;

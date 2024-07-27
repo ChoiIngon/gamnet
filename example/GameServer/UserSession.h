@@ -53,8 +53,9 @@ public:
 		components.RemoveComponent<T>();
 	}
 
-	int shard_index;
-	uint64_t user_no;
+	int64_t user_no;
+	uint32_t shard_index;
+
 	std::shared_ptr<Gamnet::Database::MySQL::Transaction> queries;
 	std::shared_ptr<Gamnet::Database::MySQL::Transaction> logs;
 	std::list<std::function<void()>> on_commit;
@@ -67,7 +68,7 @@ public:
 		void RemoveSession(std::shared_ptr<UserSession> session);
 	private :
 		std::mutex lock;
-		std::map<uint64_t, std::shared_ptr<UserSession>> sessions;
+		std::map<int64_t, std::shared_ptr<UserSession>> sessions;
 	};
 private :
 	Gamnet::Component components;

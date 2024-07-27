@@ -24,7 +24,7 @@ namespace Component {
 		item_datas[(int)item->equip->part] = item;
 
 		Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
-		ntf.item_seq = item->seq;
+		ntf.item_seq = item->item_no;
 		Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 	}
 
@@ -52,7 +52,7 @@ namespace Component {
 			Gamnet::Format("equip_part=", (int)meta->equip->part, ",expire_date='", item->GetExpireDate().ToString(), "'"),
 			{
 				{ "user_seq", session->user_no },
-				{ "item_seq", item->seq }
+				{ "item_seq", item->item_no }
 			}
 		);
 
@@ -61,7 +61,7 @@ namespace Component {
 			item_datas[(int)meta->equip->part] = item;
 
 			Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
-			ntf.item_seq = item->seq;
+			ntf.item_seq = item->item_no;
 			Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 		});
 	}
@@ -79,7 +79,7 @@ namespace Component {
 			Gamnet::Format("equip_part=", (int)Message::EquipItemPartType::Invalid),
 			{
 				{ "user_seq", session->user_no },
-				{ "item_seq", item->seq }
+				{ "item_seq", item->item_no }
 			}
 		);
 		

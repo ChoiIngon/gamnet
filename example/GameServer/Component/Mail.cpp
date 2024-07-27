@@ -57,7 +57,7 @@ namespace Component {
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
-
+		/*
 		auto bag = session->GetComponent<Component::Bag>();
 		if(0 == mailSEQ)
 		{
@@ -92,6 +92,7 @@ namespace Component {
 			bag->Insert(Item::Create(mail->item_index, mail->item_count));
 			mail_datas.erase(itr);
 		}
+		*/
 	}
 
 	void Mail::SendMail(const std::shared_ptr<UserSession>& session, const std::shared_ptr<MailData>& mailData)

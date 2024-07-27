@@ -163,10 +163,7 @@ void Test_Create_Ans(const std::shared_ptr<TestSession>& session, const std::sha
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
-	Message::User::MsgCliSvr_Login_Req req;
-	req.account_id = session->session_token;
-	req.account_type = Message::AccountType::Dev;
-	Gamnet::Test::SendMsg(session, req);
+	session->Next();
 }
 
 GAMNET_BIND_TEST_HANDLER(
@@ -175,9 +172,10 @@ GAMNET_BIND_TEST_HANDLER(
 	Message::User::MsgSvrCli_Create_Ans, Test_Create_Ans
 );
 
+/*
 GAMNET_BIND_TEST_RECV_HANDLER(
 	TestSession, "",
 	Message::User::MsgSvrCli_Create_Ans, Test_Create_Ans
 );
-
+*/
 }}

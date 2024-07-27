@@ -5,7 +5,7 @@
 #include <IDL/MessageItem.h>
 #include "../UserSession.h"
 #include "Bag.h"
-#include "Counter.h"
+#include "UserCounter.h"
 
 namespace Item {
 
@@ -173,8 +173,7 @@ namespace Item {
 
 	Data::Data(const std::shared_ptr<Meta>& meta)
 		: meta(meta)
-		, seq(0)
-		, session(nullptr)
+		, item_no(0)
 		, equip(nullptr)
 		, expire(nullptr)
 		, package(nullptr)
@@ -234,9 +233,10 @@ namespace Item {
 	{
 		std::shared_ptr<Item::Data> item = this->item.lock();
 		std::shared_ptr<Item::Meta> meta = item->meta;
-		std::shared_ptr<UserSession> session = item->session;
-		auto bag = session->GetComponent<Component::Bag>();
-		auto counter = session->GetComponent<Component::Counter>();
+		//std::shared_ptr<UserSession> session = item->session;
+		//auto bag = session->GetComponent<Component::Bag>();
+		//auto counter = session->GetComponent<Component::UserCounter>();
+		/*
 		if(1 > item->count)
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
@@ -250,11 +250,12 @@ namespace Item {
 			}
 			if(Message::CounterType::Invalid != package->counter_type)
 			{
-				counter->ChangeCount(package->counter_type, package->count);
+				//counter->ChangeCount(package->counter_type, package->count);
 			}
 		}
 
 		bag->Remove(item->seq, 1);
+		*/
 	}
 
 	Data::Count::Count(const std::shared_ptr<Meta>& meta)
@@ -307,7 +308,7 @@ namespace Item {
 	{
 		Message::ItemData data;
 		data.item_index = meta->index;
-		data.item_seq = seq;
+		data.item_seq = item_no;
 		data.item_count = count;
 		return data;
 	}
