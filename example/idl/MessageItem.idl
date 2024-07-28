@@ -7,63 +7,63 @@ namespace Message { namespace Item {
 namespace Message { namespace Item {
 %%
 
-message MsgSvrCli_AddItem_Ntf		: 130000001
+message MsgSvrCli_AddItem_Ntf		: 0x00002001
 {
 	list<ItemData> item_datas;
 };
 
-message MsgSvrCli_UpdateItem_Ntf	: 130000002
+message MsgSvrCli_UpdateItem_Ntf	: 0x00002002
 {
 	list<ItemData> item_datas;
 };
 
-message MsgCliSvr_OpenPackage_Req	: 130000003
+message MsgCliSvr_OpenPackage_Req	: 0x00002003
 {
-	uint64 item_seq;
+	int64 item_no;
 };
 
-message MsgSvrCli_OpenPackage_Ans	: 130000004
-{
-	ErrorCode error_code;
-};
-
-message MsgCliSvr_EquipItem_Req		: 130000005
-{
-	uint64 item_seq;
-};
-
-message MsgSvrCli_EquipItem_Ans		: 130000005
+message MsgSvrCli_OpenPackage_Ans	: 0x00002003
 {
 	ErrorCode error_code;
 };
 
-message MsgSvrCli_EquipItem_Ntf		: 130000006
+message MsgCliSvr_EquipItem_Req		: 0x00002004
 {
-	uint64 item_seq;
+	int64 item_no;
 };
 
-message MsgCliSvr_UnequipItem_Req	: 130000007
+message MsgSvrCli_EquipItem_Ans		: 0x00002004
+{
+	ErrorCode error_code;
+};
+
+message MsgSvrCli_EquipItem_Ntf		: 0x00002005
+{
+	int64 item_no;
+};
+
+message MsgCliSvr_UnequipItem_Req	: 0x00002006
 {
 	EquipItemPartType part_type;
 };
 
-message MsgSvrCli_UnequipItem_Ans	: 130000007
+message MsgSvrCli_UnequipItem_Ans	: 0x00002006
 {
 	ErrorCode error_code;
 };
 
-message MsgSvrCli_UnequipItem_Ntf	: 130000008
+message MsgSvrCli_UnequipItem_Ntf	: 0x00002007
 {
 	EquipItemPartType part_type;
 };
 
-message MsgCliSvr_SellItem_Req		: 130000009
+message MsgCliSvr_SellItem_Req		: 0x00002008
 {
-	uint64 item_seq;
-	int32  item_count;
+	int64	item_no;
+	int32	item_count;
 };
 
-message MsgSvrCli_SellItem_Ans		: 130000009
+message MsgSvrCli_SellItem_Ans		: 0x00002008
 {
 	ErrorCode error_code;
 };

@@ -111,8 +111,11 @@ public:
 		components.RemoveComponent<T>();
 	}
 	std::map<Message::CounterType, Message::CounterData> counters;
-	std::map<uint64_t, Message::MailData> mails;
-	std::map<uint64_t, Message::ItemData> items;
+	std::map<int64_t, Message::MailData> mails;
+	std::map<int64_t, Message::ItemData> items;
+
+	int cheat_item_order;
+	static std::vector<int> item_index;
 private:
 	Gamnet::Component components;
 };

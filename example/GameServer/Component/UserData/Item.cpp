@@ -3,9 +3,9 @@
 #include <Gamnet/Library/Random.h>
 #include <Gamnet/Network/Tcp/Tcp.h>
 #include <IDL/MessageItem.h>
-#include "../UserSession.h"
+#include "../../UserSession.h"
 #include "Bag.h"
-#include "UserCounter.h"
+#include "../UserCounter.h"
 
 namespace Item {
 
@@ -97,6 +97,7 @@ namespace Item {
 		META_MEMBER(item_id);
 		META_CUSTOM(counter_type, Package::OnCounterType);
 		META_MEMBER(count);
+		META_MEMBER(package_expire);
 	}
 	
 	void Meta::Package::OnCounterType(Message::CounterType& member, const std::string& value)
@@ -148,11 +149,6 @@ namespace Item {
 	std::shared_ptr<Data> Meta::CreateInstance()
 	{
 		std::shared_ptr<Data> item = std::make_shared<Data>(shared_from_this());
-		if (nullptr != expire)
-		{
-			item->expire = std::make_shared<Data::Expire>(this->expire);
-		}
-
 		if(nullptr != equip)
 		{
 			item->equip = std::make_shared<Data::Equip>();
@@ -175,53 +171,9 @@ namespace Item {
 		: meta(meta)
 		, item_no(0)
 		, equip(nullptr)
-		, expire(nullptr)
 		, package(nullptr)
 		, count(meta)
 	{
-	}
-
-	Data::Expire::Expire(const std::shared_ptr<Meta::Expire>& meta)
-		: meta(meta)
-		, expire_date(Gamnet::Time::DateTime::MaxValue)
-	{
-	}
-
-	void Data::Expire::TriggerExpire(Meta::Expire::TriggerType triggerType)
-	{
-		if (Meta::Expire::ExpireType::Infinite == meta->expire_type)
-		{
-			return;
-		}
-
-		if (triggerType != meta->trigger_type)
-		{
-			return;
-		}
-
-		if (Gamnet::Time::DateTime::MaxValue > expire_date) // already start
-		{
-			return;
-		}
-
-		if (Meta::Expire::ExpireType::DueDate == meta->expire_type)
-		{
-			expire_date = meta->date;
-		}
-		else
-		{
-			expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->time);
-		}
-	}
-
-	void Data::Expire::SetDate(const Gamnet::Time::DateTime& date)
-	{
-		expire_date = date;
-	}
-
-	const Gamnet::Time::DateTime& Data::Expire::GetDate() const
-	{
-		return expire_date;
 	}
 
 	Data::Package::Package(const std::shared_ptr<Data>& item)
@@ -308,18 +260,9 @@ namespace Item {
 	{
 		Message::ItemData data;
 		data.item_index = meta->index;
-		data.item_seq = item_no;
+		data.item_no = item_no;
 		data.item_count = count;
 		return data;
-	}
-	const Gamnet::Time::DateTime& Data::GetExpireDate() const
-	{
-		if(nullptr == expire)
-		{
-			return Gamnet::Time::DateTime::MaxValue;
-		}
-
-		return expire->GetDate();
 	}
 
 	void Manager::Init()
@@ -379,7 +322,7 @@ namespace Item {
 		return data;
 	}
 
-	std::shared_ptr<Data> Create(uint32_t index, int count)
+	std::shared_ptr<Data> Create(int32_t index, int count)
 	{
 		std::shared_ptr<Item::Meta> meta = Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(index);
 		if (nullptr == meta)
@@ -406,11 +349,6 @@ namespace Item {
 		}
 
 		if (lhs->count >= meta->max_stack)
-		{
-			return false;
-		}
-
-		if (lhs->GetExpireDate() != rhs->GetExpireDate())
 		{
 			return false;
 		}

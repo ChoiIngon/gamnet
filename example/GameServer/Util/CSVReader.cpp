@@ -4,9 +4,9 @@
 #include <streambuf>
 #include <Gamnet/Log/Log.h>
 
-CSVReader::iterator::iterator(const CSVReader& reader, int rowIndex)
+CSVReader::iterator::iterator(const CSVReader& reader, int row_num)
 	: reader(reader)
-	, row_index(rowIndex)
+	, row_num(row_num)
 {
 }
 
@@ -17,7 +17,7 @@ const std::string& CSVReader::iterator::GetValue(const std::string& columnName)
 
 const std::string& CSVReader::iterator::GetValue(int index)
 {
-	const std::vector<std::string>& row = reader.GetRow(row_index);
+	const std::vector<std::string>& row = reader.GetRow(row_num);
 	if(0 > index || row.size() <= index)
 	{
 		throw std::out_of_range("invalid csv column index:" + std::to_string(index));
@@ -32,13 +32,13 @@ CSVReader::iterator& CSVReader::iterator::operator * ()
 
 CSVReader::iterator& CSVReader::iterator::operator ++ ()
 {
-	row_index++;
+	row_num++;
 	return *this;
 }
 
 CSVReader::iterator& CSVReader::iterator::operator ++ (int)
 {
-	row_index++;
+	row_num++;
 	return *this;
 }
 
@@ -49,7 +49,7 @@ CSVReader::iterator* CSVReader::iterator::operator -> ()
 
 bool CSVReader::iterator::operator != (const CSVReader::iterator& itr) const
 {
-	if(&reader != &itr.reader || row_index != itr.row_index)
+	if(&reader != &itr.reader || row_num != itr.row_num)
 	{
 		return true;
 	}
@@ -58,7 +58,7 @@ bool CSVReader::iterator::operator != (const CSVReader::iterator& itr) const
 
 bool CSVReader::iterator::operator == (const CSVReader::iterator& itr) const
 {
-	if (&reader == &itr.reader && row_index == itr.row_index)
+	if (&reader == &itr.reader && row_num == itr.row_num)
 	{
 		return true;
 	}
@@ -184,13 +184,13 @@ size_t CSVReader::GetRowCount() const
 	return rows.size();
 }
 
-const std::vector<std::string>& CSVReader::GetRow(size_t rowIndex) const
+const std::vector<std::string>& CSVReader::GetRow(size_t row_num) const
 {
-	if(0 > rowIndex || rows.size() <= rowIndex)
+	if(0 > row_num || rows.size() <= row_num)
 	{
-		throw std::out_of_range("out of range row num:" + std::to_string(rowIndex));
+		throw std::out_of_range("out of range row num:" + std::to_string(row_num));
 	}
-	return rows[rowIndex];
+	return rows[row_num];
 }
 
 CSVReader::iterator CSVReader::begin()
@@ -203,8 +203,8 @@ CSVReader::iterator CSVReader::end() const
 	return iterator(*this, rows.size());
 }
 
-CSVReader::iterator CSVReader::operator [] (size_t index)
+CSVReader::iterator CSVReader::operator [] (size_t row_num)
 {
-	return iterator(*this, index);
+	return iterator(*this, row_num);
 }
 

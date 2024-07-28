@@ -1,7 +1,7 @@
 #include "Handler_OpenPackage.h"
 #include "../../Component/UserData.h"
-#include "../../Component/Bag.h"
-#include "../../Component/Item.h"
+#include "../../Component/UserData/Bag.h"
+#include "../../Component/UserData/Item.h"
 
 namespace Handler { namespace Item {
 
@@ -60,14 +60,14 @@ GAMNET_BIND_TCP_HANDLER(
 void Test_OpenPackage_Req(const std::shared_ptr<TestSession>& session)
 {
 	Message::Item::MsgCliSvr_OpenPackage_Req req;
-	req.item_seq = 0;
+	req.item_no = 0;
 	for(auto& itr : session->items)
 	{
 		auto& item = itr.second;
 		auto meta = Gamnet::Singleton<::Item::Manager>::GetInstance().FindMeta(item.item_index);
 		if(Message::ItemType::Package == meta->type)
 		{
-			req.item_seq = item.item_seq;
+			req.item_no = item.item_no;
 			break;
 		}
 	}

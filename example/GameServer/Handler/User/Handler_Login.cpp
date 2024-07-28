@@ -2,11 +2,14 @@
 #include "../../Component/UserCounter.h"
 #include "../../Component/Account.h"
 #include "../../Component/UserData.h"
-#include "../../Component/Item.h"
-#include "../../Component/Bag.h"
-#include "../../Component/Suit.h"
+#include "../../Component/UserData/Item.h"
+#include "../../Component/UserData/Bag.h"
+#include "../../Component/UserData/Suit.h"
 #include "../../../idl/MessageItem.h"
 #include "../../../idl/MessageCommon.h"
+#include "../../Util/Transaction.h"
+#include "../../Component/UserData/Item.h"
+
 #include <future>
 namespace Handler { namespace User {
 
@@ -147,6 +150,10 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 		Gamnet::Network::Router::SendMsg(dest, ntf);
 	}
 
+	Gamnet::Database::MySQL::Execute(session->shard_index,
+		"UPDATE UserData SET server_id = ", localServerID, " WHERE user_no=", session->user_no
+	);
+
 	std::shared_ptr<Component::UserData> pUserData = std::make_shared<Component::UserData>();
 	pUserData->user_name = row->getString("user_name");
 	pUserData->offline_time = row->getString("offline_time");
@@ -188,10 +195,12 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 }
 
 GAMNET_BIND_TEST_HANDLER(
-	TestSession, "MsgCliSvr_Login_Req",
+	TestSession, "Test_Login",
 	Message::User::MsgCliSvr_Login_Req, Test_Login_Req,
 	Message::User::MsgSvrCli_Login_Ans, Test_Login_Ans
 );
+
+
 
 
 

@@ -3,9 +3,8 @@
 
 #include <Gamnet/Library/Time/Time.h>
 #include <idl/MessageCommon.h>
-#include "../Util/MetaData.h"
+#include "../../Util/MetaData.h"
 
-class UserSession;
 namespace Item 
 {
 	class Data;
@@ -70,7 +69,7 @@ namespace Item
 			std::string item_id;
 			Message::CounterType counter_type;
 			int		 count;
-
+			Expire		package_expire;
 		private :
 			void OnCounterType(Message::CounterType& member, const std::string& value);
 		};
@@ -106,20 +105,6 @@ namespace Item
 			Message::EquipItemPartType part;
 		}; 
 		
-		class Expire
-		{
-		public :
-			Expire(const std::shared_ptr<Meta::Expire>& meta);
-
-			void TriggerExpire(Meta::Expire::TriggerType triggerType);
-			
-			void SetDate(const Gamnet::Time::DateTime& date);
-			const Gamnet::Time::DateTime& GetDate() const;
-		private :
-			const std::shared_ptr<Meta::Expire> meta;
-			Gamnet::Time::DateTime expire_date;
-		};
-		
 		class Package
 		{
 		public :
@@ -145,12 +130,10 @@ namespace Item
 
 		Data(const std::shared_ptr<Meta>& meta);
 		
-		const Gamnet::Time::DateTime& GetExpireDate() const;
 	public :
 		const std::shared_ptr<Meta>	meta;
 		int64_t						item_no;
 		std::shared_ptr<Equip>		equip;
-		std::shared_ptr<Expire>		expire;
 		std::shared_ptr<Package>	package;
 		Count						count;
 		
@@ -166,12 +149,12 @@ namespace Item
 		std::shared_ptr<Meta> FindMeta(uint32_t index);
 	private :
 		void InitMeta(const std::string& path);
-		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
+		std::map<int32_t, std::shared_ptr<Meta>> index_metas;
 		std::map<std::string, std::shared_ptr<Meta>> id_metas;
 	};
 
 	std::shared_ptr<Data> Create(const std::string& id, int count);
-	std::shared_ptr<Data> Create(uint32_t index, int count);
+	std::shared_ptr<Data> Create(int32_t index, int count);
 
 	bool Merge(std::shared_ptr<Data> lhs, std::shared_ptr<Data> rhs);
 };

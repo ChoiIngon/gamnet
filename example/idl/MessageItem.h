@@ -12,7 +12,7 @@
 namespace Message { namespace Item {
 
 struct MsgSvrCli_AddItem_Ntf {
-	enum { MSG_ID = 130000001 }; 
+	enum { MSG_ID = 0x00002001 }; 
 	std::list<ItemData >	item_datas;
 	MsgSvrCli_AddItem_Ntf()	{
 	}
@@ -68,7 +68,7 @@ struct MsgSvrCli_AddItem_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_AddItem_Ntf& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_UpdateItem_Ntf {
-	enum { MSG_ID = 130000002 }; 
+	enum { MSG_ID = 0x00002002 }; 
 	std::list<ItemData >	item_datas;
 	MsgSvrCli_UpdateItem_Ntf()	{
 	}
@@ -124,14 +124,14 @@ struct MsgSvrCli_UpdateItem_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_UpdateItem_Ntf& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_OpenPackage_Req {
-	enum { MSG_ID = 130000003 }; 
-	uint64_t	item_seq;
+	enum { MSG_ID = 0x00002003 }; 
+	int64_t	item_no;
 	MsgCliSvr_OpenPackage_Req()	{
-		item_seq = 0;
+		item_no = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += sizeof(uint64_t);
+		nSize += sizeof(int64_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -145,7 +145,7 @@ struct MsgCliSvr_OpenPackage_Req {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &item_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &item_no, sizeof(int64_t)); (*_buf_) += sizeof(int64_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -156,7 +156,7 @@ struct MsgCliSvr_OpenPackage_Req {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&item_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(int64_t) > nSize) { return false; }	std::memcpy(&item_no, *_buf_, sizeof(int64_t));	(*_buf_) += sizeof(int64_t); nSize -= sizeof(int64_t);
 		return true;
 	}
 }; //MsgCliSvr_OpenPackage_Req
@@ -166,7 +166,7 @@ struct MsgCliSvr_OpenPackage_Req_Serializer {
 	static size_t Size(const MsgCliSvr_OpenPackage_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_OpenPackage_Ans {
-	enum { MSG_ID = 130000004 }; 
+	enum { MSG_ID = 0x00002003 }; 
 	ErrorCode	error_code;
 	MsgSvrCli_OpenPackage_Ans()	{
 	}
@@ -207,14 +207,14 @@ struct MsgSvrCli_OpenPackage_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_OpenPackage_Ans& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_EquipItem_Req {
-	enum { MSG_ID = 130000005 }; 
-	uint64_t	item_seq;
+	enum { MSG_ID = 0x00002004 }; 
+	int64_t	item_no;
 	MsgCliSvr_EquipItem_Req()	{
-		item_seq = 0;
+		item_no = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += sizeof(uint64_t);
+		nSize += sizeof(int64_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -228,7 +228,7 @@ struct MsgCliSvr_EquipItem_Req {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &item_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &item_no, sizeof(int64_t)); (*_buf_) += sizeof(int64_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -239,7 +239,7 @@ struct MsgCliSvr_EquipItem_Req {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&item_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(int64_t) > nSize) { return false; }	std::memcpy(&item_no, *_buf_, sizeof(int64_t));	(*_buf_) += sizeof(int64_t); nSize -= sizeof(int64_t);
 		return true;
 	}
 }; //MsgCliSvr_EquipItem_Req
@@ -249,7 +249,7 @@ struct MsgCliSvr_EquipItem_Req_Serializer {
 	static size_t Size(const MsgCliSvr_EquipItem_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_EquipItem_Ans {
-	enum { MSG_ID = 130000005 }; 
+	enum { MSG_ID = 0x00002004 }; 
 	ErrorCode	error_code;
 	MsgSvrCli_EquipItem_Ans()	{
 	}
@@ -290,14 +290,14 @@ struct MsgSvrCli_EquipItem_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_EquipItem_Ans& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_EquipItem_Ntf {
-	enum { MSG_ID = 130000006 }; 
-	uint64_t	item_seq;
+	enum { MSG_ID = 0x00002005 }; 
+	int64_t	item_no;
 	MsgSvrCli_EquipItem_Ntf()	{
-		item_seq = 0;
+		item_no = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += sizeof(uint64_t);
+		nSize += sizeof(int64_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -311,7 +311,7 @@ struct MsgSvrCli_EquipItem_Ntf {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &item_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &item_no, sizeof(int64_t)); (*_buf_) += sizeof(int64_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -322,7 +322,7 @@ struct MsgSvrCli_EquipItem_Ntf {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&item_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(int64_t) > nSize) { return false; }	std::memcpy(&item_no, *_buf_, sizeof(int64_t));	(*_buf_) += sizeof(int64_t); nSize -= sizeof(int64_t);
 		return true;
 	}
 }; //MsgSvrCli_EquipItem_Ntf
@@ -332,7 +332,7 @@ struct MsgSvrCli_EquipItem_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_EquipItem_Ntf& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_UnequipItem_Req {
-	enum { MSG_ID = 130000007 }; 
+	enum { MSG_ID = 0x00002006 }; 
 	EquipItemPartType	part_type;
 	MsgCliSvr_UnequipItem_Req()	{
 	}
@@ -373,7 +373,7 @@ struct MsgCliSvr_UnequipItem_Req_Serializer {
 	static size_t Size(const MsgCliSvr_UnequipItem_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_UnequipItem_Ans {
-	enum { MSG_ID = 130000007 }; 
+	enum { MSG_ID = 0x00002006 }; 
 	ErrorCode	error_code;
 	MsgSvrCli_UnequipItem_Ans()	{
 	}
@@ -414,7 +414,7 @@ struct MsgSvrCli_UnequipItem_Ans_Serializer {
 	static size_t Size(const MsgSvrCli_UnequipItem_Ans& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_UnequipItem_Ntf {
-	enum { MSG_ID = 130000008 }; 
+	enum { MSG_ID = 0x00002007 }; 
 	EquipItemPartType	part_type;
 	MsgSvrCli_UnequipItem_Ntf()	{
 	}
@@ -455,16 +455,16 @@ struct MsgSvrCli_UnequipItem_Ntf_Serializer {
 	static size_t Size(const MsgSvrCli_UnequipItem_Ntf& obj) { return obj.Size(); }
 };
 struct MsgCliSvr_SellItem_Req {
-	enum { MSG_ID = 130000009 }; 
-	uint64_t	item_seq;
+	enum { MSG_ID = 0x00002008 }; 
+	int64_t	item_no;
 	int32_t	item_count;
 	MsgCliSvr_SellItem_Req()	{
-		item_seq = 0;
+		item_no = 0;
 		item_count = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += sizeof(uint64_t);
+		nSize += sizeof(int64_t);
 		nSize += sizeof(int32_t);
 		return nSize;
 	}
@@ -479,7 +479,7 @@ struct MsgCliSvr_SellItem_Req {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &item_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &item_no, sizeof(int64_t)); (*_buf_) += sizeof(int64_t);
 		std::memcpy(*_buf_, &item_count, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		return true;
 	}
@@ -491,7 +491,7 @@ struct MsgCliSvr_SellItem_Req {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&item_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(int64_t) > nSize) { return false; }	std::memcpy(&item_no, *_buf_, sizeof(int64_t));	(*_buf_) += sizeof(int64_t); nSize -= sizeof(int64_t);
 		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&item_count, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
 		return true;
 	}
@@ -502,7 +502,7 @@ struct MsgCliSvr_SellItem_Req_Serializer {
 	static size_t Size(const MsgCliSvr_SellItem_Req& obj) { return obj.Size(); }
 };
 struct MsgSvrCli_SellItem_Ans {
-	enum { MSG_ID = 130000009 }; 
+	enum { MSG_ID = 0x00002008 }; 
 	ErrorCode	error_code;
 	MsgSvrCli_SellItem_Ans()	{
 	}

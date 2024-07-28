@@ -1,8 +1,8 @@
 #include "Mail.h"
 #include "../UserSession.h"
 #include <idl/MessageLobby.h>
-#include "Bag.h"
-#include "Item.h"
+#include "UserData/Bag.h"
+#include "UserData/Item.h"
 
 namespace Component {
 	Mail::Mail(const std::shared_ptr<UserSession>& session)

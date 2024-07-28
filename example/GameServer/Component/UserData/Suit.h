@@ -15,14 +15,13 @@ namespace Component {
 	class Suit
 	{
 	public:
-		Suit(const std::shared_ptr<UserSession>& session);
+		Suit();
 
 		void EquipWithoutDB(const std::shared_ptr<Item::Data>& item);
 		void Equip(const std::shared_ptr<Item::Data>& item);
 		void Unequip(Message::EquipItemPartType part);
 		std::shared_ptr<Item::Data> Find(Message::EquipItemPartType part);
 	private:
-		std::shared_ptr<UserSession> session;
 		std::shared_ptr<Item::Data> item_datas[(int)Message::EquipItemPartType::Max];
 	};
 };

@@ -24,21 +24,23 @@ public :
 		const std::string& GetValue(int index);
 	private :
 		const CSVReader& reader;
-		int row_index;
+		int row_num;
 	};
 
 	typedef iterator Row;
 public :
 	bool ReadFile(const std::string& filePath);
 	bool ReadStream(const std::string& stream);
+
 	int GetIndex(const std::string& columnName) const;
 	const std::vector<std::string>& GetColumnNames() const;
+
+	const std::vector<std::string>& GetRow(size_t row_num) const;
 	size_t GetRowCount() const;
-	const std::vector<std::string>& GetRow(size_t rowIndex) const;
 
 	iterator begin();
 	iterator end() const;
-	iterator operator[](size_t index);
+	iterator operator[](size_t row_num);
 private :
 	std::vector<std::string> column_names;
 	std::vector<std::vector<std::string>> rows;

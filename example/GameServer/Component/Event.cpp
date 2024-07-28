@@ -1,7 +1,7 @@
 #include "Event.h"
 #include "../UserSession.h"
 #include "Mail.h"
-#include "Item.h"
+#include "UserData/Item.h"
 
 namespace Component {
 	EventMeta::EventMeta()

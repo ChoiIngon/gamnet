@@ -132,8 +132,6 @@ int ShardIndex::Generate()
 
 GAMNET_BIND_INIT_HANDLER(ShardIndex, Init);
 
-
-
 void Test_Create_Req(const std::shared_ptr<TestSession>& session)
 {
 	Message::User::MsgCliSvr_Create_Req req;
@@ -167,15 +165,9 @@ void Test_Create_Ans(const std::shared_ptr<TestSession>& session, const std::sha
 }
 
 GAMNET_BIND_TEST_HANDLER(
-	TestSession, "MsgCliSvr_Create_Req",
+	TestSession, "Test_Create",
 	Message::User::MsgCliSvr_Create_Req, Test_Create_Req,
 	Message::User::MsgSvrCli_Create_Ans, Test_Create_Ans
 );
 
-/*
-GAMNET_BIND_TEST_RECV_HANDLER(
-	TestSession, "",
-	Message::User::MsgSvrCli_Create_Ans, Test_Create_Ans
-);
-*/
 }}

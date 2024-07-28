@@ -1,8 +1,8 @@
 #include "Handler_UnequipItem.h"
 #include "../../Component/UserData.h"
-#include "../../Component/Bag.h"
-#include "../../Component/Item.h"
-#include "../../Component/Suit.h"
+#include "../../Component/UserData/Bag.h"
+#include "../../Component/UserData/Item.h"
+#include "../../Component/UserData/Suit.h"
 
 namespace Handler {	namespace Item {
 

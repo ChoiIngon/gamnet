@@ -5,8 +5,8 @@
 #include <iostream>
 #include "AStarPathFinder.h"
 #include "../../UserSession.h"
-#include "../Suit.h"
-#include "../Item.h"
+#include "../UserData/Suit.h"
+#include "../UserData/Item.h"
 
 namespace Component { namespace Dungeon {
 

@@ -27,7 +27,7 @@ DROP TABLE IF EXISTS `UserData`;
 CREATE TABLE IF NOT EXISTS `UserData` (
 	`user_no` 		BIGINT 		NOT NULL,
 	`user_name`		VARCHAR(16)	NOT NULL,
-	`server_id`		INT 		NOT NULL DEFAULT '0',
+	`server_id`		INT UNSIGNED NOT NULL DEFAULT '0',
 	`offline_time` 	TIMESTAMP 	NOT NULL DEFAULT '0000-00-00 00:00:00',
 	PRIMARY KEY(`user_no`),
 	UNIQUE KEY `unique_user_name` (`user_name`)

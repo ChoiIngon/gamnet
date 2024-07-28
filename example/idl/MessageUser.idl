@@ -13,44 +13,53 @@ message MsgCliSvr_Login_Req : 0x00001001
 	AccountType account_type;
 };
 
-message MsgSvrCli_Login_Ans : 0x00001002
+message MsgSvrCli_Login_Ans : 0x00001001
 {
 	ErrorCode error_code;
 	UserData user_data;
 };
 
-message MsgCliSvr_Create_Req : 0x00001003
+message MsgCliSvr_Create_Req : 0x00001002
 {
 	string account_id;
 	AccountType account_type;
 	string user_name;
 };
 
-message MsgSvrCli_Create_Ans : 0x00001004
+message MsgSvrCli_Create_Ans : 0x00001002
 {
 	ErrorCode error_code;
 };
 
-message MsgSvrCli_Counter_Ntf : 0x00001005
+message MsgSvrCli_Counter_Ntf : 0x00001003
 {
 	list<CounterData> counter_datas;
 };
 
-message MsgCliSvr_Delete_Req : 0x00001006
+message MsgCliSvr_Delete_Req : 0x00001004
 {
 };
 
-message MsgSvrCli_Delete_Ans : 0x00001007
+message MsgSvrCli_Delete_Ans : 0x00001004
 {
 	ErrorCode error_code;
 };
 
-message MsgSvrSvr_Kickout_Ntf : 0x00001008
+message MsgSvrSvr_Kickout_Ntf : 0x00001005
 {
 };
 
-message MsgSvrCli_Kickout_Ntf : 0x00001009
+message MsgSvrCli_Kickout_Ntf : 0x00001005
 {
+};
+message MsgCliSvr_Cheat_Req :	0x00001006
+{
+	string command;
+	list<string> params;
+};
+message MsgSvrCli_Cheat_Ans :	0x00001006
+{
+	ErrorCode error_code;
 };
 
 .cpp %%

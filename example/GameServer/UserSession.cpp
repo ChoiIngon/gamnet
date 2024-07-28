@@ -1,11 +1,12 @@
 #include "UserSession.h"
 #include "Component/UserData.h"
+#include "Component/UserData/Item.h"
+#include "Component/UserData/Bag.h"
+#include "Component/UserData/Suit.h"
 #include "Component/UserCounter.h"
-#include "Component/Bag.h"
 #include "Component/Event.h"
 #include "Component/Mail.h"
 #include "Component/Disconnect.h"
-#include "Component/Suit.h"
 #include "Component/Dungeon/Dungeon.h"
 #include <idl/MessageLobby.h>
 
@@ -113,8 +114,33 @@ void UserSession::Manager::RemoveSession(std::shared_ptr<UserSession> session)
 
 GAMNET_BIND_INIT_HANDLER(UserSession::Manager, Init);
 
+std::vector<int> TestSession::item_index = [](){
+	std::vector<int> item_index;
+	
+	{
+		MetaReader<Item::Meta> reader;
+		auto& rows = reader.Read("../MetaData/Item.csv");
+		for (auto& row : rows)
+		{
+			item_index.push_back(row->index);
+		}
+	}
+
+	{
+		MetaReader<Item::Meta> reader;
+		auto& rows = reader.Read("../MetaData/EquipItem.csv");
+		for (auto& row : rows)
+		{
+			item_index.push_back(row->index);
+		}
+	}
+	
+	return item_index;
+}();
+
 void TestSession::OnCreate()
 {
+	cheat_item_order = 0;
 }
 
 void TestSession::OnConnect()

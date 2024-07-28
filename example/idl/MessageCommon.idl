@@ -100,8 +100,8 @@ struct CounterData
 
 struct ItemData
 {
-	uint64 item_seq;
-	uint32 item_index;
+	int64 item_no;
+	int32 item_index;
 	int32 item_count;
 };
 

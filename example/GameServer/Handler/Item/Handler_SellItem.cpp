@@ -1,8 +1,8 @@
 #include "Handler_SellItem.h"
 #include "../../Component/UserData.h"
-#include "../../Component/Bag.h"
-#include "../../Component/Item.h"
-#include "../../Component/Suit.h"
+#include "../../Component/UserData/Bag.h"
+#include "../../Component/UserData/Item.h"
+#include "../../Component/UserData/Suit.h"
 #include "../../Component/UserCounter.h"
 
 namespace Handler {	namespace Item {
@@ -74,14 +74,14 @@ namespace Handler {	namespace Item {
 	void Test_SellItem_Req(const std::shared_ptr<TestSession>& session)
 	{
 		Message::Item::MsgCliSvr_SellItem_Req req;
-		req.item_seq = 0;
+		req.item_no = 0;
 		for (auto& itr : session->items)
 		{
 			auto& item = itr.second;
 			auto meta = Gamnet::Singleton<::Item::Manager>::GetInstance().FindMeta(item.item_index);
 			if (Message::ItemType::Equip == meta->type)
 			{
-				req.item_seq = item.item_seq;
+				req.item_no = item.item_no;
 				break;
 			}
 		}

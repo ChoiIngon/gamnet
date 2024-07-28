@@ -2,12 +2,11 @@
 #include <Gamnet/Database/MySQL/MySQL.h>
 #include <idl/MessageUser.h>
 #include <idl/MessageItem.h>
-#include "../UserSession.h"
+#include "../../UserSession.h"
 #include "Item.h"
 
 namespace Component {
-	Suit::Suit(const std::shared_ptr<UserSession>& session)
-		: session(session)
+	Suit::Suit()
 	{
 		for(int i=0; i< (int)Message::EquipItemPartType::Max; i++)
 		{
@@ -24,8 +23,8 @@ namespace Component {
 		item_datas[(int)item->equip->part] = item;
 
 		Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
-		ntf.item_seq = item->item_no;
-		Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+		ntf.item_no = item->item_no;
+		//Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 	}
 
 	void Suit::Equip(const std::shared_ptr<Item::Data>& item)
@@ -43,11 +42,7 @@ namespace Component {
 
 		Unequip(meta->equip->part);
 
-		if (nullptr != item->expire)
-		{
-			item->expire->TriggerExpire(Item::Meta::Expire::TriggerType::OnEquip);
-		}
-
+		/*
 		session->queries->Update("user_item",
 			Gamnet::Format("equip_part=", (int)meta->equip->part, ",expire_date='", item->GetExpireDate().ToString(), "'"),
 			{
@@ -64,10 +59,12 @@ namespace Component {
 			ntf.item_seq = item->item_no;
 			Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 		});
+		*/
 	}
 
 	void Suit::Unequip(Message::EquipItemPartType part)
 	{
+		/*
 		std::shared_ptr<UserSession> session = this->session;
 		std::shared_ptr<Item::Data> item = Find(part);
 		if (nullptr == item)
@@ -91,6 +88,7 @@ namespace Component {
 			ntf.part_type = part;
 			Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 		});
+		*/
 	}
 
 	std::shared_ptr<Item::Data> Suit::Find(Message::EquipItemPartType part)
@@ -98,7 +96,7 @@ namespace Component {
 		return item_datas[(int)part];
 	}
 }
-
+/*
 void Test_EquipItem_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {
 	Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
@@ -138,3 +136,4 @@ GAMNET_BIND_TEST_RECV_HANDLER(
 	Message::Item::MsgSvrCli_UnequipItem_Ntf, Test_UnequipItem_Ntf
 );
 
+*/
