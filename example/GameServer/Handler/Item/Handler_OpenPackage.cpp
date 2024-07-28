@@ -65,7 +65,7 @@ void Test_OpenPackage_Req(const std::shared_ptr<TestSession>& session)
 	{
 		auto& item = itr.second;
 		auto meta = Gamnet::Singleton<::Item::Manager>::GetInstance().FindMeta(item.item_index);
-		if(Message::ItemType::Package == meta->type)
+		if(Message::ItemType::Package == meta->Type)
 		{
 			req.item_no = item.item_no;
 			break;

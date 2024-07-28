@@ -53,7 +53,7 @@ std::shared_ptr<Bag> Bag::Load(const std::shared_ptr<UserSession>& session)
 		pBag->item_datas.insert(std::make_pair(item->item_no, item));
 
 		Message::ItemData msgItemData;
-		msgItemData.item_index = item->meta->index;
+		msgItemData.item_index = item->meta->Index;
 		msgItemData.item_no = item->item_no;
 		msgItemData.item_count = item->count;
 		ntf.item_datas.push_back(msgItemData);
@@ -74,18 +74,18 @@ std::shared_ptr<Transaction::Statement> Bag::Insert(const std::shared_ptr<Item::
 
 	const std::shared_ptr<Item::Meta>& meta = item->meta;
 
-	if (1 < meta->max_stack)	// stackable item
+	if (1 < meta->MaxStack)	// stackable item
 	{
-		int stackCount = item->count / meta->max_stack;	// 신규 아이템을 최대 스택 카운트 별로 쪼개 생성
+		int stackCount = item->count / meta->MaxStack;	// 신규 아이템을 최대 스택 카운트 별로 쪼개 생성
 		for (int i = 0; i < stackCount; i++)
 		{
 			std::shared_ptr<Item::Data> portion = meta->CreateInstance();
 			portion->item_no = ++last_item_no;
-			portion->count = meta->max_stack;
+			portion->count = meta->MaxStack;
 			insert->insert_itmes.push_back(portion);
 		}
 
-		item->count -= item->meta->max_stack * stackCount;
+		item->count -= item->meta->MaxStack * stackCount;
 	}
 
 	if(0 < item->count)
@@ -107,7 +107,7 @@ void Bag::InsertStatement::Commit(const std::shared_ptr<Transaction::Connection>
 	std::string query = "INSERT INTO UserItem(`user_no`, `item_no`, `item_index`, `item_count`, `equip_part`, `delete_yn`) VALUES ";
 	for (std::shared_ptr<Item::Data> item : insert_itmes)
 	{
-		query += Gamnet::Format("(", session->user_no, ",", item->item_no, ",", item->meta->index, ",", item->count, ",0,'N')");
+		query += Gamnet::Format("(", session->user_no, ",", item->item_no, ",", item->meta->Index, ",", item->count, ",0,'N')");
 	}
 
 	db->Execute(query);
@@ -130,7 +130,7 @@ void Bag::InsertStatement::Sync()
 	for (std::shared_ptr<Item::Data> item : insert_itmes)
 	{
 		Message::ItemData msgItemData;
-		msgItemData.item_index = item->meta->index;
+		msgItemData.item_index = item->meta->Index;
 		msgItemData.item_no = item->item_no;
 		msgItemData.item_count = item->count;
 		ntf.item_datas.push_back(msgItemData);
@@ -207,7 +207,7 @@ void Bag::DeleteStatement::Sync()
 {
 	Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
 	Message::ItemData msgItemData;
-	msgItemData.item_index = data->meta->index;
+	msgItemData.item_index = data->meta->Index;
 	msgItemData.item_no = data->item_no;
 	msgItemData.item_count = data->count;
 	ntf.item_datas.push_back(msgItemData);

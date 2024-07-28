@@ -1,3 +1,3 @@
-﻿SHARD_INDEX,master_ip,master_port,slave_ip,slave_port,db_name,db_user,db_password
+﻿ShardIndex,MasterIP,MasterPort,SlaveIP,SlavePort,DBName,User,Password
 int,text,int,text,int,text,text,text
 1,127.0.0.1,3306,127.0.0.1,3306,game_shard,gamnet,P@ssword!

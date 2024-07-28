@@ -66,7 +66,7 @@ namespace Handler {	namespace Item {
 		{
 			auto& item = itr.second;
 			auto meta = Gamnet::Singleton<::Item::Manager>::GetInstance().FindMeta(item.item_index);
-			if (Message::ItemType::Equip == meta->type)
+			if (Message::ItemType::Equip == meta->Type)
 			{
 				req.item_no = item.item_no;
 				break;

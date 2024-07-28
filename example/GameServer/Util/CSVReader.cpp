@@ -12,7 +12,7 @@ CSVReader::iterator::iterator(const CSVReader& reader, int row_num)
 
 const std::string& CSVReader::iterator::GetValue(const std::string& columnName)
 {
-	return GetValue(reader.GetIndex(boost::algorithm::to_lower_copy(columnName)));
+	return GetValue(reader.GetIndex(columnName));
 }
 
 const std::string& CSVReader::iterator::GetValue(int index)
@@ -96,7 +96,6 @@ bool CSVReader::ReadStream(const std::string& str)
 		std::stringstream lineStream(line);
 		while (std::getline(lineStream, cell, ','))
 		{
-			boost::algorithm::to_lower(cell);
 			column_names.push_back(cell);
 		}
 	}

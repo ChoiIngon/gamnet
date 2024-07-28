@@ -12,47 +12,47 @@ namespace Component { namespace Dungeon {
 
 	static std::atomic<uint64_t> DUNGEON_SEQ;
 	Meta::Room::Room()
-		: count(0)
-		, min_width(0)
-		, max_width(0)
-		, min_height(0)
-		, max_height(0)
+		: Count(0)
+		, MinWidth(0)
+		, MaxWidth(0)
+		, MinHeight(0)
+		, MaxHeight(0)
 	{
-		META_MEMBER(count);
-		META_MEMBER(min_width);
-		META_MEMBER(max_width);
-		META_MEMBER(min_height);
-		META_MEMBER(max_height);
+		META_MEMBER(Count);
+		META_MEMBER(MinWidth);
+		META_MEMBER(MaxWidth);
+		META_MEMBER(MinHeight);
+		META_MEMBER(MaxHeight);
 	}
 
 	Meta::Monster::Monster()
-		: id("")
-		, level(0)
-		, count(0)
+		: Code("")
+		, Level(0)
+		, Count(0)
 	{
-		META_MEMBER(id);
-		META_MEMBER(level);
-		META_MEMBER(count);
+		META_MEMBER(Code);
+		META_MEMBER(Level);
+		META_MEMBER(Count);
 	}
 
 	Meta::Meta()
-		: id("")
-		, index(0)
-		, level(0)
+		: Code("")
+		, Index(0)
+		, Level(0)
 	{
-		META_MEMBER(id);
-		META_MEMBER(index);
-		META_MEMBER(level);
-		META_MEMBER(room);
-		META_MEMBER(monsters);
+		META_MEMBER(Code);
+		META_MEMBER(Index);
+		META_MEMBER(Level);
+		META_MEMBER(Room);
+		META_MEMBER(Monster);
 	}
 	void Meta::OnLoad()
 	{
-		room.count = std::max(room.count, 1);
-		room.min_width = std::max(room.min_width, 3);
-		room.max_width = std::max(room.max_width, 3);
-		room.min_height = std::max(room.min_height, 3);
-		room.max_height = std::max(room.min_height, 3);
+		Room.Count = std::max(Room.Count, 1);
+		Room.MinWidth = std::max(Room.MinWidth, 3);
+		Room.MaxWidth = std::max(Room.MaxWidth, 3);
+		Room.MinHeight = std::max(Room.MinHeight, 3);
+		Room.MaxHeight = std::max(Room.MinHeight, 3);
 	}
 
 	Data::Block::Block(int id)
@@ -99,7 +99,7 @@ namespace Component { namespace Dungeon {
 		rect.height = 0;
 		
 		// 블럭을 생성하여 랜덤하게 여기저기 뿌림
-		for(int i=0; i<meta.room.count * Data::ROOM_COUNT_MULTIPLE; i++)
+		for(int i=0; i<meta.Room.Count * Data::ROOM_COUNT_MULTIPLE; i++)
 		{
 			std::shared_ptr<Block> block = std::make_shared<Block>(i+1);
 			block->rect.x = 0;
@@ -108,14 +108,14 @@ namespace Component { namespace Dungeon {
 			if (0 == i % Data::ROOM_COUNT_MULTIPLE)
 			{
 				block->type = Block::Type::Room;
-				block->rect.width = Gamnet::Random::Range(meta.room.min_width, meta.room.max_width);
-				block->rect.height = Gamnet::Random::Range(meta.room.min_height, meta.room.max_height);
+				block->rect.width = Gamnet::Random::Range(meta.Room.MinWidth, meta.Room.MaxWidth);
+				block->rect.height = Gamnet::Random::Range(meta.Room.MinHeight, meta.Room.MaxHeight);
 			}
 			else
 			{
 				block->type = Block::Type::Corridor;
-				block->rect.width = Gamnet::Random::Range(meta.room.min_width/2, meta.room.max_width/2);
-				block->rect.height = Gamnet::Random::Range(meta.room.min_height/2, meta.room.max_height/2);
+				block->rect.width = Gamnet::Random::Range(meta.Room.MinWidth/2, meta.Room.MaxWidth/2);
+				block->rect.height = Gamnet::Random::Range(meta.Room.MinHeight/2, meta.Room.MaxHeight/2);
 			}
 			MoveToEmptySpace(block);
 
@@ -500,7 +500,7 @@ namespace Component { namespace Dungeon {
 					continue;
 				}
 
-				ntf.equip_items.push_back(item->meta->index);
+				ntf.equip_items.push_back(item->meta->Index);
 			}
 
 			ntf.position = Message::Vector2Int(player->position.x, player->position.y);
@@ -532,15 +532,15 @@ namespace Component { namespace Dungeon {
 		auto& rows = reader.Read("../MetaData/Dungeon.csv");
 		for (auto& row : rows)
 		{
-			if (false == id_metas.insert(std::make_pair(row->id, row)).second)
+			if (false == id_metas.insert(std::make_pair(row->Code, row)).second)
 			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item id(", row->id, ")");
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item id(", row->Code, ")");
 			}
-			if (false == index_metas.insert(std::make_pair(row->index, row)).second)
+			if (false == index_metas.insert(std::make_pair(row->Index, row)).second)
 			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item index(", row->index, ")");
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item index(", row->Index, ")");
 			}
-			wait_queues.insert(std::make_pair(row->index, std::make_shared<WaitQueue>()));
+			wait_queues.insert(std::make_pair(row->Index, std::make_shared<WaitQueue>()));
 		}
 	}
 

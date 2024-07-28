@@ -10,151 +10,144 @@
 namespace Item {
 
 	Meta::Equip::Equip()
-		: part(Message::EquipItemPartType::Invalid)
-		, attack(0)
-		, defense(0)
-		, speed(0)
+		: Part(Message::EquipItemPartType::Invalid)
+		, Attack(0)
+		, Defense(0)
+		, Speed(0)
 	{
-		META_CUSTOM(part, Equip::OnPartType);
-		META_MEMBER(attack);
-		META_MEMBER(defense);
-		META_MEMBER(speed);
+		META_CUSTOM(Part, Equip::OnPartType);
+		META_MEMBER(Attack);
+		META_MEMBER(Defense);
+		META_MEMBER(Speed);
 	}
 				 
-	void Meta::Equip::OnPartType(Message::EquipItemPartType& member, const std::string& value)
+	void Meta::Equip::OnPartType(Message::EquipItemPartType& part, const std::string& value)
 	{
-		member = Message::Parse<Message::EquipItemPartType>(value);
+		part = Message::Parse<Message::EquipItemPartType>(value);
 	}
 
 	Meta::Price::Price()
-		: type(Message::CounterType::Invalid)
-		, value(0)
+		: Type(Message::CounterType::Invalid)
+		, Value(0)
 	{
-		META_CUSTOM(type, Price::OnPriceType);
-		META_MEMBER(value);
+		META_CUSTOM(Type, Price::OnPriceType);
+		META_MEMBER(Value);
 	}
 
-	void Meta::Price::OnPriceType(Message::CounterType& member, const std::string& value)
+	void Meta::Price::OnPriceType(Message::CounterType& type, const std::string& value)
 	{
-		member = Message::Parse<Message::CounterType>(value);
+		type = Message::Parse<Message::CounterType>(value);
 	}
 
 	Meta::Expire::Expire()
-		: trigger_type(TriggerType::None)
-		, expire_type(ExpireType::Infinite)
-		, time(0)
-		, date(0)
+		: TriggerType(ETriggerType::None)
+		, ExpireType(EExpireType::Infinite)
+		, Time(0)
+		, Date(0)
 	{
-		META_CUSTOM(trigger_type, Expire::OnTriggerType);
-		META_CUSTOM(expire_type, Expire::OnExpireType);
-		META_MEMBER(time);
-		META_MEMBER(date);
+		META_CUSTOM(TriggerType, Expire::OnTriggerType);
+		META_CUSTOM(ExpireType, Expire::OnExpireType);
+		META_MEMBER(Time);
+		META_MEMBER(Date);
 	}
 
-	void Meta::Expire::OnTriggerType(TriggerType& member, const std::string& value)
+	void Meta::Expire::OnTriggerType(ETriggerType& triggerType, const std::string& value)
 	{
-		member = TriggerType::None;
+		triggerType = ETriggerType::None;
 
 		if ("OnCreate" == value)
 		{
-			member = TriggerType::OnCreate;
+			triggerType = ETriggerType::OnCreate;
 			return;
 		}
 		else if ("OnEquip" == value)
 		{
-			member = TriggerType::OnEquip;
+			triggerType = ETriggerType::OnEquip;
 			return;
 		}
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
 
-	void Meta::Expire::OnExpireType(ExpireType& expireType, const std::string& value)
+	void Meta::Expire::OnExpireType(EExpireType& expireType, const std::string& value)
 	{
-		expireType = ExpireType::Infinite;
+		expireType = EExpireType::Infinite;
 
 		if ("Infinite" == value)
 		{
-			expireType = ExpireType::Infinite;
+			expireType = EExpireType::Infinite;
 			return;
 		}
 		else if ("DueDate" == value)
 		{
-			expireType = ExpireType::DueDate;
+			expireType = EExpireType::DueDate;
 			return;
 		}
 		else if ("Period" == value)
 		{
-			expireType = ExpireType::Period;
+			expireType = EExpireType::Period;
 			return;
 		}
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
 
 	Meta::Package::Package()
-		: counter_type(Message::CounterType::Invalid)
-		, count(0)
+		: Code("")
+		, Count(0)
 	{
-		META_MEMBER(item_id);
-		META_CUSTOM(counter_type, Package::OnCounterType);
-		META_MEMBER(count);
-		META_MEMBER(package_expire);
+		META_MEMBER(Code);
+		META_MEMBER(Count);
 	}
 	
-	void Meta::Package::OnCounterType(Message::CounterType& member, const std::string& value)
-	{
-		member = Message::Parse<Message::CounterType>(value);
-	}
-
 	Meta::Meta()
-		: id("")
-		, index(0)
-		, type(Message::ItemType::Invalid)
-		, grade(0)
-		, max_stack(0)
+		: Code("")
+		, Index(0)
+		, Type(Message::ItemType::Invalid)
+		, Grade(0)
+		, MaxStack(0)
 	{
-		META_MEMBER(id);
-		META_MEMBER(index);
-		META_CUSTOM(type, Meta::OnItemType);
-		META_MEMBER(grade);
-		META_MEMBER(max_stack);
-		META_MEMBER(equip);
-		META_MEMBER(price);
-		META_MEMBER(expire);
-		META_MEMBER(packages);
+		META_MEMBER(Code);
+		META_MEMBER(Index);
+		META_CUSTOM(Type, Meta::OnItemType);
+		META_MEMBER(Grade);
+		META_MEMBER(MaxStack);
+		META_MEMBER(Equip);
+		META_MEMBER(Price);
+		META_MEMBER(Expire);
+		META_MEMBER(Package);
 	}
 
 	void Meta::OnLoad() 
 	{
-		if(Message::ItemType::Equip == type && nullptr == equip)
+		if(Message::ItemType::Equip == Type && nullptr == Equip)
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
-		if(Message::ItemType::Package == type && 0 == packages.size())
+		if(Message::ItemType::Package == Type && 0 == Package.size())
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
-		if(nullptr != expire)
+		if(nullptr != Expire)
 		{
-			if(Expire::TriggerType::None == expire->trigger_type || Expire::ExpireType::Infinite == expire->expire_type)
+			if(Expire::ETriggerType::None == Expire->TriggerType || Expire::EExpireType::Infinite == Expire->ExpireType)
 			{
 				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 			}
 		}
 	}
-	void Meta::OnItemType(Message::ItemType& member, const std::string& value)
+	void Meta::OnItemType(Message::ItemType& itemType, const std::string& value)
 	{
-		member = Message::Parse<Message::ItemType>(value);
+		itemType = Message::Parse<Message::ItemType>(value);
 	}
 
 	std::shared_ptr<Data> Meta::CreateInstance()
 	{
 		std::shared_ptr<Data> item = std::make_shared<Data>(shared_from_this());
-		if(nullptr != equip)
+		if(nullptr != Equip)
 		{
 			item->equip = std::make_shared<Data::Equip>();
 		}
 
-		if (0 < packages.size())
+		if (0 < Package.size())
 		{
 			item->package = std::make_shared<Data::Package>(item);
 		}
@@ -218,7 +211,7 @@ namespace Item {
 
 	bool Data::Count::Stackable() const
 	{
-		return 1 < meta.lock()->max_stack;
+		return 1 < meta.lock()->MaxStack;
 	}
 
 	Data::Count::operator int() const
@@ -259,7 +252,7 @@ namespace Item {
 	Data::operator Message::ItemData() const
 	{
 		Message::ItemData data;
-		data.item_index = meta->index;
+		data.item_index = meta->Index;
 		data.item_no = item_no;
 		data.item_count = count;
 		return data;
@@ -277,13 +270,13 @@ namespace Item {
 		auto& rows = reader.Read(path);
 		for (auto& row : rows)
 		{
-			if (false == id_metas.insert(std::make_pair(row->id, row)).second)
+			if (false == id_metas.insert(std::make_pair(row->Code, row)).second)
 			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item id(", row->id, ")");
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item id(", row->Code, ")");
 			}
-			if (false == index_metas.insert(std::make_pair(row->index, row)).second)
+			if (false == index_metas.insert(std::make_pair(row->Index, row)).second)
 			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item index(", row->index, ")");
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item index(", row->Index, ")");
 			}
 		}
 	}
@@ -343,17 +336,17 @@ namespace Item {
 
 		std::shared_ptr<Meta> meta = lhs->meta;
 
-		if (1 >= meta->max_stack)
+		if (1 >= meta->MaxStack)
 		{
 			return false;
 		}
 
-		if (lhs->count >= meta->max_stack)
+		if (lhs->count >= meta->MaxStack)
 		{
 			return false;
 		}
 
-		int count = std::min(meta->max_stack - lhs->count, (int)rhs->count);
+		int count = std::min(meta->MaxStack - lhs->count, (int)rhs->count);
 		lhs->count += count;
 		rhs->count -= count;
 

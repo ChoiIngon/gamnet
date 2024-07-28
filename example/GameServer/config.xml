@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <server>
 	<log path="log" prefix="GameServer" max_file_size="5">
-		<dev console="yes" file="yes" sys="no"/>
+		<dev console="no" file="no" sys="no"/>
 		<inf console="yes" file="yes" sys="no"/>
 		<wrn console="yes" file="yes" sys="no"/>
 		<err console="yes" file="yes" sys="no"/>
@@ -16,7 +16,7 @@
 		<farm host="127.0.0.1" port="6379"/>
 	</router>
 		
-	<test host="127.0.0.1" port="40001" session_count="500" loop_count="2">
+	<test host="127.0.0.1" port="40001" session_count="500" loop_count="100">
 		<message name="Test_Create"/>
 		<message name="Test_Login"/>
 		<message name="Cheat_AddItem"/>

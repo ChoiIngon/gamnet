@@ -23,27 +23,28 @@ namespace Component { namespace Dungeon {
 		struct Room : public MetaData
 		{
 			Room();
-			int count;
-			int min_width;
-			int max_width;
-			int min_height;
-			int max_height;
+			int Count;
+			int MinWidth;
+			int MaxWidth;
+			int MinHeight;
+			int MaxHeight;
 		};
 
 		struct Monster : public MetaData
 		{
 			Monster();
-			std::string id;
-			int level;
-			int count;
+			std::string Code;
+			int Level;
+			int Count;
 		};
 
 		Meta();
-		std::string id;
-		int			index;
-		int			level;
-		Room		room;
-		std::vector<Monster> monsters;
+
+		std::string Code;
+		int			Index;
+		int			Level;
+		Room		Room;
+		std::vector<std::shared_ptr<Monster>> Monster;
 
 		std::shared_ptr<Data> CreateInstance();
 

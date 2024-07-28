@@ -29,7 +29,7 @@ namespace Component {
 	void Manager_Event::Init()
 	{
 		GAMNET_CALL_INIT_HANDLER(Item::Manager);
-		reader.Read("../MetaData/Event.csv");
+		//reader.Read("../MetaData/Event.csv");
 	}
 
 	const MetaReader<EventMeta>::MetaDatas& Manager_Event::GetAllMetaData() const
@@ -78,7 +78,7 @@ namespace Component {
 
 				std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
 				mailData->expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->mail_expire_day * 86400);
-				mailData->item_index = itemMeta->index;
+				mailData->item_index = itemMeta->Index;
 				mailData->item_count = meta->item_count;
 				mailData->mail_message = meta->mail_message;
 				Mail::SendMail(session, mailData);
@@ -91,7 +91,7 @@ namespace Component {
 					session->queries->Execute("UPDATE user_event SET update_date=NOW() WHERE user_seq=", session->user_no, " AND event_index=", eventData->index);
 					std::shared_ptr<MailData> mailData = std::make_shared<MailData>();
 					mailData->expire_date = Gamnet::Time::DateTime(Gamnet::Time::Local::Now() + meta->mail_expire_day * 86400);
-					mailData->item_index = itemMeta->index;
+					mailData->item_index = itemMeta->Index;
 					mailData->item_count = meta->item_count;
 					mailData->mail_message = meta->mail_message;
 					Mail::SendMail(session, mailData);

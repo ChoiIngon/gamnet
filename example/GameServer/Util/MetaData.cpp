@@ -5,77 +5,77 @@
 
 void MetaData::Bind(const std::string& name, bool& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, int16_t& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, uint16_t& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, int32_t& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, uint32_t& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, int64_t& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, uint64_t& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, float& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, double& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, std::string& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
 
 void MetaData::Bind(const std::string& name, Gamnet::Time::DateTime& member)
 {
-	bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+	bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 		this->Allocation(member, cell);
 	}));
 }
@@ -99,13 +99,13 @@ void MetaData::Init(const std::shared_ptr<Row>& row)
 		try {
 			bind_functions[key](cell);
 		}
-		catch(const boost::bad_lexical_cast&)
+		catch (const boost::bad_lexical_cast&)
 		{
-			throw Gamnet::Exception((int)Message::ErrorCode::UndefineError, "[MetaData] meta data load fail(file:", row->file, ", name:", key, ", row_num:", row->row_num, ", reason:bed lexical cast)");
+			throw Gamnet::Exception((int)Message::ErrorCode::UndefineError, "[MetaData] meta data load fail(meta_data:", cell->meta_name, ", row_num:", cell->row_num, ", column:", key, ", reason:bed lexical cast)");
 		}
-		catch(const Gamnet::Exception& e)
+		catch (const Gamnet::Exception& e)
 		{
-			throw Gamnet::Exception((int)Message::ErrorCode::UndefineError, "[MetaData] meta data load fail(file:", row->file, ", name:", key, ", row_num:", row->row_num, ", reason:", e.what(), ")");
+			throw e;
 		}
 	}
 }
@@ -194,6 +194,8 @@ void MetaData::Allocation(MetaData& member, const std::shared_ptr<Cell>& cell)
 {
 	std::shared_ptr<Row> row = std::make_shared<Row>();
 	std::shared_ptr<Cell> child = std::make_shared<Cell>();
+	child->meta_name = cell->meta_name;
+	child->row_num = cell->row_num;
 	child->header = cell->header->child;
 	child->value = cell->value;
 	row->cells.push_back(child);

@@ -14,64 +14,62 @@ namespace Item
 		{
 			Equip();
 
-			Message::EquipItemPartType part;
-			int attack;
-			int defense;
-			int speed;
+			Message::EquipItemPartType Part;
+			int Attack;
+			int Defense;
+			int Speed;
 
 		private :
-			void OnPartType(Message::EquipItemPartType& member, const std::string& value);
+			void OnPartType(Message::EquipItemPartType& part, const std::string& value);
 		};
 
 		struct Price : public MetaData
 		{
 			Price();
 
-			Message::CounterType type;
-			int value;
+			Message::CounterType Type;
+			int Value;
 
 		private :
-			void OnPriceType(Message::CounterType& member, const std::string& value);
+			void OnPriceType(Message::CounterType& type, const std::string& value);
 		};
 
 		struct Expire : public MetaData
 		{
-			enum class TriggerType
+			enum class ETriggerType
 			{
 				None = 0,
 				OnCreate = 1,
 				OnEquip = 2
 			};
 
-			enum class ExpireType
+			enum class EExpireType
 			{
 				Infinite = 0,
 				DueDate = 1,
 				Period = 2
 			};
 
+			typedef Gamnet::Time::DateTime DateTime;
+
 			Expire();
 
-			TriggerType trigger_type;
-			ExpireType expire_type;
-			int64_t time;
-			Gamnet::Time::DateTime date;
+			ETriggerType	TriggerType;
+			EExpireType		ExpireType;
+			int64_t			Time;
+			DateTime		Date;
 
 		private :
-			void OnTriggerType(TriggerType& triggerType, const std::string& value);
-			void OnExpireType(ExpireType& expireType, const std::string& value);
+			void OnTriggerType(ETriggerType& triggerType, const std::string& value);
+			void OnExpireType(EExpireType& expireType, const std::string& value);
 		};
 
 		struct Package : public MetaData
 		{
 			Package();
 
-			std::string item_id;
-			Message::CounterType counter_type;
-			int		 count;
-			Expire		package_expire;
-		private :
-			void OnCounterType(Message::CounterType& member, const std::string& value);
+			std::string Code;
+			int			Count;
 		};
 
 		Meta();
@@ -80,18 +78,18 @@ namespace Item
 		
 		std::shared_ptr<Data> CreateInstance();
 
-		std::string			id;
-		uint32_t			index;
-		Message::ItemType	type;
-		int					grade;
-		int					max_stack;
+		std::string			Code;
+		uint32_t			Index;
+		Message::ItemType	Type;
+		int					Grade;
+		int					MaxStack;
 
-		std::shared_ptr<Equip> equip;
-		std::shared_ptr<Price> price;
-		std::shared_ptr<Expire> expire;
-		std::vector<std::shared_ptr<Package>> packages;
+		std::shared_ptr<Equip> Equip;
+		std::shared_ptr<Price> Price;
+		std::shared_ptr<Expire> Expire;
+		std::vector<std::shared_ptr<Package>> Package;
 	private :
-		void OnItemType(Message::ItemType& member, const std::string& value);
+		void OnItemType(Message::ItemType& typeType, const std::string& value);
 	};
 			   
 	class Data

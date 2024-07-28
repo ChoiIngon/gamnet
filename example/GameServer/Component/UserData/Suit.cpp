@@ -30,17 +30,17 @@ namespace Component {
 	void Suit::Equip(const std::shared_ptr<Item::Data>& item)
 	{
 		const std::shared_ptr<Item::Meta>& meta = item->meta;
-		assert(nullptr != meta->equip);
+		assert(nullptr != meta->Equip);
 
 		if(nullptr == item->equip)
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
 
-		assert(Message::EquipItemPartType::Invalid < meta->equip->part && Message::EquipItemPartType::Max > meta->equip->part);
+		assert(Message::EquipItemPartType::Invalid < meta->Equip->Part && Message::EquipItemPartType::Max > meta->Equip->Part);
 		
 
-		Unequip(meta->equip->part);
+		Unequip(meta->Equip->Part);
 
 		/*
 		session->queries->Update("user_item",

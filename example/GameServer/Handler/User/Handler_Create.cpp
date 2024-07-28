@@ -12,13 +12,12 @@ public:
 	{
 		ShardData();
 
-		int shard_num;
-		int shard_index;
-		std::string master_ip;
-		int master_port;
-		std::string db_name;
-		std::string db_user;
-		std::string db_password;
+		int ShardIndex;
+		std::string MasterIP;
+		int			MasterPort;
+		std::string DBName;
+		std::string User;
+		std::string Password;
 	};
 
 	void Init();
@@ -90,13 +89,12 @@ GAMNET_BIND_TCP_HANDLER(
 
 ShardIndex::ShardData::ShardData()
 {
-	META_MEMBER(shard_num);
-	META_MEMBER(shard_index);
-	META_MEMBER(master_ip);
-	META_MEMBER(master_port);
-	META_MEMBER(db_name);
-	META_MEMBER(db_user);
-	META_MEMBER(db_password);
+	META_MEMBER(ShardIndex);
+	META_MEMBER(MasterIP);
+	META_MEMBER(MasterPort);
+	META_MEMBER(DBName);
+	META_MEMBER(User);
+	META_MEMBER(Password);
 }
 
 void ShardIndex::Init()
@@ -110,7 +108,7 @@ void ShardIndex::Init()
 
 	for (auto& meta : metas)
 	{
-		if (false == Gamnet::Database::MySQL::Connect((int)DatabaseType::User + meta->shard_index, meta->master_ip, meta->master_port, meta->db_user, meta->db_password, meta->db_name, false))
+		if (false == Gamnet::Database::MySQL::Connect((int)DatabaseType::User + meta->ShardIndex, meta->MasterIP, meta->MasterPort, meta->User, meta->Password, meta->DBName, false))
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "fail to connect db");
 		}
@@ -127,7 +125,7 @@ int ShardIndex::Generate()
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "no user database");
 	}
 
-	return (int)DatabaseType::User + metas[shard_mod++ % shard_count]->shard_index;
+	return (int)DatabaseType::User + metas[shard_mod++ % shard_count]->ShardIndex;
 }
 
 GAMNET_BIND_INIT_HANDLER(ShardIndex, Init);

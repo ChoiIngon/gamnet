@@ -24,14 +24,14 @@ public :
 
 	struct Cell
 	{
+		std::string meta_name;
+		int row_num;
 		std::shared_ptr<ColumnHeader> header;
 		std::string value;
 	};
 
 	struct Row
 	{
-		std::string file;
-		int row_num;
 		std::vector<std::shared_ptr<Cell>> cells;
 	};
 
@@ -54,14 +54,14 @@ protected:
 	template <class T>
 	void Bind(const std::string& name, T& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+		bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 			this->Allocation(member, cell);
 		}));
 	}
 	template <class T>
 	void Bind(const std::string& name, std::vector<T>& member)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [this, &member](const std::shared_ptr<Cell>& cell) {
+		bind_functions.insert(std::make_pair(name, [this, &member](const std::shared_ptr<Cell>& cell) {
 			if ("" == cell->value)
 			{
 				return;
@@ -81,7 +81,7 @@ protected:
 	template <class F>
 	void CustomBind(const std::string& name, F f)
 	{
-		bind_functions.insert(std::make_pair(boost::algorithm::to_lower_copy(name), [f](const std::shared_ptr<Cell>& cell) {
+		bind_functions.insert(std::make_pair(name, [f](const std::shared_ptr<Cell>& cell) {
 			const std::string& value = cell->value;
 			if ("" == value)
 			{
@@ -108,6 +108,8 @@ private :
 	{
 		std::shared_ptr<Row> row = std::make_shared<Row>();
 		std::shared_ptr<Cell> child = std::make_shared<Cell>();
+		child->meta_name = cell->meta_name;
+		child->row_num = cell->row_num;
 		child->header = cell->header->child;
 		child->value = cell->value;
 		row->cells.push_back(child);
@@ -149,9 +151,6 @@ public :
 		{
 			std::shared_ptr<MetaData::Row> row = std::make_shared<MetaData::Row>();
 
-			row->file = filePath;
-			row->row_num = rowNum;
-
 			bool emptyRow = true;
 			for(int i=0; i<headers.size(); i++)
 			{
@@ -161,6 +160,8 @@ public :
 				}
 
 				std::shared_ptr<MetaData::Cell> cell = std::make_shared<MetaData::Cell>();
+				cell->meta_name = filePath;
+				cell->row_num = rowNum;
 				cell->header = headers[i];
 				cell->value = itr.GetValue(i);
 				row->cells.push_back(cell);
@@ -187,12 +188,11 @@ public :
 	{
 		std::shared_ptr<MetaData::ColumnHeader> header = std::make_shared<MetaData::ColumnHeader>();
 
-		const std::string cellValue = boost::algorithm::to_lower_copy(cell);
-		std::string headerName = cellValue; 
-		std::size_t dotPos = cellValue.find('.');
+		std::string headerName = cell; 
+		std::size_t dotPos = cell.find('.');
 		if (std::string::npos != dotPos) // cellValue has '.'. it means this column is hierarchy
 		{
-			headerName = cellValue.substr(0, dotPos);
+			headerName = cell.substr(0, dotPos);
 		}
 
 		std::size_t braceStartPos = headerName.find('[');
@@ -206,7 +206,7 @@ public :
 		header->name = headerName.substr(0, columnEndPos);
 		if (std::string::npos != dotPos)
 		{
-			header->child = ReadColumnHeader(cellValue.substr(dotPos + 1));
+			header->child = ReadColumnHeader(cell.substr(dotPos + 1));
 		}
 		return header;
 	}

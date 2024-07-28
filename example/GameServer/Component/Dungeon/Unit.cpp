@@ -10,19 +10,27 @@ namespace Component { namespace Unit {
 static std::atomic<uint64_t> UNIT_SEQ;
 
 Meta::Meta()
-	: id("")
-	, index(0)
-	, max_health(0)
-	, attack(0)
-	, defense(0)
-	, speed(0)
-	, sight(0)
-	, critical_chance(0.0f)
-	, critical_rate(0.0f)
+	: Code("")
+	, Index(0)
+	, MaxHealth(0)
+	, Attack(0)
+	, Defense(0)
+	, Speed(0)
+	, Sight(0)
+	, CriChance(0.0f)
+	, CriRate(0.0f)
+	, Monster(nullptr)
 {
-	META_MEMBER(id);
-	META_MEMBER(index);
-	META_MEMBER(monster);
+	META_MEMBER(Code);
+	META_MEMBER(Index);
+	META_MEMBER(MaxHealth);
+	META_MEMBER(Attack);
+	META_MEMBER(Defense);
+	META_MEMBER(Speed);
+	META_MEMBER(Sight);
+	META_MEMBER(CriChance);
+	META_MEMBER(CriRate);
+	META_MEMBER(Monster);
 }
 
 Data::Data()
@@ -75,20 +83,20 @@ void Manager::InitMeta(const std::string& path)
 	auto& rows = reader.Read(path);
 	for (auto& row : rows)
 	{
-		if (false == id_metas.insert(std::make_pair(row->id, row)).second)
+		if (false == code_metas.insert(std::make_pair(row->Code, row)).second)
 		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item id(", row->id, ")");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item id(", row->Code, ")");
 		}
-		if (false == index_metas.insert(std::make_pair(row->index, row)).second)
+		if (false == index_metas.insert(std::make_pair(row->Index, row)).second)
 		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item index(", row->index, ")");
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "duplicate item index(", row->Index, ")");
 		}
 	}
 }
-std::shared_ptr<Meta> Manager::FindMeta(const std::string& id)
+std::shared_ptr<Meta> Manager::FindMeta(const std::string& code)
 {
-	auto itr = id_metas.find(id);
-	if (id_metas.end() == itr)
+	auto itr = code_metas.find(code);
+	if (code_metas.end() == itr)
 	{
 		return nullptr;
 	}
@@ -131,9 +139,9 @@ std::shared_ptr<Unit::Data> Manager::CreateInstance(const std::shared_ptr<Meta>&
 {
 	std::shared_ptr<Unit::Data> unit = std::make_shared<Unit::Data>();
 	unit->meta = meta;
-	if(nullptr != unit->meta->monster)
+	if(nullptr != unit->meta->Monster)
 	{
-		unit->AddComponent<Monster::Data>(std::make_shared<Monster::Data>(unit->meta->monster));
+		unit->AddComponent<Monster::Data>(std::make_shared<Monster::Data>(unit->meta->Monster));
 	}
 	return unit;
 }

@@ -124,7 +124,7 @@ std::vector<int> TestSession::item_index = [](){
 		auto& rows = reader.Read("../MetaData/Item.csv");
 		for (auto& row : rows)
 		{
-			item_index.push_back(row->index);
+			item_index.push_back(row->Index);
 		}
 	}
 
@@ -133,7 +133,7 @@ std::vector<int> TestSession::item_index = [](){
 		auto& rows = reader.Read("../MetaData/EquipItem.csv");
 		for (auto& row : rows)
 		{
-			item_index.push_back(row->index);
+			item_index.push_back(row->Index);
 		}
 	}
 	

@@ -40,7 +40,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 
 		auto asyncUserCounter = std::async(std::launch::async, &Component::UserCounter::Load, session);
 		auto asyncUserBag = std::async(std::launch::async, &Component::Bag::Load, session);
-		
+
 		session->AddComponent(asyncUserCounter.get());
 		session->AddComponent(asyncUserBag.get());
 

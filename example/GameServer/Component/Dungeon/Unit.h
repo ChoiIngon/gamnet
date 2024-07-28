@@ -18,17 +18,17 @@ namespace Component { namespace Unit {
 	class Meta : public MetaData
 	{
 	public :
-		std::string id;
-		uint32_t	index;
-		int max_health;
-		int attack;
-		int defense;
-		int speed;
-		int sight;
-		float critical_chance;
-		float critical_rate;
+		std::string Code;
+		uint32_t	Index;
+		int MaxHealth;
+		int Attack;
+		int Defense;
+		int Speed;
+		int Sight;
+		float CriChance;
+		float CriRate;
 
-		std::shared_ptr<Component::Monster::Meta> monster;
+		std::shared_ptr<Component::Monster::Meta> Monster;
 
 		Meta();
 	};
@@ -74,7 +74,7 @@ namespace Component { namespace Unit {
 	private :
 		std::shared_ptr<Unit::Data> CreateInstance(const std::shared_ptr<Meta>& meta);
 		std::map<uint32_t, std::shared_ptr<Meta>> index_metas;
-		std::map<std::string, std::shared_ptr<Meta>> id_metas;
+		std::map<std::string, std::shared_ptr<Meta>> code_metas;
 	};
 
 	std::shared_ptr<Unit::Data> CreatePlayer(std::shared_ptr<UserSession> seesion, const std::string& id);

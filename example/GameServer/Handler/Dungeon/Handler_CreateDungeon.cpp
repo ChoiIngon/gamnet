@@ -67,7 +67,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 					continue;
 				}
 
-				comrade.equip_items.push_back(item->meta->index);
+				comrade.equip_items.push_back(item->meta->Index);
 			}
 			ans.comrades.push_back(comrade);
 		}
