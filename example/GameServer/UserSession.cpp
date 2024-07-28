@@ -84,6 +84,7 @@ void UserSession::Manager::Init()
 
 std::shared_ptr<UserSession> UserSession::Manager::AddSession(std::shared_ptr<UserSession> session)
 {
+	std::lock_guard<std::mutex> lo(lock);
 	auto itr = sessions.find(session->user_no);
 	if(sessions.end() == itr)
 	{
@@ -98,6 +99,7 @@ std::shared_ptr<UserSession> UserSession::Manager::AddSession(std::shared_ptr<Us
 
 void UserSession::Manager::RemoveSession(std::shared_ptr<UserSession> session)
 {
+	std::lock_guard<std::mutex> lo(lock);
 	assert(0 != session->user_no);
 	auto itr = sessions.find(session->user_no);
 	if (sessions.end() == itr)
