@@ -112,8 +112,10 @@ struct EquipItemData(ItemData)
 
 struct UserData
 {
-	uint64 user_seq;
+	int64 user_no;
 	string user_name;
+	list<ItemData> bag;
+	list<EquipItemData> suit;
 };
 
 struct Vector2Int

@@ -6,6 +6,9 @@
 #include "../../UserSession.h"
 #include "Bag.h"
 #include "../UserCounter.h"
+#include "../UserData.h"
+#include "../UserData/Suit.h"
+#include "../UserData/Bag.h"
 
 namespace Item {
 
@@ -325,6 +328,51 @@ namespace Item {
 		std::shared_ptr<Item::Data> data = meta->CreateInstance();
 		data->count = count;
 		return data;
+	}
+
+	void Load(const std::shared_ptr<UserSession>& session)
+	{
+		auto pUserData = session->GetComponent<Component::UserData>();
+		if (nullptr == pUserData)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+		}
+
+		auto pSuit = pUserData->pSuit;
+		auto pBag = pUserData->pBag;
+
+		pSuit->session = session;
+
+		pBag->session = session;
+		pBag->last_item_no = 0;
+
+		Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
+			"SELECT item_no, item_index, item_count, equip_part "
+			"FROM UserItem "
+			"WHERE user_no=", session->user_no, " AND delete_yn='N'"
+		);
+
+		for (auto& row : rows)
+		{
+			int32_t itemIndex = row->getInt32("item_index");
+			int32_t itemCount = row->getInt32("item_count");
+
+			std::shared_ptr<Item::Data> item = Item::Create(itemIndex, itemCount);
+			item->item_no = row->getInt64("item_no");
+			pBag->last_item_no = std::max(pBag->last_item_no, item->item_no);
+
+			if (nullptr != item->equip)
+			{
+				item->equip->part = (Message::EquipItemPartType)row->getInt32("equip_part");
+				if (Message::EquipItemPartType::Invalid != item->equip->part)
+				{
+					pSuit->item_datas[(int)item->equip->part] = item;
+					continue;
+				}
+			}
+
+			pBag->item_datas.insert(std::make_pair(item->item_no, item));
+		}
 	}
 
 	bool Merge(std::shared_ptr<Data> lhs, std::shared_ptr<Data> rhs)

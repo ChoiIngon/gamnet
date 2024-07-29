@@ -572,15 +572,27 @@ struct EquipItemData_Serializer {
 	static size_t Size(const EquipItemData& obj) { return obj.Size(); }
 };
 struct UserData {
-	uint64_t	user_seq;
+	int64_t	user_no;
 	std::string	user_name;
+	std::list<ItemData >	bag;
+	std::list<EquipItemData >	suit;
 	UserData()	{
-		user_seq = 0;
+		user_no = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
-		nSize += sizeof(uint64_t);
+		nSize += sizeof(int64_t);
 		nSize += sizeof(uint32_t); nSize += user_name.length();
+		nSize += sizeof(int32_t);
+		for(std::list<ItemData >::const_iterator bag_itr = bag.begin(); bag_itr != bag.end(); bag_itr++)	{
+			const ItemData& bag_elmt = *bag_itr;
+			nSize += ItemData_Serializer::Size(bag_elmt);
+		}
+		nSize += sizeof(int32_t);
+		for(std::list<EquipItemData >::const_iterator suit_itr = suit.begin(); suit_itr != suit.end(); suit_itr++)	{
+			const EquipItemData& suit_elmt = *suit_itr;
+			nSize += EquipItemData_Serializer::Size(suit_elmt);
+		}
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -594,10 +606,22 @@ struct UserData {
 		return true;
 	}
 	bool Store(char** _buf_) const {
-		std::memcpy(*_buf_, &user_seq, sizeof(uint64_t)); (*_buf_) += sizeof(uint64_t);
+		std::memcpy(*_buf_, &user_no, sizeof(int64_t)); (*_buf_) += sizeof(int64_t);
 		size_t user_name_size = user_name.length();
 		std::memcpy(*_buf_, &user_name_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		std::memcpy(*_buf_, user_name.c_str(), user_name.length()); (*_buf_) += user_name.length();
+		size_t bag_size = bag.size();
+		std::memcpy(*_buf_, &bag_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		for(std::list<ItemData >::const_iterator bag_itr = bag.begin(); bag_itr != bag.end(); bag_itr++)	{
+			const ItemData& bag_elmt = *bag_itr;
+			if(false == ItemData_Serializer::Store(_buf_, bag_elmt)) { return false; }
+		}
+		size_t suit_size = suit.size();
+		std::memcpy(*_buf_, &suit_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		for(std::list<EquipItemData >::const_iterator suit_itr = suit.begin(); suit_itr != suit.end(); suit_itr++)	{
+			const EquipItemData& suit_elmt = *suit_itr;
+			if(false == EquipItemData_Serializer::Store(_buf_, suit_elmt)) { return false; }
+		}
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -608,11 +632,25 @@ struct UserData {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
-		if(sizeof(uint64_t) > nSize) { return false; }	std::memcpy(&user_seq, *_buf_, sizeof(uint64_t));	(*_buf_) += sizeof(uint64_t); nSize -= sizeof(uint64_t);
+		if(sizeof(int64_t) > nSize) { return false; }	std::memcpy(&user_no, *_buf_, sizeof(int64_t));	(*_buf_) += sizeof(int64_t); nSize -= sizeof(int64_t);
 		if(sizeof(int32_t) > nSize) { return false; }
 		uint32_t user_name_length = 0; std::memcpy(&user_name_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
 		if(nSize < user_name_length) { return false; }
 		user_name.assign((char*)*_buf_, user_name_length); (*_buf_) += user_name_length; nSize -= user_name_length;
+		if(sizeof(int32_t) > nSize) { return false; }
+		uint32_t bag_length = 0; std::memcpy(&bag_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		for(uint32_t i=0; i<bag_length; i++) {
+			ItemData bag_val;
+			if(false == ItemData_Serializer::Load(bag_val, _buf_, nSize)) { return false; }
+			bag.push_back(bag_val);
+		}
+		if(sizeof(int32_t) > nSize) { return false; }
+		uint32_t suit_length = 0; std::memcpy(&suit_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		for(uint32_t i=0; i<suit_length; i++) {
+			EquipItemData suit_val;
+			if(false == EquipItemData_Serializer::Load(suit_val, _buf_, nSize)) { return false; }
+			suit.push_back(suit_val);
+		}
 		return true;
 	}
 }; //UserData

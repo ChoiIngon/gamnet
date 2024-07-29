@@ -5,6 +5,8 @@
 #include <idl/MessageCommon.h>
 #include "../../Util/MetaData.h"
 
+class UserSession;
+
 namespace Item 
 {
 	class Data;
@@ -154,6 +156,7 @@ namespace Item
 	std::shared_ptr<Data> Create(const std::string& id, int count);
 	std::shared_ptr<Data> Create(int32_t index, int count);
 
+	void Load(const std::shared_ptr<UserSession>& session);
 	bool Merge(std::shared_ptr<Data> lhs, std::shared_ptr<Data> rhs);
 };
 

@@ -25,7 +25,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 {
 	Message::User::MsgSvrCli_Login_Ans ans;
 	ans.error_code = Message::ErrorCode::Success;
-	ans.user_data.user_seq = 0;
+	ans.user_data.user_no = 0;
 	ans.user_data.user_name = "";
 
 	try {
@@ -39,16 +39,20 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		ReadUserData(session);
 
 		auto asyncUserCounter = std::async(std::launch::async, &Component::UserCounter::Load, session);
-		auto asyncUserBag = std::async(std::launch::async, &Component::Bag::Load, session);
+		auto asyncLoadItem = std::async(std::launch::async, &Item::Load, session);
 
 		session->AddComponent(asyncUserCounter.get());
-		session->AddComponent(asyncUserBag.get());
+		asyncLoadItem.wait();
 
 		std::shared_ptr<Component::Account> pAccount = session->GetComponent<Component::Account>();
 		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
-		
-		ans.user_data.user_seq = pAccount->user_no;
+		auto pBag = pUserData->pBag;
+		auto pSuit = pUserData->pSuit;
+
+		ans.user_data.user_no = pAccount->user_no;
 		ans.user_data.user_name = pUserData->user_name;
+		pBag->Serialize(ans.user_data.bag);
+		pSuit->Serialize(ans.user_data.suit);
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -59,7 +63,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		}
 		session->RemoveComponent<Component::Account>();
 	}
-	LOG(DEV, "Message::User::MsgSvrCli_Login_Ans(error_code:", (int)ans.error_code, ", user_seq:", ans.user_data.user_seq, ")");
+	LOG(DEV, "Message::User::MsgSvrCli_Login_Ans(error_code:", (int)ans.error_code, ", user_seq:", ans.user_data.user_no, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
 }
 
@@ -148,11 +152,11 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 		dest.service_name = "GAME";
 		dest.id = server_id;
 		Gamnet::Network::Router::SendMsg(dest, ntf);
-	}
 
-	Gamnet::Database::MySQL::Execute(session->shard_index,
-		"UPDATE UserData SET server_id = ", localServerID, " WHERE user_no=", session->user_no
-	);
+		Gamnet::Database::MySQL::Execute(session->shard_index,
+			"UPDATE UserData SET server_id = ", localServerID, " WHERE user_no=", session->user_no
+		);
+	}
 
 	std::shared_ptr<Component::UserData> pUserData = std::make_shared<Component::UserData>();
 	pUserData->user_name = row->getString("user_name");
@@ -164,6 +168,7 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 void Test_Login_Req(const std::shared_ptr<TestSession>& session)
 {
 	Message::User::MsgCliSvr_Login_Req req;
+	//req.account_id = "a8a21a2984c2be156471f538a9760a93";
 	req.account_id = session->session_token;
 	req.account_type = Message::AccountType::Dev;
 	Gamnet::Test::SendMsg(session, req);
@@ -177,15 +182,10 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
-		//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserLogin_Ans");
-		if(Message::ErrorCode::InvalidUserError == ans.error_code)
+		
+		for (const auto& item : ans.user_data.bag)
 		{
-			Message::User::MsgCliSvr_Create_Req req;
-			req.user_name = session->session_token.substr(0, 16);
-			req.account_id = session->session_token;
-			req.account_type = Message::AccountType::Dev;
-			Gamnet::Test::SendMsg(session, req);
-			return;
+			session->items.insert(std::make_pair(item.item_no, item));
 		}
 	}
 	catch (const Gamnet::Exception& e) {

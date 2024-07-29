@@ -9,8 +9,8 @@ namespace Handler {	namespace Item {
 	class Handler_EquipItem : public Gamnet::Network::IHandler
 	{
 	public:
-		Handler_EquipItem();
-		virtual ~Handler_EquipItem();
+		Handler_EquipItem() = default;
+		virtual ~Handler_EquipItem() = default;
 
 		void Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Item::MsgCliSvr_EquipItem_Req& req);
 	};

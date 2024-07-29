@@ -15,58 +15,6 @@ Bag::Bag()
 {
 }
 
-std::shared_ptr<Bag> Bag::Load(const std::shared_ptr<UserSession>& session)
-{
-	std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
-	if (nullptr == pUserData)
-	{
-		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-	}
-
-	std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
-	std::shared_ptr<Component::Suit> pSuit = pUserData->pSuit;
-
-	pBag->session = session;
-	pBag->last_item_no = 0;
-
-	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
-		"SELECT item_no, item_index, item_count, equip_part "
-		"FROM UserItem "
-		"WHERE user_no = ", session->user_no, " AND delete_yn='N'"
-	);
-
-	Message::Item::MsgSvrCli_AddItem_Ntf ntf;
-	for (auto& row : rows)
-	{
-		uint32_t itemIndex = row->getUInt32("item_index");
-		int32_t itemCount = row->getInt32("item_count");
-		std::shared_ptr<Item::Data> item = Item::Create(itemIndex, itemCount);
-		
-		item->item_no = row->getInt64("item_no");
-		if(nullptr != item->equip)
-		{
-			item->equip->part = (Message::EquipItemPartType)row->getInt32("equip_part");
-			pSuit->EquipWithoutDB(item);
-		}
-		
-		pBag->last_item_no = std::max(pBag->last_item_no, item->item_no);
-		pBag->item_datas.insert(std::make_pair(item->item_no, item));
-
-		Message::ItemData msgItemData;
-		msgItemData.item_index = item->meta->Index;
-		msgItemData.item_no = item->item_no;
-		msgItemData.item_count = item->count;
-		ntf.item_datas.push_back(msgItemData);
-	}
-
-	if(0 < ntf.item_datas.size())
-	{
-		Gamnet::Network::Tcp::SendMsg(session, ntf, true);
-	}
-
-	return pBag;
-}
-
 std::shared_ptr<Transaction::Statement> Bag::Insert(const std::shared_ptr<Item::Data>& item)
 {
 	std::shared_ptr<InsertStatement> insert = std::make_shared<InsertStatement>();
@@ -180,6 +128,21 @@ std::shared_ptr<Transaction::Statement> Bag::Remove(int64_t itemNo, int count)
 	}
 
 	return remove;
+}
+
+void Bag::Serialize(std::list<Message::ItemData>& items) const
+{
+	for (auto itr : item_datas)
+	{
+		auto pItem = itr.second;
+		
+		Message::ItemData item;
+		item.item_no = pItem->item_no;
+		item.item_index = pItem->meta->Index;
+		item.item_count = pItem->count;
+
+		items.push_back(item);
+	}
 }
 
 void Bag::DeleteStatement::Commit(const std::shared_ptr<Transaction::Connection>& db)

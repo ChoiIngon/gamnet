@@ -3,45 +3,57 @@
 #include <idl/MessageUser.h>
 #include <idl/MessageItem.h>
 #include "../../UserSession.h"
+#include "../UserData.h"
 #include "Item.h"
 
 namespace Component {
-	Suit::Suit()
+
+Suit::Suit()
+{
+	for (int i = 0; i < (int)Message::EquipItemPartType::Max; i++)
 	{
-		for(int i=0; i< (int)Message::EquipItemPartType::Max; i++)
-		{
-			item_datas[i] = nullptr;
-		}
+		item_datas[i] = nullptr;
+	}
+}
+
+void Suit::EquipStatement::Commit(const std::shared_ptr<Transaction::Connection>& db)
+{
+
+}
+
+void Suit::EquipStatement::Rollback()
+{
+}
+
+void Suit::EquipStatement::Sync()
+{
+}
+
+std::shared_ptr<Transaction::Statement> Suit::Equip(const std::shared_ptr<Item::Data>& item)
+{
+	const std::shared_ptr<Item::Meta>& meta = item->meta;
+	assert(nullptr != meta->Equip);
+	
+	if (nullptr == item->equip)
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
 
-	void Suit::EquipWithoutDB(const std::shared_ptr<Item::Data>& item)
-	{
-		if(Message::EquipItemPartType::Invalid >= item->equip->part || Message::EquipItemPartType::Max <= item->equip->part)
-		{
-			return;
-		}
-		item_datas[(int)item->equip->part] = item;
+	assert(Message::EquipItemPartType::Invalid < meta->Equip->Part && Message::EquipItemPartType::Max > meta->Equip->Part);
 
-		Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
-		ntf.item_no = item->item_no;
-		//Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+	Unequip(meta->Equip->Part);
+
+	if (Message::EquipItemPartType::Invalid >= item->equip->part || Message::EquipItemPartType::Max <= item->equip->part)
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
 
-	void Suit::Equip(const std::shared_ptr<Item::Data>& item)
-	{
-		const std::shared_ptr<Item::Meta>& meta = item->meta;
-		assert(nullptr != meta->Equip);
+	item_datas[(int)item->equip->part] = item;
 
-		if(nullptr == item->equip)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-		}
-
-		assert(Message::EquipItemPartType::Invalid < meta->Equip->Part && Message::EquipItemPartType::Max > meta->Equip->Part);
-		
-
-		Unequip(meta->Equip->Part);
-
+	std::shared_ptr<EquipStatement> statement = std::make_shared<EquipStatement>();
+	statement->session = session;
+	statement->item = item;
+	return statement;
 		/*
 		session->queries->Update("user_item",
 			Gamnet::Format("equip_part=", (int)meta->equip->part, ",expire_date='", item->GetExpireDate().ToString(), "'"),
@@ -60,7 +72,25 @@ namespace Component {
 			Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 		});
 		*/
+}
+
+void Suit::Serialize(std::list<Message::EquipItemData>& items) const
+{
+	for (int i = 0; i < (int)Message::EquipItemPartType::Max; i++)
+	{
+		auto pItem = item_datas[i];
+		if (nullptr != pItem)
+		{
+			Message::EquipItemData item;
+			item.item_no = pItem->item_no;
+			item.item_index = pItem->meta->Index;
+			item.item_count = pItem->count;
+			item.part_type = (Message::EquipItemPartType)i;
+
+			items.push_back(item);
+		}
 	}
+}
 
 	void Suit::Unequip(Message::EquipItemPartType part)
 	{

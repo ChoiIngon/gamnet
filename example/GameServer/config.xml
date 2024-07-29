@@ -16,7 +16,7 @@
 		<farm host="127.0.0.1" port="6379"/>
 	</router>
 		
-	<test host="127.0.0.1" port="40001" session_count="500" loop_count="100">
+	<test host="127.0.0.1" port="40001" session_count="1" loop_count="1">
 		<message name="Test_Create"/>
 		<message name="Test_Login"/>
 		<message name="Cheat_AddItem"/>

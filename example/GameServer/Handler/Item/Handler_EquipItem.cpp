@@ -6,57 +6,49 @@
 
 namespace Handler {	namespace Item {
 
-	Handler_EquipItem::Handler_EquipItem()
-	{
-	}
+void Handler_EquipItem::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Item::MsgCliSvr_EquipItem_Req& req)
+{
+	Message::Item::MsgSvrCli_EquipItem_Ans ans;
+	ans.error_code = Message::ErrorCode::Success;
 
-	Handler_EquipItem::~Handler_EquipItem()
-	{
-	}
-
-	void Handler_EquipItem::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Item::MsgCliSvr_EquipItem_Req& req)
-	{
-		Message::Item::MsgSvrCli_EquipItem_Ans ans;
-		ans.error_code = Message::ErrorCode::Success;
-
-		try {
-			LOG(DEV, "Message::Item::MsgCliSvr_EquipItem_Req()");
-			if (nullptr == session->GetComponent<Component::UserData>())
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-			}
-			/*
-			auto bag = session->GetComponent<Component::Bag>();
-			auto item = bag->Find(req.item_seq);
-			if (nullptr == item)
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-			}
-			if (nullptr == item->equip)
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-			}
-			auto suit = session->GetComponent<Component::Suit>();
-			session->StartTransaction();
-			suit->Equip(item);
-			session->Commit();
-			*/
-		}
-		catch (const Gamnet::Exception& e)
+	try {
+		LOG(DEV, "Message::Item::MsgCliSvr_EquipItem_Req()");
+		auto pUserData = session->GetComponent<Component::UserData>();
+		if(nullptr == pUserData)
 		{
-			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-			ans.error_code = (Message::ErrorCode)e.error_code();
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
-		LOG(DEV, "Message::Item::MsgSvrCli_EquipItem_Ans(error_code:", (int)ans.error_code, ")");
-		Gamnet::Network::Tcp::SendMsg(session, ans);
-	}
+		
+		auto pBag = pUserData->pBag;
+		auto pItem = pBag->Find(req.item_no);
+		if (nullptr == pItem)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+		}
+		
+		if (nullptr == pItem->equip)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+		}
 
-	GAMNET_BIND_TCP_HANDLER(
-		UserSession,
-		Message::Item::MsgCliSvr_EquipItem_Req,
-		Handler_EquipItem, Recv_Req,
-		HandlerStatic
-	);
+		pBag->Remove(req.item_no, 1);
+		auto pSuit = pUserData->pSuit;
+	}
+	catch (const Gamnet::Exception& e)
+	{
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+		ans.error_code = (Message::ErrorCode)e.error_code();
+	}
+	LOG(DEV, "Message::Item::MsgSvrCli_EquipItem_Ans(error_code:", (int)ans.error_code, ")");
+	Gamnet::Network::Tcp::SendMsg(session, ans);
+}
+
+GAMNET_BIND_TCP_HANDLER(
+	UserSession,
+	Message::Item::MsgCliSvr_EquipItem_Req,
+	Handler_EquipItem, Recv_Req,
+	HandlerStatic
+);
 
 	void Test_EquipItem_Req(const std::shared_ptr<TestSession>& session)
 	{
