@@ -404,5 +404,80 @@ namespace Item {
 		//});
 		return true;
 	}
+
+	void EquipStatement::Commit(const std::shared_ptr<Transaction::Connection>& db)
+	{
+
+	}
+
+	void EquipStatement::Rollback()
+	{
+	}
+
+	void EquipStatement::Sync()
+	{
+	}
+
+	std::shared_ptr<Transaction::Statement> Equip(const std::shared_ptr<UserSession>& session, int64_t itemNo)
+	{
+		std::shared_ptr<EquipStatement> statement = std::make_shared<EquipStatement>();
+		statement->session = session;
+
+		auto pUserData = session->GetComponent<Component::UserData>();
+		if (nullptr == pUserData)
+		{
+			return nullptr;
+		}
+
+		auto pBag = pUserData->pBag;
+		/*
+		std::shared_ptr<Transaction::Statement> Suit::Equip(const std::shared_ptr<Item::Data>&item)
+		{
+			const std::shared_ptr<Item::Meta>& meta = item->meta;
+			assert(nullptr != meta->Equip);
+
+			if (nullptr == item->equip)
+			{
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+			}
+
+			assert(Message::EquipItemPartType::Invalid < meta->Equip->Part && Message::EquipItemPartType::Max > meta->Equip->Part);
+
+			Unequip(meta->Equip->Part);
+
+			if (Message::EquipItemPartType::Invalid >= item->equip->part || Message::EquipItemPartType::Max <= item->equip->part)
+			{
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+			}
+
+			item_datas[(int)item->equip->part] = item;
+
+			std::shared_ptr<EquipStatement> statement = std::make_shared<EquipStatement>();
+			statement->session = session;
+			statement->item = item;
+			return statement;
+			/*
+			session->queries->Update("user_item",
+				Gamnet::Format("equip_part=", (int)meta->equip->part, ",expire_date='", item->GetExpireDate().ToString(), "'"),
+				{
+					{ "user_seq", session->user_no },
+					{ "item_seq", item->item_no }
+				}
+			);
+
+			session->on_commit.push_back([=](){
+				item->equip->part = meta->equip->part;
+				item_datas[(int)meta->equip->part] = item;
+
+				Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
+				ntf.item_seq = item->item_no;
+				Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+			});
+		}
+
+			*/
+
+		return statement;
+	}
 }
 
