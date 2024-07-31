@@ -18,12 +18,12 @@ namespace Handler {	namespace Item {
 
 		try {
 			LOG(DEV, "Message::Item::MsgCliSvr_SellItem_Req()");
-			if (nullptr == session->GetComponent<Component::UserData>())
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-			}
-
-			auto bag = session->GetComponent<Component::Bag>();
+			//if (nullptr == session->GetComponent<Component::UserData>())
+			//{
+			//	throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+			//}
+			//
+			//auto bag = session->GetComponent<Component::Bag>();
 			/*
 			auto item = bag->Find(req.item_seq);
 			if (nullptr == item)

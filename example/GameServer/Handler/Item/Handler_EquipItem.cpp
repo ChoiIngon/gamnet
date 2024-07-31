@@ -14,12 +14,7 @@ void Handler_EquipItem::Recv_Req(const std::shared_ptr<UserSession>& session, co
 
 	try {
 		LOG(DEV, "Message::Item::MsgCliSvr_EquipItem_Req()");
-		auto pUserData = session->GetComponent<Component::UserData>();
-		if(nullptr == pUserData)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-		}
-		
+
 		Transaction transaction(session);
 		if (false == transaction(::Item::Equip(session, req.item_no)))
 		{

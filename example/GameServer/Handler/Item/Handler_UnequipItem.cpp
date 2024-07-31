@@ -21,15 +21,15 @@ namespace Handler {	namespace Item {
 
 		try {
 			LOG(DEV, "Message::Item::MsgCliSvr_UnequipItem_Req()");
-			if (nullptr == session->GetComponent<Component::UserData>())
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-			}
+			//if (nullptr == session->GetComponent<Component::UserData>())
+			//{
+			//	throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+			//}
 
-			auto suit = session->GetComponent<Component::Suit>();
-			session->StartTransaction();
-			suit->Unequip(req.part_type);
-			session->Commit();
+			//auto suit = session->GetComponent<Component::Suit>();
+			//session->StartTransaction();
+			//suit->Unequip(req.part_type);
+			//session->Commit();
 		}
 		catch (const Gamnet::Exception& e)
 		{

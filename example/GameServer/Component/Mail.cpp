@@ -97,6 +97,7 @@ namespace Component {
 
 	void Mail::SendMail(const std::shared_ptr<UserSession>& session, const std::shared_ptr<MailData>& mailData)
 	{
+		/*
 		auto mail = session->GetComponent<Mail>();
 		if(nullptr == mail)
 		{
@@ -111,5 +112,6 @@ namespace Component {
 		});
 		mail->last_update_time = 0;
 		session->on_commit.push_back(std::bind(&Mail::Load, mail));
+		*/
 	}
 };

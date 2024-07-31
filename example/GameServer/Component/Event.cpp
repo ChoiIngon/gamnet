@@ -64,6 +64,7 @@ namespace Component {
 
 		for (auto& meta : metas)
 		{
+			/*
 			auto itemMeta = Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(meta->item_id);
 			auto itr = events.find(meta->index);
 			if (events.end() == itr)
@@ -97,6 +98,7 @@ namespace Component {
 					Mail::SendMail(session, mailData);
 				}
 			}
+			*/
 		}
 	}
 }

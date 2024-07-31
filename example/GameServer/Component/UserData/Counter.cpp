@@ -1,6 +1,7 @@
 #include "Counter.h"
 #include <idl/MessageUser.h>
 #include "../../UserSession.h"
+#include "../UserData.h"
 
 namespace Component {
 
@@ -11,35 +12,22 @@ Counter::Data::Data()
 {
 }
 
-std::shared_ptr<Counter> Counter::Load(const std::shared_ptr<UserSession>& session)
+void Counter::Load(const std::shared_ptr<UserSession>& session)
 {
 	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
 		"SELECT counter_type, counter_value, update_time FROM UserCounter WHERE user_no=", session->user_no
 	);
 
-	Message::User::MsgSvrCli_Counter_Ntf ntf;
-	std::shared_ptr<Counter> pUserCounter = std::make_shared<Counter>();
+	auto pUserData = session->pUserData;
+	auto pUserCounter = pUserData->pCounter;
 	for (auto& row : rows)
 	{
 		std::shared_ptr<Data> data = std::make_shared<Data>();
-		data->type = (Message::CounterType)row->getUInt32("counter_type");
+		data->type = (Message::CounterType)row->getInt32("counter_type");
 		data->value = row->getInt64("counter_value");
 		data->update_time = row->getString("update_time");
 		pUserCounter->datas.insert(std::make_pair(data->type, data));
-
-		Message::CounterData counterData;
-		counterData.counter_type = data->type;
-		counterData.counter_value = data->value;
-		counterData.update_time = Gamnet::Time::UnixTimestamp(data->update_time);
-		ntf.counter_datas.push_back(counterData);
 	}
-
-	if(0 < ntf.counter_datas.size())
-	{
-		Gamnet::Network::Tcp::SendMsg(session, ntf, true);
-	}
-
-	return pUserCounter;
 }
 
 void Test_Counter_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)

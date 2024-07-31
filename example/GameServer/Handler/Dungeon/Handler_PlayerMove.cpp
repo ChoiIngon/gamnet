@@ -19,6 +19,7 @@ void Handler_PlayerMove::Recv_Ntf(const std::shared_ptr<UserSession>& session, c
 {
 	try {
 		LOG(DEV, "Message::Dungeon::MsgCliSvr_PlayerMove_Ntf()");
+		/*
 		std::shared_ptr<Component::Dungeon::Data> dungeon = session->GetComponent<Component::Dungeon::Data>();
 		if (nullptr == dungeon)
 		{
@@ -50,6 +51,7 @@ void Handler_PlayerMove::Recv_Ntf(const std::shared_ptr<UserSession>& session, c
 				player->timer->Cancel();
 			}
 		});
+		*/
 	}
 	catch (const Gamnet::Exception& e)
 	{

@@ -20,12 +20,12 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 	
 	try {
 		LOG(DEV, "Message::Item::MsgCliSvr_OpenPackage_Req()");
-		if(nullptr == session->GetComponent<Component::UserData>())
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-		}
-
-		auto bag = session->GetComponent<Component::Bag>();
+		//if(nullptr == session->GetComponent<Component::UserData>())
+		//{
+		//	throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+		//}
+		//
+		//auto bag = session->GetComponent<Component::Bag>();
 		/*
 		auto item = bag->Find(req.item_seq);
 		if(nullptr == item)

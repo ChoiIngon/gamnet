@@ -20,6 +20,7 @@ void Handler_OpenMail::Recv_Req(const std::shared_ptr<UserSession>& session, con
 	
 	try {
 		LOG(DEV, "Message::Lobby::MsgCliSvr_OpenMail_Req()");
+		/*
 		if (nullptr == session->GetComponent<Component::Account>())
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
@@ -31,6 +32,7 @@ void Handler_OpenMail::Recv_Req(const std::shared_ptr<UserSession>& session, con
 		session->StartTransaction();
 		mail->Open(req.mail_seq);
 		session->Commit();
+		*/
 	}
 	catch (const Gamnet::Exception& e)
 	{

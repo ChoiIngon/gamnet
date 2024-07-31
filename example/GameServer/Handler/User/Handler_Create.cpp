@@ -36,12 +36,13 @@ void Handler_Create::Recv_Req(const std::shared_ptr<UserSession>& session, const
 	try {
 		LOG(DEV, "Message::User::MsgCliSvr_User_Create_Req(account_id:", req.account_id, ")");
 
-		if(nullptr != session->GetComponent<Component::Account>())
+		if(Message::AccountState::Invalid != session->pAccount->account_state)
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
 
 		int shard_index = Gamnet::Singleton<ShardIndex>::GetInstance().Generate();
+
 		Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
 			"INSERT INTO Account(account_id, account_type, shard_index) "
 			"VALUES('", req.account_id, "',", (int)req.account_type, ",", shard_index, ")"

@@ -481,6 +481,7 @@ namespace Component { namespace Dungeon {
 
 	size_t Data::Enter(std::shared_ptr<UserSession> session)
 	{
+		/*
 		session->strand = this->strand;
 		std::shared_ptr<Unit::Data> player = session->GetComponent<Component::Unit::Data>();
 		player->dungeon = this;
@@ -510,9 +511,12 @@ namespace Component { namespace Dungeon {
 		players.insert(std::make_pair(player->seq, player));
 		sessions.insert(std::make_pair(session->session_key, session));
 		return sessions.size();
+		*/
+		return 0;
 	}
 	void Data::Leave(std::shared_ptr<UserSession> session)
 	{
+		/*
 		session->strand = Gamnet::Network::Session::CreateStrand();
 		std::shared_ptr<Unit::Data> player = session->GetComponent<Component::Unit::Data>();
 		player->dungeon = nullptr;
@@ -525,6 +529,7 @@ namespace Component { namespace Dungeon {
 			ntf.unit_seq = player->seq;
 			SendMsg(ntf);
 		}
+		*/
 	}
 	void Manager::Init()
 	{
@@ -632,7 +637,7 @@ namespace Component { namespace Dungeon {
 	std::shared_ptr<Data> Enter(std::shared_ptr<UserSession> session, uint32_t index)
 	{
 		std::shared_ptr<Data> data = Gamnet::Singleton<Dungeon::Manager>::GetInstance().Enter(index, session);
-		session->AddComponent<Component::Dungeon::Data>(data);
+		//session->AddComponent<Component::Dungeon::Data>(data);
 		return data;
 	}
 }}

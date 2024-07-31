@@ -1,4 +1,5 @@
 #include "UserSession.h"
+#include "component/Account.h"
 #include "Component/UserData.h"
 #include "Component/Event.h"
 #include "Component/Mail.h"
@@ -9,6 +10,8 @@
 UserSession::UserSession()
 	: user_no(0)
 	, shard_index(0)
+	, pAccount(std::make_shared<Component::Account>())
+	, pUserData(std::make_shared<Component::UserData>())
 {
 }
 
@@ -25,18 +28,18 @@ void UserSession::OnCreate()
 void UserSession::OnAccept()
 {
 	LOG(DEV, "OnAccept(session_key:", session_key, ")");
-	auto disconnect = GetComponent<Component::Disconnect>();
-	if(nullptr != disconnect) // reconnect
-	{
-		// information during disconnect
-	}
-	RemoveComponent<Component::Disconnect>();
+	//auto disconnect = GetComponent<Component::Disconnect>();
+	//if(nullptr != disconnect) // reconnect
+	//{
+	//	// information during disconnect
+	//}
+	//RemoveComponent<Component::Disconnect>();
 }
 
 void UserSession::OnClose(int reason)
 {
 	LOG(DEV, "OnClose(session_key:", session_key, ")");
-	AddComponent<Component::Disconnect>();
+	//AddComponent<Component::Disconnect>();
 }
 
 void UserSession::OnDestroy()
@@ -44,34 +47,16 @@ void UserSession::OnDestroy()
 	LOG(DEV, "OnDistroy(session_key:", session_key,")");
 	Gamnet::Singleton<UserSession::Manager>::GetInstance().RemoveSession(std::static_pointer_cast<UserSession>(shared_from_this()));
 
-	std::shared_ptr<Component::Dungeon::Data> dungeon = GetComponent<Component::Dungeon::Data>();
-	if (nullptr != dungeon)
-	{
-		dungeon->Leave(std::static_pointer_cast<UserSession>(shared_from_this()));
-	}
-	
-	components.Clear();
+	//std::shared_ptr<Component::Dungeon::Data> dungeon = GetComponent<Component::Dungeon::Data>();
+	//if (nullptr != dungeon)
+	//{
+	//	dungeon->Leave(std::static_pointer_cast<UserSession>(shared_from_this()));
+	//}
+	//
+	//components.Clear();
 
 	user_no = 0;
 	shard_index = 0;
-}
-
-void UserSession::StartTransaction()
-{
-	queries->Rollback();
-	logs->Rollback();
-	on_commit.clear();
-}
-
-void UserSession::Commit()
-{
-	queries->Commit();
-	logs->Commit();
-	for(auto& callback : on_commit)
-	{
-		callback();
-	}
-	on_commit.clear();
 }
 
 void UserSession::Manager::Init()

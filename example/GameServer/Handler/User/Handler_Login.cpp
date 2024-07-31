@@ -33,14 +33,8 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		ReadAccountData(session, req.account_id, req.account_type);
 		ReadUserData(session);
 
-		auto asyncUserCounter = std::async(std::launch::async, &Component::Counter::Load, session);
-		auto asyncLoadItem = std::async(std::launch::async, &Item::Load, session);
-
-		session->AddComponent(asyncUserCounter.get());
-		asyncLoadItem.wait();
-
-		std::shared_ptr<Component::Account> pAccount = session->GetComponent<Component::Account>();
-		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+		std::shared_ptr<Component::Account> pAccount = session->pAccount;
+		std::shared_ptr<Component::UserData> pUserData = session->pUserData;
 		auto pBag = pUserData->pBag;
 		auto pSuit = pUserData->pSuit;
 
@@ -56,7 +50,6 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		{
 			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 		}
-		session->RemoveComponent<Component::Account>();
 	}
 	LOG(DEV, "Message::User::MsgSvrCli_Login_Ans(error_code:", (int)ans.error_code, ", user_seq:", ans.user_data.user_no, ")");
 	Gamnet::Network::Tcp::SendMsg(session, ans);
@@ -71,7 +64,8 @@ GAMNET_BIND_TCP_HANDLER(
 
 void Handler_Login::ReadAccountData(const std::shared_ptr<UserSession>& session, const std::string& accountID, Message::AccountType accountType)
 {
-	if(nullptr != session->GetComponent<Component::Account>())
+	auto pAccount = session->pAccount;
+	if(Message::AccountState::Invalid != pAccount->account_state)
 	{
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
@@ -89,32 +83,29 @@ void Handler_Login::ReadAccountData(const std::shared_ptr<UserSession>& session,
 	session->user_no = row->getInt64("user_no");
 	session->shard_index = row->getInt("shard_index");
 
-	std::shared_ptr<Component::Account> account = std::make_shared<Component::Account>();
-	account->user_no = row->getInt64("user_no");
-	account->account_id = accountID;
-	account->account_type = accountType;
-	account->account_state = (Message::AccountState)row->getInt("account_state");
-	account->shard_index = row->getInt("shard_index");
-	account->create_time = row->getString("create_time");
-	account->delete_time = row->getString("delete_time");
+	pAccount->user_no = row->getInt64("user_no");
+	pAccount->account_id = accountID;
+	pAccount->account_type = accountType;
+	pAccount->account_state = (Message::AccountState)row->getInt("account_state");
+	pAccount->shard_index = row->getInt("shard_index");
+	pAccount->create_time = row->getString("create_time");
+	pAccount->delete_time = row->getString("delete_time");
 
 	time_t now = Gamnet::Time::UTC::Now();
-	if (Message::AccountState::OnDelete == account->account_state &&  now < Gamnet::Time::UnixTimestamp(account->delete_time))
+	if (Message::AccountState::OnDelete == pAccount->account_state &&  now < Gamnet::Time::UnixTimestamp(pAccount->delete_time))
 	{
 		Gamnet::Database::MySQL::Execute((int)DatabaseType::Account,
-			"UPDATE account SET account_id='", account->account_id, "-DEL-", session->user_no, "',account_state=4 WHERE user_seq=", account->user_no
+			"UPDATE account SET account_id='", pAccount->account_id, "-DEL-", session->user_no, "',account_state=4 WHERE user_seq=", pAccount->user_no
 		);
 
-		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", account->account_id, ", account_type:", (int)account->account_type, ", deleted");
+		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", pAccount->account_id, ", account_type:", (int)pAccount->account_type, ", deleted");
 	}
-
-	session->AddComponent(account);
 }
 
 void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 {
-	auto account = session->GetComponent<Component::Account>();
-	if(nullptr == account)
+	auto pAccount = session->pAccount;
+	if (Message::AccountState::Normal != pAccount->account_state)
 	{
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
@@ -125,7 +116,7 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 
 	if (1 != rows.GetRowCount())
 	{
-		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", account->account_id, ", account_type:", (int)account->account_type);
+		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError, "account_id:", pAccount->account_id, ", account_type:", (int)pAccount->account_type);
 	}
 
 	// 중복 세션 강제 종료
@@ -153,11 +144,15 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 		);
 	}
 
-	std::shared_ptr<Component::UserData> pUserData = std::make_shared<Component::UserData>();
+	auto pUserData = session->pUserData;
 	pUserData->user_name = row->getString("user_name");
 	pUserData->offline_time = row->getString("offline_time");
 
-	session->AddComponent(pUserData);
+	auto asyncUserCounter = std::async(std::launch::async, &Component::Counter::Load, session);
+	auto asyncLoadItem = std::async(std::launch::async, &Item::Load, session);
+
+	asyncUserCounter.wait();
+	asyncLoadItem.wait();
 }
 
 void Test_Login_Req(const std::shared_ptr<TestSession>& session)
@@ -188,6 +183,15 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 			data->item_no = item.item_no;
 
 			pBag->Insert(data);
+		}
+
+		auto pSuit = pUserData->pSuit;
+		for (const auto& item : ans.user_data.suit)
+		{
+			std::shared_ptr<Item::Data> data = Item::Create(item.item_index, item.item_count);
+			data->item_no = item.item_no;
+
+			pSuit->Equip(data);
 		}
 	}
 	catch (const Gamnet::Exception& e) {

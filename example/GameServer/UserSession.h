@@ -14,6 +14,12 @@ public :
 	static constexpr int User = 100;
 };
 
+namespace Component
+{
+	class UserData;
+	class Account;
+}
+
 class UserSession : public Gamnet::Network::Tcp::Session
 {
 public:
@@ -24,41 +30,11 @@ public:
 	virtual void OnClose(int reason) override;
 	virtual void OnDestroy() override;
 
-	void StartTransaction();
-	void Commit();
+	int64_t			user_no;
+	int32_t			shard_index;
 
-	template <class T>
-	std::shared_ptr<T> AddComponent()
-	{
-		return components.AddComponent<T>();
-	}
-	template <class T>
-	std::shared_ptr<T> AddComponent(const std::shared_ptr<T>& component)
-	{
-		return components.AddComponent<T>(component);
-	}
-	template <class T>
-	std::shared_ptr<T> AddComponent(const std::string& name)
-	{
-		return components.AddComponent<T>(name);
-	}
-	template <class T>
-	std::shared_ptr<T> GetComponent()
-	{
-		return components.GetComponent<T>();
-	}
-	template <class T>
-	void RemoveComponent()
-	{
-		components.RemoveComponent<T>();
-	}
-
-	int64_t user_no;
-	uint32_t shard_index;
-
-	std::shared_ptr<Gamnet::Database::MySQL::Transaction> queries;
-	std::shared_ptr<Gamnet::Database::MySQL::Transaction> logs;
-	std::list<std::function<void()>> on_commit;
+	std::shared_ptr<Component::Account> pAccount;
+	std::shared_ptr<Component::UserData> pUserData;
 
 	class Manager
 	{
@@ -70,8 +46,6 @@ public:
 		std::mutex lock;
 		std::map<int64_t, std::shared_ptr<UserSession>> sessions;
 	};
-private :
-	Gamnet::Component components;
 };
 
 class TestSession : public Gamnet::Test::Session 

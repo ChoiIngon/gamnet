@@ -22,11 +22,6 @@ void Handler_Join::Recv_Req(const std::shared_ptr<UserSession>& session, const M
 	
 	try {
 		LOG(DEV, "Message::Lobby::MsgCliSvr_Join_Req()");
-		if (nullptr == session->GetComponent<Component::UserData>())
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-		}
-
 		LoadUserEvent(session);
 		LoadUserMail(session);
 	}
@@ -48,16 +43,18 @@ GAMNET_BIND_TCP_HANDLER(
 
 void Handler_Join::LoadUserEvent(const std::shared_ptr<UserSession>& session)
 {
+	/*
 	std::shared_ptr<Component::Event> evt = session->GetComponent<Component::Event>();
 	session->StartTransaction();
 	evt->Load();
 	session->Commit();
+	*/
 }
 
 void Handler_Join::LoadUserMail(const std::shared_ptr<UserSession>& session)
 {
-	std::shared_ptr<Component::Mail> mail = session->GetComponent<Component::Mail>();
-	mail->Load();
+	//std::shared_ptr<Component::Mail> mail = session->GetComponent<Component::Mail>();
+	//mail->Load();
 }
 
 void Test_Join_Req(const std::shared_ptr<TestSession>& session)

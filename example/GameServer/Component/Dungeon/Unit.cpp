@@ -148,14 +148,16 @@ std::shared_ptr<Unit::Data> Manager::CreateInstance(const std::shared_ptr<Meta>&
 
 std::shared_ptr<Unit::Data> CreatePlayer(std::shared_ptr<UserSession> session, const std::string& id)
 {
+	/*
 	if(nullptr != session->GetComponent<Unit::Data>())
 	{
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 	}
+	*/
 	std::shared_ptr<Unit::Data> data = Gamnet::Singleton<Manager>::GetInstance().CreateInstance(id);
 	data->team_index = 0;
 	data->AddComponent<Player>();
-	session->AddComponent<Unit::Data>(data);
+	//session->AddComponent<Unit::Data>(data);
 	return data;
 }
 }}

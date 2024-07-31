@@ -27,7 +27,7 @@ class Counter
 public :
 	Counter() = default;
 
-	static std::shared_ptr<Counter> Load(const std::shared_ptr<UserSession>& session);
+	static void Load(const std::shared_ptr<UserSession>& session);
 private :
 	std::map<Message::CounterType, std::shared_ptr<Data>> datas;
 };

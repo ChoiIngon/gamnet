@@ -329,6 +329,7 @@ namespace Item {
 
 	void Load(const std::shared_ptr<UserSession>& session)
 	{
+		/*
 		auto pUserData = session->GetComponent<Component::UserData>();
 		if (nullptr == pUserData)
 		{
@@ -370,6 +371,7 @@ namespace Item {
 
 			pBag->item_datas.insert(std::make_pair(item->item_no, item));
 		}
+		*/
 	}
 
 	bool Merge(std::shared_ptr<Data> lhs, std::shared_ptr<Data> rhs)
@@ -404,14 +406,10 @@ namespace Item {
 
 	Gamnet::Return<std::shared_ptr<Transaction::Statement>> Equip(const std::shared_ptr<UserSession>& session, int64_t itemNo)
 	{
-		auto pUserData = session->GetComponent<Component::UserData>();
-		if (nullptr == pUserData)
-		{
-			return (int)Gamnet::ErrorCode::UndefinedError;
-		}
+		auto pUserData	= session->pUserData;
+		auto pBag		= pUserData->pBag;
 
-		auto pBag = pUserData->pBag;
-		auto pItem = pBag->Find(itemNo);
+		auto pItem		= pBag->Find(itemNo);
 		if (nullptr == pItem)
 		{
 			return (int)Gamnet::ErrorCode::UndefinedError;
@@ -442,9 +440,9 @@ namespace Item {
             db->Execute(Gamnet::Format("UPDATE UserItem SET equip_part=", (int)pItem->equip->part, " WHERE user_no=", session->user_no, " AND item_no=", pItem->item_no));
         };
 		statement->Rollback += [pItem, pPrevItem](const std::shared_ptr<UserSession>& session) {
-			auto pUserData = session->GetComponent<Component::UserData>();
-			auto pBag = pUserData->pBag;
-			auto pSuit = pUserData->pSuit;
+			auto pUserData	= session->pUserData;
+			auto pBag		= pUserData->pBag;
+			auto pSuit		= pUserData->pSuit;
 
 			if (nullptr != pPrevItem)
 			{
@@ -463,8 +461,8 @@ namespace Item {
 
 	Gamnet::Return<std::shared_ptr<Transaction::Statement>> InsertIntoBag(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Item::Data>& item)
 	{
-		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
-        std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
+		auto pUserData = session->pUserData;
+        auto pBag = pUserData->pBag;
 
 		Component::Bag::InsertResult result = pBag->Insert(item);
 		if(false == result)
@@ -493,8 +491,8 @@ namespace Item {
 		statement->Rollback += [result](const std::shared_ptr<UserSession>& session) {
 			auto& insert_items = result.value;
 
-			std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
-			std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
+			auto pUserData = session->pUserData;
+			auto pBag = pUserData->pBag;
 
 			for (std::shared_ptr<Item::Data> item : insert_items)
 			{
@@ -526,8 +524,8 @@ namespace Item {
 
 	Gamnet::Return<std::shared_ptr<Transaction::Statement>> RemoveFromBag(const std::shared_ptr<UserSession>& session, int64_t itemNo, int count)
 	{
-		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
-		std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
+		auto pUserData = session->pUserData;
+		auto pBag = pUserData->pBag;
 
 		Gamnet::Return<std::shared_ptr<Item::Data>> result = pBag->Remove(itemNo, count);
 		if (false == result)
@@ -544,7 +542,7 @@ namespace Item {
             );
         };
 		statement->Rollback += [pItemData, count](const std::shared_ptr<UserSession>& session) {
-			std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+			std::shared_ptr<Component::UserData> pUserData = session->pUserData;
 			std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
 
 			if(nullptr == pBag->Find(pItemData->item_no))

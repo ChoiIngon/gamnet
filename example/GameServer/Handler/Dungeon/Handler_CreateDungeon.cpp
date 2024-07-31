@@ -25,11 +25,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 	
 	try {
 		LOG(DEV, "Message::Dungeon::MsgCliSvr_CreateDungeon_Req()");
-		if(nullptr == session->GetComponent<Component::UserData>())
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-		}
-
+		
 		std::shared_ptr<Component::Unit::Data> player = Component::Unit::CreatePlayer(session, "Player1");
 		std::shared_ptr<Component::Dungeon::Data> dungeon = Component::Dungeon::Enter(session, 1);
 
@@ -54,6 +50,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 				continue;
 			}
 
+			/*
 			std::shared_ptr<Component::Unit::Data> unit = user->GetComponent<Component::Unit::Data>();
 			Message::Player comrade;
 			comrade.unit_seq = unit->seq;
@@ -70,6 +67,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 				comrade.equip_items.push_back(item->meta->Index);
 			}
 			ans.comrades.push_back(comrade);
+			*/
 		}
 		/*
 		std::shared_ptr<Unit> monster = Gamnet::Singleton<Component::Monster::Manager>::GetInstance().CreateInstance(1);

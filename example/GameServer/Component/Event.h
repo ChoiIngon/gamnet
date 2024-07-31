@@ -43,6 +43,7 @@ namespace Component {
 
 	public :
 		Event(const std::shared_ptr<UserSession>& session);
+
 		void Load();
 	private :
 		std::shared_ptr<UserSession> session;

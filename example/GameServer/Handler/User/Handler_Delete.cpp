@@ -18,14 +18,10 @@ void Handler_Delete::Recv_Req(const std::shared_ptr<UserSession>& session, const
 
 	try {
 		LOG(DEV, "Message::User::MsgCliSvr_Delete_Req()");
-		auto account = session->GetComponent<Component::Account>();
-		if(nullptr == account)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-		}
+		auto pAccount = session->pAccount;
 
 		Gamnet::Database::MySQL::ResultSet ret = Gamnet::Database::MySQL::Execute((int)DatabaseType::Account, 
-			"CALL sp_account_delete('", account->account_id, "',", (int)account->account_type, ", 14)"
+			"CALL sp_account_delete('", pAccount->account_id, "',", (int)pAccount->account_type, ", 14)"
 		);
 		if (1 > ret.GetRowCount())
 		{
@@ -46,8 +42,6 @@ void Handler_Delete::Recv_Req(const std::shared_ptr<UserSession>& session, const
 				break;
 			}
 		}
-	
-		session->RemoveComponent<Component::Account>();
 	}
 	catch (const Gamnet::Exception& e)
 	{
