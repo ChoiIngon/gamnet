@@ -19,7 +19,8 @@ namespace Component {
 
 	public:
 		Suit();
-		
+
+		void Equip(const std::shared_ptr<Item::Data>& item);
 		void Unequip(Message::EquipItemPartType part);
 		std::shared_ptr<Item::Data> Find(Message::EquipItemPartType part);
 

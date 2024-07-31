@@ -233,6 +233,7 @@
     <ClInclude Include="library\MultiLock.h" />
     <ClInclude Include="library\Pool.h" />
     <ClInclude Include="Library\Random.h" />
+    <ClInclude Include="Library\Return.h" />
     <ClInclude Include="library\Singleton.h" />
     <ClInclude Include="library\String.h" />
     <ClInclude Include="library\ThreadPool.h" />

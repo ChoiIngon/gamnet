@@ -16,7 +16,15 @@ Suit::Suit()
 	}
 }
 
+void Suit::Equip(const std::shared_ptr<Item::Data>& item)
+{
+    if (nullptr != item_datas[(int)item->equip->part])
+    {
+        Unequip(item->equip->part);
+    }
 
+	item_datas[(int)item->equip->part] = item;
+}
 
 void Suit::Serialize(std::list<Message::EquipItemData>& items) const
 {

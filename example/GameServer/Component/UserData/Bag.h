@@ -5,6 +5,7 @@
 #include <map>
 #include "../../Util/Transaction.h"
 #include "../../Component/UserData/Item.h"
+#include <Gamnet/Library/Return.h>
 
 class UserSession;
 
@@ -18,36 +19,16 @@ namespace Component {
 	
 class Bag
 {
-	class InsertStatement : public Transaction::Statement
-	{
-	public:
-		std::shared_ptr<UserSession> session;
-		std::list<std::shared_ptr<Item::Data>> insert_itmes;
-
-		virtual void Commit(const std::shared_ptr<Transaction::Connection>& db) override;
-		virtual void Rollback() override;
-		virtual void Sync() override;
-	};
-
-	class DeleteStatement : public Transaction::Statement
-	{
-	public :
-		std::shared_ptr<UserSession> session;
-		std::shared_ptr<Item::Data> data;
-		int count;
-
-		virtual void Commit(const std::shared_ptr<Transaction::Connection>& db) override;
-		virtual void Rollback() override;
-		virtual void Sync() override;
-	};
-
 	friend void Item::Load(const std::shared_ptr<UserSession>&);
 public :
 	Bag();
 
-	std::shared_ptr<Transaction::Statement> Insert(const std::shared_ptr<Item::Data>& item);
-	std::shared_ptr<Item::Data> Find(int64_t itemNo);
-	std::shared_ptr<Transaction::Statement> Remove(int64_t itemNo, int count);
+	typedef	std::list<std::shared_ptr<Item::Data>> ItemList;
+	typedef Gamnet::Return<ItemList> InsertResult;
+
+	InsertResult				Insert(const std::shared_ptr<Item::Data>& item);
+	Gamnet::Return<std::shared_ptr<Item::Data>>	Remove(int64_t itemNo, int count);
+	std::shared_ptr<Item::Data>	Find(int64_t itemNo);
 
 	void Serialize(std::list<Message::ItemData>& items) const;
 private :

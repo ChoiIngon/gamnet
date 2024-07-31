@@ -15,10 +15,9 @@ Bag::Bag()
 {
 }
 
-std::shared_ptr<Transaction::Statement> Bag::Insert(const std::shared_ptr<Item::Data>& item)
+Bag::InsertResult Bag::Insert(const std::shared_ptr<Item::Data>& item)
 {
-	std::shared_ptr<InsertStatement> insert = std::make_shared<InsertStatement>();
-	insert->session = this->session;
+	std::list<std::shared_ptr<Item::Data>> insert_items;
 
 	const std::shared_ptr<Item::Meta>& meta = item->meta;
 
@@ -30,7 +29,7 @@ std::shared_ptr<Transaction::Statement> Bag::Insert(const std::shared_ptr<Item::
 			std::shared_ptr<Item::Data> portion = meta->CreateInstance();
 			portion->item_no = ++last_item_no;
 			portion->count = meta->MaxStack;
-			insert->insert_itmes.push_back(portion);
+			insert_items.push_back(portion);
 		}
 
 		item->count -= item->meta->MaxStack * stackCount;
@@ -39,55 +38,15 @@ std::shared_ptr<Transaction::Statement> Bag::Insert(const std::shared_ptr<Item::
 	if(0 < item->count)
 	{
 		item->item_no = ++last_item_no;
-		insert->insert_itmes.push_back(item);
+		insert_items.push_back(item);
 	}
 
-	for (std::shared_ptr<Item::Data> data : insert->insert_itmes)
+	for (std::shared_ptr<Item::Data> data : insert_items)
 	{
 		this->item_datas.insert(std::make_pair(data->item_no, data));
 	}
 
-	return insert;
-}
-
-void Bag::InsertStatement::Commit(const std::shared_ptr<Transaction::Connection>& db)
-{
-	std::string query = "INSERT INTO UserItem(`user_no`, `item_no`, `item_index`, `item_count`, `equip_part`, `delete_yn`) VALUES ";
-	for (std::shared_ptr<Item::Data> item : insert_itmes)
-	{
-		query += Gamnet::Format("(", session->user_no, ",", item->item_no, ",", item->meta->Index, ",", item->count, ",0,'N')");
-	}
-
-	db->Execute(query);
-}
-
-void Bag::InsertStatement::Rollback()
-{
-	std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
-	std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
-
-	for (std::shared_ptr<Item::Data> item : insert_itmes)
-	{
-		pBag->Remove(item->item_no, item->count);
-	}
-}
-
-void Bag::InsertStatement::Sync()
-{
-	Message::Item::MsgSvrCli_AddItem_Ntf ntf;
-	for (std::shared_ptr<Item::Data> item : insert_itmes)
-	{
-		Message::ItemData msgItemData;
-		msgItemData.item_index = item->meta->Index;
-		msgItemData.item_no = item->item_no;
-		msgItemData.item_count = item->count;
-		ntf.item_datas.push_back(msgItemData);
-	}
-
-	if (0 < ntf.item_datas.size())
-	{
-		Gamnet::Network::Tcp::SendMsg(session, ntf, true);
-	}
+	return insert_items;
 }
 
 std::shared_ptr<Item::Data> Bag::Find(int64_t itemNo)
@@ -100,34 +59,30 @@ std::shared_ptr<Item::Data> Bag::Find(int64_t itemNo)
 	return itr->second;
 }
 
-std::shared_ptr<Transaction::Statement> Bag::Remove(int64_t itemNo, int count)
+Gamnet::Return<std::shared_ptr<Item::Data>> Bag::Remove(int64_t itemNo, int count)
 {
-	std::shared_ptr<DeleteStatement> remove = std::make_shared<DeleteStatement>();
-	remove->session = this->session;
-	remove->data = Find(itemNo);
-	remove->count = count;
+	auto pItem = Find(itemNo);
+	if (nullptr == pItem)
+    {
+		return (int)Message::ErrorCode::UndefineError;
+    }
 
-	if (nullptr == remove->data)
+	if (count > pItem->count)
 	{
-		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+		return (int)Message::ErrorCode::UndefineError;
 	}
 
-	if (count > remove->data->count)
+	if (true == pItem->count.Stackable())
 	{
-		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+		pItem->count -= count;
 	}
 
-	if (true == remove->data->count.Stackable())
-	{
-		remove->data->count -= count;
-	}
-
-	if (0 == remove->data->count)
+	if (0 == pItem->count)
 	{
 		this->item_datas.erase(itemNo);
 	}
 
-	return remove;
+	return pItem;
 }
 
 void Bag::Serialize(std::list<Message::ItemData>& items) const
@@ -143,39 +98,6 @@ void Bag::Serialize(std::list<Message::ItemData>& items) const
 
 		items.push_back(item);
 	}
-}
-
-void Bag::DeleteStatement::Commit(const std::shared_ptr<Transaction::Connection>& db)
-{
-	db->Execute(
-		Gamnet::Format("UPDATE UserItem SET `item_count` = ", data->count, ",`delete_yn`=", (0 == data->count ? "'Y'" : "'N'"), " WHERE user_no=", session->user_no, " AND item_no=", data->item_no)
-	);
-}
-
-void Bag::DeleteStatement::Rollback()
-{
-	std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
-	std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
-
-	data->count += count;
-
-	auto itr = pBag->item_datas.find(data->item_no);
-	if (pBag->item_datas.end() == itr)
-	{
-		pBag->item_datas.insert(std::make_pair(data->item_no, data));
-	}
-}
-
-void Bag::DeleteStatement::Sync()
-{
-	Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
-	Message::ItemData msgItemData;
-	msgItemData.item_index = data->meta->Index;
-	msgItemData.item_no = data->item_no;
-	msgItemData.item_count = data->count;
-	ntf.item_datas.push_back(msgItemData);
-
-	Gamnet::Network::Tcp::SendMsg(session, ntf, true);
 }
 
 }

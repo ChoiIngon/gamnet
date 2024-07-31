@@ -34,17 +34,14 @@ int Cheat::AddItem(const std::shared_ptr<UserSession>& session, const std::list<
     int index = (int)vIndex;
     int count = (int)vCount;
 
-    auto pItemData = Item::Create(index, 1);
+    auto pItemData = Item::Create(index, count);
     if (nullptr == pItemData)
     {
         return 0;
     }
 
-    auto pUserData = session->GetComponent<Component::UserData>();
-    auto pBag = pUserData->pBag;
-
-    Transaction transaction(session->shard_index);
-    if (false == transaction(pBag->Insert(pItemData)))
+    Transaction transaction(session);
+    if (false == transaction(Item::InsertIntoBag(session, pItemData)))
     {
         transaction.Rollback();
         return 0;

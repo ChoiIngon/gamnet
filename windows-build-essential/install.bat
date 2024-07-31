@@ -6,9 +6,19 @@ if not exist "C:\local\curl-7.43.0-win64" "C:\Program Files\7-Zip\7z.exe" x curl
 setx path "C:\local\curl-7.43.0-win64\dlls;C:\Program Files\MySQL\MySQL Connector C 6.1\lib;%PATH%;" -m
 
 set curdir=%cd%
-if not exist "C:\local\boost_1_71_0" powershell -Command "Invoke-WebRequest https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip -OutFile boost_1_71_0.zip"
-if not exist "C:\local\boost_1_71_0" "C:\Program Files\7-Zip\7z.exe" x boost_1_71_0.zip -o"C:\local\"
-cd /d "C:\local\boost_1_71_0"
+
+SET INSTALL_PATH=C:\local
+SET BOOST_VERSION=1.85.0
+
+ECHO install directory: %INSTALL_PATH%
+ECHO boost version: %BOOST_VERSION%
+
+SET BOOST_PATH=boost_%BOOST_VERSION:.=_%
+
+pushd .
+if not exist .\%BOOST_PATH%.zip powershell -Command "Invoke-WebRequest https://boostorg.jfrog.io/artifactory/main/release/%BOOST_VERSION%/source/%BOOST_PATH%.zip -OutFile %BOOST_PATH%.zip"
+if not exist %INSTALL_PATH%\%BOOST_PATH% "tar" -xf .\%BOOST_PATH%.zip -C %INSTALL_PATH%
+cd /d "%INSTALL_PATH%\%BOOST_PATH%"
 if not exist b2.exe call .\bootstrap.bat
 .\b2
-cd /d %curdir%
+popd

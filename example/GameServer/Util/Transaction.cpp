@@ -1,15 +1,26 @@
 #include "Transaction.h"
 #include <Gamnet/Gamnet.h>
 #include <Gamnet/Database/ConnectionPool.h>
+#include "../UserSession.h"
 
-Transaction::Transaction(int shard_index)
-    : shard_index(shard_index)
+Transaction::Transaction(const std::shared_ptr<UserSession>& session)
+    : session(session)
 {
 }
-
 bool Transaction::operator()(const std::shared_ptr<Statement>& statement)
 {
-    statements.push_back(statement);
+	statements.push_back(statement);
+	return true;
+}
+
+bool Transaction::operator()(const Gamnet::Return<std::shared_ptr<Statement>>& result)
+{
+    if (false == result)
+    {
+        return false;
+    }
+
+    statements.push_back(result.value);
     return true;
 }
 
@@ -22,13 +33,13 @@ void Transaction::Commit()
 		return;
 	}
 
-	std::shared_ptr<Connection> connection = Gamnet::Singleton<ConnectionPool>::GetInstance().GetConnection(shard_index);
+	std::shared_ptr<Connection> connection = Gamnet::Singleton<ConnectionPool>::GetInstance().GetConnection(session->shard_index);
 
 	connection->Execute("start transaction;");
 	try {
 		for (auto statement : statements)
 		{
-			statement->Commit(connection);
+			statement->Commit(session, connection);
 		}
 	}
 	catch (const Gamnet::Exception& e)
@@ -41,7 +52,7 @@ void Transaction::Commit()
 
 	for (auto statement : statements)
 	{
-		statement->Sync();
+		statement->Sync(session);
 	}
 }
 
@@ -49,6 +60,6 @@ void Transaction::Rollback()
 {
 	for (auto statement : statements)
 	{
-		statement->Rollback();
+		statement->Rollback(session);
 	}
 }

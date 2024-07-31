@@ -160,17 +160,9 @@ namespace Item
 	void Load(const std::shared_ptr<UserSession>& session);
 	bool Merge(std::shared_ptr<Data> lhs, std::shared_ptr<Data> rhs);
 	
-	class EquipStatement : public Transaction::Statement
-	{
-	public:
-		std::shared_ptr<UserSession> session;
-		std::shared_ptr<Item::Data> item;
-		virtual void Commit(const std::shared_ptr<Transaction::Connection>& db) override;
-		virtual void Rollback() override;
-		virtual void Sync() override;
-	};
-
-	std::shared_ptr<Transaction::Statement> Equip(const std::shared_ptr<UserSession>& session, int64_t itemNo);
-};
+	Gamnet::Return<std::shared_ptr<Transaction::Statement>> InsertIntoBag(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Item::Data>& item);
+	Gamnet::Return<std::shared_ptr<Transaction::Statement>> RemoveFromBag(const std::shared_ptr<UserSession>& session, int64_t itemNo, int count);
+	Gamnet::Return<std::shared_ptr<Transaction::Statement>> Equip(const std::shared_ptr<UserSession>& session, int64_t itemNo);
+}
 
 #endif

@@ -405,78 +405,168 @@ namespace Item {
 		return true;
 	}
 
-	void EquipStatement::Commit(const std::shared_ptr<Transaction::Connection>& db)
+	Gamnet::Return<std::shared_ptr<Transaction::Statement>> Equip(const std::shared_ptr<UserSession>& session, int64_t itemNo)
 	{
-
-	}
-
-	void EquipStatement::Rollback()
-	{
-	}
-
-	void EquipStatement::Sync()
-	{
-	}
-
-	std::shared_ptr<Transaction::Statement> Equip(const std::shared_ptr<UserSession>& session, int64_t itemNo)
-	{
-		std::shared_ptr<EquipStatement> statement = std::make_shared<EquipStatement>();
-		statement->session = session;
-
 		auto pUserData = session->GetComponent<Component::UserData>();
 		if (nullptr == pUserData)
 		{
-			return nullptr;
+			return (int)Gamnet::ErrorCode::UndefinedError;
 		}
 
 		auto pBag = pUserData->pBag;
-		/*
-		std::shared_ptr<Transaction::Statement> Suit::Equip(const std::shared_ptr<Item::Data>&item)
+		auto pItem = pBag->Find(itemNo);
+		if (nullptr == pItem)
 		{
-			const std::shared_ptr<Item::Meta>& meta = item->meta;
-			assert(nullptr != meta->Equip);
-
-			if (nullptr == item->equip)
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-			}
-
-			assert(Message::EquipItemPartType::Invalid < meta->Equip->Part && Message::EquipItemPartType::Max > meta->Equip->Part);
-
-			Unequip(meta->Equip->Part);
-
-			if (Message::EquipItemPartType::Invalid >= item->equip->part || Message::EquipItemPartType::Max <= item->equip->part)
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-			}
-
-			item_datas[(int)item->equip->part] = item;
-
-			std::shared_ptr<EquipStatement> statement = std::make_shared<EquipStatement>();
-			statement->session = session;
-			statement->item = item;
-			return statement;
-			/*
-			session->queries->Update("user_item",
-				Gamnet::Format("equip_part=", (int)meta->equip->part, ",expire_date='", item->GetExpireDate().ToString(), "'"),
-				{
-					{ "user_seq", session->user_no },
-					{ "item_seq", item->item_no }
-				}
-			);
-
-			session->on_commit.push_back([=](){
-				item->equip->part = meta->equip->part;
-				item_datas[(int)meta->equip->part] = item;
-
-				Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
-				ntf.item_seq = item->item_no;
-				Gamnet::Network::Tcp::SendMsg(session, ntf, true);
-			});
+			return (int)Gamnet::ErrorCode::UndefinedError;
 		}
 
-			*/
+		if (nullptr == pItem->equip)
+		{
+			return (int)Gamnet::ErrorCode::UndefinedError;
+		}
 
+		auto result = pBag->Remove(itemNo, 1);
+		if(false == result)
+        {
+			return (int)Gamnet::ErrorCode::UndefinedError;
+        }
+
+		auto pSuit = pUserData->pSuit;
+		auto pPrevItem = pSuit->Find(pItem->equip->part);
+		if(nullptr != pPrevItem)
+		{
+            pBag->Insert(pPrevItem);
+        }
+
+		pSuit->Equip(pItem);
+
+		std::shared_ptr<Transaction::Statement> statement = std::make_shared<Transaction::Statement>();
+		statement->Commit += [pItem](const std::shared_ptr<UserSession>& session, const std::shared_ptr<Transaction::Connection>& db) {
+            db->Execute(Gamnet::Format("UPDATE UserItem SET equip_part=", (int)pItem->equip->part, " WHERE user_no=", session->user_no, " AND item_no=", pItem->item_no));
+        };
+		statement->Rollback += [pItem, pPrevItem](const std::shared_ptr<UserSession>& session) {
+			auto pUserData = session->GetComponent<Component::UserData>();
+			auto pBag = pUserData->pBag;
+			auto pSuit = pUserData->pSuit;
+
+			if (nullptr != pPrevItem)
+			{
+				pSuit->Equip(pPrevItem);
+			}
+
+            pBag->Insert(pItem);
+		};
+		statement->Sync +=	[pItem](const std::shared_ptr<UserSession>& session) {
+            Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
+            ntf.item_no = pItem->item_no;
+            Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+        };
+		return statement;
+	}
+
+	Gamnet::Return<std::shared_ptr<Transaction::Statement>> InsertIntoBag(const std::shared_ptr<UserSession>& session, const std::shared_ptr<Item::Data>& item)
+	{
+		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+        std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
+
+		Component::Bag::InsertResult result = pBag->Insert(item);
+		if(false == result)
+        {
+            return result.error_code;
+        }
+
+		int64_t user_no = session->user_no;
+
+        std::shared_ptr<Transaction::Statement> statement = std::make_shared<Transaction::Statement>();
+		statement->Commit += [result](const std::shared_ptr<UserSession>& session, const std::shared_ptr<Transaction::Connection>& db) {
+			auto& insert_items = result.value;
+
+            std::string query = "INSERT INTO UserItem(`user_no`, `item_no`, `item_index`, `item_count`, `equip_part`, `delete_yn`) VALUES ";
+			
+            for (auto& item : insert_items)
+            {
+                query += Gamnet::Format("(", session->user_no, ",", item->item_no, ",", item->meta->Index, ",", item->count, ",0,'N'),");
+            }
+
+			query.pop_back();
+
+            db->Execute(query);
+        };
+
+		statement->Rollback += [result](const std::shared_ptr<UserSession>& session) {
+			auto& insert_items = result.value;
+
+			std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+			std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
+
+			for (std::shared_ptr<Item::Data> item : insert_items)
+			{
+				pBag->Remove(item->item_no, item->count);
+			}
+        };
+
+		statement->Sync += [result](const std::shared_ptr<UserSession>& session) {
+			auto& insert_items = result.value;
+
+			Message::Item::MsgSvrCli_AddItem_Ntf ntf;
+			for (std::shared_ptr<Item::Data> item : insert_items)
+			{
+				Message::ItemData msgItemData;
+				msgItemData.item_index = item->meta->Index;
+				msgItemData.item_no = item->item_no;
+				msgItemData.item_count = item->count;
+				ntf.item_datas.push_back(msgItemData);
+			}
+
+			if (0 < ntf.item_datas.size())
+			{
+				Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+			}
+		};
+
+        return statement;
+	}
+
+	Gamnet::Return<std::shared_ptr<Transaction::Statement>> RemoveFromBag(const std::shared_ptr<UserSession>& session, int64_t itemNo, int count)
+	{
+		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+		std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
+
+		Gamnet::Return<std::shared_ptr<Item::Data>> result = pBag->Remove(itemNo, count);
+		if (false == result)
+		{
+			return result.error_code;
+		}
+
+		auto pItemData = result.value;
+
+		std::shared_ptr<Transaction::Statement> statement = std::make_shared<Transaction::Statement>();
+		statement->Commit += [pItemData](const std::shared_ptr<UserSession>& session, const std::shared_ptr<Transaction::Connection>& db) {
+            db->Execute(
+                Gamnet::Format("UPDATE UserItem SET `item_count` = `", pItemData->count, ",`delete_yn`=", (0 == pItemData->count ? "'Y'" : "'N'"), " WHERE user_no=", session->user_no, " AND item_no=", pItemData->item_no)
+            );
+        };
+		statement->Rollback += [pItemData, count](const std::shared_ptr<UserSession>& session) {
+			std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+			std::shared_ptr<Component::Bag> pBag = pUserData->pBag;
+
+			if(nullptr == pBag->Find(pItemData->item_no))
+            {
+				pBag->Insert(pItemData);
+            }
+        
+			pItemData->count += count;
+        };
+		statement->Sync += [pItemData](const std::shared_ptr<UserSession>& session) {
+            Message::Item::MsgSvrCli_UpdateItem_Ntf ntf;
+            Message::ItemData msgItemData;
+            msgItemData.item_index = pItemData->meta->Index;
+            msgItemData.item_no = pItemData->item_no;
+            msgItemData.item_count = pItemData->count;
+            ntf.item_datas.push_back(msgItemData);
+
+            Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+        };
 		return statement;
 	}
 }
