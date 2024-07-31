@@ -75,6 +75,7 @@ namespace Handler {	namespace Item {
 	{
 		Message::Item::MsgCliSvr_SellItem_Req req;
 		req.item_no = 0;
+		/*
 		for (auto& itr : session->items)
 		{
 			auto& item = itr.second;
@@ -85,6 +86,7 @@ namespace Handler {	namespace Item {
 				break;
 			}
 		}
+		*/
 		Gamnet::Test::SendMsg(session, req);
 	}
 

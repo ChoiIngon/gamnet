@@ -79,25 +79,6 @@ void Suit::Serialize(std::list<Message::EquipItemData>& items) const
 	}
 }
 /*
-void Test_EquipItem_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
-{
-	Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
-	try {
-		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
-		}
-	}
-	catch (const Gamnet::Exception& e) {
-		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-	}
-
-}
-
-GAMNET_BIND_TEST_RECV_HANDLER(
-	TestSession, "",
-	Message::Item::MsgSvrCli_EquipItem_Ntf, Test_EquipItem_Ntf
-);
 
 void Test_UnequipItem_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
 {

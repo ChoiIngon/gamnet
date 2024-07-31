@@ -112,7 +112,6 @@ public:
 	}
 	std::map<Message::CounterType, Message::CounterData> counters;
 	std::map<int64_t, Message::MailData> mails;
-	std::map<int64_t, Message::ItemData> items;
 
 	int cheat_item_order;
 	static std::vector<int> item_index;

@@ -25,9 +25,10 @@ public :
 
 	typedef	std::list<std::shared_ptr<Item::Data>> ItemList;
 	typedef Gamnet::Return<ItemList> InsertResult;
+	typedef Gamnet::Return<std::shared_ptr<Item::Data>> RemoveResult;
 
-	InsertResult				Insert(const std::shared_ptr<Item::Data>& item);
-	Gamnet::Return<std::shared_ptr<Item::Data>>	Remove(int64_t itemNo, int count);
+	InsertResult Insert(const std::shared_ptr<Item::Data>& item);
+	RemoveResult Remove(int64_t itemNo, int count);
 	std::shared_ptr<Item::Data>	Find(int64_t itemNo);
 
 	void Serialize(std::list<Message::ItemData>& items) const;

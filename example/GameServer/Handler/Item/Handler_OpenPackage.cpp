@@ -61,6 +61,7 @@ void Test_OpenPackage_Req(const std::shared_ptr<TestSession>& session)
 {
 	Message::Item::MsgCliSvr_OpenPackage_Req req;
 	req.item_no = 0;
+	/*
 	for(auto& itr : session->items)
 	{
 		auto& item = itr.second;
@@ -71,6 +72,7 @@ void Test_OpenPackage_Req(const std::shared_ptr<TestSession>& session)
 			break;
 		}
 	}
+	*/
 	Gamnet::Test::SendMsg(session, req);
 }
 

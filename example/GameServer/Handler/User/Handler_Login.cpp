@@ -8,7 +8,6 @@
 #include "../../../idl/MessageItem.h"
 #include "../../../idl/MessageCommon.h"
 #include "../../Util/Transaction.h"
-#include "../../Component/UserData/Item.h"
 
 #include <future>
 namespace Handler { namespace User {
@@ -183,9 +182,16 @@ void Test_Login_Ans(const std::shared_ptr<TestSession>& session, const std::shar
 			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
 		
+		std::shared_ptr<Component::UserData> pUserData = std::make_shared<Component::UserData>();
+		session->AddComponent(pUserData);
+		auto pBag = pUserData->pBag;
+		
 		for (const auto& item : ans.user_data.bag)
 		{
-			session->items.insert(std::make_pair(item.item_no, item));
+			std::shared_ptr<Item::Data> data = Item::Create(item.item_index, item.item_count);
+			data->item_no = item.item_no;
+
+			pBag->Insert(data);
 		}
 	}
 	catch (const Gamnet::Exception& e) {

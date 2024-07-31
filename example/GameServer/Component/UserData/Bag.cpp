@@ -19,6 +19,13 @@ Bag::InsertResult Bag::Insert(const std::shared_ptr<Item::Data>& item)
 {
 	std::list<std::shared_ptr<Item::Data>> insert_items;
 
+	if(0 != item->item_no)
+    {
+		this->item_datas.insert(std::make_pair(item->item_no, item));
+        insert_items.push_back(item);
+		return insert_items;
+    }
+
 	const std::shared_ptr<Item::Meta>& meta = item->meta;
 
 	if (1 < meta->MaxStack)	// stackable item
@@ -59,7 +66,7 @@ std::shared_ptr<Item::Data> Bag::Find(int64_t itemNo)
 	return itr->second;
 }
 
-Gamnet::Return<std::shared_ptr<Item::Data>> Bag::Remove(int64_t itemNo, int count)
+Bag::RemoveResult Bag::Remove(int64_t itemNo, int count)
 {
 	auto pItem = Find(itemNo);
 	if (nullptr == pItem)
@@ -75,6 +82,11 @@ Gamnet::Return<std::shared_ptr<Item::Data>> Bag::Remove(int64_t itemNo, int coun
 	if (true == pItem->count.Stackable())
 	{
 		pItem->count -= count;
+	}
+	else
+	{
+		this->item_datas.erase(itemNo);
+		return pItem;
 	}
 
 	if (0 == pItem->count)
@@ -110,14 +122,19 @@ void Test_AddItem_Ntf(const std::shared_ptr<TestSession>& session, const std::sh
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
+
+		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+		auto pBag = pUserData->pBag;
+
+		for (auto& item : ntf.item_datas)
+		{
+			std::shared_ptr<Item::Data> data = Item::Create(item.item_index, item.item_count);
+			data->item_no = item.item_no;
+			pBag->Insert(data);
+		}
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-	}
-
-	for (auto& item : ntf.item_datas)
-	{
-		session->items.insert(std::make_pair((int)item.item_no, item));
 	}
 }
 
@@ -134,21 +151,26 @@ void Test_UpdateItem_Ntf(const std::shared_ptr<TestSession>& session, const std:
 		{
 			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
+
+		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+		auto pBag = pUserData->pBag;
+
+		for (auto& item : ntf.item_datas)
+		{
+			auto pItemData = pBag->Find(item.item_no);
+			if (0 == item.item_count)
+			{
+				pBag->Remove(pItemData->item_no, pItemData->count);
+			}
+			else
+			{
+				auto pItemData = pBag->Find(item.item_no);
+				pItemData->count = item.item_count;
+			}
+		}
 	}
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-	}
-
-	for (auto& item : ntf.item_datas)
-	{
-		if (0 == item.item_count)
-		{
-			session->items.erase(item.item_no);
-		}
-		else
-		{
-			session->items[item.item_no] = item;
-		}
 	}
 }
 

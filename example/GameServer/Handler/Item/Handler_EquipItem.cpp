@@ -3,6 +3,7 @@
 #include "../../Component/UserData/Bag.h"
 #include "../../Component/UserData/Item.h"
 #include "../../Component/UserData/Suit.h"
+#include "../../../idl/MessageUser.h"
 
 namespace Handler {	namespace Item {
 
@@ -19,20 +20,13 @@ void Handler_EquipItem::Recv_Req(const std::shared_ptr<UserSession>& session, co
 			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
 		
-		auto pBag = pUserData->pBag;
-		auto pItem = pBag->Find(req.item_no);
-		if (nullptr == pItem)
+		Transaction transaction(session);
+		if (false == transaction(::Item::Equip(session, req.item_no)))
 		{
+			transaction.Rollback();
 			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 		}
-		
-		if (nullptr == pItem->equip)
-		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-		}
-
-		pBag->Remove(req.item_no, 1);
-		auto pSuit = pUserData->pSuit;
+		transaction.Commit();
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -50,54 +44,88 @@ GAMNET_BIND_TCP_HANDLER(
 	HandlerStatic
 );
 
-	void Test_EquipItem_Req(const std::shared_ptr<TestSession>& session)
+void Test_EquipItem_Req(const std::shared_ptr<TestSession>& session)
+{
+	std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+	if (nullptr == pUserData)
+    {
+        throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+    }
+
+	auto pBag = pUserData->pBag;
+
+	int64_t itemNo = 0;
+	std::list<Message::ItemData> items;
+	pBag->Serialize(items);;
+	   
+	for (auto item : items)
 	{
-		Message::Item::MsgCliSvr_EquipItem_Req req;
-		req.item_no = 0;
-		for (auto& itr : session->items)
-		{
-			auto& item = itr.second;
-			auto meta = Gamnet::Singleton<::Item::Manager>::GetInstance().FindMeta(item.item_index);
-			if (Message::ItemType::Equip == meta->Type)
-			{
-				req.item_no = item.item_no;
-				break;
-			}
-		}
-		Gamnet::Test::SendMsg(session, req);
+        auto meta = Gamnet::Singleton<::Item::Manager>::GetInstance().FindMeta(item.item_index);
+        if (Message::ItemType::Equip == meta->Type)
+        {
+            itemNo = item.item_no;
+            break;
+        }
 	}
 
-	void Test_EquipItem_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
-	{
-		Message::Item::MsgSvrCli_EquipItem_Ans ans;
-		try {
-			if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
-			}
-			//		LOG(INF, "[", session->link->link_manager->name, "/", session->link->link_key, "/", session->session_key, "] Test_UserUser_EquipItemLobby_Ans");
-		}
-		catch (const Gamnet::Exception& e) {
-			LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
-		}
+	Message::Item::MsgCliSvr_EquipItem_Req req;
+	req.item_no = itemNo;
+	Gamnet::Test::SendMsg(session, req);
+}
 
-		/*
-		if (0 == ans.item_data.item_count)
+void Test_EquipItem_Ans(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+{
+	Message::Item::MsgSvrCli_EquipItem_Ans ans;
+	try {
+		if (false == Gamnet::Network::Tcp::Packet::Load(ans, packet))
 		{
-			session->items.erase(ans.item_data.item_seq);
+			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
 		}
-		else
-		{
-			session->items[ans.item_data.item_seq] = ans.item_data;
-		}
-		*/
-		session->Next();
+	}
+	catch (const Gamnet::Exception& e) {
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
 
-	GAMNET_BIND_TEST_HANDLER(
-		TestSession, "Test_Item_EquipItem",
-		Message::Item::MsgCliSvr_EquipItem_Req, Test_EquipItem_Req,
-		Message::Item::MsgSvrCli_EquipItem_Ans, Test_EquipItem_Ans
-	);
+	session->Next();
+}
+
+GAMNET_BIND_TEST_HANDLER(
+	TestSession, "Test_Item_EquipItem",
+	Message::Item::MsgCliSvr_EquipItem_Req, Test_EquipItem_Req,
+	Message::Item::MsgSvrCli_EquipItem_Ans, Test_EquipItem_Ans
+);
+
+void Test_EquipItem_Ntf(const std::shared_ptr<TestSession>& session, const std::shared_ptr<Gamnet::Network::Tcp::Packet>& packet)
+{
+	Message::Item::MsgSvrCli_EquipItem_Ntf ntf;
+	try {
+		if (false == Gamnet::Network::Tcp::Packet::Load(ntf, packet))
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::MessageFormatError, "message load fail");
+		}
+
+		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+		if (nullptr == pUserData)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+		}
+
+		auto pBag = pUserData->pBag;
+		auto pSuit = pUserData->pSuit;
+
+		auto pItem = pBag->Find(ntf.item_no);
+		pBag->Remove(pItem->item_no, pItem->count);
+		pSuit->Equip(pItem);
+	}
+	catch (const Gamnet::Exception& e) {
+		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
+	}
+
+}
+
+GAMNET_BIND_TEST_RECV_HANDLER(
+	TestSession, "",
+	Message::Item::MsgSvrCli_EquipItem_Ntf, Test_EquipItem_Ntf
+);
 
 }}
