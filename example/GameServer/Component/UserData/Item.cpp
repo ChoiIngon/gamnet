@@ -5,10 +5,7 @@
 #include <IDL/MessageItem.h>
 #include "../../UserSession.h"
 #include "Bag.h"
-#include "../UserCounter.h"
 #include "../UserData.h"
-#include "../UserData/Suit.h"
-#include "../UserData/Bag.h"
 
 namespace Item {
 

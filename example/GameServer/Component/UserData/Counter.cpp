@@ -1,24 +1,24 @@
-#include "UserCounter.h"
+#include "Counter.h"
 #include <idl/MessageUser.h>
-#include "../UserSession.h"
+#include "../../UserSession.h"
 
 namespace Component {
 
-UserCounter::Data::Data()
+Counter::Data::Data()
 	: type(Message::CounterType::Invalid)
 	, value(0)
 	, update_time(DateTime::MinValue)
 {
 }
 
-std::shared_ptr<UserCounter> UserCounter::Load(const std::shared_ptr<UserSession>& session)
+std::shared_ptr<Counter> Counter::Load(const std::shared_ptr<UserSession>& session)
 {
 	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,
 		"SELECT counter_type, counter_value, update_time FROM UserCounter WHERE user_no=", session->user_no
 	);
 
 	Message::User::MsgSvrCli_Counter_Ntf ntf;
-	std::shared_ptr<UserCounter> pUserCounter = std::make_shared<UserCounter>();
+	std::shared_ptr<Counter> pUserCounter = std::make_shared<Counter>();
 	for (auto& row : rows)
 	{
 		std::shared_ptr<Data> data = std::make_shared<Data>();

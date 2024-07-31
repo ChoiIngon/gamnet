@@ -129,7 +129,7 @@
   <ItemGroup>
     <ClCompile Include="Component\Account.cpp" />
     <ClCompile Include="Component\UserData\Bag.cpp" />
-    <ClCompile Include="Component\UserCounter.cpp" />
+    <ClCompile Include="Component\UserData\Counter.cpp" />
     <ClCompile Include="Component\Disconnect.cpp" />
     <ClCompile Include="Component\Dungeon\AStarPathFinder.cpp" />
     <ClCompile Include="Component\Dungeon\BresenhamCircle2D.cpp" />
@@ -173,7 +173,7 @@
   <ItemGroup>
     <ClInclude Include="Component\Account.h" />
     <ClInclude Include="Component\UserData\Bag.h" />
-    <ClInclude Include="Component\UserCounter.h" />
+    <ClInclude Include="Component\UserData\Counter.h" />
     <ClInclude Include="Component\Disconnect.h" />
     <ClInclude Include="Component\Dungeon\AStarPathFinder.h" />
     <ClInclude Include="Component\Dungeon\BresenhamCircle2D.h" />

@@ -1,10 +1,6 @@
 #include "Handler_Login.h"
-#include "../../Component/UserCounter.h"
 #include "../../Component/Account.h"
 #include "../../Component/UserData.h"
-#include "../../Component/UserData/Item.h"
-#include "../../Component/UserData/Bag.h"
-#include "../../Component/UserData/Suit.h"
 #include "../../../idl/MessageItem.h"
 #include "../../../idl/MessageCommon.h"
 #include "../../Util/Transaction.h"
@@ -37,7 +33,7 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		ReadAccountData(session, req.account_id, req.account_type);
 		ReadUserData(session);
 
-		auto asyncUserCounter = std::async(std::launch::async, &Component::UserCounter::Load, session);
+		auto asyncUserCounter = std::async(std::launch::async, &Component::Counter::Load, session);
 		auto asyncLoadItem = std::async(std::launch::async, &Item::Load, session);
 
 		session->AddComponent(asyncUserCounter.get());

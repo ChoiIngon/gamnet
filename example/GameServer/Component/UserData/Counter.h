@@ -9,7 +9,7 @@ class UserSession;
 
 namespace Component {
 
-class UserCounter
+class Counter
 {
 	typedef Message::CounterType Type;
 	typedef Gamnet::Time::DateTime DateTime;
@@ -25,9 +25,9 @@ class UserCounter
 	};
 
 public :
-	UserCounter() = default;
+	Counter() = default;
 
-	static std::shared_ptr<UserCounter> Load(const std::shared_ptr<UserSession>& session);
+	static std::shared_ptr<Counter> Load(const std::shared_ptr<UserSession>& session);
 private :
 	std::map<Message::CounterType, std::shared_ptr<Data>> datas;
 };
