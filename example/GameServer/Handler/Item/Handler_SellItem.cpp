@@ -18,38 +18,37 @@ namespace Handler {	namespace Item {
 
 		try {
 			LOG(DEV, "Message::Item::MsgCliSvr_SellItem_Req()");
-			//if (nullptr == session->GetComponent<Component::UserData>())
-			//{
-			//	throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-			//}
-			//
-			//auto bag = session->GetComponent<Component::Bag>();
-			/*
-			auto item = bag->Find(req.item_seq);
-			if (nullptr == item)
+			auto pUserData = session->pUserData;
+			if (0 == pUserData->user_no)
+			{
+				throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+			}
+			auto pBag = pUserData->pBag;
+
+			auto pItem = pBag->Find(req.item_no);
+			if (nullptr == pItem)
 			{
 				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 			}
-			if (nullptr == item->meta->price)
+			
+			if (nullptr == pItem->meta->Price)
 			{
 				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 			}
 
-			session->StartTransaction();
-			if(nullptr != item->equip)
+			Transaction transaction(session);
+			if (false == transaction(::Item::RemoveFromBag(session, req.item_no, req.item_count)))
 			{
-				if(Message::EquipItemPartType::Invalid != item->equip->part)
-				{
-					std::shared_ptr<Component::Suit> suit = session->GetComponent<Component::Suit>();
-					suit->Unequip(item->equip->part);
-				}
+				transaction.Rollback();
+				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
 			}
-			bag->Remove(req.item_seq, req.item_count);
 
-			std::shared_ptr<Component::UserCounter> counter = session->GetComponent<Component::UserCounter>();
-			//counter->ChangeCount(item->meta->price->type, item->meta->price->value * req.item_count);
-			//session->Commit();
-			*/
+			if(false == transaction(Component::Counter::UpdateValue(session, pItem->meta->Price->Type, pItem->meta->Price->Value * req.item_count)))
+            {
+                transaction.Rollback();
+                throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+            }
+			transaction.Commit();
 		}
 		catch (const Gamnet::Exception& e)
 		{
@@ -69,20 +68,31 @@ namespace Handler {	namespace Item {
 
 	void Test_SellItem_Req(const std::shared_ptr<TestSession>& session)
 	{
-		Message::Item::MsgCliSvr_SellItem_Req req;
-		req.item_no = 0;
-		/*
-		for (auto& itr : session->items)
+		std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+		if (nullptr == pUserData)
 		{
-			auto& item = itr.second;
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+		}
+
+		auto pBag = pUserData->pBag;
+
+		int64_t itemNo = 0;
+		std::list<Message::ItemData> items;
+		pBag->Serialize(items);
+
+		for (auto item : items)
+		{
 			auto meta = Gamnet::Singleton<::Item::Manager>::GetInstance().FindMeta(item.item_index);
 			if (Message::ItemType::Equip == meta->Type)
 			{
-				req.item_no = item.item_no;
+				itemNo = item.item_no;
 				break;
 			}
 		}
-		*/
+
+		Message::Item::MsgCliSvr_SellItem_Req req;
+		req.item_no = itemNo;
+		req.item_count = 1;
 		Gamnet::Test::SendMsg(session, req);
 	}
 

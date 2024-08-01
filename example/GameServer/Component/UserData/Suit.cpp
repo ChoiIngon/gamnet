@@ -26,6 +26,41 @@ void Suit::Equip(const std::shared_ptr<Item::Data>& item)
 	item_datas[(int)item->equip->part] = item;
 }
 
+void Suit::Unequip(Message::EquipItemPartType part)
+{
+	item_datas[(int)part] = nullptr;
+	/*
+	std::shared_ptr<UserSession> session = this->session;
+	std::shared_ptr<Item::Data> item = Find(part);
+	if (nullptr == item)
+	{
+		return;
+	}
+
+	session->queries->Update("user_item",
+		Gamnet::Format("equip_part=", (int)Message::EquipItemPartType::Invalid),
+		{
+			{ "user_seq", session->user_no },
+			{ "item_seq", item->item_no }
+		}
+	);
+
+	session->on_commit.push_back([=]()
+	{
+		item_datas[(int)part] = nullptr;
+		item->equip->part = Message::EquipItemPartType::Invalid;
+		Message::Item::MsgSvrCli_UnequipItem_Ntf ntf;
+		ntf.part_type = part;
+		Gamnet::Network::Tcp::SendMsg(session, ntf, true);
+	});
+	*/
+}
+
+std::shared_ptr<Item::Data> Suit::Find(Message::EquipItemPartType part)
+{
+	return item_datas[(int)part];
+}
+
 void Suit::Serialize(std::list<Message::EquipItemData>& items) const
 {
 	for (int i = 0; i < (int)Message::EquipItemPartType::Max; i++)
@@ -44,39 +79,8 @@ void Suit::Serialize(std::list<Message::EquipItemData>& items) const
 	}
 }
 
-	void Suit::Unequip(Message::EquipItemPartType part)
-	{
-		/*
-		std::shared_ptr<UserSession> session = this->session;
-		std::shared_ptr<Item::Data> item = Find(part);
-		if (nullptr == item)
-		{
-			return;
-		}
-		
-		session->queries->Update("user_item",
-			Gamnet::Format("equip_part=", (int)Message::EquipItemPartType::Invalid),
-			{
-				{ "user_seq", session->user_no },
-				{ "item_seq", item->item_no }
-			}
-		);
-		
-		session->on_commit.push_back([=]()
-		{
-			item_datas[(int)part] = nullptr;
-			item->equip->part = Message::EquipItemPartType::Invalid;
-			Message::Item::MsgSvrCli_UnequipItem_Ntf ntf;
-			ntf.part_type = part;
-			Gamnet::Network::Tcp::SendMsg(session, ntf, true);
-		});
-		*/
-	}
+	
 
-	std::shared_ptr<Item::Data> Suit::Find(Message::EquipItemPartType part)
-	{
-		return item_datas[(int)part];
-	}
 }
 /*
 

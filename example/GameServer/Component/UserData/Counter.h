@@ -4,6 +4,9 @@
 #include <memory>
 #include <Gamnet/Library/Time/Time.h>
 #include <idl/MessageCommon.h>
+#include <Gamnet/Library/Return.h>
+#include <Gamnet/Library/Time/Time.h>
+#include "../../Util/Transaction.h"
 
 class UserSession;
 
@@ -28,7 +31,8 @@ public :
 	Counter() = default;
 
 	static void Load(const std::shared_ptr<UserSession>& session);
-
+	static Gamnet::Return<std::shared_ptr<Transaction::Statement>> UpdateValue(const std::shared_ptr<UserSession>& session, Type type, int amount);
+	
 	void Serialize(std::list<Message::CounterData>& counter);
 private :
 	std::map<Message::CounterType, std::shared_ptr<Data>> datas;
