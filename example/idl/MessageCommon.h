@@ -576,6 +576,7 @@ struct UserData {
 	std::string	user_name;
 	std::list<ItemData >	bag;
 	std::list<EquipItemData >	suit;
+	std::list<CounterData >	counter;
 	UserData()	{
 		user_no = 0;
 	}
@@ -592,6 +593,11 @@ struct UserData {
 		for(std::list<EquipItemData >::const_iterator suit_itr = suit.begin(); suit_itr != suit.end(); suit_itr++)	{
 			const EquipItemData& suit_elmt = *suit_itr;
 			nSize += EquipItemData_Serializer::Size(suit_elmt);
+		}
+		nSize += sizeof(int32_t);
+		for(std::list<CounterData >::const_iterator counter_itr = counter.begin(); counter_itr != counter.end(); counter_itr++)	{
+			const CounterData& counter_elmt = *counter_itr;
+			nSize += CounterData_Serializer::Size(counter_elmt);
 		}
 		return nSize;
 	}
@@ -622,6 +628,12 @@ struct UserData {
 			const EquipItemData& suit_elmt = *suit_itr;
 			if(false == EquipItemData_Serializer::Store(_buf_, suit_elmt)) { return false; }
 		}
+		size_t counter_size = counter.size();
+		std::memcpy(*_buf_, &counter_size, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		for(std::list<CounterData >::const_iterator counter_itr = counter.begin(); counter_itr != counter.end(); counter_itr++)	{
+			const CounterData& counter_elmt = *counter_itr;
+			if(false == CounterData_Serializer::Store(_buf_, counter_elmt)) { return false; }
+		}
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -650,6 +662,13 @@ struct UserData {
 			EquipItemData suit_val;
 			if(false == EquipItemData_Serializer::Load(suit_val, _buf_, nSize)) { return false; }
 			suit.push_back(suit_val);
+		}
+		if(sizeof(int32_t) > nSize) { return false; }
+		uint32_t counter_length = 0; std::memcpy(&counter_length, *_buf_, sizeof(uint32_t)); (*_buf_) += sizeof(uint32_t); nSize -= sizeof(uint32_t);
+		for(uint32_t i=0; i<counter_length; i++) {
+			CounterData counter_val;
+			if(false == CounterData_Serializer::Load(counter_val, _buf_, nSize)) { return false; }
+			counter.push_back(counter_val);
 		}
 		return true;
 	}

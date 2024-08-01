@@ -51,7 +51,7 @@ void Test_EquipItem_Req(const std::shared_ptr<TestSession>& session)
 
 	int64_t itemNo = 0;
 	std::list<Message::ItemData> items;
-	pBag->Serialize(items);;
+	pBag->Serialize(items);
 	   
 	for (auto item : items)
 	{

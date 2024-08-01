@@ -538,7 +538,7 @@ namespace Item {
 		std::shared_ptr<Transaction::Statement> statement = std::make_shared<Transaction::Statement>();
 		statement->Commit += [pItemData](const std::shared_ptr<UserSession>& session, const std::shared_ptr<Transaction::Connection>& db) {
             db->Execute(
-                Gamnet::Format("UPDATE UserItem SET `item_count` = `", pItemData->count, ",`delete_yn`=", (0 == pItemData->count ? "'Y'" : "'N'"), " WHERE user_no=", session->user_no, " AND item_no=", pItemData->item_no)
+                Gamnet::Format("UPDATE UserItem SET `item_count` = ", pItemData->count, ",`delete_yn`=", (0 == pItemData->count ? "'Y'" : "'N'"), " WHERE user_no=", session->user_no, " AND item_no=", pItemData->item_no)
             );
         };
 		statement->Rollback += [pItemData, count](const std::shared_ptr<UserSession>& session) {

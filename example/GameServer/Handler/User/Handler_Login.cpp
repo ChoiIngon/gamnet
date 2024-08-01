@@ -33,15 +33,8 @@ void Handler_Login::Recv_Req(const std::shared_ptr<UserSession>& session, const 
 		ReadAccountData(session, req.account_id, req.account_type);
 		ReadUserData(session);
 
-		std::shared_ptr<Component::Account> pAccount = session->pAccount;
 		std::shared_ptr<Component::UserData> pUserData = session->pUserData;
-		auto pBag = pUserData->pBag;
-		auto pSuit = pUserData->pSuit;
-
-		ans.user_data.user_no = pAccount->user_no;
-		ans.user_data.user_name = pUserData->user_name;
-		pBag->Serialize(ans.user_data.bag);
-		pSuit->Serialize(ans.user_data.suit);
+		pUserData->Serialize(ans.user_data);
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -145,6 +138,7 @@ void Handler_Login::ReadUserData(const std::shared_ptr<UserSession>& session)
 	}
 
 	auto pUserData = session->pUserData;
+	pUserData->user_no = session->user_no;
 	pUserData->user_name = row->getString("user_name");
 	pUserData->offline_time = row->getString("offline_time");
 

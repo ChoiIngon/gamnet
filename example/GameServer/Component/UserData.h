@@ -14,6 +14,7 @@ namespace Component
 	public:
 		UserData();
 
+		int64_t						user_no;	
 		std::string					user_name;
 		Gamnet::Time::DateTime		offline_time;
 
@@ -46,6 +47,8 @@ namespace Component
 		{
 			components.RemoveComponent<T>();
 		}
+
+		void Serialize(Message::UserData& userData);
 	private:
 		Gamnet::Component components;
 	};

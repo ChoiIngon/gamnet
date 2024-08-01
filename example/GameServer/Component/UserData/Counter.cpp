@@ -12,6 +12,18 @@ Counter::Data::Data()
 {
 }
 
+void Counter::Serialize(std::list<Message::CounterData>& counter)
+{
+    for (auto& pair : datas)
+    {
+        Message::CounterData counterData;
+        counterData.counter_type = pair.first;
+        counterData.counter_value = pair.second->value;
+		counterData.update_time = pair.second->update_time.ToUnixTimestamp();
+        counter.push_back(counterData);
+    }
+}
+
 void Counter::Load(const std::shared_ptr<UserSession>& session)
 {
 	Gamnet::Database::MySQL::ResultSet rows = Gamnet::Database::MySQL::Execute(session->shard_index,

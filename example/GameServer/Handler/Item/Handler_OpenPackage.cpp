@@ -5,14 +5,6 @@
 
 namespace Handler { namespace Item {
 
-Handler_OpenPackage::Handler_OpenPackage()
-{
-}
-
-Handler_OpenPackage::~Handler_OpenPackage()
-{
-}
-
 void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, const Message::Item::MsgCliSvr_OpenPackage_Req& req)
 {
 	Message::Item::MsgSvrCli_OpenPackage_Ans ans;
@@ -20,26 +12,48 @@ void Handler_OpenPackage::Recv_Req(const std::shared_ptr<UserSession>& session, 
 	
 	try {
 		LOG(DEV, "Message::Item::MsgCliSvr_OpenPackage_Req()");
-		//if(nullptr == session->GetComponent<Component::UserData>())
-		//{
-		//	throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
-		//}
-		//
-		//auto bag = session->GetComponent<Component::Bag>();
-		/*
-		auto item = bag->Find(req.item_seq);
-		if(nullptr == item)
+		auto pUserData = session->pUserData;
+		if(0 == pUserData->user_no)
 		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
-		if(nullptr == item->package)
+
+		auto pBag = pUserData->pBag;
+		auto pItem = pBag->Find(req.item_no);
+		if (nullptr == pItem)
 		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
 		}
-		session->StartTransaction();
-		item->package->Open();
-		session->Commit();
-		*/
+
+		if (nullptr == pItem->package)
+        {
+            throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+        }
+
+		Transaction transaction(session);
+		
+		if (false == transaction(::Item::RemoveFromBag(session, req.item_no, 1)))
+		{
+			transaction.Rollback();
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+		}
+		
+		auto pItemMeta = pItem->meta;
+		for (const auto package : pItemMeta->Package)
+        {
+			std::shared_ptr<::Item::Data> data = ::Item::Create(package->Code, package->Count);
+			if (nullptr == data)
+			{
+				continue;
+			}
+
+            if (false == transaction(::Item::InsertIntoBag(session, data)))
+            {
+                transaction.Rollback();
+                throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+            }
+        }
+		transaction.Commit();
 	}
 	catch (const Gamnet::Exception& e)
 	{
@@ -59,20 +73,31 @@ GAMNET_BIND_TCP_HANDLER(
 
 void Test_OpenPackage_Req(const std::shared_ptr<TestSession>& session)
 {
-	Message::Item::MsgCliSvr_OpenPackage_Req req;
-	req.item_no = 0;
-	/*
-	for(auto& itr : session->items)
+	std::shared_ptr<Component::UserData> pUserData = session->GetComponent<Component::UserData>();
+	if (nullptr == pUserData)
 	{
-		auto& item = itr.second;
+		throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+	}
+
+	auto pBag = pUserData->pBag;
+
+	int64_t itemNo = 0;
+	std::list<Message::ItemData> items;
+	pBag->Serialize(items);
+
+
+	for (auto item : items)
+	{
 		auto meta = Gamnet::Singleton<::Item::Manager>::GetInstance().FindMeta(item.item_index);
-		if(Message::ItemType::Package == meta->Type)
+		if (Message::ItemType::Package == meta->Type)
 		{
-			req.item_no = item.item_no;
+			itemNo = item.item_no;
 			break;
 		}
 	}
-	*/
+
+	Message::Item::MsgCliSvr_OpenPackage_Req req;
+	req.item_no = itemNo;
 	Gamnet::Test::SendMsg(session, req);
 }
 
@@ -89,17 +114,6 @@ void Test_OpenPackage_Ans(const std::shared_ptr<TestSession>& session, const std
 	catch (const Gamnet::Exception& e) {
 		LOG(Gamnet::Log::Logger::LOG_LEVEL_ERR, e.what());
 	}
-
-	/*
-	if(0 == ans.item_data.item_count)
-	{
-		session->items.erase(ans.item_data.item_seq);
-	}
-	else
-	{
-		session->items[ans.item_data.item_seq] = ans.item_data;
-	}
-	*/
 	session->Next();
 }
 

@@ -28,6 +28,8 @@ public :
 	Counter() = default;
 
 	static void Load(const std::shared_ptr<UserSession>& session);
+
+	void Serialize(std::list<Message::CounterData>& counter);
 private :
 	std::map<Message::CounterType, std::shared_ptr<Data>> datas;
 };

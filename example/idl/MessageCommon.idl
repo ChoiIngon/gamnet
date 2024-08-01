@@ -116,6 +116,7 @@ struct UserData
 	string user_name;
 	list<ItemData> bag;
 	list<EquipItemData> suit;
+	list<CounterData> counter;
 };
 
 struct Vector2Int
