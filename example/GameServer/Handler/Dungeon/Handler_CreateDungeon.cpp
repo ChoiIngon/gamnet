@@ -25,24 +25,41 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 	
 	try {
 		LOG(DEV, "Message::Dungeon::MsgCliSvr_CreateDungeon_Req()");
-		
-		std::shared_ptr<Component::Unit::Data> player = Component::Unit::CreatePlayer(session, "Player1");
-		std::shared_ptr<Component::Dungeon::Data> dungeon = Component::Dungeon::Enter(session, 1);
+		auto pUserData = session->pUserData;
+		if (0 == pUserData->user_no)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+		}
 
-		Vector2Int start = dungeon->start->rect.Center();
-		Vector2Int end = dungeon->end->rect.Center();
+		std::shared_ptr<Component::Dungeon::Data> pDungeon = Component::Dungeon::Enter(session, req.dungeon_index);
+		if (nullptr == pDungeon)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+		}
 
-		ans.width = dungeon->GetRect().width;
-		ans.height = dungeon->GetRect().height;
-		for (auto tile : dungeon->GetAllTiles())
+		std::shared_ptr<Component::Unit::Data> pPlayer = Component::Unit::CreatePlayer(session, req.player_index);
+		if(nullptr == pPlayer)
+		{
+			throw GAMNET_EXCEPTION(Message::ErrorCode::InvalidUserError);
+		}
+
+		pUserData->AddComponent(pDungeon);
+		pUserData->AddComponent(pPlayer);
+
+		Vector2Int start = pDungeon->start->rect.Center();
+		Vector2Int end = pDungeon->end->rect.Center();
+
+		ans.width = pDungeon->GetRect().width;
+		ans.height = pDungeon->GetRect().height;
+		for (auto tile : pDungeon->GetAllTiles())
 		{
 			ans.tiles.push_back(tile->type);
 		}
 		
-		ans.unit_seq = player->seq;
-		ans.position = Message::Vector2Int(player->position.x, player->position.y);
+		ans.unit_seq = pPlayer->seq;
+		ans.position = Message::Vector2Int(pPlayer->position.x, pPlayer->position.y);
 
-		for(auto itr : dungeon->sessions)
+		for(auto itr : pDungeon->sessions)
 		{
 			std::shared_ptr<UserSession> user = itr.second;
 			if(user == session)
@@ -76,7 +93,7 @@ void Handler_CreateDungeon::Recv_Req(const std::shared_ptr<UserSession>& session
 		dungeon->monster.insert(std::make_pair(monster->seq, monster));
 		*/
 		
-		for(auto itr : dungeon->monster)
+		for(auto itr : pDungeon->monster)
 		{
 			std::shared_ptr<Component::Unit::Data> unit = itr.second;
 			Message::Monster enemy;
@@ -105,6 +122,8 @@ GAMNET_BIND_TCP_HANDLER(
 void Test_CreateDungeon_Req(const std::shared_ptr<TestSession>& session)
 {
 	Message::Dungeon::MsgCliSvr_CreateDungeon_Req req;
+	req.player_index = 1;
+	req.dungeon_index = 1;
 	Gamnet::Test::SendMsg(session, req);
 }
 

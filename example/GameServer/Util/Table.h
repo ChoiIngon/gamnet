@@ -214,6 +214,8 @@ public :
 		bool Read(const std::string& filePath)
 		{
 			meta_datas.clear();
+			Table::table_name = filePath;
+			Table::errors.clear();
 
 			CSVReader csv;
 			if (false == csv.ReadFile(filePath))
@@ -226,12 +228,15 @@ public :
 			{
 				headers.push_back(ReadHeader(name));
 			}
+			
+			
+			int rowNum = 3; // 3라인 부터 데이터 시작
 
-			// read data rows
-			int rowNum = 1;
 			for (auto itr : csv)
 			{
 				std::shared_ptr<T> meta = std::make_shared<T>();
+
+				Table::row_num = rowNum;
 
 				for (int i = 0; i < headers.size(); i++)
 				{
@@ -243,11 +248,22 @@ public :
 					meta->Init(cell);
 				}
 
+				rowNum++;
+
 				meta->OnLoad();
 				meta_datas.push_back(meta);
-				rowNum++;
 			}
 
+			if (0 < Table::errors.size())
+			{
+				for (const std::string& error : errors)
+				{
+					Gamnet::Log::Write(Gamnet::Log::Logger::LOG_LEVEL_ERR, "ERR ", error);
+				}
+
+				meta_datas.clear();
+				return false;
+			}
 			return true;
 		}
 
@@ -301,6 +317,21 @@ public :
 
 		MetaDatas meta_datas;
 	};
+
+	static void Assert(bool condition, const std::string& what)
+	{
+		if (true == condition)
+		{
+			return;
+		}
+		
+		Table::errors.push_back(Gamnet::Format("Meta Table Assert(", what, ") - table:", table_name, ", row_num:", row_num));
+	}
+private :
+	static std::string table_name;
+	static std::string column_name;
+	static int row_num;
+	static std::list<std::string> errors;
 };
 
 template <class T>
@@ -308,5 +339,8 @@ std::map<std::string, std::shared_ptr<typename Table::MetaData<T>::MemberPropert
 
 #define META_MEMBER(member, ...) \
 	Bind(#member, member, __VA_ARGS__)
+
+#define META_ASSERT(condition) \
+	Table::Assert(condition, #condition);
 
 #endif

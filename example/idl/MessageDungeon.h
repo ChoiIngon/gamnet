@@ -13,10 +13,16 @@ namespace Message{ namespace Dungeon {
 
 struct MsgCliSvr_CreateDungeon_Req {
 	enum { MSG_ID = 040000001 }; 
+	int32_t	player_index;
+	int32_t	dungeon_index;
 	MsgCliSvr_CreateDungeon_Req()	{
+		player_index = 0;
+		dungeon_index = 0;
 	}
 	size_t Size() const {
 		size_t nSize = 0;
+		nSize += sizeof(int32_t);
+		nSize += sizeof(int32_t);
 		return nSize;
 	}
 	bool Store(std::vector<char>& _buf_) const {
@@ -30,6 +36,8 @@ struct MsgCliSvr_CreateDungeon_Req {
 		return true;
 	}
 	bool Store(char** _buf_) const {
+		std::memcpy(*_buf_, &player_index, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
+		std::memcpy(*_buf_, &dungeon_index, sizeof(int32_t)); (*_buf_) += sizeof(int32_t);
 		return true;
 	}
 	bool Load(const std::vector<char>& _buf_) {
@@ -40,6 +48,8 @@ struct MsgCliSvr_CreateDungeon_Req {
 		return true;
 	}
 	bool Load(const char** _buf_, size_t& nSize) {
+		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&player_index, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
+		if(sizeof(int32_t) > nSize) { return false; }	std::memcpy(&dungeon_index, *_buf_, sizeof(int32_t));	(*_buf_) += sizeof(int32_t); nSize -= sizeof(int32_t);
 		return true;
 	}
 }; //MsgCliSvr_CreateDungeon_Req

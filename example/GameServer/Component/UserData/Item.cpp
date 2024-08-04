@@ -118,22 +118,20 @@ namespace Item {
 
 	void Meta::OnLoad() 
 	{
-		if(Message::ItemType::Equip == Type && nullptr == Equip)
+		META_ASSERT("" != Code);
+		META_ASSERT(0 != Index);
+		
+		if(Message::ItemType::Equip == Type)
 		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+			META_ASSERT(nullptr != Equip);
 		}
-		if(Message::ItemType::Package == Type && 0 == Package.size())
+
+		if(Message::ItemType::Package == Type)
 		{
-			throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-		}
-		if(nullptr != Expire)
-		{
-			if(Expire::ETriggerType::None == Expire->TriggerType || Expire::EExpireType::Infinite == Expire->ExpireType)
-			{
-				throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
-			}
+			META_ASSERT(0 < Package.size());
 		}
 	}
+
 	void Meta::OnItemType(Message::ItemType& itemType, const std::string& value)
 	{
 		itemType = Message::Parse<Message::ItemType>(value);

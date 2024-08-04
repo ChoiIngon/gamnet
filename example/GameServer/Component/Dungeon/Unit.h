@@ -19,14 +19,14 @@ namespace Component { namespace Unit {
 	{
 	public :
 		std::string Code;
-		uint32_t	Index;
-		int MaxHealth;
-		int Attack;
-		int Defense;
-		int Speed;
-		int Sight;
-		float CriChance;
-		float CriRate;
+		int			Index;
+		int			MaxHealth;
+		int			Attack;
+		int			Defense;
+		int			Speed;
+		int			Sight;
+		float		CriChance;
+		float		CriRate;
 
 		std::shared_ptr<Component::Monster::Meta> Monster;
 
@@ -79,6 +79,6 @@ namespace Component { namespace Unit {
 		std::map<std::string, std::shared_ptr<Meta>> code_metas;
 	};
 
-	std::shared_ptr<Unit::Data> CreatePlayer(std::shared_ptr<UserSession> seesion, const std::string& id);
+	std::shared_ptr<Unit::Data> CreatePlayer(std::shared_ptr<UserSession> seesion, int index);
 }}
 #endif

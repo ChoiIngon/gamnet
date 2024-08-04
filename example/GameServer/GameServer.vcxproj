@@ -162,6 +162,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Component\UserData\Item.cpp" />
     <ClCompile Include="UserSession.cpp" />
+    <ClCompile Include="Util\Table.cpp" />
     <ClCompile Include="Util\Transaction.cpp" />
   </ItemGroup>
   <ItemGroup>

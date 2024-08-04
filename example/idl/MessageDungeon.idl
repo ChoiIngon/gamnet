@@ -8,6 +8,8 @@ namespace Message { namespace Dungeon {
 
 message MsgCliSvr_CreateDungeon_Req : 040000001
 {
+	int32 player_index;
+	int32 dungeon_index;
 };
 
 message MsgSvrCli_CreateDungeon_Ans : 040000001
