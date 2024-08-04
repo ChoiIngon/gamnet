@@ -161,7 +161,6 @@
     <ClCompile Include="Handler\Dungeon\Handler_CreateDungeon.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Component\UserData\Item.cpp" />
-    <ClCompile Include="Util\MetaData.cpp" />
     <ClCompile Include="UserSession.cpp" />
     <ClCompile Include="Util\Transaction.cpp" />
   </ItemGroup>
@@ -207,7 +206,7 @@
     <ClInclude Include="Handler\Lobby\Handler_Join.h" />
     <ClInclude Include="Component\UserData\Item.h" />
     <ClInclude Include="Handler\Dungeon\Handler_CreateDungeon.h" />
-    <ClInclude Include="Util\MetaData.h" />
+    <ClInclude Include="Util\Table.h" />
     <ClInclude Include="UserSession.h" />
     <ClInclude Include="Util\Transaction.h" />
   </ItemGroup>

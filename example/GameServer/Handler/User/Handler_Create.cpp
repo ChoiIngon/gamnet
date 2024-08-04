@@ -1,14 +1,14 @@
 #include "Handler_Create.h"
 
 #include "../../Component/Account.h"
-#include "../../Util/MetaData.h"
+#include "../../Util/Table.h"
 
 namespace Handler { namespace User {
 
 class ShardIndex
 {
 public:
-	struct ShardData : public MetaData
+	struct ShardData : public Table::MetaData<ShardData>
 	{
 		ShardData();
 
@@ -24,7 +24,7 @@ public:
 	int Generate();
 private:
 	std::atomic<int> shard_mod;
-	MetaReader<ShardData> meta_reader;
+	Table::MetaReader<ShardData> meta_reader;
 };
 
 
@@ -100,14 +100,14 @@ ShardIndex::ShardData::ShardData()
 
 void ShardIndex::Init()
 {
-	const auto& metas = meta_reader.Read("../MetaData/Shard.csv");
-	int shard_count = (int)metas.size();
+	meta_reader.Read("../MetaData/Shard.csv");
+	int shard_count = (int)meta_reader.Count();
 	if (0 == shard_count)
 	{
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "no user database");
 	}
 
-	for (auto& meta : metas)
+	for (auto& meta : meta_reader)
 	{
 		if (false == Gamnet::Database::MySQL::Connect((int)DatabaseType::User + meta->ShardIndex, meta->MasterIP, meta->MasterPort, meta->User, meta->Password, meta->DBName, false))
 		{
@@ -119,14 +119,13 @@ void ShardIndex::Init()
 
 int ShardIndex::Generate()
 {
-	const auto& metas = meta_reader.GetAllMetaData();
-	size_t shard_count = metas.size();
+	size_t shard_count = meta_reader.Count();
 	if (0 == shard_count)
 	{
 		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError, "no user database");
 	}
 
-	return (int)DatabaseType::User + metas[shard_mod++ % shard_count]->ShardIndex;
+	return (int)DatabaseType::User + meta_reader[shard_mod++ % shard_count]->ShardIndex;
 }
 
 GAMNET_BIND_INIT_HANDLER(ShardIndex, Init);

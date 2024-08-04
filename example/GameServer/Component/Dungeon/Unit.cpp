@@ -33,6 +33,20 @@ Meta::Meta()
 	META_MEMBER(Monster);
 }
 
+void 
+Meta::OnLoad()
+{
+	if ("" == Code)
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+	}
+
+	if (0 == Index)
+	{
+		throw GAMNET_EXCEPTION(Message::ErrorCode::UndefineError);
+	}
+}
+
 Data::Data()
 	: dungeon(nullptr)
 	, seq(++UNIT_SEQ)
@@ -79,9 +93,9 @@ void Manager::Init()
 
 void Manager::InitMeta(const std::string& path)
 {
-	MetaReader<Meta> reader;
-	auto& rows = reader.Read(path);
-	for (auto& row : rows)
+	Table::MetaReader<Meta> reader;
+	reader.Read(path);
+	for (auto& row : reader)
 	{
 		if (false == code_metas.insert(std::make_pair(row->Code, row)).second)
 		{

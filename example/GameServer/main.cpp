@@ -1,5 +1,19 @@
 #include "UserSession.h"
 #include <boost/program_options.hpp>
+#include <functional>
+#include "Util/Table.h"
+class A
+{
+public:
+	void addAndPrint(int a, int b)
+	{
+		int sum = a + b;
+		std::cout << "sum:" << sum << std::endl;
+	}
+
+};
+
+
 
 int main(int argc, char** argv) 
 {

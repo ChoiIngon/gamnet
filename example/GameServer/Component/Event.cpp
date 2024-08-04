@@ -26,18 +26,13 @@ namespace Component {
 		}
 	}
 
-	void Manager_Event::Init()
-	{
-		GAMNET_CALL_INIT_HANDLER(Item::Manager);
-		//reader.Read("../MetaData/Event.csv");
-	}
+	//void Manager_Event::Init()
+	//{
+	//	GAMNET_CALL_INIT_HANDLER(Item::Manager);
+	//	//reader.Read("../MetaData/Event.csv");
+	//}
 
-	const MetaReader<EventMeta>::MetaDatas& Manager_Event::GetAllMetaData() const
-	{
-		return reader.GetAllMetaData();
-	}
-
-	GAMNET_BIND_INIT_HANDLER(Manager_Event, Init);
+	//GAMNET_BIND_INIT_HANDLER(Manager_Event, Init);
 
 	Event::Event(const std::shared_ptr<UserSession>& session)
 		: session(session)
@@ -46,7 +41,8 @@ namespace Component {
 
 	void Event::Load()
 	{
-		const MetaReader<EventMeta>::MetaDatas& metas = Gamnet::Singleton<Manager_Event>::GetInstance().GetAllMetaData();
+		/*
+		const Table::MetaReader<EventMeta>::MetaDatas& metas = Gamnet::Singleton<Manager_Event>::GetInstance().GetAllMetaData();
 		if(metas.size() > events.size())
 		{
 			auto rows = Gamnet::Database::MySQL::Execute(session->shard_index,
@@ -64,7 +60,6 @@ namespace Component {
 
 		for (auto& meta : metas)
 		{
-			/*
 			auto itemMeta = Gamnet::Singleton<Item::Manager>::GetInstance().FindMeta(meta->item_id);
 			auto itr = events.find(meta->index);
 			if (events.end() == itr)
@@ -98,7 +93,8 @@ namespace Component {
 					Mail::SendMail(session, mailData);
 				}
 			}
-			*/
+			
 		}
+		*/
 	}
 }

@@ -1,7 +1,7 @@
 #ifndef _MONSTER_H_
 #define _MONSTER_H_
 
-#include "../../../Util/MetaData.h"
+#include "../../../Util/Table.h"
 #include "../Vector2.h"
 #include "MonsterAction.h"
 
@@ -14,7 +14,7 @@ namespace Component { namespace Dungeon {
 }}
 
 namespace Component { namespace Monster {
-	class Meta : public MetaData
+	class Meta : public Table::MetaData<Meta>
 	{
 	public :
 		Meta();

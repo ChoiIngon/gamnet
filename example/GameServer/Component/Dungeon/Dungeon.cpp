@@ -533,9 +533,9 @@ namespace Component { namespace Dungeon {
 	}
 	void Manager::Init()
 	{
-		MetaReader<Meta> reader;
-		auto& rows = reader.Read("../MetaData/Dungeon.csv");
-		for (auto& row : rows)
+		Table::MetaReader<Meta> reader;
+		reader.Read("../MetaData/Dungeon.csv");
+		for (auto& row : reader)
 		{
 			if (false == id_metas.insert(std::make_pair(row->Code, row)).second)
 			{

@@ -3,13 +3,13 @@
 
 #include <memory>
 #include <Gamnet/Library/Time/Time.h>
-#include "../Util/MetaData.h"
+#include "../Util/Table.h"
 
 class UserSession;
 
 namespace Component {
 	
-	struct EventMeta : public MetaData
+	struct EventMeta : public Table::MetaData<EventMeta>
 	{
 		EventMeta();
 
@@ -22,15 +22,16 @@ namespace Component {
 		int item_count;
 	};
 
+	/*
 	class Manager_Event 
 	{
 	public :
 		void Init();
-		const MetaReader<EventMeta>::MetaDatas& GetAllMetaData() const;
+		const Table::MetaReader<EventMeta>::MetaDatas& GetAllMetaData() const;
 	private :
-		MetaReader<EventMeta> reader;
+		Table::MetaReader<EventMeta> reader;
 	};
-
+	*/
 	class Event
 	{
 	public :

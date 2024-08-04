@@ -8,6 +8,7 @@
 
 
 namespace Component { namespace Monster {
+
 Meta::Meta()
 	: id("")
 	, index(0)
@@ -17,7 +18,7 @@ Meta::Meta()
 	META_MEMBER(id);
 	META_MEMBER(index);
 	META_MEMBER(name);
-	META_CUSTOM(behaviour, Meta::OnBehaviourPath);
+	META_MEMBER(behaviour, &Meta::OnBehaviourPath);
 }
 
 bool Meta::IsVisible(std::shared_ptr<Unit::Data>& self, const Vector2Int& target)

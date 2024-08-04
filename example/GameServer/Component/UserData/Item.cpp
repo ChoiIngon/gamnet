@@ -15,7 +15,7 @@ namespace Item {
 		, Defense(0)
 		, Speed(0)
 	{
-		META_CUSTOM(Part, Equip::OnPartType);
+		META_MEMBER(Part, &Equip::OnPartType);
 		META_MEMBER(Attack);
 		META_MEMBER(Defense);
 		META_MEMBER(Speed);
@@ -30,7 +30,7 @@ namespace Item {
 		: Type(Message::CounterType::Invalid)
 		, Value(0)
 	{
-		META_CUSTOM(Type, Price::OnPriceType);
+		META_MEMBER(Type, &Price::OnPriceType);
 		META_MEMBER(Value);
 	}
 
@@ -45,8 +45,8 @@ namespace Item {
 		, Time(0)
 		, Date(0)
 	{
-		META_CUSTOM(TriggerType, Expire::OnTriggerType);
-		META_CUSTOM(ExpireType, Expire::OnExpireType);
+		META_MEMBER(TriggerType, &Expire::OnTriggerType);
+		META_MEMBER(ExpireType, &Expire::OnExpireType);
 		META_MEMBER(Time);
 		META_MEMBER(Date);
 	}
@@ -107,7 +107,7 @@ namespace Item {
 	{
 		META_MEMBER(Code);
 		META_MEMBER(Index);
-		META_CUSTOM(Type, Meta::OnItemType);
+		META_MEMBER(Type, &Meta::OnItemType);
 		META_MEMBER(Grade);
 		META_MEMBER(MaxStack);
 		META_MEMBER(Equip);
@@ -267,9 +267,9 @@ namespace Item {
 
 	void Manager::InitMeta(const std::string& path)
 	{
-		MetaReader<Meta> reader;
-		auto& rows = reader.Read(path);
-		for (auto& row : rows)
+		Table::MetaReader<Meta> reader;
+		reader.Read(path);
+		for (auto& row : reader)
 		{
 			if (false == id_metas.insert(std::make_pair(row->Code, row)).second)
 			{

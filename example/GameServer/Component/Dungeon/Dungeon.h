@@ -9,7 +9,7 @@
 #include <memory>
 #include "Rect.h"
 #include "TileMap.h"
-#include "../../Util/MetaData.h"
+#include "../../Util/Table.h"
 #include <idl/MessageCommon.h>
 #include <idl/MessageDungeon.h>
 
@@ -18,9 +18,9 @@ class UserSession;
 
 namespace Component { namespace Dungeon {
 	class Data;
-	struct Meta : public std::enable_shared_from_this<Meta>, public MetaData
+	struct Meta : public std::enable_shared_from_this<Meta>, public Table::MetaData<Meta>
 	{
-		struct Room : public MetaData
+		struct Room : public Table::MetaData<Room>
 		{
 			Room();
 			int Count;
@@ -30,7 +30,7 @@ namespace Component { namespace Dungeon {
 			int MaxHeight;
 		};
 
-		struct Monster : public MetaData
+		struct Monster : public Table::MetaData<Monster>
 		{
 			Monster();
 			std::string Code;

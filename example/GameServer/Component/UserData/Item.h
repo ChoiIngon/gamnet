@@ -3,7 +3,7 @@
 
 #include <Gamnet/Library/Time/Time.h>
 #include <idl/MessageCommon.h>
-#include "../../Util/MetaData.h"
+#include "../../Util/Table.h"
 #include "../../Util/Transaction.h"
 
 class UserSession;
@@ -11,9 +11,9 @@ class UserSession;
 namespace Item 
 {
 	class Data;
-	struct Meta : public std::enable_shared_from_this<Meta>, public MetaData
+	struct Meta : public std::enable_shared_from_this<Meta>, public Table::MetaData<Meta>
 	{
-		struct Equip : public MetaData
+		struct Equip : public Table::MetaData<Equip>
 		{
 			Equip();
 
@@ -26,7 +26,7 @@ namespace Item
 			void OnPartType(Message::EquipItemPartType& part, const std::string& value);
 		};
 
-		struct Price : public MetaData
+		struct Price : public Table::MetaData<Price>
 		{
 			Price();
 
@@ -37,7 +37,7 @@ namespace Item
 			void OnPriceType(Message::CounterType& type, const std::string& value);
 		};
 
-		struct Expire : public MetaData
+		struct Expire : public Table::MetaData<Expire>
 		{
 			enum class ETriggerType
 			{
@@ -67,7 +67,7 @@ namespace Item
 			void OnExpireType(EExpireType& expireType, const std::string& value);
 		};
 
-		struct Package : public MetaData
+		struct Package : public Table::MetaData<Package>
 		{
 			Package();
 

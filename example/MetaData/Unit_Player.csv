@@ -1,3 +1,3 @@
-﻿Name,ID,Index,Max_Health,Attack,Defense,Speed,Critical_Chance,Critical_rate,Sight
+﻿Name,Code,Index,MaxHealth,Attack,Defense,Speed,CriChance,CriRate,Sight
 Text,Text,Int,Int,Int,Int,Int,Float,Float,Int
 Player1,Player1,1000001,10,1,1,1,0.1,2,10

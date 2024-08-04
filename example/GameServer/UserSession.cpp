@@ -101,18 +101,18 @@ std::vector<int> TestSession::item_index = [](){
 	std::vector<int> item_index;
 	
 	{
-		MetaReader<Item::Meta> reader;
-		auto& rows = reader.Read("../MetaData/Item.csv");
-		for (auto& row : rows)
+		Table::MetaReader<Item::Meta> reader;
+		reader.Read("../MetaData/Item.csv");
+		for (auto& row : reader)
 		{
 			item_index.push_back(row->Index);
 		}
 	}
 
 	{
-		MetaReader<Item::Meta> reader;
-		auto& rows = reader.Read("../MetaData/EquipItem.csv");
-		for (auto& row : rows)
+		Table::MetaReader<Item::Meta> reader;
+		reader.Read("../MetaData/EquipItem.csv");
+		for (auto& row : reader)
 		{
 			item_index.push_back(row->Index);
 		}

@@ -6,7 +6,7 @@
 #include "Unit/BehaviourTree.h"
 #include "Vector2.h"
 #include "AStarPathFinder.h"
-#include "../../Util/MetaData.h"
+#include "../../Util/Table.h"
 #include <string>
 #include "Unit/Monster.h"
 
@@ -15,7 +15,7 @@ namespace Component { namespace Dungeon {
 }}
 
 namespace Component { namespace Unit {
-	class Meta : public MetaData
+	class Meta : public Table::MetaData<Meta>
 	{
 	public :
 		std::string Code;
@@ -31,6 +31,8 @@ namespace Component { namespace Unit {
 		std::shared_ptr<Component::Monster::Meta> Monster;
 
 		Meta();
+
+		virtual void OnLoad() override;
 	};
 
 	class Data : public std::enable_shared_from_this<Data>, public Gamnet::Component
