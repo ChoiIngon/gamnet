@@ -196,6 +196,7 @@
     <ClInclude Include="Handler\Item\Handler_SellItem.h" />
     <ClInclude Include="Handler\Handler_Cheat.h" />
     <ClInclude Include="Util\Cheat.h" />
+    <ClInclude Include="Util\Coroutine.h" />
     <ClInclude Include="Util\CSVReader.h" />
     <ClInclude Include="Handler\Dungeon\Handler_PlayerMove.h" />
     <ClInclude Include="Handler\Http\Handler_ServerState.h" />
